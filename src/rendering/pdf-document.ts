@@ -223,7 +223,7 @@ class PDFDocument extends PDFKit {
 		return null;
 	}
 
-	provideAttachment(src: string | AttachmentDefinition): AttachmentDefinition | FontFile {
+	provideAttachment(src: string | AttachmentDefinition): AttachmentDefinition {
 		const checkRequired = (obj: unknown): AttachmentDefinition => {
 			if (!obj || typeof obj !== "object") {
 				throw new Error("No attachment");
@@ -243,7 +243,7 @@ class PDFDocument extends PDFKit {
 
 		if (this.virtualfs && isString(attachment.src) && this.virtualfs.existsSync(attachment.src)) {
 			const file = this.virtualfs.readFileSync(attachment.src);
-			return file;
+			return { ...attachment, src: file };
 		}
 
 		this.validateLocalFile(attachment.src);
@@ -287,6 +287,11 @@ class PDFDocument extends PDFKit {
 		options: PDFKit.Mixins.PDFAttachmentOptions = {},
 	): this {
 		this.validateLocalFile(src);
+		const inMemorySource =
+			src instanceof Uint8Array || src instanceof ArrayBuffer || /^data:.*;base64,/.test(src);
+		if (inMemorySource && !(options.creationDate instanceof Date)) {
+			options = { ...options, creationDate: new Date(0) };
+		}
 
 		return super.file(src instanceof Uint8Array ? toArrayBuffer(src) : src, options);
 	}

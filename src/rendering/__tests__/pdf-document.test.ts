@@ -122,7 +122,9 @@ describe("PDFDocument", function () {
 				virtualfs,
 			);
 
-			expect(document.provideAttachment("report")).toEqual(new Uint8Array([1, 2, 3]));
+			expect(document.provideAttachment("report")).toEqual({
+				src: new Uint8Array([1, 2, 3]),
+			});
 		});
 	});
 
@@ -153,6 +155,15 @@ describe("PDFDocument", function () {
 	});
 
 	describe("document actions and local access", function () {
+		it("reuses in-memory attachments without PDFKit date errors", function () {
+			const source = "data:text/plain;base64,SGVsbG8=";
+
+			expect(() => {
+				pdfDocument.file(source, { name: "hello.txt" });
+				pdfDocument.file(source, { name: "hello.txt" });
+			}).not.toThrow();
+		});
+
 		it("sets the print open action", function () {
 			const action = { end: vi.fn() };
 			vi.spyOn(pdfDocument, "ref").mockReturnValue(action as never);
