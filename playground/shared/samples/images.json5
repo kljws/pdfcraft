@@ -1,6 +1,6 @@
 {
 content: [
-	'pdfmake (since it\'s based on pdfkit) supports JPEG and PNG format',
+	'pdfcraft (since it\'s based on pdfkit) supports JPEG and PNG format',
 	'If no width/height/fit is provided, image original size will be used',
 	{
 		image: 'examples/images/sampleImage.jpg',

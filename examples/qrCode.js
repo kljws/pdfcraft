@@ -1,19 +1,10 @@
-import pdfmake from "../dist/index.mjs"; // during development; use 'pdfmake' when installed
-import Roboto from "./fonts.js";
-pdfmake.addFonts(Roboto);
+import pdfcraft from "../dist/index.mjs"; // during development; use "pdfcraft" when installed
+import { configureExample } from "./setup.js";
 
-pdfmake.setUrlAccessPolicy((url) => {
-	// this can be used to restrict allowed domains
-	return url.startsWith("https://");
-});
-
-pdfmake.setLocalAccessPolicy((path) => {
-	// this can be used to restrict access to local file system
-	return true;
-});
+configureExample(pdfcraft);
 
 var greeting = "Can you see me";
-var url = "http://pdfmake.org";
+var url = "https://github.com/kljws/pdfcraft";
 var longText =
 	"The amount of data that can be stored in the QR code symbol depends on the datatype (mode, or input character set), version (1, …, 40, indicating the overall dimensions of the symbol), and error correction level. The maximum storage capacities occur for 40-L symbols (version 40, error correction level L):";
 
@@ -51,7 +42,7 @@ var docDefinition = {
 
 var now = new Date();
 
-var pdf = pdfmake.createPdf(docDefinition);
+var pdf = pdfcraft.createPdf(docDefinition);
 pdf.write("pdfs/qrCode.pdf").then(
 	() => {
 		console.log(new Date() - now);

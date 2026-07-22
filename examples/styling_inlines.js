@@ -1,16 +1,7 @@
-import pdfmake from "../dist/index.mjs"; // during development; use 'pdfmake' when installed
-import Roboto from "./fonts.js";
-pdfmake.addFonts(Roboto);
+import pdfcraft from "../dist/index.mjs"; // during development; use "pdfcraft" when installed
+import { configureExample } from "./setup.js";
 
-pdfmake.setUrlAccessPolicy((url) => {
-	// this can be used to restrict allowed domains
-	return url.startsWith("https://");
-});
-
-pdfmake.setLocalAccessPolicy((path) => {
-	// this can be used to restrict access to local file system
-	return true;
-});
+configureExample(pdfcraft);
 
 var docDefinition = {
 	content: [
@@ -63,7 +54,7 @@ var docDefinition = {
 
 var now = new Date();
 
-var pdf = pdfmake.createPdf(docDefinition);
+var pdf = pdfcraft.createPdf(docDefinition);
 pdf.write("pdfs/styling_inlines.pdf").then(
 	() => {
 		console.log(new Date() - now);

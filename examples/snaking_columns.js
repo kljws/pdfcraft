@@ -1,16 +1,7 @@
-import pdfmake from "../dist/index.mjs"; // during development; use 'pdfmake' when installed
-import Roboto from "./fonts.js";
-pdfmake.addFonts(Roboto);
+import pdfcraft from "../dist/index.mjs"; // during development; use "pdfcraft" when installed
+import { configureExample } from "./setup.js";
 
-pdfmake.setUrlAccessPolicy((url) => {
-	// this can be used to restrict allowed domains
-	return url.startsWith("https://");
-});
-
-pdfmake.setLocalAccessPolicy((path) => {
-	// this can be used to restrict access to local file system
-	return true;
-});
+configureExample(pdfcraft);
 
 var loremIpsum =
 	"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. ";
@@ -698,7 +689,7 @@ var docDefinition = {
 
 var now = new Date();
 
-var pdf = pdfmake.createPdf(docDefinition);
+var pdf = pdfcraft.createPdf(docDefinition);
 pdf.write("pdfs/snaking_columns.pdf").then(
 	() => {
 		console.log(new Date() - now);

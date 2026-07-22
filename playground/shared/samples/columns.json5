@@ -95,7 +95,7 @@ content: [
 			},
 		]
 	},
-	'\nAnother cool feature of pdfmake is the ability to have nested elements. Each column is actually quite similar to the whole document, so we can have inner paragraphs and further divisions, like in the following example:\n\n',
+	'\nAnother cool feature of pdfcraft is the ability to have nested elements. Each column is actually quite similar to the whole document, so we can have inner paragraphs and further divisions, like in the following example:\n\n',
 	{
 		columns: [
 			{
@@ -121,7 +121,7 @@ content: [
 	{
 		style: 'bigger',
 		columns: [
-			'First column (BTW - it\'s defined as a single string value. pdfmake will turn it into appropriate structure automatically and make sure it inherits the styles',
+			'First column (BTW - it\'s defined as a single string value. pdfcraft will turn it into appropriate structure automatically and make sure it inherits the styles',
 			{
 				fontSize: 20,
 				text: 'In this column, we\'ve overridden fontSize to 20. It means the content should have italics=true (inherited from the style) and be a little bit bigger',

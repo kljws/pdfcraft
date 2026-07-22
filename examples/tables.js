@@ -1,21 +1,12 @@
-import pdfmake from "../dist/index.mjs"; // during development; use 'pdfmake' when installed
-import Roboto from "./fonts.js";
-pdfmake.addFonts(Roboto);
+import pdfcraft from "../dist/index.mjs"; // during development; use "pdfcraft" when installed
+import { configureExample } from "./setup.js";
 
-pdfmake.setUrlAccessPolicy((url) => {
-	// this can be used to restrict allowed domains
-	return url.startsWith("https://");
-});
-
-pdfmake.setLocalAccessPolicy((path) => {
-	// this can be used to restrict access to local file system
-	return true;
-});
+configureExample(pdfcraft);
 
 var docDefinition = {
 	content: [
 		{ text: "Tables", style: "header" },
-		"Official documentation is in progress, this document is just a glimpse of what is possible with pdfmake and its layout engine.",
+		"Official documentation is in progress; this document is a glimpse of what is possible with PDFCraft and its layout engine.",
 		{
 			text: "A simple table (no headers, no width specified, no spans, no styling)",
 			style: "subheader",
@@ -31,7 +22,7 @@ var docDefinition = {
 			},
 		},
 		{ text: "A simple table with nested elements", style: "subheader" },
-		"It is of course possible to nest any other type of nodes available in pdfmake inside table cells",
+		"It is of course possible to nest any other type of nodes available in pdfcraft inside table cells",
 		{
 			style: "tableExample",
 			table: {
@@ -235,7 +226,7 @@ var docDefinition = {
 		{
 			ul: ["line widths", "line colors", "cell paddings"],
 		},
-		"with more options coming soon...\n\npdfmake currently has a few predefined styles (see them on the next page)",
+		"with more options coming soon...\n\nPDFCraft currently has a few predefined styles (see them on the next page)",
 		{ text: "noBorders:", fontSize: 14, bold: true, pageBreak: "before", margin: [0, 0, 0, 8] },
 		{
 			style: "tableExample",
@@ -787,29 +778,29 @@ var docDefinition = {
 					],
 					[
 						{
-							image: "images/sampleImage.jpg",
+							image: "examples/images/sampleImage.jpg",
 							cover: { width: 100, height: 100 },
 						},
 						{
-							image: "images/sampleImage.jpg",
+							image: "examples/images/sampleImage.jpg",
 							cover: { width: 100, height: 100 },
 						},
 						{
-							image: "images/sampleImage.jpg",
+							image: "examples/images/sampleImage.jpg",
 							cover: { width: 100, height: 100 },
 						},
 					],
 					[
 						{
-							image: "images/sampleImage.jpg",
+							image: "examples/images/sampleImage.jpg",
 							fit: [100, 100],
 						},
 						{
-							image: "images/sampleImage.jpg",
+							image: "examples/images/sampleImage.jpg",
 							fit: [100, 100],
 						},
 						{
-							image: "images/sampleImage.jpg",
+							image: "examples/images/sampleImage.jpg",
 							fit: [100, 100],
 						},
 					],
@@ -857,7 +848,7 @@ var docDefinition = {
 
 var now = new Date();
 
-var pdf = pdfmake.createPdf(docDefinition);
+var pdf = pdfcraft.createPdf(docDefinition);
 pdf.write("pdfs/tables.pdf").then(
 	() => {
 		console.log(new Date() - now);

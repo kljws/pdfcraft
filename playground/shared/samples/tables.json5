@@ -1,7 +1,7 @@
 {
 content: [
 	{text: 'Tables', style: 'header'},
-	'Official documentation is in progress, this document is just a glimpse of what is possible with pdfmake and its layout engine.',
+	'Official documentation is in progress; this document is a glimpse of what is possible with PDFCraft and its layout engine.',
 	{text: 'A simple table (no headers, no width specified, no spans, no styling)', style: 'subheader'},
 	'The following table has nothing more than a body array',
 	{
@@ -14,7 +14,7 @@ content: [
 		}
 	},
 	{text: 'A simple table with nested elements', style: 'subheader'},
-	'It is of course possible to nest any other type of nodes available in pdfmake inside table cells',
+	'It is of course possible to nest any other type of nodes available in pdfcraft inside table cells',
 	{
 		style: 'tableExample',
 		table: {
@@ -178,7 +178,7 @@ content: [
 			'cell paddings',
 		]
 	},
-	'with more options coming soon...\n\npdfmake currently has a few predefined styles (see them on the next page)',
+	'with more options coming soon...\n\nPDFCraft currently has a few predefined styles (see them on the next page)',
 	{text: 'noBorders:', fontSize: 14, bold: true, pageBreak: 'before', margin: [0, 0, 0, 8]},
 	{
 		style: 'tableExample',

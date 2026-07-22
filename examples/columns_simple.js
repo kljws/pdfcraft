@@ -1,16 +1,7 @@
-import pdfmake from "../dist/index.mjs"; // during development; use 'pdfmake' when installed
-import Roboto from "./fonts.js";
-pdfmake.addFonts(Roboto);
+import pdfcraft from "../dist/index.mjs"; // during development; use "pdfcraft" when installed
+import { configureExample } from "./setup.js";
 
-pdfmake.setUrlAccessPolicy((url) => {
-	// this can be used to restrict allowed domains
-	return url.startsWith("https://");
-});
-
-pdfmake.setLocalAccessPolicy((path) => {
-	// this can be used to restrict access to local file system
-	return true;
-});
+configureExample(pdfcraft);
 
 var docDefinition = {
 	content: [
@@ -109,7 +100,7 @@ var docDefinition = {
 				},
 			],
 		},
-		"\nAnother cool feature of pdfmake is the ability to have nested elements. Each column is actually quite similar to the whole document, so we can have inner paragraphs and further divisions, like in the following example:\n\n",
+		"\nAnother cool feature of pdfcraft is the ability to have nested elements. Each column is actually quite similar to the whole document, so we can have inner paragraphs and further divisions, like in the following example:\n\n",
 		{
 			columns: [
 				{
@@ -141,7 +132,7 @@ var docDefinition = {
 		{
 			style: "bigger",
 			columns: [
-				"First column (BTW - it's defined as a single string value. pdfmake will turn it into appropriate structure automatically and make sure it inherits the styles",
+				"First column (BTW - it's defined as a single string value. pdfcraft will turn it into appropriate structure automatically and make sure it inherits the styles",
 				{
 					fontSize: 20,
 					text: "In this column, we've overridden fontSize to 20. It means the content should have italics=true (inherited from the style) and be a little bit bigger",
@@ -171,7 +162,7 @@ var docDefinition = {
 
 var now = new Date();
 
-var pdf = pdfmake.createPdf(docDefinition);
+var pdf = pdfcraft.createPdf(docDefinition);
 pdf.write("pdfs/columns_simple.pdf").then(
 	() => {
 		console.log(new Date() - now);

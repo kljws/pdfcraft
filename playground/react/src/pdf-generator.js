@@ -1,4 +1,4 @@
-import pdfmake from "pdfcraft/browser";
+import pdfcraft from "pdfcraft/browser";
 import boldFont from "../../../fonts/Roboto/Roboto-Medium.ttf?url";
 import boldItalicsFont from "../../../fonts/Roboto/Roboto-MediumItalic.ttf?url";
 import italicsFont from "../../../fonts/Roboto/Roboto-Italic.ttf?url";
@@ -9,7 +9,7 @@ import { parseDocumentDefinition, resolveDocumentResources } from "../../shared/
 
 const resolveAsset = (asset) => new URL(asset, window.location.href).href;
 
-pdfmake.addFonts({
+pdfcraft.addFonts({
 	Roboto: {
 		normal: resolveAsset(normalFont),
 		bold: resolveAsset(boldFont),
@@ -18,8 +18,16 @@ pdfmake.addFonts({
 	},
 });
 
-pdfmake.addVirtualFileSystem({
+pdfcraft.addVirtualFileSystem({
 	"./test.xml": { data: testXml, encoding: "utf8" },
+});
+
+pdfcraft.setUrlAccessPolicy((resource) => {
+	const url = new URL(resource, window.location.href);
+	return (
+		url.origin === window.location.origin ||
+		(url.protocol === "https:" && url.hostname === "raw.githubusercontent.com")
+	);
 });
 
 const sampleImageUrl = resolveAsset(sampleImage);
@@ -36,5 +44,5 @@ export const generatePdf = (source) => {
 			[sampleImageUrl]: sampleImageUrl,
 		};
 	}
-	return pdfmake.createPdf(documentDefinition).getBlob();
+	return pdfcraft.createPdf(documentDefinition).getBlob();
 };

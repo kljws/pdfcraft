@@ -1,6 +1,7 @@
 coverage/
 dist/
 node_modules/
+pdfs/
 pdfmake/
 private/
 .cursor/

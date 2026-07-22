@@ -302,7 +302,7 @@ class LayoutBuilder {
 		decorateNode(node);
 
 		let startPosition: ReturnType<DocumentContext["getCurrentPosition"]> | undefined;
-		if (this.writer.context().getCurrentPage() !== null) {
+		if (this.writer.context().getCurrentPage()) {
 			startPosition = this.writer.context().getCurrentPosition();
 		}
 

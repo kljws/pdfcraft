@@ -28,6 +28,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - [bpampuch/pdfmake#2843 — Acroforms](https://github.com/bpampuch/pdfmake/pull/2843): added typed block-level and inline AcroForm fields backed by PDFKit, with text, push-button, list, combo-box and checkbox controls; fields participate in measurement, wrapping, columns, page breaks and unbreakable fragments. Definitions are validated before layout, form initialization is shared across the document, and each field uses its resolved document font. The PR's radio-button example and `subsetFonts` workaround were intentionally not carried over because the upstream patch itself removed the unsupported radio flow and current PDFKit manages form font dictionaries directly.
 - [bpampuch/pdfmake#1087 — Fix issue 72](https://github.com/bpampuch/pdfmake/pull/1087): added typed `tableAlignment` support for left-, center- and right-aligned tables. The alignment offset is applied consistently to cell content, borders, fills, nested tables and repeated headers, while full-width tables remain unchanged. PDFCraft reimplements the feature without the original patch's debug output and geometry/indexing regressions.
 
+### Documentation and examples
+
+- Updated the Node.js examples and both playgrounds to use PDFCraft naming and current project links.
+- Added a shared `recent-features` playground sample and Node.js example covering table alignment, style-inherited cell borders and fills, named SVG resources, inline images, dynamic page margins and AcroForm fields.
+- Centralized secure example resource policies and output setup, and removed unnecessary network dependencies.
+
+### Fixed
+
+- Fixed section-first documents failing before their initial page was created.
+
 ## [0.4.4] - 2026-07-22
 
 ### Added

@@ -10,6 +10,7 @@ export const sampleNames = [
 	"images",
 	"svgs",
 	"attachments",
+	"recent-features",
 	"invoice",
 ];
 

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import pdfmake from "pdfcraft";
+import pdfcraft from "pdfcraft";
 import {
 	createSampleSource,
 	parseDocumentDefinition,
@@ -18,7 +18,7 @@ const exampleImageDirectory = path.resolve(directory, "../../examples/images");
 const port = Number(process.env.PORT) || 1234;
 const requestLimit = 2 * 1024 * 1024;
 
-pdfmake.addFonts({
+pdfcraft.addFonts({
 	Roboto: {
 		normal: path.join(fontDirectory, "Roboto-Regular.ttf"),
 		bold: path.join(fontDirectory, "Roboto-Medium.ttf"),
@@ -32,7 +32,7 @@ const resolveLocalPath = (filename) =>
 
 const isWithin = (root, filename) => filename === root || filename.startsWith(`${root}${path.sep}`);
 
-pdfmake.setLocalAccessPolicy((filename) => {
+pdfcraft.setLocalAccessPolicy((filename) => {
 	const resolved = resolveLocalPath(filename);
 	return (
 		isWithin(fontDirectory, resolved) ||
@@ -41,7 +41,7 @@ pdfmake.setLocalAccessPolicy((filename) => {
 	);
 });
 
-pdfmake.setUrlAccessPolicy((resource) => {
+pdfcraft.setUrlAccessPolicy((resource) => {
 	const url = new URL(resource);
 	return url.protocol === "https:" && url.hostname === "raw.githubusercontent.com";
 });
@@ -106,7 +106,7 @@ const sendPdf = async (request, response) => {
 	const documentDefinition = resolveDocumentFilePaths(
 		resolveDocumentResources(parseDocumentDefinition(source), resourcePaths),
 	);
-	const buffer = await pdfmake.createPdf(documentDefinition).getBuffer();
+	const buffer = await pdfcraft.createPdf(documentDefinition).getBuffer();
 
 	response.writeHead(200, {
 		"Content-Type": "application/pdf",

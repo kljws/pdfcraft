@@ -1,6 +1,6 @@
 {
 content: [
-	'pdfmake supports attaching files as annotations as well as embedded files.',
+	'PDFCraft supports attaching files as annotations as well as embedded files.',
 	'Embedded files are added in the "files" dictionary and will show up in supported pdf viewers in their respective attachment panels.',
 	'File attachments are annotations which link to a file.',
 	'Any attachment or embedded file must provide at least a "src", providing a filename through "name" is highly recommended.',
@@ -42,7 +42,7 @@ content: [
 			description: 'file description'
 		}
 	},
-	'You can also define the "src" of an attachment or embedded file in the "attachments" and "files" dictionary via URL address.',
+	'You can also define the "src" of an attachment or embedded file by URL when the configured access policy allows that address.',
 ],
 attachments: {
 	sampleImage: {
@@ -52,8 +52,8 @@ attachments: {
 },
 files: {
 	README: {
-		src: 'https://raw.githubusercontent.com/bpampuch/pdfmake/master/README.md',
-		name: 'pdfmake README.md'
+		src: './test.xml',
+		name: 'test.xml'
 	}
 }
 }

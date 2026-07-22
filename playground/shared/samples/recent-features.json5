@@ -1,0 +1,113 @@
+{
+	pageMargins: function (currentPage) {
+		return currentPage % 2 === 0 ? [72, 40, 28, 40] : [28, 40, 72, 40];
+	},
+	footer: function (currentPage, pageCount) {
+		return {
+			text: 'Page ' + currentPage + ' / ' + pageCount,
+			alignment: 'center',
+			fontSize: 9,
+			color: '#64748b',
+		};
+	},
+	content: [
+		{text: 'Recent upstream features', style: 'title'},
+		{
+			text: 'This sample groups the user-facing additions ported from upstream pdfmake PRs.',
+			margin: [0, 0, 0, 16],
+		},
+
+		{text: 'Table alignment', style: 'heading'},
+		...['left', 'center', 'right'].map(function (tableAlignment) {
+			return {
+				tableAlignment: tableAlignment,
+				margin: [0, 3],
+				table: {
+					widths: [110],
+					body: [[tableAlignment + '-aligned table']],
+				},
+			};
+		}),
+
+		{text: 'Borders and fills inherited from styles', style: 'heading'},
+		{
+			table: {
+				widths: ['*', '*'],
+				body: [
+					[{text: 'Styled cell', style: 'accentCell'}, {text: 'Per-cell override', style: 'accentCell', fillColor: '#fef3c7'}],
+					['Normal cell', {text: 'Transparent fill', style: 'accentCell', fillOpacity: 0.35}],
+				],
+			},
+		},
+
+		{text: 'Named SVG and inline image', style: 'heading'},
+		{
+			columns: [
+				{svg: 'status-mark', width: 80},
+				{
+					text: [
+						'Images can flow ',
+						{image: 'sample-photo', width: 34, height: 24},
+						' inside a text line.',
+					],
+				},
+			],
+			columnGap: 18,
+		},
+
+		{text: 'AcroForm fields', style: 'heading'},
+		{text: 'Name', style: 'label'},
+		{
+			acroform: {
+				type: 'text',
+				id: 'recent-name',
+				options: {required: true, borderColor: '#2563eb', backgroundColor: '#eff6ff'},
+			},
+			width: '*',
+			height: 22,
+			margin: [0, 2, 0, 8],
+		},
+		{
+			text: [
+				{acroform: {type: 'checkbox', id: 'recent-consent'}, width: 13, height: 13},
+				' I agree to the terms',
+			],
+		},
+		{text: 'Role', style: 'label', margin: [0, 8, 0, 2]},
+		{
+			acroform: {
+				type: 'combo',
+				id: 'recent-role',
+				options: {select: ['Developer', 'Designer', 'Reviewer']},
+			},
+			width: 180,
+			height: 22,
+		},
+
+		{text: 'Dynamic page margins', style: 'heading', pageBreak: 'before'},
+		{
+			text: 'Even pages use a wide left margin and odd pages use a wide right margin. The blue rule starts at the resolved content edge.',
+			margin: [0, 0, 0, 16],
+		},
+		{canvas: [{type: 'line', x1: 0, y1: 0, x2: 220, y2: 0, lineWidth: 3, lineColor: '#2563eb'}]},
+		{text: 'Odd-page margin', style: 'heading', pageBreak: 'before'},
+		{canvas: [{type: 'line', x1: 0, y1: 0, x2: 220, y2: 0, lineWidth: 3, lineColor: '#7c3aed'}]},
+	],
+	styles: {
+		title: {fontSize: 22, bold: true, color: '#0f172a'},
+		heading: {fontSize: 14, bold: true, color: '#1d4ed8', margin: [0, 16, 0, 6]},
+		label: {bold: true, color: '#334155'},
+		accentCell: {
+			border: [true, true, true, true],
+			borderColor: ['#2563eb', '#2563eb', '#2563eb', '#2563eb'],
+			fillColor: '#dbeafe',
+			fillOpacity: 0.8,
+		},
+	},
+	images: {
+		'sample-photo': 'examples/images/sampleImage.jpg',
+	},
+	svgs: {
+		'status-mark': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 64"><rect width="120" height="64" rx="12" fill="#dbeafe"/><circle cx="32" cy="32" r="18" fill="#2563eb"/><path d="m23 32 6 6 12-14" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><text x="58" y="38" font-family="sans-serif" font-size="18" fill="#1e3a8a">Ready</text></svg>',
+	},
+}

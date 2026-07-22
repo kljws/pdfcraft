@@ -1,16 +1,7 @@
-import pdfmake from "../dist/index.mjs"; // during development; use 'pdfmake' when installed
-import Roboto from "./fonts.js";
-pdfmake.addFonts(Roboto);
+import pdfcraft from "../dist/index.mjs"; // during development; use "pdfcraft" when installed
+import { configureExample } from "./setup.js";
 
-pdfmake.setUrlAccessPolicy((url) => {
-	// this can be used to restrict allowed domains
-	return url.startsWith("https://");
-});
-
-pdfmake.setLocalAccessPolicy((path) => {
-	// this can be used to restrict access to local file system
-	return true;
-});
+configureExample(pdfcraft);
 
 var docDefinition = {
 	version: "1.5", // PDF version
@@ -18,14 +9,14 @@ var docDefinition = {
 	tagged: true, // Mark document as Tagged PDF
 	displayTitle: true, // Display of document title in window title
 	info: {
-		title: "Awesome PDF document from pdfmake",
+		title: "Awesome PDF document from PDFCraft",
 	},
 	content: ["PDF/A document for archive"],
 };
 
 var now = new Date();
 
-var pdf = pdfmake.createPdf(docDefinition);
+var pdf = pdfcraft.createPdf(docDefinition);
 pdf.write("pdfs/pdfa.pdf").then(
 	() => {
 		console.log(new Date() - now);

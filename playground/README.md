@@ -9,7 +9,8 @@ Roboto font files.
 npm run playground:server
 ```
 
-Open <http://localhost:1234>. Node.js generates the PDF at `/document.pdf`.
+Open <http://localhost:1234>. The editor posts the document definition to `/pdf`,
+where Node.js generates the preview.
 
 ## React browser
 
