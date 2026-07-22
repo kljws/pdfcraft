@@ -10,12 +10,13 @@ import type {
 } from "../types/internal";
 import { isNumber } from "../utils/variable-type";
 import { buildUnorderedMarker, formatOrderedMarker } from "./list-markers";
-import DocMeasureMedia from "./doc-measure.media";
 
-abstract class DocMeasureContainers extends DocMeasureMedia {
-	abstract textInlines: TextInlines;
-	abstract override styleStack: StyleContextStack;
-	abstract measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
+class DocMeasureContainers {
+	constructor(
+		private readonly textInlines: TextInlines,
+		private readonly styleStack: StyleContextStack,
+		private readonly measureChild: (node: PreprocessedPdfNode) => MeasuredPdfNode,
+	) {}
 
 	measureVerticalContainer(node: MeasuredPdfNode): MeasuredPdfNode {
 		const items = node.stack!;
@@ -23,7 +24,7 @@ abstract class DocMeasureContainers extends DocMeasureMedia {
 		node._maxWidth = 0;
 
 		for (let index = 0; index < items.length; index++) {
-			items[index] = this.measureNode(items[index]);
+			items[index] = this.measureChild(items[index]);
 			node._minWidth = Math.max(node._minWidth, items[index]._minWidth ?? 0);
 			node._maxWidth = Math.max(node._maxWidth, items[index]._maxWidth ?? 0);
 		}
@@ -82,7 +83,7 @@ abstract class DocMeasureContainers extends DocMeasureMedia {
 		node._maxWidth = 0;
 
 		for (let index = 0; index < items.length; index++) {
-			const item = (items[index] = this.measureNode(items[index]));
+			const item = (items[index] = this.measureChild(items[index]));
 			if (!item.ol && !item.ul) {
 				item.listMarker = this.buildUnorderedMarker(
 					item,
@@ -114,7 +115,7 @@ abstract class DocMeasureContainers extends DocMeasureMedia {
 
 		let counter = node.start;
 		for (let index = 0; index < items.length; index++) {
-			const item = (items[index] = this.measureNode(items[index]));
+			const item = (items[index] = this.measureChild(items[index]));
 			if (!item.ol && !item.ul) {
 				const counterValue = isNumber(item.counter) ? item.counter : counter;
 				item.listMarker = this.buildOrderedMarker(
@@ -146,7 +147,7 @@ abstract class DocMeasureContainers extends DocMeasureMedia {
 	}
 
 	measureSection(node: MeasuredPdfNode): MeasuredPdfNode {
-		node.section = this.measureNode(node.section!);
+		node.section = this.measureChild(node.section!);
 		return node;
 	}
 
@@ -156,7 +157,7 @@ abstract class DocMeasureContainers extends DocMeasureMedia {
 		node._gap = typeof columnGap === "number" ? columnGap : 0;
 
 		for (let index = 0; index < columns.length; index++) {
-			columns[index] = this.measureNode(columns[index]) as ColumnNode<MeasuredPdfNode>;
+			columns[index] = this.measureChild(columns[index]) as ColumnNode<MeasuredPdfNode>;
 		}
 
 		const measures = ColumnCalculator.measureMinMax(columns);

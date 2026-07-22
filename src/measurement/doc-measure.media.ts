@@ -5,11 +5,14 @@ import type { Alignment } from "../types";
 import type { Dimensions, MeasuredPdfNode } from "../types/internal";
 import { isNumber } from "../utils/variable-type";
 
-abstract class DocMeasureMedia {
-	abstract pdfDocument: PDFDocument;
-	abstract styleStack: StyleContextStack;
-	abstract svgMeasure: SVGMeasure;
-	abstract autoImageIndex: number;
+class DocMeasureMedia {
+	private autoImageIndex = 1;
+
+	constructor(
+		private readonly pdfDocument: PDFDocument,
+		private readonly styleStack: StyleContextStack,
+		private readonly svgMeasure: SVGMeasure,
+	) {}
 
 	measureImageWithDimensions(node: MeasuredPdfNode, dimensions: Dimensions): MeasuredPdfNode {
 		if (Array.isArray(node.fit)) {

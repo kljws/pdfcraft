@@ -88,20 +88,20 @@ class DocMeasure extends BaseDocMeasure {
 		return measured(super.measureLeaf(node as MeasuredPdfNode));
 	}
 
-	override measureColumns(node: unknown): MeasuredFixture {
-		return measured(super.measureColumns(node as MeasuredPdfNode));
+	measureColumns(node: unknown): MeasuredFixture {
+		return measured(this.containers.measureColumns(node as MeasuredPdfNode));
 	}
 
-	override measureVerticalContainer(node: unknown): MeasuredFixture {
-		return measured(super.measureVerticalContainer(node as MeasuredPdfNode));
+	measureVerticalContainer(node: unknown): MeasuredFixture {
+		return measured(this.containers.measureVerticalContainer(node as MeasuredPdfNode));
 	}
 
-	override measureUnorderedList(node: unknown): MeasuredFixture {
-		return measured(super.measureUnorderedList(node as MeasuredPdfNode));
+	measureUnorderedList(node: unknown): MeasuredFixture {
+		return measured(this.containers.measureUnorderedList(node as MeasuredPdfNode));
 	}
 
-	override measureOrderedList(node: unknown): MeasuredFixture {
-		return measured(super.measureOrderedList(node as MeasuredPdfNode));
+	measureOrderedList(node: unknown): MeasuredFixture {
+		return measured(this.containers.measureOrderedList(node as MeasuredPdfNode));
 	}
 
 	override measureTable(node: unknown): MeasuredFixture {
@@ -112,11 +112,15 @@ class DocMeasure extends BaseDocMeasure {
 		return measured(super.measureDocument(node as PreprocessedPdfNode));
 	}
 
-	override measureImageWithDimensions(
+	measureImageWithDimensions(
 		node: unknown,
 		dimensions: { width: number; height: number },
 	): MeasuredFixture {
-		return measured(super.measureImageWithDimensions(node as MeasuredPdfNode, dimensions));
+		return measured(this.media.measureImageWithDimensions(node as MeasuredPdfNode, dimensions));
+	}
+
+	convertIfInlineImage(node: MeasuredPdfNode): void {
+		this.media.convertIfInlineImage(node);
 	}
 }
 

@@ -18,14 +18,16 @@ import {
 	resolveTableLayout,
 } from "./doc-measure.table";
 import DocMeasureContainers from "./doc-measure.containers";
+import DocMeasureMedia from "./doc-measure.media";
 
-class DocMeasure extends DocMeasureContainers {
-	declare pdfDocument: PDFDocument;
-	declare textInlines: TextInlines;
-	declare styleStack: StyleContextStack;
-	declare svgMeasure: SVGMeasure;
-	declare tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
-	declare autoImageIndex: number;
+class DocMeasure {
+	readonly pdfDocument: PDFDocument;
+	readonly textInlines: TextInlines;
+	readonly styleStack: StyleContextStack;
+	readonly svgMeasure: SVGMeasure;
+	readonly tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
+	protected readonly containers: DocMeasureContainers;
+	protected readonly media: DocMeasureMedia;
 
 	constructor(
 		pdfDocument: PDFDocument,
@@ -34,13 +36,15 @@ class DocMeasure extends DocMeasureContainers {
 		svgMeasure: SVGMeasure,
 		tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>> = {},
 	) {
-		super();
 		this.pdfDocument = pdfDocument;
 		this.textInlines = new TextInlines(pdfDocument);
 		this.styleStack = new StyleContextStack(styleDictionary, defaultStyle);
 		this.svgMeasure = svgMeasure;
 		this.tableLayouts = tableLayouts;
-		this.autoImageIndex = 1;
+		this.containers = new DocMeasureContainers(this.textInlines, this.styleStack, (node) =>
+			this.measureNode(node),
+		);
+		this.media = new DocMeasureMedia(this.pdfDocument, this.styleStack, this.svgMeasure);
 	}
 
 	/**
@@ -66,15 +70,15 @@ class DocMeasure extends DocMeasureContainers {
 			measuredNode._paragraphGap = typeof paragraphGap === "number" ? Math.max(0, paragraphGap) : 0;
 
 			if (measuredNode.section) {
-				return extendMargins(this.measureSection(measuredNode));
+				return extendMargins(this.containers.measureSection(measuredNode));
 			} else if (measuredNode.columns) {
-				return extendMargins(this.measureColumns(measuredNode));
+				return extendMargins(this.containers.measureColumns(measuredNode));
 			} else if (measuredNode.stack) {
-				return extendMargins(this.measureVerticalContainer(measuredNode));
+				return extendMargins(this.containers.measureVerticalContainer(measuredNode));
 			} else if (measuredNode.ul) {
-				return extendMargins(this.measureUnorderedList(measuredNode));
+				return extendMargins(this.containers.measureUnorderedList(measuredNode));
 			} else if (measuredNode.ol) {
-				return extendMargins(this.measureOrderedList(measuredNode));
+				return extendMargins(this.containers.measureOrderedList(measuredNode));
 			} else if (measuredNode.table) {
 				return extendMargins(this.measureTable(measuredNode));
 			} else if (measuredNode.text !== undefined) {
@@ -82,9 +86,9 @@ class DocMeasure extends DocMeasureContainers {
 			} else if (measuredNode.toc) {
 				return extendMargins(this.measureToc(measuredNode));
 			} else if (measuredNode.image) {
-				return extendMargins(this.measureImage(measuredNode));
+				return extendMargins(this.media.measureImage(measuredNode));
 			} else if (measuredNode.svg) {
-				return extendMargins(this.measureSVG(measuredNode));
+				return extendMargins(this.media.measureSVG(measuredNode));
 			} else if (measuredNode.canvas) {
 				return extendMargins(this.measureCanvas(measuredNode));
 			} else if (measuredNode.qr) {
