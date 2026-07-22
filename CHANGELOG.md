@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-22
+
 ### Upstream pdfmake PR review
 
 #### Already covered
@@ -356,9 +358,10 @@ The starting baseline already included, and PDFCraft 0.4.0 retains, the followin
 - browser `SVGElement` support and SVG validation;
 - promise-based output methods.
 
-[Unreleased]: https://github.com/kevinljws/pdfcraft/compare/v0.4.4...HEAD
-[0.4.4]: https://github.com/kevinljws/pdfcraft/compare/38fde05...v0.4.4
-[0.4.3]: https://github.com/kevinljws/pdfcraft/compare/2ad9737...38fde05
-[0.4.2]: https://github.com/kevinljws/pdfcraft/compare/9988960...2ad9737
-[0.4.1]: https://github.com/kevinljws/pdfcraft/compare/v0.4.0...9988960
-[0.4.0]: https://github.com/kevinljws/pdfcraft/releases/tag/v0.4.0
+[Unreleased]: https://github.com/kljws/pdfcraft/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/kljws/pdfcraft/compare/v0.4.4...v0.5.0
+[0.4.4]: https://github.com/kljws/pdfcraft/compare/38fde05...v0.4.4
+[0.4.3]: https://github.com/kljws/pdfcraft/compare/2ad9737...38fde05
+[0.4.2]: https://github.com/kljws/pdfcraft/compare/9988960...2ad9737
+[0.4.1]: https://github.com/kljws/pdfcraft/compare/v0.4.0...9988960
+[0.4.0]: https://github.com/kljws/pdfcraft/releases/tag/v0.4.0
