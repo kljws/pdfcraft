@@ -5,15 +5,15 @@
 	"type": "module",
 	"sideEffects": false,
 	"packageManager": "npm@12.0.1",
-	"author": "kevinljws",
+	"author": "kljws",
 	"license": "MIT",
-	"homepage": "https://github.com/kevinljws/pdfcraft#readme",
+	"homepage": "https://github.com/kljws/pdfcraft#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/kevinljws/pdfcraft.git"
+		"url": "git+https://github.com/kljws/pdfcraft.git"
 	},
 	"bugs": {
-		"url": "https://github.com/kevinljws/pdfcraft/issues"
+		"url": "https://github.com/kljws/pdfcraft/issues"
 	},
 	"keywords": [
 		"pdf",
