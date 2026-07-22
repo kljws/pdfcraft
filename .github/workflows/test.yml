@@ -8,6 +8,7 @@ concurrency:
 
 jobs:
   quality:
+    name: Quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -20,7 +21,8 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
 
-  node:
+  contracts:
+    name: Contracts (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -36,12 +38,45 @@ jobs:
       - run: npm run build
       - run: npm run test:types
       - run: npm run test:consumer
-      - if: matrix.node-version == '22.x'
-        run: npm run test:coverage
-      - if: matrix.node-version != '22.x'
-        run: npm run test:unit && npm run test:integration
+
+  coverage:
+    name: Coverage (Node 22.x)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npm run test:coverage
+
+  unit:
+    name: Unit tests (Node 24.x)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+
+  integration:
+    name: Integration tests (Node 24.x)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - run: npm run test:integration
 
   browser:
+    name: Browser tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -55,6 +90,7 @@ jobs:
       - run: npm run test:browser
 
   package:
+    name: Package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
