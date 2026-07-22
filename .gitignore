@@ -1,4 +1,5 @@
 coverage/
+.vitest-attachments/
 dist/
 node_modules/
 pdfs/

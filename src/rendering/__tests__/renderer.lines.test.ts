@@ -84,4 +84,47 @@ describe("Renderer text lines", () => {
 			selected: true,
 		});
 	});
+
+	it("includes AcroForm choice labels in embedded font subsets", () => {
+		const encode = vi.fn();
+		const document = {
+			outline: { addItem: vi.fn() },
+			resolveColor: vi.fn((color: unknown) => color),
+			initForm: vi.fn().mockReturnThis(),
+			formCombo: vi.fn().mockReturnThis(),
+		} as unknown as PDFDocument;
+		const inline = {
+			text: "",
+			acroform: {
+				type: "combo",
+				id: "role",
+				options: {
+					select: ["Developer", "Designer", "Reviewer"],
+					defaultValue: "Developer",
+				},
+			},
+			width: 100,
+			height: 20,
+			x: 0,
+			leadingCut: 0,
+			trailingCut: 0,
+			font: { ...font, encode },
+			fontSize: 12,
+		} as Inline;
+		const line = {
+			inlines: [inline],
+			getHeight: () => 20,
+			getAscenderHeight: () => 20,
+			getWidth: () => 100,
+		} as LineLike;
+
+		new Renderer(document).renderLine(line, 10, 20);
+
+		expect(encode.mock.calls.map(([value]) => value)).toEqual([
+			"Developer",
+			"Developer",
+			"Designer",
+			"Reviewer",
+		]);
+	});
 });

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Included AcroForm values and choice labels in embedded font subsets, preventing missing glyphs in combo-box options that were not otherwise used by document text.
+- Rendered PDF.js annotation layers in both playground previews so text fields, checkboxes and choice controls remain visible and interactive.
+
 ## [0.5.0] - 2026-07-22
 
 ### Upstream pdfmake PR review

@@ -69,7 +69,15 @@
 		},
 		{
 			text: [
-				{acroform: {type: 'checkbox', id: 'recent-consent'}, width: 13, height: 13},
+				{
+					acroform: {
+						type: 'checkbox',
+						id: 'recent-consent',
+						options: {borderColor: '#2563eb', backgroundColor: '#eff6ff'},
+					},
+					width: 13,
+					height: 13,
+				},
 				' I agree to the terms',
 			],
 		},
@@ -78,7 +86,11 @@
 			acroform: {
 				type: 'combo',
 				id: 'recent-role',
-				options: {select: ['Developer', 'Designer', 'Reviewer']},
+				options: {
+					select: ['Developer', 'Designer', 'Reviewer'],
+					borderColor: '#2563eb',
+					backgroundColor: '#eff6ff',
+				},
 			},
 			width: 180,
 			height: 22,

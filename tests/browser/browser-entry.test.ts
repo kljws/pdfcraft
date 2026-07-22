@@ -1,6 +1,7 @@
 import { assert, describe, expect, it, vi } from "vitest";
 import OutputDocumentBrowser from "../../src/output/output-document.browser";
 import type { PdfDocumentStream } from "../../src/output/output-document";
+import { renderPdf } from "../../playground/react/src/pdf-preview.js";
 import type pdfcraftEntry from "pdfcraft/browser";
 
 type StreamListener = (...args: unknown[]) => void;
@@ -89,6 +90,60 @@ describe("browser package entry", function () {
 
 		assert.equal(blob.type, "application/pdf");
 		assert.isAbove(blob.size, 0);
+	});
+
+	it("renders interactive AcroForm controls in the playground preview", async function () {
+		const { default: pdfcraft } = await import("pdfcraft/browser");
+		const instance = pdfcraft.createPdfCraft();
+		const regularFont = new URL("../../fonts/Roboto/Roboto-Regular.ttf", import.meta.url).href;
+		instance.addFonts({
+			Roboto: {
+				normal: regularFont,
+				bold: regularFont,
+				italics: regularFont,
+				bolditalics: regularFont,
+			},
+		});
+		const blob = await instance
+			.createPdf({
+				content: [
+					{ acroform: { type: "text", id: "name" }, width: 160, height: 20 },
+					{ acroform: { type: "checkbox", id: "consent" }, width: 14, height: 14 },
+					{
+						acroform: {
+							type: "combo",
+							id: "role",
+							options: { select: ["Developer", "Designer", "Reviewer"] },
+						},
+						width: 160,
+						height: 20,
+					},
+				],
+			})
+			.getBlob();
+		const container = document.createElement("div");
+		container.style.width = "800px";
+		document.body.append(container);
+
+		try {
+			await renderPdf({ blob, container, isCurrent: () => true });
+
+			const name = container.querySelector<HTMLInputElement>('input[type="text"]');
+			const consent = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+			expect(name?.getBoundingClientRect().width).toBeGreaterThan(0);
+			expect(consent?.getBoundingClientRect().width).toBeGreaterThan(0);
+			consent?.click();
+			expect(consent?.checked).toBe(true);
+			const role = container.querySelector<HTMLSelectElement>("select");
+			expect(role?.getBoundingClientRect().width).toBeGreaterThan(0);
+			expect(Array.from(role?.options ?? [], (option) => option.text).filter(Boolean)).toEqual([
+				"Developer",
+				"Designer",
+				"Reviewer",
+			]);
+		} finally {
+			container.remove();
+		}
 	});
 
 	it("creates browser data URLs, blobs and downloads", async function () {

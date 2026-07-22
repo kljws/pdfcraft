@@ -81,6 +81,10 @@ const staticFiles = new Map([
 			"text/javascript; charset=utf-8",
 		],
 	],
+	[
+		"/pdfjs/pdf-annotation-layer.css",
+		[path.resolve(directory, "../shared/pdf-annotation-layer.css"), "text/css; charset=utf-8"],
+	],
 ]);
 
 const readRequest = (request) =>

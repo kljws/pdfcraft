@@ -1,4 +1,4 @@
-import { getDocument, GlobalWorkerOptions } from "/pdfjs/pdf.mjs";
+import { AnnotationLayer, AnnotationMode, getDocument, GlobalWorkerOptions } from "/pdfjs/pdf.mjs";
 
 GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.mjs";
 
@@ -36,17 +36,50 @@ const renderPdf = async (blob, currentGeneration) => {
 		const pages = [];
 		for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
 			const page = await pdf.getPage(pageNumber);
-			const viewport = page.getViewport({ scale: 1.5 });
+			const baseViewport = page.getViewport({ scale: 1 });
+			const availableWidth = Math.max(1, pdfContainer.clientWidth - 32);
+			const scale = Math.min(1.5, availableWidth / baseViewport.width);
+			const viewport = page.getViewport({ scale });
+			const pageElement = document.createElement("div");
+			pageElement.className = "pdf-page";
+			pageElement.style.width = `${viewport.width}px`;
+			pageElement.style.height = `${viewport.height}px`;
+			pageElement.style.setProperty("--scale-factor", String(viewport.scale));
+			pageElement.style.setProperty("--user-unit", String(viewport.userUnit));
 			const canvas = document.createElement("canvas");
-			canvas.className = "pdf-page";
+			canvas.className = "pdf-page-canvas";
 			canvas.width = viewport.width;
 			canvas.height = viewport.height;
+			pageElement.append(canvas);
 			await page.render({
 				canvas,
 				canvasContext: canvas.getContext("2d"),
 				viewport,
+				annotationMode: AnnotationMode.ENABLE_FORMS,
 			}).promise;
-			pages.push(canvas);
+
+			const annotations = (await page.getAnnotations({ intent: "display" })).filter(
+				(annotation) => annotation.subtype === "Widget",
+			);
+			if (annotations.length > 0) {
+				const annotationElement = document.createElement("div");
+				annotationElement.className = "annotationLayer";
+				pageElement.append(annotationElement);
+				const annotationLayer = new AnnotationLayer({
+					div: annotationElement,
+					page,
+					viewport: viewport.clone({ dontFlip: true }),
+					annotationStorage: pdf.annotationStorage,
+				});
+				await annotationLayer.render({
+					annotations,
+					renderForms: true,
+					hasJSActions: false,
+					fieldObjects: null,
+				});
+			}
+
+			pages.push(pageElement);
 		}
 
 		if (currentGeneration === generation) {

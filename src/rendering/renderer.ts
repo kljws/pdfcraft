@@ -14,6 +14,14 @@ import type {
 	VerticalAlignmentItem,
 } from "./renderer.types";
 
+const collectFormStrings = (value: unknown, strings: string[]): void => {
+	if (typeof value === "string") {
+		strings.push(value);
+	} else if (Array.isArray(value)) {
+		for (const item of value) collectFormStrings(item, strings);
+	}
+};
+
 class Renderer {
 	private readonly pdfDocument: PDFDocument;
 	private readonly graphics: RendererGraphics;
@@ -205,7 +213,8 @@ class Renderer {
 		if (!form) throw new Error("Cannot render an AcroForm node without a field definition");
 		const font = "_formFont" in node ? (node._formFont ?? node.font) : node.font;
 		if (!font) throw new Error(`AcroForm field '${form.id}' has no resolved font`);
-		this.pdfDocument._font = font as EmbeddedFont;
+		const embeddedFont = font as EmbeddedFont;
+		this.pdfDocument._font = embeddedFont;
 		if (!this.formInitialized) {
 			this.pdfDocument.initForm();
 			this.formInitialized = true;
@@ -216,6 +225,12 @@ class Renderer {
 		const resolvedWidth = typeof width === "number" ? width : 25;
 		const resolvedHeight = typeof height === "number" ? height : 15;
 		const options = { ...(form.options ?? {}) };
+		const formStrings: string[] = [];
+		for (const key of ["value", "defaultValue", "label", "select", "Opt"] as const) {
+			collectFormStrings(options[key], formStrings);
+		}
+		for (const value of formStrings) embeddedFont.encode?.(value);
+
 		switch (form.type) {
 			case "text":
 				this.pdfDocument.formText(form.id, x, y, resolvedWidth, resolvedHeight, options);
