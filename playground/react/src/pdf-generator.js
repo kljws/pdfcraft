@@ -3,8 +3,9 @@ import boldFont from "../../../fonts/Roboto/Roboto-Medium.ttf?url";
 import boldItalicsFont from "../../../fonts/Roboto/Roboto-MediumItalic.ttf?url";
 import italicsFont from "../../../fonts/Roboto/Roboto-Italic.ttf?url";
 import normalFont from "../../../fonts/Roboto/Roboto-Regular.ttf?url";
+import sampleImage from "../../../examples/images/sampleImage.jpg?url";
 import testXml from "../../shared/samples/test.xml?raw";
-import { parseDocumentDefinition } from "../../shared/editor";
+import { parseDocumentDefinition, resolveDocumentResources } from "../../shared/editor";
 
 const resolveAsset = (asset) => new URL(asset, window.location.href).href;
 
@@ -21,7 +22,19 @@ pdfmake.addVirtualFileSystem({
 	"./test.xml": { data: testXml, encoding: "utf8" },
 });
 
+const sampleImageUrl = resolveAsset(sampleImage);
+const resourceUrls = new Map([["examples/images/sampleImage.jpg", sampleImageUrl]]);
+
 export const generatePdf = (source) => {
-	const documentDefinition = parseDocumentDefinition(source);
+	const documentDefinition = resolveDocumentResources(
+		parseDocumentDefinition(source),
+		resourceUrls,
+	);
+	if (source.includes("examples/images/sampleImage.jpg")) {
+		documentDefinition.images = {
+			...documentDefinition.images,
+			[sampleImageUrl]: sampleImageUrl,
+		};
+	}
 	return pdfmake.createPdf(documentDefinition).getBlob();
 };

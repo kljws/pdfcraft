@@ -3,12 +3,18 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pdfmake from "pdfcraft";
-import { createSampleSource, parseDocumentDefinition, sampleNames } from "../shared/editor.js";
+import {
+	createSampleSource,
+	parseDocumentDefinition,
+	resolveDocumentResources,
+	sampleNames,
+} from "../shared/editor.js";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const publicDirectory = path.join(directory, "public");
 const sampleDirectory = path.resolve(directory, "../shared/samples");
 const fontDirectory = path.resolve(directory, "../../fonts/Roboto");
+const exampleImageDirectory = path.resolve(directory, "../../examples/images");
 const port = Number(process.env.PORT) || 1234;
 const requestLimit = 2 * 1024 * 1024;
 
@@ -24,17 +30,28 @@ pdfmake.addFonts({
 const resolveLocalPath = (filename) =>
 	path.isAbsolute(filename) ? path.resolve(filename) : path.resolve(sampleDirectory, filename);
 
+const isWithin = (root, filename) => filename === root || filename.startsWith(`${root}${path.sep}`);
+
 pdfmake.setLocalAccessPolicy((filename) => {
 	const resolved = resolveLocalPath(filename);
-	return resolved.startsWith(fontDirectory) || resolved.startsWith(sampleDirectory);
+	return (
+		isWithin(fontDirectory, resolved) ||
+		isWithin(sampleDirectory, resolved) ||
+		isWithin(exampleImageDirectory, resolved)
+	);
 });
 
-const resolveDocumentFilePaths = (documentDefinition) => {
-	if (!documentDefinition.files) {
-		return documentDefinition;
-	}
+pdfmake.setUrlAccessPolicy((resource) => {
+	const url = new URL(resource);
+	return url.protocol === "https:" && url.hostname === "raw.githubusercontent.com";
+});
 
-	for (const file of Object.values(documentDefinition.files)) {
+const resourcePaths = new Map([
+	["examples/images/sampleImage.jpg", path.join(exampleImageDirectory, "sampleImage.jpg")],
+]);
+
+const resolveDocumentFilePaths = (documentDefinition) => {
+	for (const file of Object.values(documentDefinition.files ?? {})) {
 		if (
 			typeof file.src === "string" &&
 			!/^https?:\/\//i.test(file.src) &&
@@ -43,7 +60,6 @@ const resolveDocumentFilePaths = (documentDefinition) => {
 			file.src = resolveLocalPath(file.src);
 		}
 	}
-
 	return documentDefinition;
 };
 
@@ -87,7 +103,9 @@ const readRequest = (request) =>
 const sendPdf = async (request, response) => {
 	const source = await readRequest(request);
 	const startedAt = performance.now();
-	const documentDefinition = resolveDocumentFilePaths(parseDocumentDefinition(source));
+	const documentDefinition = resolveDocumentFilePaths(
+		resolveDocumentResources(parseDocumentDefinition(source), resourcePaths),
+	);
 	const buffer = await pdfmake.createPdf(documentDefinition).getBuffer();
 
 	response.writeHead(200, {
