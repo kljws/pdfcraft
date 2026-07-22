@@ -127,6 +127,7 @@ export interface PdfNode {
 	bold?: boolean;
 	italics?: boolean;
 	alignment?: Alignment;
+	tableAlignment?: "left" | "center" | "right";
 	color?: Color;
 	background?: Color;
 	decoration?: Decoration | Decoration[];
@@ -178,6 +179,7 @@ export interface PdfNode {
 	_width?: number;
 	_height?: number;
 	_alignment?: Alignment;
+	_tableAlignment?: "left" | "center" | "right";
 	_inlines?: Inline[];
 	_gap?: number;
 	_gapSize?: TextMeasurement;
@@ -244,6 +246,7 @@ export interface MeasuredNodeState<Node = PdfNode> {
 	_width?: number;
 	_height?: number;
 	_alignment?: Alignment;
+	_tableAlignment?: "left" | "center" | "right";
 	_inlines?: Inline[];
 	_gap?: number;
 	_gapSize?: TextMeasurement;

@@ -1,4 +1,4 @@
-import { assert, describe, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 import sizes from "../../src/configuration/page-size.constants.ts";
 
 import IntegrationTestHelper, {
@@ -78,6 +78,88 @@ describe("Integration test: tables", function () {
 
 		assert.deepEqual(getColumnText(lines, { cell: 2 }), "Value 1");
 		assert.deepEqual(getColumnText(lines, { cell: 3 }), "Value 2");
+	});
+
+	it("aligns a fixed-width table as a complete unit", function () {
+		const render = (tableAlignment: "left" | "center" | "right") => {
+			const pages = testHelper.renderPages("A6", {
+				content: {
+					tableAlignment,
+					table: { widths: [80], body: [["Cell"]] },
+				},
+			});
+			const line = pages[0].items.find((item) => item.type === "line")!.item;
+			const verticalBorder = pages[0].items.find(
+				(item) => item.type === "vector" && item.item.x1 === item.item.x2,
+			)!.item;
+			return { lineX: line.x, borderX: verticalBorder.x1 };
+		};
+
+		const left = render("left");
+		const center = render("center");
+		const right = render("right");
+
+		expect(center.lineX - left.lineX).toBeCloseTo((right.lineX - left.lineX) / 2);
+		expect(center.borderX - left.borderX).toBeCloseTo((right.borderX - left.borderX) / 2);
+		expect(right.lineX).toBeGreaterThan(center.lineX);
+	});
+
+	it("inherits tableAlignment from named styles", function () {
+		const direct = testHelper.renderPages("A6", {
+			content: {
+				tableAlignment: "center",
+				table: { widths: [80], body: [["Cell"]] },
+			},
+		});
+		const styled = testHelper.renderPages("A6", {
+			styles: { centeredTable: { tableAlignment: "center" } },
+			content: {
+				style: "centeredTable",
+				table: { widths: [80], body: [["Cell"]] },
+			},
+		});
+
+		expect(getCells(styled, { pageNumber: 0 })[0].item.x).toBeCloseTo(
+			getCells(direct, { pageNumber: 0 })[0].item.x,
+		);
+	});
+
+	it("does not move a full-width star table", function () {
+		const renderX = (tableAlignment: "left" | "right") => {
+			const pages = testHelper.renderPages("A6", {
+				content: {
+					tableAlignment,
+					table: { widths: ["*"], body: [["Cell"]] },
+				},
+			});
+			return getCells(pages, { pageNumber: 0 })[0].item.x;
+		};
+
+		expect(renderX("right")).toBeCloseTo(renderX("left"));
+	});
+
+	it("keeps aligned repeated headers at the same horizontal position", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: {
+				tableAlignment: "right",
+				table: {
+					headerRows: 1,
+					widths: [80],
+					body: [["Header"], ...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])],
+				},
+			},
+		});
+		const headerPositions = pages.map(
+			(page) =>
+				page.items.find(
+					(item) =>
+						item.type === "line" && item.item.inlines.some((inline) => inline.text === "Header"),
+				)!.item.x,
+		);
+
+		expect(pages.length).toBeGreaterThan(1);
+		expect(headerPositions).toHaveLength(pages.length);
+		expect(headerPositions.every((position) => position === headerPositions[0])).toBe(true);
 	});
 
 	it("renders a table with nested list", function () {

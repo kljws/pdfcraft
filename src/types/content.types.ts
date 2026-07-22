@@ -17,6 +17,7 @@ export interface Style {
 	bold?: boolean;
 	italics?: boolean;
 	alignment?: Alignment;
+	tableAlignment?: Exclude<Alignment, "justify">;
 	color?: Color;
 	background?: Color;
 	decoration?: Decoration | Decoration[];

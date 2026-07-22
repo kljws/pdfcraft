@@ -18,9 +18,10 @@ export const getTableInnerContentWidth = (tableNode: LayoutPdfNode): number =>
 export const createRowSpanData = (
 	tableNode: LayoutPdfNode,
 	layout: ResolvedTableLayout,
+	horizontalOffset = 0,
 ): RowSpanData[] => {
-	const data: RowSpanData[] = [{ left: 0, rowSpan: 0 }];
-	let left = 0;
+	const data: RowSpanData[] = [{ left: horizontalOffset, rowSpan: 0 }];
+	let left = horizontalOffset;
 	const table = tableNode.table!;
 
 	for (let index = 0; index < table.body[0].length; index++) {

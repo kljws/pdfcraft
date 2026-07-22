@@ -12,6 +12,7 @@ class TableProcessor {
 	offsets!: TableOffsets;
 	layout!: ResolvedTableLayout;
 	tableWidth = 0;
+	tableOffset = 0;
 	rowSpanData: RowSpanData[] = [];
 	cleanUpRepeatables = false;
 	headerRows = 0;

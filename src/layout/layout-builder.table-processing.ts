@@ -65,13 +65,15 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 
 		processor.beginRow(rowIndex, host.writer);
 		const pageBeforeProcessing = host.writer.context().page;
+		const columnOffsets = [...tableNode._offsets!.offsets];
+		columnOffsets[0] = (columnOffsets[0] ?? 0) + processor.tableOffset;
 		const result = host.processRow({
 			marginX: tableNode._margin ? [tableNode._margin[0], tableNode._margin[2]] : [0, 0],
 			dontBreakRows: processor.dontBreakRows,
 			rowsWithoutPageBreak: processor.rowsWithoutPageBreak,
 			cells: table.body[rowIndex],
 			widths: table.widths,
-			gaps: tableNode._offsets!.offsets,
+			gaps: columnOffsets,
 			tableBody: table.body,
 			tableNode,
 			rowIndex,

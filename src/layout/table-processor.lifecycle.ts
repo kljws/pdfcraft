@@ -16,6 +16,7 @@ export interface TableLifecycleState {
 	offsets: TableOffsets;
 	layout: ResolvedTableLayout;
 	tableWidth: number;
+	tableOffset: number;
 	rowSpanData: RowSpanData[];
 	cleanUpRepeatables: boolean;
 	headerRows: number;
@@ -40,7 +41,8 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 	processor.offsets = tableNode._offsets!;
 	processor.layout = tableNode._layout as ResolvedTableLayout;
 
-	const availableWidth = writer.context().availableWidth - processor.offsets.total;
+	const contextWidth = writer.context().availableWidth;
+	const availableWidth = contextWidth - processor.offsets.total;
 	ColumnCalculator.buildColumnWidths(
 		table.widths,
 		availableWidth,
@@ -48,7 +50,14 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 		tableNode,
 	);
 	processor.tableWidth = processor.offsets.total + getTableInnerContentWidth(tableNode);
-	processor.rowSpanData = createRowSpanData(tableNode, processor.layout);
+	const remainingWidth = Math.max(0, contextWidth - processor.tableWidth);
+	processor.tableOffset =
+		tableNode._tableAlignment === "right"
+			? remainingWidth
+			: tableNode._tableAlignment === "center"
+				? remainingWidth / 2
+				: 0;
+	processor.rowSpanData = createRowSpanData(tableNode, processor.layout, processor.tableOffset);
 	processor.cleanUpRepeatables = false;
 	processor.headerRows = 0;
 	processor.rowsWithoutPageBreak = 0;

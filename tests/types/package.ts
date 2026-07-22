@@ -45,6 +45,10 @@ const definition: DocumentDefinition = {
 			height: 20,
 		},
 		{
+			tableAlignment: "center",
+			table: { widths: [100], body: [["Centered table"]] },
+		},
+		{
 			text: [
 				"Inline field ",
 				{ acroform: { type: "checkbox", id: "typed-checkbox" }, width: 12, height: 12 },

@@ -228,6 +228,9 @@ class DocMeasure {
 	measureTable(node: MeasuredPdfNode): MeasuredPdfNode {
 		extendTableWidths(node);
 		const table = node.table!;
+		const tableAlignment = this.styleStack.getProperty("tableAlignment");
+		node._tableAlignment =
+			tableAlignment === "center" || tableAlignment === "right" ? tableAlignment : "left";
 		node._layout = resolveTableLayout(node, this.tableLayouts);
 		node._offsets = getTableOffsets(node, node._layout);
 
