@@ -1,4 +1,5 @@
 import type { Vector } from "../types/internal";
+import { cloneValue } from "./clone-document-definition";
 
 export function pack<T extends object>(...args: Array<Partial<T> | null | undefined>): T {
 	const result = {} as T;
@@ -35,7 +36,5 @@ export function offsetVector(vector: Vector, x: number, y: number): void {
 }
 
 export function convertToDynamicContent<T>(staticContent: T): () => T {
-	return () =>
-		// copy to new object
-		JSON.parse(JSON.stringify(staticContent)) as T;
+	return () => cloneValue(staticContent);
 }

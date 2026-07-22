@@ -7,7 +7,7 @@ import { addAll, cloneInline, findMaxFitLength } from "./layout-builder.helpers"
 import type PageElementWriter from "./element-writer.page";
 import Line from "./line";
 
-export interface LayoutBuilderContentHost {
+interface LayoutBuilderContentHost {
 	writer: PageElementWriter;
 	pageSize: { width: number };
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;

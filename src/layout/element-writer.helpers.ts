@@ -1,5 +1,6 @@
 import { offsetVector } from "../utils/tools";
 import type { LayoutPdfNode, PageItem, PdfPage, Vector } from "../types/internal";
+import { getPageItemBottom } from "./page-item-geometry";
 
 export function getAlignmentOffset(
 	alignment: string | undefined,
@@ -35,4 +36,8 @@ export function addPageItem(page: PdfPage, item: PageItem, index?: number): void
 	} else {
 		page.items.splice(index, 0, item);
 	}
+}
+
+export function getFragmentHeight(items: PageItem[], cursorY: number): number {
+	return Math.max(cursorY, ...items.map(getPageItemBottom));
 }

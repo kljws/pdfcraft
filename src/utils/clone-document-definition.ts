@@ -1,6 +1,6 @@
 import type { DocumentDefinition } from "../types";
 
-const cloneValue = <T>(value: T, seen: WeakMap<object, object>): T => {
+const cloneRecursive = <T>(value: T, seen: WeakMap<object, object>): T => {
 	if (value === null || typeof value !== "object") {
 		return value;
 	}
@@ -15,7 +15,7 @@ const cloneValue = <T>(value: T, seen: WeakMap<object, object>): T => {
 		const clone: unknown[] = [];
 		seen.set(value, clone);
 		for (const item of value) {
-			clone.push(cloneValue(item, seen));
+			clone.push(cloneRecursive(item, seen));
 		}
 		return clone as T;
 	}
@@ -26,10 +26,12 @@ const cloneValue = <T>(value: T, seen: WeakMap<object, object>): T => {
 	const clone: Record<PropertyKey, unknown> = {};
 	seen.set(value, clone);
 	for (const key of Reflect.ownKeys(value)) {
-		clone[key] = cloneValue((value as Record<PropertyKey, unknown>)[key], seen);
+		clone[key] = cloneRecursive((value as Record<PropertyKey, unknown>)[key], seen);
 	}
 	return clone as T;
 };
 
+export const cloneValue = <T>(value: T): T => cloneRecursive(value, new WeakMap());
+
 export const cloneDocumentDefinition = (definition: DocumentDefinition): DocumentDefinition =>
-	cloneValue(definition, new WeakMap());
+	cloneValue(definition);

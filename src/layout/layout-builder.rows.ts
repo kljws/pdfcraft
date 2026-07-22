@@ -36,7 +36,7 @@ export interface ProcessRowResult {
 	positions: Position[];
 }
 
-export interface LayoutBuilderRowsHost {
+interface LayoutBuilderRowsHost {
 	writer: PageElementWriter;
 	nestedLevel: number;
 	verticalAlignmentItemStack: VerticalAlignmentStackEntry[];

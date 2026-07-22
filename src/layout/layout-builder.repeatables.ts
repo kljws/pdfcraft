@@ -13,7 +13,7 @@ import type {
 } from "./layout-builder.types";
 import { createWatermark } from "./layout-builder.watermark";
 
-export interface LayoutBuilderRepeatablesHost {
+interface LayoutBuilderRepeatablesHost {
 	writer: PageElementWriter;
 	docPreprocessor: DocPreprocessor;
 	docMeasure: DocMeasure;

@@ -1,4 +1,4 @@
-import ElementWriter from "./element-writer";
+import ElementWriter, { type ElementWriterEvents } from "./element-writer";
 import { normalizePageSize, normalizePageMargin } from "../configuration/page-size";
 import type { PageOrientation } from "../types";
 import type DocumentContext from "../document/document-context";
@@ -11,8 +11,7 @@ import type {
 	PageItem,
 	PageMarginDefinition,
 } from "../types/internal";
-import { getFragmentHeight } from "./element-writer.fragments";
-import type { ElementWriterEvents } from "./element-writer.types";
+import { getFragmentHeight } from "./element-writer.helpers";
 
 interface ElementFragment {
 	items: PageItem[];
@@ -41,8 +40,7 @@ class PageElementWriter {
 	 * @param context
 	 */
 	constructor(context: DocumentContext) {
-		this.writer = new ElementWriter(context);
-		this.writer.addListener("lineAdded", (line) => this.emit("lineAdded", line));
+		this.writer = new ElementWriter(context, (line) => this.emit("lineAdded", line));
 		this.transactionLevel = 0;
 		this.repeatables = [];
 	}
@@ -53,13 +51,6 @@ class PageElementWriter {
 	): this {
 		this.events.addListener(event, listener);
 		return this;
-	}
-
-	on<Event extends EventKey<ElementWriterEvents>>(
-		event: Event,
-		listener: EventListener<EventArgs<ElementWriterEvents, Event>>,
-	): this {
-		return this.addListener(event, listener);
 	}
 
 	removeListener<Event extends EventKey<ElementWriterEvents>>(

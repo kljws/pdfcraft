@@ -53,3 +53,7 @@ export interface CreatePageOptions {
 	pageMargins: PageMargins;
 	customProperties: Metadata;
 }
+
+export interface DocumentContextEvents {
+	pageAdded: [page: PdfPage];
+}
