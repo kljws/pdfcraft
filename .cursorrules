@@ -1,0 +1,23 @@
+# Git commit messages
+
+When generating Git commit messages:
+
+- Use Conventional Commits.
+- Write in English.
+- Use exactly this format: `type: concise description`
+- Allowed types: `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `chore`, `perf`, `style`, `revert`.
+- Use the imperative mood.
+- Use lowercase after the colon.
+- Do not add a period.
+- Do not include a body or bullet points.
+- Keep the entire message under 72 characters.
+- Describe the primary change only.
+- Avoid vague words such as `update`, `changes`, `improvements` or `misc`.
+
+Examples:
+
+- `feat: add typed browser entry`
+- `fix: prevent duplicate font registration`
+- `refactor: isolate pdfcraft instances`
+- `docs: clarify font configuration`
+- `test: cover concurrent pdf generation`
