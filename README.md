@@ -197,11 +197,16 @@ The Node.js bundles and declarations are produced with `tsdown`. Browser-specifi
 
 ## Credits
 
-**PDFCraft 0.4.0** starts from [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) (original authors: [@bpampuch](https://github.com/bpampuch) (founder), [@liborm85](https://github.com/liborm85)).
-pdfmake itself is based on the truly amazing library [pdfkit](https://github.com/foliojs/pdfkit) (credits to [@devongovett](https://github.com/devongovett)).
+**pdfcraft 0.4.0** is a fork and substantial modernization of [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake), originally created by [@bpampuch](https://github.com/bpampuch) and maintained by [@liborm85](https://github.com/liborm85).
 
-Thanks to all contributors — both upstream and to this modernization.
+pdfcraft retains pdfmake's document-definition model while introducing a rewritten TypeScript codebase, modern package exports, isolated instances, updated browser support, new APIs, tests, tooling and other architectural improvements.
+
+pdfmake is itself built on top of [PDFKit](https://github.com/foliojs/pdfkit), originally created by [@devongovett](https://github.com/devongovett).
+
+Thanks to all upstream pdfmake and PDFKit contributors, as well as everyone contributing to pdfcraft.
 
 ## License
 
-MIT. See [LICENSE](./LICENSE).
+pdfcraft is distributed under the MIT License.
+
+This project includes code derived from pdfmake. The original pdfmake copyright notices and MIT License are preserved in [LICENSE](./LICENSE).
