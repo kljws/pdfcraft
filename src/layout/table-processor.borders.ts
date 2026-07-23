@@ -9,10 +9,12 @@ export function drawHorizontalLine(
 	overrideY?: number,
 	moveDown: boolean = true,
 	forcePage?: number,
+	styleLineIndex = lineIndex,
+	borderSide: "both" | "top" | "bottom" = "both",
 ): void {
-	let lineWidth = processor.layout.hLineWidth(lineIndex, processor.tableNode);
+	let lineWidth = processor.layout.hLineWidth(styleLineIndex, processor.tableNode);
 	if (lineWidth) {
-		let style = processor.layout.hLineStyle(lineIndex, processor.tableNode);
+		let style = processor.layout.hLineStyle(styleLineIndex, processor.tableNode);
 		let dash;
 		if (style && style.dash) {
 			dash = style.dash;
@@ -29,6 +31,9 @@ export function drawHorizontalLine(
 		let rowBottomBorder = false;
 
 		for (let i = 0, l = processor.rowSpanData.length; i < l; i++) {
+			cellAbove = undefined;
+			currentCell = undefined;
+			rowCellAbove = undefined;
 			let data = processor.rowSpanData[i];
 			let shouldDrawLine = !data.rowSpan;
 			let borderColor = null;
@@ -41,7 +46,7 @@ export function drawHorizontalLine(
 				rowBottomBorder = false;
 
 				// the cell in the row above
-				if (lineIndex > 0) {
+				if (lineIndex > 0 && borderSide !== "top") {
 					cellAbove = body[lineIndex - 1][i];
 					bottomBorder = cellAbove.border ? cellAbove.border[3] : processor.layout.defaultBorder;
 					if (bottomBorder && cellAbove.borderColor) {
@@ -50,9 +55,13 @@ export function drawHorizontalLine(
 				}
 
 				// the current cell
-				if (lineIndex < body.length) {
+				if (lineIndex < body.length && borderSide !== "bottom") {
 					currentCell = body[lineIndex][i];
-					topBorder = currentCell.border ? currentCell.border[1] : processor.layout.defaultBorder;
+					topBorder = currentCell.border
+						? currentCell.border[1]
+						: cellAbove?.border
+							? false
+							: processor.layout.defaultBorder;
 					if (topBorder && borderColor == null && currentCell.borderColor) {
 						borderColor = currentCell.borderColor[1];
 					}
@@ -75,7 +84,7 @@ export function drawHorizontalLine(
 			if (borderColor == null) {
 				borderColor =
 					typeof processor.layout.hLineColor === "function"
-						? processor.layout.hLineColor(lineIndex, processor.tableNode, i)
+						? processor.layout.hLineColor(styleLineIndex, processor.tableNode, i)
 						: processor.layout.hLineColor;
 			}
 
@@ -126,9 +135,6 @@ export function drawHorizontalLine(
 						forcePage,
 					);
 					currentLine = null;
-					cellAbove = null;
-					currentCell = null;
-					rowCellAbove = null;
 				}
 			}
 		}

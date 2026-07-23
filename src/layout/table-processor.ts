@@ -53,8 +53,19 @@ class TableProcessor {
 		overrideY?: number,
 		moveDown = true,
 		forcePage?: number,
+		styleLineIndex = lineIndex,
+		borderSide: "both" | "top" | "bottom" = "both",
 	): void {
-		drawHorizontalLine(this, lineIndex, writer, overrideY, moveDown, forcePage);
+		drawHorizontalLine(
+			this,
+			lineIndex,
+			writer,
+			overrideY,
+			moveDown,
+			forcePage,
+			styleLineIndex,
+			borderSide,
+		);
 	}
 
 	drawVerticalLine(
@@ -131,6 +142,18 @@ class TableProcessor {
 		ys[ys.length - 1].y1 = endingY;
 
 		let skipOrphanePadding = ys[0].y1! - ys[0].y0 === this.rowPaddingTop;
+		if (skipOrphanePadding && pageBreaks.length > 0 && this.layout.hLineWhenBroken !== false) {
+			const firstBreak = pageBreaks[0];
+			this.drawHorizontalLine(
+				rowIndex,
+				writer,
+				firstBreak.prevY,
+				false,
+				firstBreak.prevPage,
+				this.table.body.length,
+				"bottom",
+			);
+		}
 		if (
 			rowIndex === 0 &&
 			!skipOrphanePadding &&
@@ -173,10 +196,18 @@ class TableProcessor {
 
 			// Draw horizontal lines before the vertical lines so they are not overridden
 			if (willBreak && this.layout.hLineWhenBroken !== false) {
-				this.drawHorizontalLine(rowIndex + 1, writer, y2, false);
+				this.drawHorizontalLine(
+					rowIndex + 1,
+					writer,
+					y2,
+					false,
+					undefined,
+					this.table.body.length,
+					"bottom",
+				);
 			}
 			if (rowBreakWithoutHeader && this.layout.hLineWhenBroken !== false) {
-				this.drawHorizontalLine(rowIndex, writer, y1, false);
+				this.drawHorizontalLine(rowIndex, writer, y1, false, undefined, 0, "top");
 			}
 
 			drawTableRowSegment(this, rowIndex, writer, xs, {
@@ -235,10 +266,21 @@ class TableProcessor {
 			this.dontBreakRows && (rowIndex === 0 || this._isCurrentRowUnbreakable);
 
 		if (shouldCommitCurrentRowUnbreakable) {
-			const pageChangedCallback = () => {
-				if (rowIndex > 0 && !this.headerRows && this.layout.hLineWhenBroken !== false) {
-					// Draw the top border of the row after a page break
-					this.drawHorizontalLine(rowIndex, writer);
+			const pageChangedCallback = (change: TablePageBreak) => {
+				if (rowIndex > 0 && this.layout.hLineWhenBroken !== false) {
+					this.drawHorizontalLine(
+						rowIndex,
+						writer,
+						change.prevY,
+						false,
+						change.prevPage,
+						this.table.body.length,
+						"bottom",
+					);
+					if (!this.headerRows) {
+						// Draw the top border of the row after a page break.
+						this.drawHorizontalLine(rowIndex, writer, undefined, true, undefined, 0, "top");
+					}
 				}
 			};
 

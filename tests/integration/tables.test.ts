@@ -122,6 +122,255 @@ describe("Integration test: tables", function () {
 		}
 	});
 
+	it("keeps fixed row heights stable on every page (#1369)", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: {
+				table: {
+					heights: 30,
+					body: Array.from({ length: 30 }, (_, index) => [
+						{ text: `Row ${index + 1}`, fillColor: "#dbeafe" },
+						"Column B",
+					]),
+				},
+			},
+		});
+		const fillHeights = pages.flatMap((page) =>
+			page.items
+				.filter(
+					(entry) =>
+						entry.type === "vector" && entry.item.type === "rect" && entry.item.color === "#dbeafe",
+				)
+				.map((entry) => Number(entry.item.h)),
+		);
+
+		assert.ok(pages.length > 1);
+		assert.equal(fillHeights.length, 30);
+		for (const height of fillHeights) assert.approximately(height, fillHeights[0], 0.001);
+	});
+
+	it("keeps the first body row after repeated headers at full height (#2876)", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: {
+				table: {
+					headerRows: 1,
+					heights: 32,
+					body: [
+						["Header A", "Header B"],
+						...Array.from({ length: 24 }, (_, index) => [
+							{ text: `Row ${index + 1}`, fillColor: "#dcfce7" },
+							"Value",
+						]),
+					],
+				},
+			},
+		});
+		const fillHeights = pages.flatMap((page) =>
+			page.items
+				.filter(
+					(entry) =>
+						entry.type === "vector" && entry.item.type === "rect" && entry.item.color === "#dcfce7",
+				)
+				.map((entry) => Number(entry.item.h)),
+		);
+
+		assert.ok(pages.length > 1);
+		assert.equal(fillHeights.length, 24);
+		for (const height of fillHeights) assert.approximately(height, fillHeights[0], 0.001);
+	});
+
+	it("closes each table page when broken-line rendering is enabled (#2267, #2792, #2849)", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: {
+				table: {
+					headerRows: 1,
+					dontBreakRows: true,
+					body: [
+						["Header A", "Header B"],
+						...Array.from({ length: 30 }, (_, index) => [`Row ${index + 1}`, "Value"]),
+					],
+				},
+				layout: {
+					hLineWhenBroken: true,
+					hLineWidth: (index: number, node: { table: { body: unknown[] } }) =>
+						index === 0 || index === 1 || index === node.table.body.length ? 2 : 0,
+					vLineWidth: () => 1,
+				},
+			},
+		});
+
+		assert.ok(pages.length > 1);
+		for (const page of pages.slice(0, -1)) {
+			const verticals = page.items.filter(
+				(entry) =>
+					entry.type === "vector" &&
+					entry.item.type === "line" &&
+					Math.abs(entry.item.x1 - entry.item.x2) < 0.001,
+			);
+			const bottom = Math.max(...verticals.map((entry) => entry.item.y2));
+			const closesPage = page.items.some(
+				(entry) =>
+					entry.type === "vector" &&
+					entry.item.type === "line" &&
+					Math.abs(entry.item.y1 - entry.item.y2) < 0.001 &&
+					entry.item.lineWidth === 2 &&
+					Math.abs(entry.item.y1 - bottom) <= Number(entry.item.lineWidth),
+			);
+			assert.equal(
+				closesPage,
+				true,
+				JSON.stringify({
+					bottom,
+					horizontalLines: page.items
+						.filter(
+							(entry) =>
+								entry.type === "vector" &&
+								entry.item.type === "line" &&
+								Math.abs(entry.item.y1 - entry.item.y2) < 0.001,
+						)
+						.map((entry) => ({ y: entry.item.y1, width: entry.item.lineWidth })),
+				}),
+			);
+		}
+	});
+
+	it("does not repeat the final table border when broken lines are disabled (#2049)", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: {
+				table: {
+					body: [
+						["Header", "Value"],
+						[{ text: "A long final row ".repeat(180) }, "Last"],
+					],
+				},
+				layout: {
+					hLineWhenBroken: false,
+					hLineWidth: (index: number, node: { table: { body: unknown[] } }) =>
+						index === 0 || index === node.table.body.length ? 3 : 0,
+					vLineWidth: () => 1,
+				},
+			},
+		});
+
+		assert.ok(pages.length > 1);
+		const firstPageThickLines = pages[0].items.filter(
+			(entry) =>
+				entry.type === "vector" &&
+				entry.item.type === "line" &&
+				Math.abs(entry.item.y1 - entry.item.y2) < 0.001 &&
+				entry.item.lineWidth === 3,
+		);
+		const lastPageThickLines = pages
+			.at(-1)!
+			.items.filter(
+				(entry) =>
+					entry.type === "vector" &&
+					entry.item.type === "line" &&
+					Math.abs(entry.item.y1 - entry.item.y2) < 0.001 &&
+					entry.item.lineWidth === 3,
+			);
+
+		assert.equal(new Set(firstPageThickLines.map((entry) => entry.item.y1)).size, 1);
+		assert.equal(new Set(lastPageThickLines.map((entry) => entry.item.y1)).size, 1);
+	});
+
+	it("moves a cell top border with a dontBreakRows row (#2763)", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: [
+				{ text: "Spacer", fontSize: 130 },
+				{
+					table: {
+						dontBreakRows: true,
+						heights: [30, 100],
+						body: [
+							["First", "Row"],
+							[
+								{
+									text: "Moved",
+									border: [false, true, false, false],
+									borderColor: ["black", "#dc2626", "black", "black"],
+								},
+								"Row",
+							],
+						],
+					},
+					layout: { defaultBorder: false },
+				},
+			],
+		});
+		const redLinesByPage = pages.map(
+			(page) =>
+				page.items.filter((entry) => entry.type === "vector" && entry.item.lineColor === "#dc2626")
+					.length,
+		);
+
+		assert.ok(pages.length > 1);
+		assert.equal(redLinesByPage[0], 0);
+		assert.ok(redLinesByPage[1] > 0);
+	});
+
+	it("does not force a page-bottom segment for a borderless cell (#2869)", function () {
+		const pages = testHelper.renderPages("A4", {
+			content: [
+				{ text: " ", fontSize: 360 },
+				{
+					table: {
+						widths: ["*", "*", "*", "*"],
+						heights: 50,
+						body: Array.from({ length: 8 }, (_, index) =>
+							index % 2 === 0
+								? ["ABC", "DEF", "GHI", "JKL"]
+								: [
+										"ABC",
+										{ text: `XYZ ${index}`, colSpan: 2 },
+										"",
+										{ text: "", border: [false, false, false, false] },
+									],
+						),
+					},
+				},
+			],
+		});
+
+		assert.ok(pages.length > 1);
+		const firstPageVerticals = pages[0].items.filter(
+			(entry) =>
+				entry.type === "vector" &&
+				entry.item.type === "line" &&
+				Math.abs(entry.item.x1 - entry.item.x2) < 0.001,
+		);
+		const columnEdges = [...new Set(firstPageVerticals.map((entry) => entry.item.x1))].sort(
+			(a, b) => a - b,
+		);
+		const rightEdge = columnEdges.at(-1)!;
+		const lastColumnLeft = columnEdges.at(-2)!;
+		const pageBottom = Math.max(...firstPageVerticals.map((entry) => entry.item.y2));
+		const unwantedSegment = pages[0].items.some(
+			(entry) =>
+				entry.type === "vector" &&
+				entry.item.type === "line" &&
+				Math.abs(entry.item.y1 - entry.item.y2) < 0.001 &&
+				Math.abs(entry.item.y1 - pageBottom) < 1.1 &&
+				entry.item.x2 > lastColumnLeft,
+		);
+
+		assert.equal(
+			unwantedSegment,
+			false,
+			JSON.stringify({
+				rightEdge,
+				pageBottom,
+				horizontals: pages[0].items
+					.filter(
+						(entry) =>
+							entry.type === "vector" &&
+							entry.item.type === "line" &&
+							Math.abs(entry.item.y1 - entry.item.y2) < 0.001,
+					)
+					.map((entry) => ({ x1: entry.item.x1, x2: entry.item.x2, y: entry.item.y1 })),
+			}),
+		);
+	});
+
 	it("aligns a fixed-width table as a complete unit", function () {
 		const render = (tableAlignment: "left" | "center" | "right") => {
 			const pages = testHelper.renderPages("A6", {

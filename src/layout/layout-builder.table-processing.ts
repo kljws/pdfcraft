@@ -47,9 +47,20 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 					processor.bottomLineWidth +
 					processor.topLineWidth;
 			if (host.writer.context().availableHeight < minimumRowHeight) {
+				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
+					processor.drawHorizontalLine(
+						rowIndex,
+						host.writer,
+						host.writer.context().y,
+						false,
+						undefined,
+						table.body.length,
+						"bottom",
+					);
+				}
 				host.snakingAwarePageBreak();
 				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
-					processor.drawHorizontalLine(rowIndex, host.writer);
+					processor.drawHorizontalLine(rowIndex, host.writer, undefined, true, undefined, 0, "top");
 				}
 			}
 		}
@@ -67,6 +78,17 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 			const requiredHeight = rowHeight + rowOverhead;
 			const fullPageHeight = page.pageSize.height - page.pageMargins.top - page.pageMargins.bottom;
 			if (requiredHeight > context.availableHeight && requiredHeight <= fullPageHeight) {
+				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
+					processor.drawHorizontalLine(
+						rowIndex,
+						host.writer,
+						context.y,
+						false,
+						undefined,
+						table.body.length,
+						"bottom",
+					);
+				}
 				context.moveDown(context.availableHeight);
 				if (context.inSnakingColumns()) {
 					host.snakingAwarePageBreak();
@@ -74,7 +96,7 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 					host.writer.moveToNextPage();
 				}
 				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
-					processor.drawHorizontalLine(rowIndex, host.writer);
+					processor.drawHorizontalLine(rowIndex, host.writer, undefined, true, undefined, 0, "top");
 				}
 			}
 		}

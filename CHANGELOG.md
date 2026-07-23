@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- [bpampuch/pdfmake#2267 — Need to show a bottom border on the last table row of each page](https://github.com/bpampuch/pdfmake/issues/2267), [bpampuch/pdfmake#2792 — Bottom table border missing across multiple pages](https://github.com/bpampuch/pdfmake/issues/2792) and [bpampuch/pdfmake#2849 — Render bottom border on an overflown table](https://github.com/bpampuch/pdfmake/issues/2849): page-broken tables now use the table's final horizontal-line width, style and color to close each page, including tables with repeated headers and `dontBreakRows`.
+- [bpampuch/pdfmake#2049 — Multi-page table bottom border appears on the previous page](https://github.com/bpampuch/pdfmake/issues/2049): `hLineWhenBroken: false` continues to suppress intermediate closing borders and now leaves the final table border exclusively on the actual final page.
+- [bpampuch/pdfmake#2763 — Top border misplaced with `dontBreakRows`](https://github.com/bpampuch/pdfmake/issues/2763): a row moved as an unbreakable block now carries its top border to the new page while the previous table fragment is closed independently.
+- [bpampuch/pdfmake#2869 — Bottom border shown for a borderless cell at a page break](https://github.com/bpampuch/pdfmake/issues/2869): page-boundary lines now respect the applicable side of each cell border; an explicit `border: [false, false, false, false]` is no longer overridden by the next row's implicit default border.
+
+### Tests
+
+- [bpampuch/pdfmake#1369 — Fixed table row height changes on the second page](https://github.com/bpampuch/pdfmake/issues/1369) and [bpampuch/pdfmake#2876 — First row on page 2 has compressed height](https://github.com/bpampuch/pdfmake/issues/2876): confirmed the current fixed-height pagination behavior and added regressions proving that every row, including the first body row after a repeated header, retains its configured height.
+- Added geometric multi-page table regressions for intermediate closing borders, final-border placement, unbreakable-row top borders and per-cell border suppression across page breaks.
+
 ## [0.6.0] - 2026-07-23
 
 ### Fixed
