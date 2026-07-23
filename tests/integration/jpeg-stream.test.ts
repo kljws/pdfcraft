@@ -20,11 +20,7 @@ describe("Integration test: JPEG streams", () => {
 		const document = await loadingTask.promise;
 		const operatorList = await (await document.getPage(1)).getOperatorList();
 
-		expect(
-			operatorList.fnArray.some(
-				(operator) => operator === OPS.paintImageXObject || operator === OPS.paintJpegXObject,
-			),
-		).toBe(true);
+		expect(operatorList.fnArray.some((operator) => operator === OPS.paintImageXObject)).toBe(true);
 		await loadingTask.destroy();
 	});
 });

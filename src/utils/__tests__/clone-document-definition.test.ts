@@ -38,10 +38,16 @@ describe("cloneValue", () => {
 				{ table: { body: [sharedRow] } },
 			],
 		});
+		const firstTable = clone.content[2];
+		const secondTable = clone.content[3];
 
 		expect(clone.content[0]).not.toBe(clone.content[1]);
-		expect(clone.content[2].table.body[0]).not.toBe(clone.content[3].table.body[0]);
-		expect(clone.content[2].table.body[0][0]).not.toBe(clone.content[3].table.body[0][0]);
+		expect("table" in firstTable && "table" in secondTable).toBe(true);
+		if (!("table" in firstTable) || !("table" in secondTable)) {
+			throw new Error("Expected cloned table nodes");
+		}
+		expect(firstTable.table.body[0]).not.toBe(secondTable.table.body[0]);
+		expect(firstTable.table.body[0][0]).not.toBe(secondTable.table.body[0][0]);
 	});
 });
 
