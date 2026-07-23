@@ -37,6 +37,7 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 	const table = tableNode.table!;
 	let lastRowHeight = 0;
 	for (let rowIndex = 0; rowIndex < table.body.length; rowIndex++) {
+		const rowHeight = getRowHeight(table.heights, rowIndex);
 		if (rowIndex > 0 && host.writer.context().inSnakingColumns()) {
 			const minimumRowHeight =
 				lastRowHeight ||
@@ -48,6 +49,31 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 			if (host.writer.context().availableHeight < minimumRowHeight) {
 				host.snakingAwarePageBreak();
 				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
+					processor.drawHorizontalLine(rowIndex, host.writer);
+				}
+			}
+		}
+
+		const isUnbreakableRow =
+			processor.dontBreakRows || rowIndex <= processor.rowsWithoutPageBreak - 1;
+		if (!isUnbreakableRow && rowHeight !== undefined) {
+			const context = host.writer.context();
+			const page = context.getCurrentPage();
+			const rowOverhead =
+				processor.layout.paddingTop(rowIndex, tableNode) +
+				processor.layout.paddingBottom(rowIndex, tableNode) +
+				processor.layout.hLineWidth(rowIndex + 1, tableNode) +
+				(rowIndex === 0 ? processor.layout.hLineWidth(0, tableNode) : 0);
+			const requiredHeight = rowHeight + rowOverhead;
+			const fullPageHeight = page.pageSize.height - page.pageMargins.top - page.pageMargins.bottom;
+			if (requiredHeight > context.availableHeight && requiredHeight <= fullPageHeight) {
+				context.moveDown(context.availableHeight);
+				if (context.inSnakingColumns()) {
+					host.snakingAwarePageBreak();
+				} else {
+					host.writer.moveToNextPage();
+				}
+				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
 					processor.drawHorizontalLine(rowIndex, host.writer);
 				}
 			}
@@ -77,7 +103,7 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 			tableBody: table.body,
 			tableNode,
 			rowIndex,
-			height: getRowHeight(table.heights, rowIndex),
+			height: rowHeight,
 		});
 
 		addAll(tableNode.positions!, result.positions);

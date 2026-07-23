@@ -100,6 +100,19 @@ describe("Integration test: tables", function () {
 			),
 		);
 		assert.equal(pageWithThirdRow, 1);
+		const thirdRowHorizontalBorders = [
+			...new Set(
+				pages[1].items
+					.filter(
+						(entry) =>
+							entry.type === "vector" &&
+							entry.item.type === "line" &&
+							Math.abs(entry.item.y1 - entry.item.y2) < 0.001,
+					)
+					.map((entry) => Number(entry.item.y1.toFixed(3))),
+			),
+		];
+		assert.ok(thirdRowHorizontalBorders.length >= 2, "expected top and bottom row borders");
 		for (const page of pages) {
 			for (const entry of page.items) {
 				if (entry.type !== "vector") continue;

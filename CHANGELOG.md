@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - [bpampuch/pdfmake#1290 — Incorrect offset for experimental path feature](https://github.com/bpampuch/pdfmake/issues/1290): canvas `path` vectors now receive the same page and container translation as lines, rectangles, ellipses and polylines, so mixed vector types share one coordinate system.
-- [bpampuch/pdfmake#1300 — Table row height overlapping problem](https://github.com/bpampuch/pdfmake/issues/1300): fixed-height table rows that fit on a fresh page now move before their content is laid out instead of moving only the row boundary after content has already reached the bottom margin. Rows taller than a physical page retain the multi-page fallback.
+- [bpampuch/pdfmake#1300 — Table row height overlapping problem](https://github.com/bpampuch/pdfmake/issues/1300): fixed-height table rows that fit on a fresh page now move before their row lifecycle begins instead of moving only after content has already reached the bottom margin. The new page receives complete top, side and bottom borders; rows taller than a physical page retain the multi-page fallback.
 - [bpampuch/pdfmake#1388 — `colSpan` interacting badly with auto column width](https://github.com/bpampuch/pdfmake/issues/1388): width growth introduced by a spanning cell is now assigned to spanned star columns first, then auto columns, rather than being spread into fixed and compact auto columns indiscriminately.
 - [bpampuch/pdfmake#1814 — Spanning of table cells](https://github.com/bpampuch/pdfmake/issues/1814): compact `colSpan` and `rowSpan` rows are normalized with inserted placeholders before preprocessing, preserving real cells that follow a span instead of overwriting them.
 - [bpampuch/pdfmake#1928 — Table breaks with star-width columns](https://github.com/bpampuch/pdfmake/issues/1928), [bpampuch/pdfmake#2141 — Content not wrapping properly in table](https://github.com/bpampuch/pdfmake/issues/2141) and [bpampuch/pdfmake#2508 — Star and auto widths exceed page margins](https://github.com/bpampuch/pdfmake/issues/2508): when measured minimum word widths exceed the remaining page width, flexible auto/star columns are constrained proportionally to the available width and the existing hard-wrap layout handles long tokens. Fixed-width columns remain explicit and may still intentionally exceed the page.
@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Performance
 
 - [bpampuch/pdfmake#2898 — High memory usage with multiple images](https://github.com/bpampuch/pdfmake/issues/2898): repeated inline data URLs and repeated references to the same `Uint8Array` are now assigned one internal image resource, so PDFKit decodes and embeds them once per document. Named image resources already used this cache; distinct source images necessarily retain their own decoded data during generation.
+
+### Tests
+
+- Added an offline visual-regression generator and inspection checklist for flexible table sizing, `colSpan` width allocation, compact column/row spans, fixed row pagination and canvas path offsets. Generated PDFs include explicit content-boundary guides and are kept outside version control.
 
 ### Upstream pdfmake issues already resolved or covered
 
