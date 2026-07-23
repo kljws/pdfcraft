@@ -1904,9 +1904,9 @@ describe("LayoutBuilder", function () {
 			styleDictionary = {};
 		});
 
-		it("should provide the current page and page size", function () {
+		it("supports the legacy current-page and page-size signature", function () {
 			docStructure = ["Text"];
-			background = vi.fn();
+			background = vi.fn((_page: number, _pageSize: unknown) => undefined);
 
 			builder.layoutDocument(
 				docStructure,
@@ -1923,6 +1923,33 @@ describe("LayoutBuilder", function () {
 			var pageSize = { width: 400, height: 800, orientation: "portrait" };
 			assert.equal(background.mock.calls[0][0], 1);
 			assert.deepEqual(background.mock.calls[0][1], pageSize);
+		});
+
+		it("provides the total page count to the three-argument signature", function () {
+			docStructure = [{ text: "First page", pageBreak: "after" }, "Second page"];
+			background = vi.fn((_page: number, pageCount: number, _pageSize: unknown) =>
+				pageCount > 0 ? `of ${pageCount}` : undefined,
+			);
+
+			const pages = builder.layoutDocument(
+				docStructure,
+				pdfDocument,
+				styleDictionary,
+				defaultStyle,
+				background,
+				header,
+				footer,
+				watermark,
+				pageBreakBeforeFunction,
+			);
+
+			assert.equal(pages.length, 2);
+			assert.equal(background.mock.calls.at(-2)?.[0], 1);
+			assert.equal(background.mock.calls.at(-2)?.[1], 2);
+			assert.deepEqual(background.mock.calls.at(-2)?.[2], pages[0].pageSize);
+			assert.equal(background.mock.calls.at(-1)?.[0], 2);
+			assert.equal(background.mock.calls.at(-1)?.[1], 2);
+			assert.deepEqual(background.mock.calls.at(-1)?.[2], pages[1].pageSize);
 		});
 	});
 

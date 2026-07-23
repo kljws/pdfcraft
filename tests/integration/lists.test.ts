@@ -217,6 +217,34 @@ describe("Integration test: lists", function () {
 		);
 	});
 
+	it("keeps unordered-list bullets aligned across pages with a background", function () {
+		const dd = {
+			background: () => ({ text: "Background", margin: 10 }),
+			content: {
+				ul: Array.from({ length: 80 }, () => "hello world"),
+			},
+		};
+
+		const pages = testHelper.renderPages("A6", dd);
+		const contentLines = pages.flatMap((page) =>
+			page.items
+				.map(({ item }) => item)
+				.filter((item) => item.inlines?.map((inline) => inline.text).join("") === "hello world"),
+		);
+		const bullets = pages.flatMap((page) =>
+			page.items.map(({ item }) => item).filter((item) => item.type === "ellipse"),
+		);
+
+		assert.isAbove(pages.length, 1);
+		assert.equal(contentLines.length, 80);
+		assert.equal(bullets.length, 80);
+		assert.deepEqual(
+			[...new Set(contentLines.map((item) => item.x))],
+			[testHelper.MARGINS.left + testHelper.getWidthOfString(testHelper.DEFAULT_BULLET_SPACER)],
+		);
+		assert.deepEqual([...new Set(bullets.map((item) => item.x))], [testHelper.MARGINS.left + 2]);
+	});
+
 	it("renders nested lists", function () {
 		var dd = {
 			content: {

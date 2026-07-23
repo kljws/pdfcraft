@@ -8,6 +8,7 @@ import { decodeBase64, decodeBytes } from "../utils/bytes";
 
 class DocMeasureMedia {
 	private autoImageIndex = 1;
+	private readonly inlineImageLabels = new Map<string | Uint8Array, string>();
 
 	constructor(
 		private readonly pdfDocument: PDFDocument,
@@ -70,8 +71,9 @@ class DocMeasureMedia {
 
 	convertIfInlineImage(node: MeasuredPdfNode): void {
 		if (node.image instanceof Uint8Array) {
-			const label = `$$pdfcraft$$${this.autoImageIndex++}`;
-			this.pdfDocument.images[label] = node.image;
+			const source = node.image;
+			const label = this.getInlineImageLabel(source);
+			this.pdfDocument.images[label] ??= source;
 			node.image = label;
 			return;
 		}
@@ -80,10 +82,20 @@ class DocMeasureMedia {
 			/^data:(image\/(jpeg|jpg|png)|application\/octet-stream);base64,/.test(node.image)
 		) {
 			// base64 data URL (image/* or application/octet-stream)
-			let label = `$$pdfcraft$$${this.autoImageIndex++}`;
-			this.pdfDocument.images[label] = node.image;
+			const source = node.image;
+			const label = this.getInlineImageLabel(source);
+			this.pdfDocument.images[label] ??= source;
 			node.image = label;
 		}
+	}
+
+	private getInlineImageLabel(source: string | Uint8Array): string {
+		let label = this.inlineImageLabels.get(source);
+		if (!label) {
+			label = `$$pdfcraft$$${this.autoImageIndex++}`;
+			this.inlineImageLabels.set(source, label);
+		}
+		return label;
 	}
 
 	measureImage(node: MeasuredPdfNode): MeasuredPdfNode {

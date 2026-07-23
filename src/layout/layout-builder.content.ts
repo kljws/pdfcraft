@@ -10,6 +10,7 @@ import Line from "./line";
 interface LayoutBuilderContentHost {
 	writer: PageElementWriter;
 	pageSize: { width: number };
+	suppressLinearNodeList: boolean;
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
 	snakingAwarePageBreak(pageOrientation?: string): void;
 }
@@ -38,7 +39,7 @@ class LayoutBuilderContent {
 		const addMarkerToFirstLeaf = (line: LineLike) => {
 			// I'm not very happy with the way list processing is implemented
 			// (both code and algorithm should be rethinked)
-			if (nextMarker) {
+			if (nextMarker && !this.host.suppressLinearNodeList) {
 				let marker = nextMarker;
 				nextMarker = null;
 

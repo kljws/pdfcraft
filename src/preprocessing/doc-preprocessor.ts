@@ -1,4 +1,11 @@
-import { isString, isNumber, isValue, isEmptyObject, isObject } from "../utils/variable-type";
+import {
+	isString,
+	isNumber,
+	isPositiveInteger,
+	isValue,
+	isEmptyObject,
+	isObject,
+} from "../utils/variable-type";
 import { stringifyNode } from "../utils/node";
 import type {
 	ColumnNode,
@@ -227,6 +234,17 @@ class DocPreprocessor {
 		for (let row = 0; row < body.length; row++) {
 			if (!Array.isArray(body[row])) {
 				throw new Error(`Invalid table node: row ${row} in 'table.body' must be an array`);
+			}
+			for (let col = 0; col < body[row].length; col++) {
+				const cell = body[row][col];
+				if (!isObject(cell)) continue;
+				for (const property of ["colSpan", "rowSpan"] as const) {
+					if (cell[property] !== undefined && !isPositiveInteger(cell[property])) {
+						throw new Error(
+							`Invalid table cell at row ${row}, column ${col}: '${property}' must be a positive integer, received ${stringifyNode(cell[property])}`,
+						);
+					}
+				}
 			}
 		}
 		for (col = 0, cols = body[0].length; col < cols; col++) {

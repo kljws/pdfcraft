@@ -6,6 +6,74 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- [bpampuch/pdfmake#1644 — Page count on background](https://github.com/bpampuch/pdfmake/issues/1644): dynamic backgrounds now receive `(currentPage, pageCount, pageSize)` after a bounded layout pass resolves the final page count. The historical `(currentPage, pageSize)` callback remains supported for backward compatibility, including section-specific backgrounds.
+- [bpampuch/pdfmake#465 — Multiple references to same object are ignored](https://github.com/bpampuch/pdfmake/issues/465) and [bpampuch/pdfmake#1775 — Cannot re-use a function to draw table rows](https://github.com/bpampuch/pdfmake/issues/1775): repeated references to the same content node or table row are now cloned as independent occurrences before preprocessing, while genuine cyclic structures remain supported. Internal measurement and position state can no longer leak from the first occurrence into later ones.
+- [bpampuch/pdfmake#201 — Unordered lists do not work with background layer](https://github.com/bpampuch/pdfmake/issues/201): page transitions now preserve active horizontal offsets as well as available width, and repeatable background lines can no longer consume a pending list-marker event. Every bullet and list line remains aligned when an unordered list spans pages with a background; the context transfer also accounts for page margins, right-side offsets and orientation changes.
+- [bpampuch/pdfmake#1095 — Infinite loop when report ends near bottom of page](https://github.com/bpampuch/pdfmake/issues/1095): already fixed by marking evaluated nodes during `pageBreakBefore` passes and enforcing a bounded layout-pass count. Added the original bottom-threshold scenario as a timed regression test that also verifies no content is lost or duplicated.
+- [bpampuch/pdfmake#2080 — `linkToDestination` does not work with `userPassword`](https://github.com/bpampuch/pdfmake/issues/2080) and [bpampuch/pdfmake#2336 — User Password Breaks Document Links](https://github.com/bpampuch/pdfmake/issues/2336): already fixed by the current PDFKit encryption path, which encrypts annotation URI and named-destination strings with their owning object keys. Added an end-to-end regression test that opens a password-protected PDF through PDF.js and verifies both external URLs and internal named destinations.
+- [bpampuch/pdfmake#2824 — Library crashes when `colSpan` receives a string](https://github.com/bpampuch/pdfmake/issues/2824): table preprocessing now rejects non-numeric, non-integer and non-positive `colSpan` and `rowSpan` values with an error identifying the property and exact cell coordinates, preventing malformed JavaScript input from reaching span layout internals.
+- [bpampuch/pdfmake#2636 — Acrobat reports insufficient image-stream data](https://github.com/bpampuch/pdfmake/issues/2636): already fixed by the current PDFKit JPEG embedding path. Added an end-to-end regression test that generates a JPEG-bearing PDF and makes PDF.js parse and decode its image XObject rather than only checking that generation completes.
+
+### Performance
+
+- [bpampuch/pdfmake#2898 — High memory usage with multiple images](https://github.com/bpampuch/pdfmake/issues/2898): repeated inline data URLs and repeated references to the same `Uint8Array` are now assigned one internal image resource, so PDFKit decodes and embeds them once per document. Named image resources already used this cache; distinct source images necessarily retain their own decoded data during generation.
+
+### Upstream pdfmake issues already resolved or covered
+
+#### Layout, tables and pagination
+
+- [bpampuch/pdfmake#72 — Table center alignment](https://github.com/bpampuch/pdfmake/issues/72): covered by typed `tableAlignment` support for left-, center- and right-aligned tables, including nested tables and repeated headers.
+- [bpampuch/pdfmake#207 — Multi-page unbreakable blocks](https://github.com/bpampuch/pdfmake/issues/207): oversized unbreakable blocks retain and commit every temporary page instead of discarding content after the first page.
+- [bpampuch/pdfmake#264 — Cut cell content based on cell width](https://github.com/bpampuch/pdfmake/issues/264): covered by hard word wrapping, `wordBreak`, `noWrap` and bounded text height. These controls prevent the historical uncontrolled cell overflow, although automatic horizontal ellipsis remains outside the API.
+- [bpampuch/pdfmake#368 — Dynamic page margins](https://github.com/bpampuch/pdfmake/issues/368): covered by `pageMargins(currentPage, pageCount, pageSize)` with bounded convergence and page-local geometry.
+- [bpampuch/pdfmake#422 — Keep image and text columns on the same page](https://github.com/bpampuch/pdfmake/issues/422): covered by the public `unbreakable` container option, which keeps the initial image/text column fragment together when it fits on one page.
+- [bpampuch/pdfmake#640 — Dynamic page breaks with page-number footers](https://github.com/bpampuch/pdfmake/issues/640): covered by bounded multi-pass `pageBreakBefore` layout and isolation of headers, footers and backgrounds from body-node navigation.
+- [bpampuch/pdfmake#994 — Prevent breaks between specific table rows](https://github.com/bpampuch/pdfmake/issues/994): covered by `headerRows`, `keepWithHeaderRows`, `dontBreakRows` and explicit row page breaks.
+- [bpampuch/pdfmake#1088 — Phantom borders on `noBorders` tables](https://github.com/bpampuch/pdfmake/issues/1088): covered by overlapping cell fills and patterns by 0.5 pt, preventing anti-aliasing seams in macOS Preview and similar viewers.
+- [bpampuch/pdfmake#1159 — Avoid breaking table rows unless necessary](https://github.com/bpampuch/pdfmake/issues/1159): `dontBreakRows` keeps normal rows together while oversized rows safely fall back to multi-page rendering.
+- [bpampuch/pdfmake#1236 — Absolute positions after `pageBreakBefore`](https://github.com/bpampuch/pdfmake/issues/1236): detached-block coordinates and every moved node position are reset and recalculated on each layout pass.
+- [bpampuch/pdfmake#1334 — Incorrect `startPosition.pageNumber` with `dontBreakRows`](https://github.com/bpampuch/pdfmake/issues/1334): moved unbreakable content now updates its own and its descendants' page-position metadata.
+- [bpampuch/pdfmake#1425 — Margins in `defaultStyle`](https://github.com/bpampuch/pdfmake/issues/1425): margin resolution consistently uses the style stack, including named styles and `defaultStyle`.
+- [bpampuch/pdfmake#1460 — Row-span positions in `pageBreakBefore`](https://github.com/bpampuch/pdfmake/issues/1460): row-spanned cells aggregate positions across their complete page span for node navigation and page-number reporting.
+- [bpampuch/pdfmake#1749 — Footer nodes in `followingNodesOnPage`](https://github.com/bpampuch/pdfmake/issues/1749): backgrounds, headers and footers are excluded from the linear body-node list consumed by `pageBreakBefore`.
+- [bpampuch/pdfmake#2208 — Words sometimes fail to break](https://github.com/bpampuch/pdfmake/issues/2208): overlong inlines are split using measured maximum-fit boundaries, with explicit `wordBreak: "break-all"` support.
+- [bpampuch/pdfmake#2211 — Table disappears with `keepWithHeaderRows` and page margins](https://github.com/bpampuch/pdfmake/issues/2211): table transactions account for resolved page margins and commit oversized header groups instead of dropping the table.
+- [bpampuch/pdfmake#2629 — Table borders disappear at some zoom levels](https://github.com/bpampuch/pdfmake/issues/2629): border-adjacent fills overlap by 0.5 pt to avoid viewer-dependent subpixel gaps.
+- [bpampuch/pdfmake#2731 — Long words in star-width table columns](https://github.com/bpampuch/pdfmake/issues/2731): star columns use measured available width and the same hard-wrap path as fixed-width columns.
+- [bpampuch/pdfmake#2800 — Long unspaced table strings crop boundaries](https://github.com/bpampuch/pdfmake/issues/2800): character-level fitting splits unspaced text before it can expand a table beyond the page.
+- [bpampuch/pdfmake#2806 — Rows taller than the physical page are dropped](https://github.com/bpampuch/pdfmake/issues/2806): oversized rows and unbreakable table fragments are committed across all generated pages.
+- [bpampuch/pdfmake#2925 — Header `verticalAlignment` fails on the second page](https://github.com/bpampuch/pdfmake/issues/2925): repeated row-spanned headers use final page metadata when calculating vertical alignment, avoiding negative heights and displaced text.
+
+#### Public APIs and rendering features
+
+- [bpampuch/pdfmake#269 — PDF forms](https://github.com/bpampuch/pdfmake/issues/269): typed block and inline AcroForm fields support text, buttons, lists, combo boxes and checkboxes in Node.js and browser output.
+- [bpampuch/pdfmake#291 — Custom list numbering](https://github.com/bpampuch/pdfmake/issues/291): ordered lists support alphabetic and Roman styles, nested lists, custom starts, counters, reversal and separators.
+- [bpampuch/pdfmake#375 — Vector path type](https://github.com/bpampuch/pdfmake/issues/375): canvas vectors support typed `path` geometry and PDF path rendering.
+- [bpampuch/pdfmake#525 — TypeScript declarations](https://github.com/bpampuch/pdfmake/issues/525): the package is authored in TypeScript and publishes declarations for Node.js, browser and the dedicated `pdfcraft/types` export.
+- [bpampuch/pdfmake#724 — Styled table borders](https://github.com/bpampuch/pdfmake/issues/724): table layouts and cell styles expose border visibility, width, color, dash and inherited border properties.
+- [bpampuch/pdfmake#803 — Leading and kerning](https://github.com/bpampuch/pdfmake/issues/803): text supports `lineHeight`, `characterSpacing`, OpenType features and Fontkit shaping metrics.
+- [bpampuch/pdfmake#861 — Page background color](https://github.com/bpampuch/pdfmake/issues/861): full-page colors are supported through dynamic backgrounds containing a canvas rectangle.
+- [bpampuch/pdfmake#959 — Nested list numbers](https://github.com/bpampuch/pdfmake/issues/959): nested ordered lists retain independent counters and configurable numbering styles and separators.
+- [bpampuch/pdfmake#983 — Vertically centered background](https://github.com/bpampuch/pdfmake/issues/983): dynamic backgrounds receive page dimensions and support normal margins, alignment and absolute positioning for deterministic centering.
+- [bpampuch/pdfmake#1174 — Styles on nested text arrays](https://github.com/bpampuch/pdfmake/issues/1174): recursive inline preprocessing and the shared style-context stack apply inherited and local styles throughout nested text fragments.
+- [bpampuch/pdfmake#1337 — Columns do not wrap a line of dots](https://github.com/bpampuch/pdfmake/issues/1337): character-level fitting breaks long punctuation sequences according to the resolved column width.
+- [bpampuch/pdfmake#1557 — List-marker spacing](https://github.com/bpampuch/pdfmake/issues/1557): marker width is measured from the active font and list style, keeping marker and content spacing consistent.
+- [bpampuch/pdfmake#1611 — Alternate content on odd and even pages](https://github.com/bpampuch/pdfmake/issues/1611): odd/even page breaks, sections and page-aware dynamic repeatables cover alternating page templates.
+- [bpampuch/pdfmake#1633 — Global page border](https://github.com/bpampuch/pdfmake/issues/1633): a page-aware background canvas can draw a border on every page without affecting body flow.
+- [bpampuch/pdfmake#1873 — Custom bullets and checkbox lists](https://github.com/bpampuch/pdfmake/issues/1873): unordered lists support disc, circle, square and no-marker variants with independent marker colors.
+- [bpampuch/pdfmake#2240 — Image watermark](https://github.com/bpampuch/pdfmake/issues/2240): page-aware image backgrounds provide image-watermark behavior with sizing, opacity and positioning controls.
+- [bpampuch/pdfmake#2440 — Per-document table layouts](https://github.com/bpampuch/pdfmake/issues/2440): `documentDefinition.tableLayouts` is merged with instance layouts without mutation and takes per-document priority.
+- [bpampuch/pdfmake#2510 — Rectangle sized to page height minus margins](https://github.com/bpampuch/pdfmake/issues/2510): dynamic page margins/backgrounds receive the resolved page size, allowing canvas dimensions to be derived before rendering.
+
+#### Architecture and tooling
+
+- [bpampuch/pdfmake#584 — Cross-browser CI](https://github.com/bpampuch/pdfmake/issues/584): browser generation is exercised in CI with Playwright, replacing the historical Sauce Labs proposal with a locally reproducible browser suite.
+- [bpampuch/pdfmake#1278 — Images in headers and footers](https://github.com/bpampuch/pdfmake/issues/1278): repeatable content accepts normal image nodes and resolves named, URL, VFS and binary image resources.
+- [bpampuch/pdfmake#2472 — Code splitting](https://github.com/bpampuch/pdfmake/issues/2472): Node.js ESM, CommonJS, browser and types are separate package exports, while `sideEffects: false` enables consumer tree-shaking.
+- [bpampuch/pdfmake#2546 — Generation works only once](https://github.com/bpampuch/pdfmake/issues/2546): each generation clones its document definition and owns isolated measurement and image registries, so inline resources cannot leak generated labels into subsequent runs.
+
 ## [0.5.1] - 2026-07-23
 
 ### Performance

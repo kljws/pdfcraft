@@ -665,6 +665,22 @@ describe("DocMeasure", function () {
 			assert.strictEqual(images[imageNode.image as string], source);
 		});
 
+		it("deduplicates repeated inline image resources", function () {
+			const images: Record<string, string | Uint8Array | ArrayBuffer> = {};
+			const measure = new DocMeasure({ images });
+			const bytes = new Uint8Array([1, 2, 3]);
+			const dataUrl = "data:image/png;base64,AQID";
+			const byteNodes = [{ image: bytes }, { image: bytes }] as MeasuredPdfNode[];
+			const dataUrlNodes = [{ image: dataUrl }, { image: dataUrl }] as MeasuredPdfNode[];
+
+			for (const node of [...byteNodes, ...dataUrlNodes]) measure.convertIfInlineImage(node);
+
+			assert.equal(byteNodes[0].image, byteNodes[1].image);
+			assert.equal(dataUrlNodes[0].image, dataUrlNodes[1].image);
+			assert.notEqual(byteNodes[0].image, dataUrlNodes[0].image);
+			assert.equal(Object.keys(images).length, 2);
+		});
+
 		it("should measure images with invalid width", function () {
 			var imageNode = {
 				image: "...",

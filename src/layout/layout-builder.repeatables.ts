@@ -2,7 +2,7 @@ import type DocMeasure from "../measurement/doc-measure";
 import type DocPreprocessor from "../preprocessing/doc-preprocessor";
 import type PDFDocument from "../rendering/pdf-document";
 import type { Style } from "../types";
-import type { LayoutPdfNode } from "../types/internal";
+import type { LayoutPdfNode, PageSize } from "../types/internal";
 import { isString } from "../utils/variable-type";
 import type PageElementWriter from "./element-writer.page";
 import type {
@@ -50,13 +50,25 @@ class LayoutBuilderRepeatables {
 		}
 	}
 
-	addBackground(background: unknown): void {
+	addBackground(background: unknown): boolean {
+		const dynamicBackgroundUsesPageCount =
+			typeof background === "function" && background.length >= 3;
 		const getBackground: BackgroundGetter =
 			typeof background === "function" ? (background as BackgroundGetter) : () => background;
 		const context = this.writer.context();
 		const pageSize = context.getCurrentPage().pageSize;
-		const pageBackground = getBackground(context.page + 1, pageSize);
-		if (!pageBackground) return;
+		const pageBackground =
+			typeof background === "function" && background.length === 2
+				? (getBackground as (pageNumber: number, pageSize: PageSize) => unknown)(
+						context.page + 1,
+						pageSize,
+					)
+				: (getBackground as (pageNumber: number, pageCount: number, pageSize: PageSize) => unknown)(
+						context.page + 1,
+						context.pageCount,
+						pageSize,
+					);
+		if (!pageBackground) return dynamicBackgroundUsesPageCount;
 
 		this.writer.beginUnbreakableBlock(pageSize.width, pageSize.height);
 		const processed = this.docPreprocessor.preprocessBlock(pageBackground);
@@ -65,6 +77,7 @@ class LayoutBuilderRepeatables {
 		this.processRepeatableNode(layoutNode);
 		this.writer.commitUnbreakableBlock(0, 0);
 		context.backgroundLength[context.page] += layoutNode.positions?.length ?? 0;
+		return dynamicBackgroundUsesPageCount;
 	}
 
 	addDynamicRepeatable(

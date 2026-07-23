@@ -2,6 +2,7 @@ import type {
 	CreatePdfOptions,
 	Dictionary,
 	DocumentDefinition,
+	DynamicBackground,
 	DynamicContent,
 	FontDescriptors,
 	Margin,
@@ -44,7 +45,7 @@ export interface PrinterDocumentDefinition {
 	defaultStyle?: Style;
 	header?: DynamicContent;
 	footer?: DynamicContent;
-	background?: DynamicContent;
+	background?: DynamicBackground;
 	watermark?: DocumentDefinition["watermark"];
 	pageBreakBefore?: DocumentDefinition["pageBreakBefore"];
 	info?: Dictionary<string | Date>;

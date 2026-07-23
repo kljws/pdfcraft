@@ -5,6 +5,7 @@ export interface LayoutResult {
 	pages: PdfPage[];
 	linearNodeList: LayoutPdfNode[];
 	pageMarginFunctionUsed?: boolean;
+	dynamicBackgroundUsesPageCount?: boolean;
 }
 
 export interface PageBreakNodeInfo extends Record<string, unknown> {
@@ -43,7 +44,9 @@ export type DynamicNodeGetter = (
 	pageSize: PageSize,
 ) => unknown;
 
-export type BackgroundGetter = (pageNumber: number, pageSize: PageSize) => unknown;
+export type BackgroundGetter =
+	| ((pageNumber: number, pageSize: PageSize) => unknown)
+	| ((pageNumber: number, pageCount: number, pageSize: PageSize) => unknown);
 
 export interface WatermarkDefinition {
 	text: string;

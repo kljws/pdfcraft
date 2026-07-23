@@ -224,6 +224,20 @@ describe("DocPreprocessor", function () {
 				() => docPreprocessor.preprocessNode({ table: { body: [] } }),
 				/Invalid table node: 'table\.body' must contain at least one row/,
 			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { body: [[{ text: "Invalid", colSpan: "2" }]] },
+					}),
+				/Invalid table cell at row 0, column 0: 'colSpan' must be a positive integer, received "2"/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { body: [[{ text: "Invalid", rowSpan: 0 }]] },
+					}),
+				/Invalid table cell at row 0, column 0: 'rowSpan' must be a positive integer, received 0/,
+			);
 		});
 	});
 

@@ -33,6 +33,21 @@ describe("Integration test: background", function () {
 		assert.equal(backgroundPage2.y, 0);
 	});
 
+	it("can render a distinct background on the last page", function () {
+		const dd = {
+			background: function (page: number, pageCount: number, _pageSize: unknown) {
+				return [page === pageCount ? "Last page" : "Other page"];
+			},
+			content: [{ text: "First page", pageBreak: "after" }, "Second page"],
+		};
+
+		const pages = testHelper.renderPages("A6", dd);
+
+		assert.equal(pages.length, 2);
+		assert.equal(pages[0].items[0].item.inlines.map((node) => node.text).join(""), "Other page");
+		assert.equal(pages[1].items[0].item.inlines.map((node) => node.text).join(""), "Last page");
+	});
+
 	it("table fillColor must be above background", function () {
 		var dd = {
 			background: function () {

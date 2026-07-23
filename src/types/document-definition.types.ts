@@ -7,7 +7,7 @@ import type {
 	PdfSubset,
 	ResolvedPageSize,
 } from "./common.types";
-import type { Content, DynamicContent, Style, Watermark } from "./content.types";
+import type { Content, DynamicBackground, DynamicContent, Style, Watermark } from "./content.types";
 import type { ResourceSource } from "./resource.types";
 
 export interface AttachmentDefinition {
@@ -53,7 +53,7 @@ export interface DocumentDefinition {
 	pageMargins?: Margin | DynamicPageMargins;
 	header?: DynamicContent;
 	footer?: DynamicContent;
-	background?: DynamicContent;
+	background?: DynamicBackground;
 	watermark?: Watermark;
 	images?: Dictionary<ResourceSource>;
 	svgs?: Dictionary<ResourceSource>;

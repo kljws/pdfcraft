@@ -25,6 +25,24 @@ describe("cloneValue", () => {
 		expect(clone.date).toBe(date);
 		expect(clone.bytes).toBe(bytes);
 	});
+
+	it("clones each repeated document-node occurrence independently", () => {
+		const sharedText = { text: "Repeated" };
+		const sharedRow = [{ text: "Header" }];
+
+		const clone = cloneValue({
+			content: [
+				sharedText,
+				sharedText,
+				{ table: { body: [sharedRow] } },
+				{ table: { body: [sharedRow] } },
+			],
+		});
+
+		expect(clone.content[0]).not.toBe(clone.content[1]);
+		expect(clone.content[2].table.body[0]).not.toBe(clone.content[3].table.body[0]);
+		expect(clone.content[2].table.body[0][0]).not.toBe(clone.content[3].table.body[0][0]);
+	});
 });
 
 describe("convertToDynamicContent", () => {

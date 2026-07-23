@@ -155,15 +155,18 @@ class LayoutBuilder {
 			const nextPageCount = result.pages.length;
 			const marginsNeedAnotherPass =
 				Boolean(result.pageMarginFunctionUsed) && assumedPageCount !== nextPageCount;
+			const backgroundNeedsAnotherPass =
+				Boolean(result.dynamicBackgroundUsesPageCount) && assumedPageCount !== nextPageCount;
 			const pageBreakNeedsAnotherPass = addPageBreaksIfNecessary(
 				result.linearNodeList,
 				result.pages,
 				pageBreakBeforeFct,
 			);
 
-			if (!marginsNeedAnotherPass && !pageBreakNeedsAnotherPass) break;
+			if (!marginsNeedAnotherPass && !backgroundNeedsAnotherPass && !pageBreakNeedsAnotherPass)
+				break;
 
-			if (marginsNeedAnotherPass) {
+			if (marginsNeedAnotherPass || backgroundNeedsAnotherPass) {
 				if (!warnedAboutCycle && pageCountHistory.includes(nextPageCount)) {
 					console.warn(
 						"Non-convergent dynamic pageMargins detected; layout stopped after a bounded number of passes.",
@@ -223,6 +226,7 @@ class LayoutBuilder {
 		documentContext.pageMarginSource = this.pageMargins;
 		documentContext.pageCount = pageCount;
 		this.writer = new PageElementWriter(documentContext);
+		let dynamicBackgroundUsesPageCount = false;
 
 		this.writer.context().addListener("pageAdded", (page: PdfPage) => {
 			let backgroundGetter = background;
@@ -230,7 +234,8 @@ class LayoutBuilder {
 				backgroundGetter = page.customProperties["background"];
 			}
 
-			this.repeatables.addBackground(backgroundGetter);
+			dynamicBackgroundUsesPageCount =
+				this.repeatables.addBackground(backgroundGetter) || dynamicBackgroundUsesPageCount;
 		});
 
 		if (isNecessaryAddFirstPage(layoutDocument)) {
@@ -245,6 +250,7 @@ class LayoutBuilder {
 			pages: this.writer.context().pages,
 			linearNodeList: this.linearNodeList,
 			pageMarginFunctionUsed: this.writer.context().pageMarginFunctionUsed,
+			dynamicBackgroundUsesPageCount,
 		};
 	}
 

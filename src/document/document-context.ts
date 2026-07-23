@@ -258,13 +258,20 @@ class DocumentContext {
 
 		const createNewPage = nextPageIndex >= this.pages.length;
 		if (createNewPage) {
-			const currentAvailableWidth = this.availableWidth;
-			const currentPageOrientation = this.getCurrentPage().pageSize.orientation;
-			const pageSize = getPageSize(this.getCurrentPage(), pageOrientation);
+			const currentPage = this.getCurrentPage();
+			const leftOffset = this.x - currentPage.pageMargins.left;
+			const rightOffset =
+				currentPage.pageSize.width - currentPage.pageMargins.right - (this.x + this.availableWidth);
+			const pageSize = getPageSize(currentPage, pageOrientation);
 			this.addPage(pageSize, null, this.getCurrentPage().customProperties);
-			if (currentPageOrientation === pageSize.orientation) {
-				this.availableWidth = currentAvailableWidth;
-			}
+			const nextPage = this.getCurrentPage();
+			this.x = nextPage.pageMargins.left + leftOffset;
+			this.availableWidth =
+				nextPage.pageSize.width -
+				nextPage.pageMargins.left -
+				nextPage.pageMargins.right -
+				leftOffset -
+				rightOffset;
 		} else {
 			this.page = nextPageIndex;
 			this.initializePage();

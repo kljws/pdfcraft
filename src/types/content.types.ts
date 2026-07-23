@@ -318,7 +318,7 @@ export interface SectionNode extends Omit<ContentBase, "background" | "pageOrien
 	pageMargins?: Margin | "inherit";
 	header?: DynamicContent | null;
 	footer?: DynamicContent | null;
-	background?: DynamicContent | null;
+	background?: DynamicBackground | null;
 	watermark?: Watermark | "inherit" | null;
 }
 
@@ -341,4 +341,9 @@ export type Content = string | number | boolean | ContentNode | Content[];
 
 export type DynamicContent =
 	| Content
+	| ((currentPage: number, pageCount: number, pageSize: PageSize) => Content | null | undefined);
+
+export type DynamicBackground =
+	| Content
+	| ((currentPage: number, pageSize: PageSize) => Content | null | undefined)
 	| ((currentPage: number, pageCount: number, pageSize: PageSize) => Content | null | undefined);
