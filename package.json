@@ -1,6 +1,6 @@
 {
 	"name": "pdfcraft",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"description": "Modern PDF document generation for Node.js and browsers, written in TypeScript",
 	"type": "module",
 	"sideEffects": false,

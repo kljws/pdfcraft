@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-23
+
 ### Fixed
 
 - [bpampuch/pdfmake#2267 — Need to show a bottom border on the last table row of each page](https://github.com/bpampuch/pdfmake/issues/2267), [bpampuch/pdfmake#2792 — Bottom table border missing across multiple pages](https://github.com/bpampuch/pdfmake/issues/2792) and [bpampuch/pdfmake#2849 — Render bottom border on an overflown table](https://github.com/bpampuch/pdfmake/issues/2849): page-broken tables now use the table's final horizontal-line width, style and color to close each page, including tables with repeated headers and `dontBreakRows`.
