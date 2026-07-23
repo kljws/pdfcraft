@@ -4,7 +4,7 @@ import { gzipSync } from "node:zlib";
 const budgets = {
 	bytes: 1_750_000,
 	gzipBytes: 525_000,
-	packageBytes: 2_200_000,
+	packageBytes: 2_250_000,
 };
 
 const browserBundle = new URL("../dist/browser.js", import.meta.url);

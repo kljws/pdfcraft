@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Tests
 
 - Added an offline visual-regression generator and inspection checklist for flexible table sizing, `colSpan` width allocation, compact column/row spans, fixed row pagination and canvas path offsets. Generated PDFs include explicit content-boundary guides and are kept outside version control.
+- Recalibrated the unpacked-package size ceiling from 2.20 MB to 2.25 MB to account for the expanded published changelog while retaining the existing browser raw and gzip limits. The current package remains below the new ceiling with less than 2% headroom.
 
 ### Upstream pdfmake issues already resolved or covered
 
