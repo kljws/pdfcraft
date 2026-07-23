@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Performance
+
+- Reduced repeated inline-text style setup by resolving every property within one shared style-stack context. In the standard seven-iteration benchmark this lowered median generation time by 13.5% for 100 pages, 13.0% for 500 pages, 15.3% for 1,000 pages, 8.6% for a 2,000-row table and 10.7% for eight concurrent 100-page documents, with unchanged PDF output sizes.
+
 ### Fixed
 
 - Included AcroForm values and choice labels in embedded font subsets, preventing missing glyphs in combo-box options that were not otherwise used by document text.

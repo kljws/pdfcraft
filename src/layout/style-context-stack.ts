@@ -5,6 +5,8 @@ import type { NodeStyleValue } from "../types/internal";
 type StyleRecord = Style;
 type StyleNode = object;
 type StyleOverride = string | object;
+const readProperty = (value: object, key: string): unknown =>
+	(value as Record<string, unknown>)[key];
 type Widen<T> = T extends string
 	? string
 	: T extends number
@@ -140,47 +142,13 @@ class StyleContextStack {
 	 * @returns property value or null if not found
 	 */
 	getProperty(property: string): unknown {
-		const readProperty = (value: object, key: string): unknown =>
-			(value as Record<string, unknown>)[key];
-		const getStylePropertyFromStyle = (
-			styleName: string,
-			property: string,
-			visited: Set<string> = new Set(),
-		): unknown => {
-			if (visited.has(styleName)) {
-				return undefined;
-			}
-			visited.add(styleName);
-
-			const style = this.styleDictionary[styleName];
-			if (!style) {
-				return undefined;
-			}
-
-			if (isValue(readProperty(style, property))) {
-				return readProperty(style, property);
-			}
-
-			if (style.extends) {
-				let parents = Array.isArray(style.extends) ? style.extends : [style.extends];
-				for (let i = parents.length - 1; i >= 0; i--) {
-					const value = getStylePropertyFromStyle(parents[i], property, visited);
-					if (isValue(value)) {
-						return value;
-					}
-				}
-			}
-
-			return undefined;
-		};
-
 		if (this.styleOverrides) {
 			for (let i = this.styleOverrides.length - 1; i >= 0; i--) {
 				let item = this.styleOverrides[i];
 
 				if (isString(item)) {
 					// named-style-override
-					let value = getStylePropertyFromStyle(item, property);
+					let value = this.getStylePropertyFromStyle(item, property, new Set());
 					if (isValue(value)) {
 						return value;
 					}
@@ -192,6 +160,44 @@ class StyleContextStack {
 		}
 
 		return this.defaultStyle && readProperty(this.defaultStyle, property);
+	}
+
+	getPropertyOrDefault<T>(property: string, defaultValue: T): Widen<T> {
+		const value = this.getProperty(property);
+		return isValue(value) ? (value as Widen<T>) : (defaultValue as Widen<T>);
+	}
+
+	private getStylePropertyFromStyle(
+		styleName: string,
+		property: string,
+		visited: Set<string>,
+	): unknown {
+		if (visited.has(styleName)) {
+			return undefined;
+		}
+		visited.add(styleName);
+
+		const style = this.styleDictionary[styleName];
+		if (!style) {
+			return undefined;
+		}
+
+		const directValue = readProperty(style, property);
+		if (isValue(directValue)) {
+			return directValue;
+		}
+
+		if (style.extends) {
+			const parents = Array.isArray(style.extends) ? style.extends : [style.extends];
+			for (let i = parents.length - 1; i >= 0; i--) {
+				const value = this.getStylePropertyFromStyle(parents[i], property, visited);
+				if (isValue(value)) {
+					return value;
+				}
+			}
+		}
+
+		return undefined;
 	}
 
 	/**

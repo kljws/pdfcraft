@@ -152,135 +152,100 @@ class TextInlines {
 		const pdfDocument = this.requirePdfDocument();
 		const measured: Inline[] = [];
 		array.forEach((item) => {
-			const textStyle = this.resolveTextStyle(item, styleContextStack);
-			const isMediaInline = item.image !== undefined || item.acroform !== undefined;
-			const requestedImageWidth = isMediaInline && typeof item.width === "number" ? item.width : 0;
-			const requestedImageHeight =
-				isMediaInline && typeof item.height === "number" ? item.height : 0;
-			const inline: Inline = Object.assign(item, {
-				font: pdfDocument.provideFont(textStyle.fontName, textStyle.bold, textStyle.italics),
-				fontSize: textStyle.fontSize,
-				width: requestedImageWidth,
-				height: requestedImageHeight,
-				x: 0,
-				leadingCut: typeof item.leadingCut === "number" ? item.leadingCut : 0,
-				trailingCut: 0,
+			styleContextStack.auto(item, () => {
+				const textStyle = this.resolveTextStyleFromStack(styleContextStack);
+				const isMediaInline = item.image !== undefined || item.acroform !== undefined;
+				const requestedImageWidth =
+					isMediaInline && typeof item.width === "number" ? item.width : 0;
+				const requestedImageHeight =
+					isMediaInline && typeof item.height === "number" ? item.height : 0;
+				const inline: Inline = Object.assign(item, {
+					font: pdfDocument.provideFont(textStyle.fontName, textStyle.bold, textStyle.italics),
+					fontSize: textStyle.fontSize,
+					width: requestedImageWidth,
+					height: requestedImageHeight,
+					x: 0,
+					leadingCut: typeof item.leadingCut === "number" ? item.leadingCut : 0,
+					trailingCut: 0,
+				});
+
+				inline.alignment = styleContextStack.getPropertyOrDefault("alignment", "left");
+				inline.fontFeatures = textStyle.fontFeatures;
+				inline.characterSpacing = textStyle.characterSpacing;
+				inline.color = styleContextStack.getPropertyOrDefault("color", "black");
+				inline.decoration = styleContextStack.getPropertyOrDefault("decoration", null);
+				inline.decorationColor = styleContextStack.getPropertyOrDefault("decorationColor", null);
+				inline.decorationStyle = styleContextStack.getPropertyOrDefault("decorationStyle", null);
+				inline.decorationThickness = styleContextStack.getPropertyOrDefault(
+					"decorationThickness",
+					null,
+				);
+				inline.background = styleContextStack.getPropertyOrDefault("background", null);
+				inline.link = styleContextStack.getPropertyOrDefault("link", null);
+				inline.linkToPage = styleContextStack.getPropertyOrDefault("linkToPage", null);
+				inline.linkToDestination = styleContextStack.getPropertyOrDefault(
+					"linkToDestination",
+					null,
+				);
+				inline.noWrap = inline.acroform
+					? true
+					: styleContextStack.getPropertyOrDefault("noWrap", null);
+				inline.opacity = styleContextStack.getPropertyOrDefault("opacity", 1);
+				inline.sup = styleContextStack.getPropertyOrDefault("sup", false);
+				inline.sub = styleContextStack.getPropertyOrDefault("sub", false);
+
+				if (inline.sup || inline.sub) {
+					// font size reduction taken from here: https://en.wikipedia.org/wiki/Subscript_and_superscript#Desktop_publishing
+					inline.fontSize *= 0.58;
+				}
+
+				if (inline.image !== undefined) {
+					if (!this.measureInlineImage) {
+						throw new Error("Inline image measurement is unavailable");
+					}
+					const measuredImage = this.measureInlineImage(inline as unknown as MeasuredPdfNode);
+					inline.image = measuredImage.image as string;
+					inline.width = inline._imageWidth = measuredImage._width ?? 0;
+					inline.height = inline._imageHeight = measuredImage._height ?? 0;
+				} else if (inline.acroform !== undefined) {
+					inline.width = typeof item.width === "number" ? item.width : 25;
+					inline.height = typeof item.height === "number" ? item.height : 15;
+				} else {
+					inline.width = this.widthOfText(inline.text, inline);
+					inline.height = inline.font.lineHeight(inline.fontSize) * textStyle.lineHeight;
+				}
+				inline.x = 0;
+
+				if (!inline.leadingCut) {
+					inline.leadingCut = 0;
+				}
+
+				let preserveLeadingSpaces = styleContextStack.getPropertyOrDefault(
+					"preserveLeadingSpaces",
+					false,
+				);
+				if (!preserveLeadingSpaces) {
+					let leadingSpaces = !isMediaInline ? inline.text.match(LEADING) : null;
+					if (leadingSpaces) {
+						inline.leadingCut += this.widthOfText(leadingSpaces[0], inline);
+					}
+				}
+
+				inline.trailingCut = 0;
+
+				let preserveTrailingSpaces = styleContextStack.getPropertyOrDefault(
+					"preserveTrailingSpaces",
+					false,
+				);
+				if (!preserveTrailingSpaces) {
+					let trailingSpaces = !isMediaInline ? inline.text.match(TRAILING) : null;
+					if (trailingSpaces) {
+						inline.trailingCut = this.widthOfText(trailingSpaces[0], inline);
+					}
+				}
+
+				measured.push(inline);
 			});
-
-			inline.alignment = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"alignment",
-				"left",
-			);
-			inline.fontFeatures = textStyle.fontFeatures;
-			inline.characterSpacing = textStyle.characterSpacing;
-			inline.color = StyleContextStack.getStyleProperty(item, styleContextStack, "color", "black");
-			inline.decoration = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"decoration",
-				null,
-			);
-			inline.decorationColor = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"decorationColor",
-				null,
-			);
-			inline.decorationStyle = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"decorationStyle",
-				null,
-			);
-			inline.decorationThickness = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"decorationThickness",
-				null,
-			);
-			inline.background = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"background",
-				null,
-			);
-			inline.link = StyleContextStack.getStyleProperty(item, styleContextStack, "link", null);
-			inline.linkToPage = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"linkToPage",
-				null,
-			);
-			inline.linkToDestination = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"linkToDestination",
-				null,
-			);
-			inline.noWrap = inline.acroform
-				? true
-				: StyleContextStack.getStyleProperty(item, styleContextStack, "noWrap", null);
-			inline.opacity = StyleContextStack.getStyleProperty(item, styleContextStack, "opacity", 1);
-			inline.sup = StyleContextStack.getStyleProperty(item, styleContextStack, "sup", false);
-			inline.sub = StyleContextStack.getStyleProperty(item, styleContextStack, "sub", false);
-
-			if (inline.sup || inline.sub) {
-				// font size reduction taken from here: https://en.wikipedia.org/wiki/Subscript_and_superscript#Desktop_publishing
-				inline.fontSize *= 0.58;
-			}
-
-			if (inline.image !== undefined) {
-				if (!this.measureInlineImage) {
-					throw new Error("Inline image measurement is unavailable");
-				}
-				const measuredImage = this.measureInlineImage(inline as unknown as MeasuredPdfNode);
-				inline.image = measuredImage.image as string;
-				inline.width = inline._imageWidth = measuredImage._width ?? 0;
-				inline.height = inline._imageHeight = measuredImage._height ?? 0;
-			} else if (inline.acroform !== undefined) {
-				inline.width = typeof item.width === "number" ? item.width : 25;
-				inline.height = typeof item.height === "number" ? item.height : 15;
-			} else {
-				inline.width = this.widthOfText(inline.text, inline);
-				inline.height = inline.font.lineHeight(inline.fontSize) * textStyle.lineHeight;
-			}
-			inline.x = 0;
-
-			if (!inline.leadingCut) {
-				inline.leadingCut = 0;
-			}
-
-			let preserveLeadingSpaces = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"preserveLeadingSpaces",
-				false,
-			);
-			if (!preserveLeadingSpaces) {
-				let leadingSpaces = !isMediaInline ? inline.text.match(LEADING) : null;
-				if (leadingSpaces) {
-					inline.leadingCut += this.widthOfText(leadingSpaces[0], inline);
-				}
-			}
-
-			inline.trailingCut = 0;
-
-			let preserveTrailingSpaces = StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"preserveTrailingSpaces",
-				false,
-			);
-			if (!preserveTrailingSpaces) {
-				let trailingSpaces = !isMediaInline ? inline.text.match(TRAILING) : null;
-				if (trailingSpaces) {
-					inline.trailingCut = this.widthOfText(trailingSpaces[0], inline);
-				}
-			}
-
-			measured.push(inline);
 		}, this);
 
 		return measured;
@@ -337,24 +302,18 @@ class TextInlines {
 	}
 
 	private resolveTextStyle(item: object, styleContextStack: StyleContextStack) {
+		return styleContextStack.auto(item, () => this.resolveTextStyleFromStack(styleContextStack));
+	}
+
+	private resolveTextStyleFromStack(styleContextStack: StyleContextStack) {
 		return {
-			fontName: StyleContextStack.getStyleProperty(item, styleContextStack, "font", "Roboto"),
-			fontSize: StyleContextStack.getStyleProperty(item, styleContextStack, "fontSize", 12),
-			fontFeatures: StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"fontFeatures",
-				null,
-			),
-			bold: StyleContextStack.getStyleProperty(item, styleContextStack, "bold", false),
-			italics: StyleContextStack.getStyleProperty(item, styleContextStack, "italics", false),
-			lineHeight: StyleContextStack.getStyleProperty(item, styleContextStack, "lineHeight", 1),
-			characterSpacing: StyleContextStack.getStyleProperty(
-				item,
-				styleContextStack,
-				"characterSpacing",
-				0,
-			),
+			fontName: styleContextStack.getPropertyOrDefault("font", "Roboto"),
+			fontSize: styleContextStack.getPropertyOrDefault("fontSize", 12),
+			fontFeatures: styleContextStack.getPropertyOrDefault("fontFeatures", null),
+			bold: styleContextStack.getPropertyOrDefault("bold", false),
+			italics: styleContextStack.getPropertyOrDefault("italics", false),
+			lineHeight: styleContextStack.getPropertyOrDefault("lineHeight", 1),
+			characterSpacing: styleContextStack.getPropertyOrDefault("characterSpacing", 0),
 		};
 	}
 
