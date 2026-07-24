@@ -227,9 +227,86 @@ class DocPreprocessor {
 				`Invalid table node: 'table' must be an object, received ${stringifyNode(node)}`,
 			);
 		}
-		const body = requireNodeArray(node.table.body, "table.body", node) as PreprocessedPdfNode[][];
+		const table = node.table as unknown as Record<string, unknown>;
+		const alreadyNormalized = Array.isArray(table._rowGroups) && Array.isArray(table.body);
+		if (!alreadyNormalized) {
+			for (const legacyProperty of ["headerRows", "keepWithHeaderRows", "dontBreakRows"]) {
+				if (legacyProperty in table) {
+					throw new Error(
+						`Invalid table node: '${legacyProperty}' is no longer supported; use 'table.header.rows' and grouped 'table.body[].rows' instead`,
+					);
+				}
+			}
+		}
+
+		let headerRows: PreprocessedPdfNode[][] = [];
+		if (!alreadyNormalized && table.header !== undefined) {
+			if (!isObject(table.header)) {
+				throw new Error(
+					`Invalid table.header node: 'table.header' must be an object, received ${stringifyNode(table.header)}`,
+				);
+			}
+			headerRows = requireNodeArray(
+				table.header.rows,
+				"table.header.rows",
+				node,
+			) as PreprocessedPdfNode[][];
+		}
+
+		const groups = alreadyNormalized ? [] : requireNodeArray(table.body, "table.body", node);
+		const groupedRows: PreprocessedPdfNode[][] = [];
+		const rowGroups: Array<{
+			startRow: number;
+			endRow: number;
+			keepTogether: boolean;
+			dontBreakRows: boolean;
+		}> = [];
+		for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+			const group = groups[groupIndex];
+			if (!isObject(group)) {
+				throw new Error(
+					`Invalid table node: group ${groupIndex} in 'table.body' must be an object with a 'rows' array`,
+				);
+			}
+			const groupRows = requireNodeArray(
+				group.rows,
+				`table.body[${groupIndex}].rows`,
+				node,
+			) as PreprocessedPdfNode[][];
+			if (groupRows.length === 0) {
+				throw new Error(
+					`Invalid table node: 'table.body[${groupIndex}].rows' must contain at least one row`,
+				);
+			}
+			for (const property of ["keepTogether", "dontBreakRows"] as const) {
+				if (group[property] !== undefined && typeof group[property] !== "boolean") {
+					throw new Error(
+						`Invalid table row group ${groupIndex}: '${property}' must be a boolean, received ${stringifyNode(group[property])}`,
+					);
+				}
+			}
+
+			const startRow = headerRows.length + groupedRows.length;
+			groupedRows.push(...groupRows);
+			rowGroups.push({
+				startRow,
+				endRow: startRow + groupRows.length - 1,
+				keepTogether: group.keepTogether === true,
+				dontBreakRows: group.dontBreakRows === true,
+			});
+		}
+
+		const body = alreadyNormalized
+			? (table.body as PreprocessedPdfNode[][])
+			: [...headerRows, ...groupedRows];
 		if (body.length === 0) {
-			throw new Error(`Invalid table node: 'table.body' must contain at least one row`);
+			throw new Error(`Invalid table node: table must contain at least one header or body row`);
+		}
+		if (!alreadyNormalized) {
+			table.body = body;
+			table.headerRows = headerRows.length;
+			table._rowGroups = rowGroups;
+			delete table.header;
 		}
 		for (let row = 0; row < body.length; row++) {
 			if (!Array.isArray(body[row])) {

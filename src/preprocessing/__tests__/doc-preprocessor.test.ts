@@ -221,22 +221,59 @@ describe("DocPreprocessor", function () {
 				/Invalid stack node: 'stack' must be an array/,
 			);
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ table: { body: [] } }),
-				/Invalid table node: 'table\.body' must contain at least one row/,
+				() => docPreprocessor.preprocessNode({ table: { body: [{ rows: [] }] } }),
+				/Invalid table node: 'table\.body\[0\]\.rows' must contain at least one row/,
 			);
 			assert.throws(
 				() =>
 					docPreprocessor.preprocessNode({
-						table: { body: [[{ text: "Invalid", colSpan: "2" }]] },
+						table: { body: [{ rows: [[{ text: "Invalid", colSpan: "2" }]] }] },
 					}),
 				/Invalid table cell at row 0, column 0: 'colSpan' must be a positive integer, received "2"/,
 			);
 			assert.throws(
 				() =>
 					docPreprocessor.preprocessNode({
-						table: { body: [[{ text: "Invalid", rowSpan: 0 }]] },
+						table: { body: [{ rows: [[{ text: "Invalid", rowSpan: 0 }]] }] },
 					}),
 				/Invalid table cell at row 0, column 0: 'rowSpan' must be a positive integer, received 0/,
+			);
+		});
+
+		it("normalizes headers and logical row groups for table layout", function () {
+			const result = docPreprocessor.preprocessNode({
+				table: {
+					header: { rows: [["Header A", "Header B"]] },
+					body: [
+						{
+							keepTogether: true,
+							dontBreakRows: true,
+							rows: [["Product", "2"], [{ text: "Description", colSpan: 2 }]],
+						},
+					],
+				},
+			});
+
+			assert.equal(result.table!.headerRows, 1);
+			assert.equal(result.table!.body.length, 3);
+			assert.deepEqual(result.table!._rowGroups, [
+				{ startRow: 1, endRow: 2, keepTogether: true, dontBreakRows: true },
+			]);
+			assert.equal(result.table!.body[2].length, 2);
+			assert.equal("_span" in result.table!.body[2][1] && result.table!.body[2][1]._span, true);
+		});
+
+		it("rejects the replaced flat table API with migration guidance", function () {
+			assert.throws(
+				() => docPreprocessor.preprocessNode({ table: { body: [["Legacy row"]] } }),
+				/table\.body.*object with a 'rows' array/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { headerRows: 1, body: [{ rows: [["Legacy header"]] }] },
+					}),
+				/'headerRows' is no longer supported/,
 			);
 		});
 
@@ -244,11 +281,15 @@ describe("DocPreprocessor", function () {
 			const node = {
 				table: {
 					body: [
-						["Qty", "Description", "Units", "Price", "Total"],
-						[
-							{ text: "Sum", colSpan: 4 },
-							{ text: "2.85", alignment: "right" },
-						],
+						{
+							rows: [
+								["Qty", "Description", "Units", "Price", "Total"],
+								[
+									{ text: "Sum", colSpan: 4 },
+									{ text: "2.85", alignment: "right" },
+								],
+							],
+						},
 					],
 				},
 			};
@@ -267,9 +308,13 @@ describe("DocPreprocessor", function () {
 			const result = docPreprocessor.preprocessNode({
 				table: {
 					body: [
-						["A", "B", "C", "D"],
-						[{ text: "1", rowSpan: 2 }, { text: "2", colSpan: 2 }, { text: "3" }],
-						[{ text: "4", colSpan: 3 }],
+						{
+							rows: [
+								["A", "B", "C", "D"],
+								[{ text: "1", rowSpan: 2 }, { text: "2", colSpan: 2 }, { text: "3" }],
+								[{ text: "4", colSpan: 3 }],
+							],
+						},
 					],
 				},
 			});
@@ -372,7 +417,7 @@ describe("DocPreprocessor", function () {
 			var ddContent = [
 				{
 					table: {
-						body: [[{ section: [] }]],
+						body: [{ rows: [[{ section: [] }]] }],
 					},
 				},
 			];

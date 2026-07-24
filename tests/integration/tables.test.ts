@@ -42,8 +42,12 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					body: [
-						["Column 1", "Column 2"],
-						["Value 1", "Value 2"],
+						{
+							rows: [
+								["Column 1", "Column 2"],
+								["Value 1", "Value 2"],
+							],
+						},
 					],
 				},
 			},
@@ -80,13 +84,55 @@ describe("Integration test: tables", function () {
 		assert.deepEqual(getColumnText(lines, { cell: 3 }), "Value 2");
 	});
 
+	it("keeps every physical row of a logical body group on the same page", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: [
+				{ text: "Content before the table", margin: [0, 0, 0, 210] },
+				{
+					table: {
+						header: { rows: [["HEADER", "Quantity"]] },
+						heights: (rowIndex: number) => (rowIndex === 0 ? 20 : 55),
+						body: [
+							{ rows: [["EARLIER", "1"]] },
+							{
+								keepTogether: true,
+								dontBreakRows: true,
+								rows: [["GROUP_TITLE", "2"], [{ text: "GROUP_DESCRIPTION", colSpan: 2 }]],
+							},
+						],
+					},
+				},
+			],
+		});
+
+		const pageContaining = (text: string) =>
+			pages.findIndex((page) =>
+				page.items.some(
+					(item) =>
+						item.type === "line" && item.item.inlines.some((inline) => inline.text === text),
+				),
+			);
+
+		assert.ok(pages.length >= 2);
+		assert.equal(pageContaining("EARLIER"), 0);
+		assert.equal(pageContaining("GROUP_TITLE"), 1);
+		assert.equal(pageContaining("GROUP_DESCRIPTION"), 1);
+		assert.ok(
+			pages[1].items.some(
+				(item) =>
+					item.type === "line" && item.item.inlines.some((inline) => inline.text === "HEADER"),
+			),
+			"the declared header should repeat before the moved group",
+		);
+	});
+
 	it("moves an explicitly tall row before it overlaps the bottom margin (#1300)", function () {
 		const pages = testHelper.renderPages("A4", {
 			content: [
 				{
 					table: {
 						heights: [200, 500, 70],
-						body: [["First"], ["Second"], ["Third"]],
+						body: [{ rows: [["First"], ["Second"], ["Third"]] }],
 					},
 				},
 			],
@@ -144,10 +190,14 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					heights: 30,
-					body: Array.from({ length: 30 }, (_, index) => [
-						{ text: `Row ${index + 1}`, fillColor: "#dbeafe" },
-						"Column B",
-					]),
+					body: [
+						{
+							rows: Array.from({ length: 30 }, (_, index) => [
+								{ text: `Row ${index + 1}`, fillColor: "#dbeafe" },
+								"Column B",
+							]),
+						},
+					],
 				},
 			},
 		});
@@ -169,14 +219,17 @@ describe("Integration test: tables", function () {
 		const pages = testHelper.renderPages("A6", {
 			content: {
 				table: {
-					headerRows: 1,
+					header: { rows: [["Header A", "Header B"]] },
 					heights: 32,
 					body: [
-						["Header A", "Header B"],
-						...Array.from({ length: 24 }, (_, index) => [
-							{ text: `Row ${index + 1}`, fillColor: "#dcfce7" },
-							"Value",
-						]),
+						{
+							rows: [
+								...Array.from({ length: 24 }, (_, index) => [
+									{ text: `Row ${index + 1}`, fillColor: "#dcfce7" },
+									"Value",
+								]),
+							],
+						},
 					],
 				},
 			},
@@ -199,11 +252,13 @@ describe("Integration test: tables", function () {
 		const pages = testHelper.renderPages("A6", {
 			content: {
 				table: {
-					headerRows: 1,
-					dontBreakRows: true,
+					header: { rows: [["Header A", "Header B"]] },
+
 					body: [
-						["Header A", "Header B"],
-						...Array.from({ length: 30 }, (_, index) => [`Row ${index + 1}`, "Value"]),
+						{
+							rows: [...Array.from({ length: 30 }, (_, index) => [`Row ${index + 1}`, "Value"])],
+							dontBreakRows: true,
+						},
 					],
 				},
 				layout: {
@@ -255,8 +310,12 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					body: [
-						["Header", "Value"],
-						[{ text: "A long final row ".repeat(180) }, "Last"],
+						{
+							rows: [
+								["Header", "Value"],
+								[{ text: "A long final row ".repeat(180) }, "Last"],
+							],
+						},
 					],
 				},
 				layout: {
@@ -296,18 +355,22 @@ describe("Integration test: tables", function () {
 				{ text: "Spacer", fontSize: 130 },
 				{
 					table: {
-						dontBreakRows: true,
 						heights: [30, 100],
 						body: [
-							["First", "Row"],
-							[
-								{
-									text: "Moved",
-									border: [false, true, false, false],
-									borderColor: ["black", "#dc2626", "black", "black"],
-								},
-								"Row",
-							],
+							{
+								rows: [
+									["First", "Row"],
+									[
+										{
+											text: "Moved",
+											border: [false, true, false, false],
+											borderColor: ["black", "#dc2626", "black", "black"],
+										},
+										"Row",
+									],
+								],
+								dontBreakRows: true,
+							},
 						],
 					},
 					layout: { defaultBorder: false },
@@ -333,16 +396,20 @@ describe("Integration test: tables", function () {
 					table: {
 						widths: ["*", "*", "*", "*"],
 						heights: 50,
-						body: Array.from({ length: 8 }, (_, index) =>
-							index % 2 === 0
-								? ["ABC", "DEF", "GHI", "JKL"]
-								: [
-										"ABC",
-										{ text: `XYZ ${index}`, colSpan: 2 },
-										"",
-										{ text: "", border: [false, false, false, false] },
-									],
-						),
+						body: [
+							{
+								rows: Array.from({ length: 8 }, (_, index) =>
+									index % 2 === 0
+										? ["ABC", "DEF", "GHI", "JKL"]
+										: [
+												"ABC",
+												{ text: `XYZ ${index}`, colSpan: 2 },
+												"",
+												{ text: "", border: [false, false, false, false] },
+											],
+								),
+							},
+						],
 					},
 				},
 			],
@@ -393,7 +460,7 @@ describe("Integration test: tables", function () {
 			const pages = testHelper.renderPages("A6", {
 				content: {
 					tableAlignment,
-					table: { widths: [80], body: [["Cell"]] },
+					table: { widths: [80], body: [{ rows: [["Cell"]] }] },
 				},
 			});
 			const line = pages[0].items.find((item) => item.type === "line")!.item;
@@ -416,14 +483,14 @@ describe("Integration test: tables", function () {
 		const direct = testHelper.renderPages("A6", {
 			content: {
 				tableAlignment: "center",
-				table: { widths: [80], body: [["Cell"]] },
+				table: { widths: [80], body: [{ rows: [["Cell"]] }] },
 			},
 		});
 		const styled = testHelper.renderPages("A6", {
 			styles: { centeredTable: { tableAlignment: "center" } },
 			content: {
 				style: "centeredTable",
-				table: { widths: [80], body: [["Cell"]] },
+				table: { widths: [80], body: [{ rows: [["Cell"]] }] },
 			},
 		});
 
@@ -437,7 +504,7 @@ describe("Integration test: tables", function () {
 			const pages = testHelper.renderPages("A6", {
 				content: {
 					tableAlignment,
-					table: { widths: ["*"], body: [["Cell"]] },
+					table: { widths: ["*"], body: [{ rows: [["Cell"]] }] },
 				},
 			});
 			return getCells(pages, { pageNumber: 0 })[0].item.x;
@@ -451,9 +518,9 @@ describe("Integration test: tables", function () {
 			content: {
 				tableAlignment: "right",
 				table: {
-					headerRows: 1,
+					header: { rows: [["Header"]] },
 					widths: [80],
-					body: [["Header"], ...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])],
+					body: [{ rows: [...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])] }],
 				},
 			},
 		});
@@ -474,7 +541,7 @@ describe("Integration test: tables", function () {
 		var dd = {
 			content: {
 				table: {
-					body: [["Column 1"], [{ ul: ["item 1", "item 2"] }]],
+					body: [{ rows: [["Column 1"], [{ ul: ["item 1", "item 2"] }]] }],
 				},
 			},
 		};
@@ -511,15 +578,19 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					body: [
-						["Column 1", "Column 2"],
-						[
-							{
-								table: {
-									body: [["C1", "C2"]],
-								},
-							},
-							"Some Value",
-						],
+						{
+							rows: [
+								["Column 1", "Column 2"],
+								[
+									{
+										table: {
+											body: [{ rows: [["C1", "C2"]] }],
+										},
+									},
+									"Some Value",
+								],
+							],
+						},
 					],
 				},
 			},
@@ -571,7 +642,7 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					widths: [definedWidth, "*"],
-					body: [["C1", "C2"]],
+					body: [{ rows: [["C1", "C2"]] }],
 				},
 			},
 		};
@@ -612,7 +683,7 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					widths: [definedWidth, "auto"],
-					body: [["C1", "Column 2"]],
+					body: [{ rows: [["C1", "Column 2"]] }],
 				},
 			},
 		};
@@ -647,11 +718,15 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					body: [
-						[
-							{ text: "Column 1 with colspan 2", colSpan: 2 },
-							{ text: "is not rendered at all" },
-							{ text: "Column 2" },
-						],
+						{
+							rows: [
+								[
+									{ text: "Column 1 with colspan 2", colSpan: 2 },
+									{ text: "is not rendered at all" },
+									{ text: "Column 2" },
+								],
+							],
+						},
 					],
 				},
 			},
@@ -675,9 +750,13 @@ describe("Integration test: tables", function () {
 			content: {
 				table: {
 					body: [
-						[{ text: "Row 1 with rowspan 2", rowSpan: 2 }],
-						[{ text: "is not rendered at all" }],
-						[{ text: "Row 2" }],
+						{
+							rows: [
+								[{ text: "Row 1 with rowspan 2", rowSpan: 2 }],
+								[{ text: "is not rendered at all" }],
+								[{ text: "Row 2" }],
+							],
+						},
 					],
 				},
 			},
@@ -700,16 +779,19 @@ describe("Integration test: tables", function () {
 		var dd = {
 			content: {
 				table: {
-					dontBreakRows: true,
-					headerRows: 1,
+					header: { rows: [["row Header", "column B"]] },
 					body: [
-						["row Header", "column B"],
-						["row 1", "column B"],
-						["row 2", "column B"],
-						["row 3", "column B"],
-						[{ text: "", pageBreak: "after" }, ""],
-						["row 4", "column B"],
-						["row 5", "column B"],
+						{
+							rows: [
+								["row 1", "column B"],
+								["row 2", "column B"],
+								["row 3", "column B"],
+								[{ text: "", pageBreak: "after" }, ""],
+								["row 4", "column B"],
+								["row 5", "column B"],
+							],
+							dontBreakRows: true,
+						},
 					],
 				},
 			},
@@ -750,11 +832,15 @@ describe("Integration test: tables", function () {
 		var dd = {
 			content: {
 				table: {
-					dontBreakRows: true,
 					body: [
-						["row 1", "column B"],
-						["row 2", "column B"],
-						["row 3", "column B"],
+						{
+							rows: [
+								["row 1", "column B"],
+								["row 2", "column B"],
+								["row 3", "column B"],
+							],
+							dontBreakRows: true,
+						},
 					],
 				},
 			},
@@ -772,42 +858,46 @@ describe("Integration test: tables", function () {
 		var dd = {
 			content: {
 				table: {
-					dontBreakRows: true,
 					heights: 45,
 					widths: [50, 100, 200, 50],
 					body: [
-						["1", "2", "3", "4"],
-						[{ rowSpan: 4, text: "4span" }, null, null, null],
-						[null, null, null, null],
-						[{ rowSpan: 2, text: "2span" }, null, null, null],
-						[null, null, null, null],
-						[{ rowSpan: 2, text: null }, null, null, null],
-						[null, null, null, null],
-						[{ rowSpan: 2, text: null }, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[{ rowSpan: 15, text: "span 15", maxHeight: 50 }, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
-						[{ rowSpan: 5, text: "span 5" }, null, null, null],
-						[null, null, null, null],
-						[{ rowSpan: 2, text: null }, null, null, null],
-						[null, null, null, null],
-						[null, null, null, null],
+						{
+							rows: [
+								["1", "2", "3", "4"],
+								[{ rowSpan: 4, text: "4span" }, null, null, null],
+								[null, null, null, null],
+								[{ rowSpan: 2, text: "2span" }, null, null, null],
+								[null, null, null, null],
+								[{ rowSpan: 2, text: null }, null, null, null],
+								[null, null, null, null],
+								[{ rowSpan: 2, text: null }, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[{ rowSpan: 15, text: "span 15", maxHeight: 50 }, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+								[{ rowSpan: 5, text: "span 5" }, null, null, null],
+								[null, null, null, null],
+								[{ rowSpan: 2, text: null }, null, null, null],
+								[null, null, null, null],
+								[null, null, null, null],
+							],
+							dontBreakRows: true,
+						},
 					],
 				},
 			},
@@ -853,21 +943,20 @@ describe("Integration test: tables", function () {
 		const createReportTable = () => ({
 			margin: [0, 5, 0, 15],
 			table: {
-				headerRows: 2,
-				widths: ["auto", "*", "*", "*", "auto"],
-				body: [
-					[
-						{ text: "Dept ID", rowSpan: 2, verticalAlignment: "middle" },
-						{ text: "Performance Indicators", colSpan: 3 },
-						{},
-						{},
-						{ text: "Status", rowSpan: 2 },
+				header: {
+					rows: [
+						[
+							{ text: "Dept ID", rowSpan: 2, verticalAlignment: "middle" },
+							{ text: "Performance Indicators", colSpan: 3 },
+							{},
+							{},
+							{ text: "Status", rowSpan: 2 },
+						],
+						[{}, "Target", "Actual", "Gap", {}],
 					],
-					[{}, "Target", "Actual", "Gap", {}],
-					...rows,
-					...rows,
-					...rows,
-				],
+				},
+				widths: ["auto", "*", "*", "*", "auto"],
+				body: [{ rows: [...rows, ...rows, ...rows] }],
 			},
 		});
 		const content: unknown[] = [];

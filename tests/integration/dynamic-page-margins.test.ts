@@ -46,8 +46,8 @@ describe("Integration test: dynamic page margins", () => {
 		const pages = helper.renderPages("A7", {
 			content: {
 				table: {
-					headerRows: 1,
-					body: [["Header"], ...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])],
+					header: { rows: [["Header"]] },
+					body: [{ rows: [...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])] }],
 				},
 			},
 			pageMargins: (currentPage) => (currentPage % 2 === 0 ? [70, 30, 20, 30] : 30),

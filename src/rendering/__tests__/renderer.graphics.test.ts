@@ -211,6 +211,56 @@ describe("Renderer graphics", () => {
 		expect(document.save).not.toHaveBeenCalled();
 	});
 
+	it("clips image corners and draws the border inside its layout box", () => {
+		const { document } = createDocument();
+		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+
+		renderer.renderImage({
+			image: "image",
+			x: 10,
+			y: 20,
+			_width: 100,
+			_height: 50,
+			borderRadius: 12,
+			borderWidth: 2,
+			_imageBorderColor: "red",
+		} as LayoutPdfNode);
+
+		expect(document.save).toHaveBeenCalledOnce();
+		expect(document.roundedRect).toHaveBeenNthCalledWith(1, 10, 20, 100, 50, 12);
+		expect(document.clip).toHaveBeenCalledOnce();
+		expect(document.image).toHaveBeenCalledWith("image", 10, 20, { width: 100, height: 50 });
+		expect(document.restore).toHaveBeenCalledOnce();
+		expect(document.lineWidth).toHaveBeenCalledWith(2);
+		expect(document.strokeColor).toHaveBeenCalledWith("red");
+		expect(document.roundedRect).toHaveBeenNthCalledWith(2, 11, 21, 98, 48, 11);
+		expect(document.stroke).toHaveBeenCalledOnce();
+	});
+
+	it("clips covered images with a radius bounded by their dimensions", () => {
+		const { document } = createDocument();
+		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+
+		renderer.renderImage({
+			image: "image",
+			x: 5,
+			y: 6,
+			_width: 100,
+			_height: 40,
+			cover: { width: 100, height: 40 },
+			borderRadius: 50,
+		} as LayoutPdfNode);
+
+		expect(document.roundedRect).toHaveBeenCalledWith(5, 6, 100, 40, 20);
+		expect(document.clip).toHaveBeenCalledOnce();
+		expect(document.image).toHaveBeenCalledWith("image", 5, 6, {
+			cover: [100, 40],
+			align: undefined,
+			valign: undefined,
+		});
+		expect(document.restore).toHaveBeenCalledOnce();
+	});
+
 	it("passes SVG options, resolves fonts and renders links", () => {
 		const { document, action } = createDocument();
 		const renderer = new RendererGraphics(document as unknown as PDFDocument);

@@ -399,8 +399,8 @@ describe("Integration test: snaking columns", function () {
 					columns: [
 						{
 							table: {
-								headerRows: 1,
-								body: tableBody,
+								header: { rows: tableBody.slice(0, 1) },
+								body: [{ rows: tableBody.slice(1) }],
 							},
 						},
 						{ text: "" },
@@ -777,12 +777,15 @@ describe("Integration test: snaking columns", function () {
 								{ text: fillerText, fontSize: 14 },
 								{
 									table: {
-										headerRows: 1,
+										header: { rows: [["Header A", "Header B", "Header C"]] },
 										body: [
-											["Header A", "Header B", "Header C"],
-											["Row 1 A", "Row 1 B", "Row 1 C"],
-											["Row 2 A", "Row 2 B", "Row 2 C"],
-											["Row 3 A", "Row 3 B", "Row 3 C"],
+											{
+												rows: [
+													["Row 1 A", "Row 1 B", "Row 1 C"],
+													["Row 2 A", "Row 2 B", "Row 2 C"],
+													["Row 3 A", "Row 3 B", "Row 3 C"],
+												],
+											},
 										],
 									},
 									unbreakable: true,
@@ -1125,7 +1128,7 @@ describe("Integration test: snaking columns", function () {
 		});
 	});
 
-	describe("snaking columns with table headerRows and keepWithHeaderRows", function () {
+	describe("snaking columns with declarative table headers and logical row groups", function () {
 		// Helper: find all occurrences of a specific inline text across pages
 		function findTextPositions(pages: IntegrationPage[], searchText: string) {
 			var positions: Array<{ page: number; x: number; y: number }> = [];
@@ -1147,7 +1150,7 @@ describe("Integration test: snaking columns", function () {
 			return positions;
 		}
 
-		describe("headerRows inside snaking columns", function () {
+		describe("table headers inside snaking columns", function () {
 			it("should repeat header row when table snakes to column 2 on same page", function () {
 				var tableBody: HeaderTableBody = [
 					[
@@ -1163,7 +1166,13 @@ describe("Integration test: snaking columns", function () {
 					content: [
 						{
 							columns: [
-								{ table: { headerRows: 1, body: tableBody }, width: "*" },
+								{
+									table: {
+										header: { rows: tableBody.slice(0, 1) },
+										body: [{ rows: tableBody.slice(1) }],
+									},
+									width: "*",
+								},
 								{ text: "", width: "*" },
 							],
 							columnGap: 30,
@@ -1207,7 +1216,13 @@ describe("Integration test: snaking columns", function () {
 					content: [
 						{
 							columns: [
-								{ table: { headerRows: 1, body: tableBody }, width: "*" },
+								{
+									table: {
+										header: { rows: tableBody.slice(0, 1) },
+										body: [{ rows: tableBody.slice(1) }],
+									},
+									width: "*",
+								},
 								{ text: "", width: "*" },
 							],
 							columnGap: 30,
@@ -1271,7 +1286,13 @@ describe("Integration test: snaking columns", function () {
 					content: [
 						{
 							columns: [
-								{ table: { headerRows: 1, body: tableBody }, width: "*" },
+								{
+									table: {
+										header: { rows: tableBody.slice(0, 1) },
+										body: [{ rows: tableBody.slice(1) }],
+									},
+									width: "*",
+								},
 								{ text: "", width: "*" },
 								{ text: "", width: "*" },
 							],
@@ -1304,7 +1325,7 @@ describe("Integration test: snaking columns", function () {
 				assert.ok(uniqueX.size >= 2, "Headers should appear at different X positions on page 1");
 			});
 
-			it("should not repeat headers when headerRows is not set", function () {
+			it("should not repeat an ordinary row when no header is declared", function () {
 				var tableBody: HeaderTableBody = [
 					[
 						{ text: "NOHDR_A", bold: true },
@@ -1319,7 +1340,7 @@ describe("Integration test: snaking columns", function () {
 					content: [
 						{
 							columns: [
-								{ table: { body: tableBody }, width: "*" },
+								{ table: { body: [{ rows: tableBody }] }, width: "*" },
 								{ text: "", width: "*" },
 							],
 							columnGap: 30,
@@ -1334,13 +1355,13 @@ describe("Integration test: snaking columns", function () {
 				assert.equal(
 					headerPositions.length,
 					1,
-					"Without headerRows, header text should appear only once",
+					"Without a declared header, the text should appear only once",
 				);
 			});
 		});
 
-		describe("keepWithHeaderRows inside snaking columns", function () {
-			it("should keep first data row with header using keepWithHeaderRows", function () {
+		describe("grouped rows inside snaking columns", function () {
+			it("should keep the first logical row with its header", function () {
 				var tableBody: HeaderTableBody = [
 					[
 						{ text: "KWH_HDR", bold: true },
@@ -1357,9 +1378,11 @@ describe("Integration test: snaking columns", function () {
 							columns: [
 								{
 									table: {
-										headerRows: 1,
-										keepWithHeaderRows: 1,
-										body: tableBody,
+										header: { rows: tableBody.slice(0, 1) },
+										body: [
+											{ rows: tableBody.slice(1, 2), keepTogether: true },
+											...tableBody.slice(2).map((row) => ({ rows: [row] })),
+										],
 									},
 									width: "*",
 								},
@@ -1377,10 +1400,7 @@ describe("Integration test: snaking columns", function () {
 				var headerPositions = findTextPositions(pages, "KWH_HDR");
 
 				// Headers should appear on every page
-				assert.ok(
-					headerPositions.length >= pages.length,
-					"keepWithHeaderRows: header should appear on every page",
-				);
+				assert.ok(headerPositions.length >= pages.length, "the header should appear on every page");
 
 				// On each page with headers, the first data row should immediately follow
 				// (no orphaned header at bottom of column)
@@ -1421,9 +1441,11 @@ describe("Integration test: snaking columns", function () {
 							columns: [
 								{
 									table: {
-										headerRows: 2,
-										keepWithHeaderRows: 1,
-										body: tableBody,
+										header: { rows: tableBody.slice(0, 2) },
+										body: [
+											{ rows: tableBody.slice(2, 3), keepTogether: true },
+											...tableBody.slice(3).map((row) => ({ rows: [row] })),
+										],
 									},
 									width: "*",
 								},
@@ -1476,8 +1498,8 @@ describe("Integration test: snaking columns", function () {
 			});
 		});
 
-		describe("headerRows + keepWithHeaderRows combo in snaking columns", function () {
-			it("should support multi-row headers with keepWithHeaderRows in snaking columns", function () {
+		describe("multi-row headers with a grouped first row in snaking columns", function () {
+			it("should support multi-row headers with a kept first logical row", function () {
 				var tableBody = [];
 				// 2 header rows
 				tableBody.push([{ text: "COMBO_TITLE", bold: true, colSpan: 2 }, {}]);
@@ -1495,9 +1517,11 @@ describe("Integration test: snaking columns", function () {
 							columns: [
 								{
 									table: {
-										headerRows: 2,
-										keepWithHeaderRows: 1,
-										body: tableBody,
+										header: { rows: tableBody.slice(0, 2) },
+										body: [
+											{ rows: tableBody.slice(2, 3), keepTogether: true },
+											...tableBody.slice(3).map((row) => ({ rows: [row] })),
+										],
 									},
 									width: "*",
 								},
@@ -1560,9 +1584,11 @@ describe("Integration test: snaking columns", function () {
 							columns: [
 								{
 									table: {
-										headerRows: 1,
-										keepWithHeaderRows: 1,
-										body: tableBody,
+										header: { rows: tableBody.slice(0, 1) },
+										body: [
+											{ rows: tableBody.slice(1, 2), keepTogether: true },
+											...tableBody.slice(2).map((row) => ({ rows: [row] })),
+										],
 									},
 									width: "*",
 								},
@@ -1581,7 +1607,7 @@ describe("Integration test: snaking columns", function () {
 				var afterPositions = findTextPositions(pages, "AFTER_SNAKING_TABLE");
 				assert.ok(
 					afterPositions.length > 0,
-					"Content after snaking table with headerRows should be rendered",
+					"Content after a snaking table with headers should be rendered",
 				);
 			});
 		});
@@ -1604,7 +1630,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: tableBody,
+									body: [{ rows: tableBody }],
 								},
 								width: "*",
 							},
@@ -1645,7 +1671,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: tableBody,
+									body: [{ rows: tableBody }],
 								},
 								width: "*",
 							},
@@ -1688,7 +1714,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: tableBody,
+									body: [{ rows: tableBody }],
 								},
 								width: "*",
 							},
@@ -1736,7 +1762,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: tableBody,
+									body: [{ rows: tableBody }],
 								},
 								width: "*",
 							},
@@ -1783,7 +1809,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: tableBody,
+									body: [{ rows: tableBody }],
 								},
 								width: "*",
 							},
@@ -1814,7 +1840,7 @@ describe("Integration test: snaking columns", function () {
 							{
 								table: {
 									widths: ["*", 60],
-									body: tableBody,
+									body: [{ rows: tableBody }],
 								},
 								width: "*",
 							},
@@ -1850,7 +1876,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: tableBody,
+									body: [{ rows: tableBody }],
 								},
 								width: "*",
 							},

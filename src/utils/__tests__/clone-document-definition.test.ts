@@ -34,8 +34,8 @@ describe("cloneValue", () => {
 			content: [
 				sharedText,
 				sharedText,
-				{ table: { body: [sharedRow] } },
-				{ table: { body: [sharedRow] } },
+				{ table: { body: [{ rows: [sharedRow] }] } },
+				{ table: { body: [{ rows: [sharedRow] }] } },
 			],
 		});
 		const firstTable = clone.content[2];
@@ -47,7 +47,7 @@ describe("cloneValue", () => {
 			throw new Error("Expected cloned table nodes");
 		}
 		expect(firstTable.table.body[0]).not.toBe(secondTable.table.body[0]);
-		expect(firstTable.table.body[0][0]).not.toBe(secondTable.table.body[0][0]);
+		expect(firstTable.table.body[0].rows[0]).not.toBe(secondTable.table.body[0].rows[0]);
 	});
 });
 

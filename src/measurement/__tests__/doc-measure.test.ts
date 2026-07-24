@@ -353,14 +353,18 @@ describe("DocMeasure", function () {
 					headerLines: 1,
 					widths: ["*", 150, "auto", "auto"],
 					body: [
-						["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
-						["Column 1", "Column 2", "Column 3", "Column 4"],
-						[
-							"A text in the first column",
-							"Text in the second one",
-							"Other things go here",
-							"or here",
-						],
+						{
+							rows: [
+								["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
+								["Column 1", "Column 2", "Column 3", "Column 4"],
+								[
+									"A text in the first column",
+									"Text in the second one",
+									"Other things go here",
+									"or here",
+								],
+							],
+						},
 					],
 				},
 				layout: {
@@ -403,7 +407,7 @@ describe("DocMeasure", function () {
 				},
 			});
 			const node = {
-				table: { body: [[{ text: "Styled", style: "cell" }]] },
+				table: { body: [{ rows: [[{ text: "Styled", style: "cell" }]] }] },
 			};
 
 			docPreprocessor.preprocessTable(node);
@@ -451,14 +455,18 @@ describe("DocMeasure", function () {
 					headerLines: 1,
 					widths: "auto",
 					body: [
-						["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
-						["Column 1", "Column 2", "Column 3", "Column 4"],
-						[
-							"A text in the first column",
-							"Text in the second one",
-							"Other things go here",
-							"or here",
-						],
+						{
+							rows: [
+								["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
+								["Column 1", "Column 2", "Column 3", "Column 4"],
+								[
+									"A text in the first column",
+									"Text in the second one",
+									"Other things go here",
+									"or here",
+								],
+							],
+						},
 					],
 				},
 			};
@@ -482,14 +490,24 @@ describe("DocMeasure", function () {
 		});
 
 		it("should support column spans", function () {
-			tableNode.table.body.push([{ text: "Column 1", colSpan: 2 }, {}, "Column 3", "Column 4"]);
+			(tableNode.table.body[0] as unknown as { rows: unknown[][] }).rows.push([
+				{ text: "Column 1", colSpan: 2 },
+				{},
+				"Column 3",
+				"Column 4",
+			]);
 
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
 		});
 
 		it("should mark cells directly following colSpan-cell with _span property and set min/maxWidth to 0", function () {
-			tableNode.table.body.push([{ text: "Col 1", colSpan: 3 }, {}, {}, "Col 4"]);
+			(tableNode.table.body[0] as unknown as { rows: unknown[][] }).rows.push([
+				{ text: "Col 1", colSpan: 3 },
+				{},
+				{},
+				"Col 4",
+			]);
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
 
@@ -613,10 +631,11 @@ describe("DocMeasure", function () {
 		});
 
 		it("should mark cells directly below rowSpan-cell with _span property and set min/maxWidth to 0", function () {
-			tableNode.table.body.push([{ text: "Col 1", rowSpan: 3 }, "Col2", "Col 3", "Col 4"]);
-			tableNode.table.body.push([{}, "Col2", "Col 3", "Col 4"]);
-			tableNode.table.body.push([{}, "Col2", "Col 3", "Col 4"]);
-			tableNode.table.body.push(["Another", "Col2", "Col 3", "Col 4"]);
+			const rawRows = (tableNode.table.body[0] as unknown as { rows: unknown[][] }).rows;
+			rawRows.push([{ text: "Col 1", rowSpan: 3 }, "Col2", "Col 3", "Col 4"]);
+			rawRows.push([{}, "Col2", "Col 3", "Col 4"]);
+			rawRows.push([{}, "Col2", "Col 3", "Col 4"]);
+			rawRows.push(["Another", "Col2", "Col 3", "Col 4"]);
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
 

@@ -197,25 +197,70 @@ class RendererGraphics {
 
 	renderImage(image: LayoutPdfNode): void {
 		let opacity = isNumber(image.opacity) ? image.opacity : 1;
+		const width = image.cover?.width ?? image._width!;
+		const height = image.cover?.height ?? image._height!;
+		const borderRadius =
+			Number.isFinite(image.borderRadius) && image.borderRadius! > 0
+				? Math.min(image.borderRadius!, width / 2, height / 2)
+				: 0;
 		this.pdfDocument.opacity(opacity);
+		if (image.cover || borderRadius > 0) {
+			this.pdfDocument.save();
+			if (borderRadius > 0) {
+				this.pdfDocument.roundedRect(image.x!, image.y!, width, height, borderRadius).clip();
+			} else {
+				this.pdfDocument.rect(image.x!, image.y!, width, height).clip();
+			}
+		}
 		if (image.cover) {
 			const align = image.cover.align;
 			const valign = image.cover.valign;
-			const width = image.cover.width;
-			const height = image.cover.height;
-			this.pdfDocument.save();
-			this.pdfDocument.rect(image.x!, image.y!, width!, height!).clip();
 			this.pdfDocument.image(image.image as PDFKit.Mixins.ImageSrc, image.x!, image.y!, {
 				cover: [width, height],
 				align: align === "left" ? undefined : align,
 				valign: valign === "top" ? undefined : valign,
 			});
-			this.pdfDocument.restore();
 		} else {
 			this.pdfDocument.image(image.image as PDFKit.Mixins.ImageSrc, image.x!, image.y!, {
 				width: image._width,
 				height: image._height,
 			});
+		}
+		if (image.cover || borderRadius > 0) {
+			this.pdfDocument.restore();
+		}
+
+		const requestedBorderWidth =
+			Number.isFinite(image.borderWidth) && image.borderWidth! > 0 ? image.borderWidth! : 0;
+		const borderWidth = Math.min(requestedBorderWidth, width, height);
+		if (borderWidth > 0) {
+			const inset = borderWidth / 2;
+			const borderPathWidth = Math.max(0, width - borderWidth);
+			const borderPathHeight = Math.max(0, height - borderWidth);
+			const borderPathRadius = Math.max(
+				0,
+				Math.min(borderRadius - inset, borderPathWidth / 2, borderPathHeight / 2),
+			);
+			this.pdfDocument.lineWidth(borderWidth);
+			this.pdfDocument.strokeColor(this.pdfDocument.resolveColor(image._imageBorderColor, "black"));
+			if (borderPathRadius > 0) {
+				this.pdfDocument.roundedRect(
+					image.x! + inset,
+					image.y! + inset,
+					borderPathWidth,
+					borderPathHeight,
+					borderPathRadius,
+				);
+			} else {
+				this.pdfDocument.rect(
+					image.x! + inset,
+					image.y! + inset,
+					borderPathWidth,
+					borderPathHeight,
+				);
+			}
+			this.pdfDocument.stroke();
+			this.resetVectorState();
 		}
 		if (image.link) {
 			this.pdfDocument.link(image.x!, image.y!, image._width!, image._height!, image.link);

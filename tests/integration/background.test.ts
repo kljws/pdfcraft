@@ -57,12 +57,16 @@ describe("Integration test: background", function () {
 				{
 					table: {
 						body: [
-							[
-								{
-									text: "\n",
-									fillColor: "#7d02c9",
-								},
-							],
+							{
+								rows: [
+									[
+										{
+											text: "\n",
+											fillColor: "#7d02c9",
+										},
+									],
+								],
+							},
 						],
 					},
 				},
@@ -129,20 +133,24 @@ describe("Integration test: background", function () {
 				{
 					table: {
 						body: [
-							[
-								{
-									text: "a",
-									fillColor: "#aaa",
-								},
-								{
-									text: "b",
-									fillColor: "#bbb",
-								},
-								{
-									text: "c",
-									fillColor: "#ccc",
-								},
-							],
+							{
+								rows: [
+									[
+										{
+											text: "a",
+											fillColor: "#aaa",
+										},
+										{
+											text: "b",
+											fillColor: "#bbb",
+										},
+										{
+											text: "c",
+											fillColor: "#ccc",
+										},
+									],
+								],
+							},
 						],
 					},
 				},
@@ -165,20 +173,24 @@ describe("Integration test: background", function () {
 				{
 					table: {
 						body: [
-							[
-								{
-									text: "a",
-									fillColor: "#aaa",
-								},
-								{
-									text: "b",
-									fillColor: "#bbb",
-								},
-								{
-									text: "c",
-									fillColor: "#ccc",
-								},
-							],
+							{
+								rows: [
+									[
+										{
+											text: "a",
+											fillColor: "#aaa",
+										},
+										{
+											text: "b",
+											fillColor: "#bbb",
+										},
+										{
+											text: "c",
+											fillColor: "#ccc",
+										},
+									],
+								],
+							},
 						],
 					},
 				},

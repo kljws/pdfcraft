@@ -1,7 +1,7 @@
 import type StyleContextStack from "../layout/style-context-stack";
 import type PDFDocument from "../rendering/pdf-document";
 import type SVGMeasure from "./svg-measure";
-import type { Alignment } from "../types";
+import type { Alignment, Color } from "../types";
 import type { Dimensions, MeasuredPdfNode } from "../types/internal";
 import { isNumber } from "../utils/variable-type";
 import { decodeBase64, decodeBytes } from "../utils/bytes";
@@ -114,6 +114,7 @@ class DocMeasureMedia {
 		}
 
 		this.measureImageWithDimensions(node, imageSize);
+		node._imageBorderColor = node.borderColor as unknown as Color | undefined;
 
 		return node;
 	}

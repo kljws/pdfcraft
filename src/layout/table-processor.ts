@@ -1,6 +1,6 @@
 import { drawHorizontalLine, drawVerticalLine } from "./table-processor.borders";
 import type PageElementWriter from "./element-writer.page";
-import type { LayoutPdfNode, PdfTable, TableOffsets } from "../types/internal";
+import type { LayoutPdfNode, PdfTable, TableOffsets, TableRowGroupRange } from "../types/internal";
 import type { TablePageBreak } from "./layout-builder.table";
 import type { ResolvedTableLayout, RowSpanData } from "./table-processor.types";
 import { beginTable, beginTableRow } from "./table-processor.lifecycle";
@@ -9,11 +9,13 @@ import { drawTableRowSegment, type TableLinePosition } from "./table-processor.r
 class TableProcessor {
 	tableNode: LayoutPdfNode;
 	_isCurrentRowUnbreakable = false;
+	_currentRowGroup?: TableRowGroupRange;
 	offsets!: TableOffsets;
 	layout!: ResolvedTableLayout;
 	tableWidth = 0;
 	tableOffset = 0;
 	rowSpanData: RowSpanData[] = [];
+	rowGroupsByRow: Array<TableRowGroupRange | undefined> = [];
 	cleanUpRepeatables = false;
 	headerRows = 0;
 	rowsWithoutPageBreak = 0;
@@ -263,7 +265,7 @@ class TableProcessor {
 		}
 
 		const shouldCommitCurrentRowUnbreakable =
-			this.dontBreakRows && (rowIndex === 0 || this._isCurrentRowUnbreakable);
+			(this.dontBreakRows && rowIndex === 0) || this._isCurrentRowUnbreakable;
 
 		if (shouldCommitCurrentRowUnbreakable) {
 			const pageChangedCallback = (change: TablePageBreak) => {
@@ -292,6 +294,11 @@ class TableProcessor {
 		}
 
 		this._isCurrentRowUnbreakable = false;
+
+		if (this._currentRowGroup?.keepTogether && rowIndex === this._currentRowGroup.endRow) {
+			writer.commitUnbreakableBlock();
+		}
+		this._currentRowGroup = undefined;
 
 		if (
 			this.headerRepeatable &&

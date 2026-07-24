@@ -64,13 +64,17 @@ const columnSizing = {
 			table: {
 				widths: ["auto", "*"],
 				body: [
-					[
-						{ text: "AUTO LABEL", fillColor: colors.lightBlue },
-						{
-							text: "Star content takes all remaining space and wraps normally when it reaches the right edge.",
-							fillColor: colors.lightGreen,
-						},
-					],
+					{
+						rows: [
+							[
+								{ text: "AUTO LABEL", fillColor: colors.lightBlue },
+								{
+									text: "Star content takes all remaining space and wraps normally when it reaches the right edge.",
+									fillColor: colors.lightGreen,
+								},
+							],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -84,10 +88,14 @@ const columnSizing = {
 			table: {
 				widths: [150, "*"],
 				body: [
-					[
-						{ text: "150 pt", fillColor: colors.lightOrange },
-						{ text: "[".repeat(180), fillColor: colors.lightPurple },
-					],
+					{
+						rows: [
+							[
+								{ text: "150 pt", fillColor: colors.lightOrange },
+								{ text: "[".repeat(180), fillColor: colors.lightPurple },
+							],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -101,8 +109,12 @@ const columnSizing = {
 			table: {
 				widths: [130, 130, 130, "*"],
 				body: [
-					["130", "130", "130", { text: "STAR", fillColor: colors.lightBlue }],
-					["One", "Another one", "OK?", "thisisareallylongstringblah"],
+					{
+						rows: [
+							["130", "130", "130", { text: "STAR", fillColor: colors.lightBlue }],
+							["One", "Another one", "OK?", "thisisareallylongstringblah"],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -116,13 +128,17 @@ const columnSizing = {
 			table: {
 				widths: ["*", "*"],
 				body: [
-					[
-						{ text: "Short", fillColor: colors.lightGreen },
-						{
-							text: "fdafdsafdsafdafdsafdsa,".repeat(10),
-							fillColor: colors.lightOrange,
-						},
-					],
+					{
+						rows: [
+							[
+								{ text: "Short", fillColor: colors.lightGreen },
+								{
+									text: "fdafdsafdsafdafdsafdsa,".repeat(10),
+									fillColor: colors.lightOrange,
+								},
+							],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -143,40 +159,44 @@ const colspanSizing = {
 			table: {
 				widths: [40, 100, "*", 60, 60, 60, "auto", 30],
 				body: [
-					[
-						"Code",
-						"Description",
-						"Provider",
-						"Range",
-						"Approval",
-						"Sent",
-						{ text: "Units", fillColor: colors.lightBlue },
-						"Type",
-					],
-					["1", "Consulting", "Acme", "03/01", "03/14", "03/16", "2.5", "Hour"],
-					[
-						{
-							colSpan: 8,
-							columns: [
-								{ width: 75, text: "Justification:", bold: true },
-								{
-									width: "*",
-									text: "A long wrapped explanation should expand the flexible provider area without making the compact Units column abnormally wide. ".repeat(
-										4,
-									),
-								},
+					{
+						rows: [
+							[
+								"Code",
+								"Description",
+								"Provider",
+								"Range",
+								"Approval",
+								"Sent",
+								{ text: "Units", fillColor: colors.lightBlue },
+								"Type",
 							],
-							columnGap: 5,
-							fillColor: colors.lightGreen,
-						},
-						{},
-						{},
-						{},
-						{},
-						{},
-						{},
-						{},
-					],
+							["1", "Consulting", "Acme", "03/01", "03/14", "03/16", "2.5", "Hour"],
+							[
+								{
+									colSpan: 8,
+									columns: [
+										{ width: 75, text: "Justification:", bold: true },
+										{
+											width: "*",
+											text: "A long wrapped explanation should expand the flexible provider area without making the compact Units column abnormally wide. ".repeat(
+												4,
+											),
+										},
+									],
+									columnGap: 5,
+									fillColor: colors.lightGreen,
+								},
+								{},
+								{},
+								{},
+								{},
+								{},
+								{},
+								{},
+							],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -197,9 +217,16 @@ const compactSpans = {
 			table: {
 				widths: [45, "*", 55, 65, 65],
 				body: [
-					["Qty", "Description", "Units", "Price", "Total"],
-					["1", "Apple", "4", "0.30", "1.20"],
-					[{ text: "SUM — spans the first four columns", colSpan: 4, alignment: "right" }, "1.20"],
+					{
+						rows: [
+							["Qty", "Description", "Units", "Price", "Total"],
+							["1", "Apple", "4", "0.30", "1.20"],
+							[
+								{ text: "SUM — spans the first four columns", colSpan: 4, alignment: "right" },
+								"1.20",
+							],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -213,13 +240,17 @@ const compactSpans = {
 			table: {
 				widths: ["*", "*", "*", "*"],
 				body: [
-					["A", "B", "C", "D"],
-					[
-						{ text: "1\nrowSpan 2", rowSpan: 2, fillColor: colors.lightBlue },
-						{ text: "2 — colSpan 2", colSpan: 2, fillColor: colors.lightGreen },
-						"3",
-					],
-					[{ text: "4 — fills B, C and D", colSpan: 3, fillColor: colors.lightOrange }],
+					{
+						rows: [
+							["A", "B", "C", "D"],
+							[
+								{ text: "1\nrowSpan 2", rowSpan: 2, fillColor: colors.lightBlue },
+								{ text: "2 — colSpan 2", colSpan: 2, fillColor: colors.lightGreen },
+								"3",
+							],
+							[{ text: "4 — fills B, C and D", colSpan: 3, fillColor: colors.lightOrange }],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -246,9 +277,13 @@ const rowHeights = {
 				widths: ["*"],
 				heights: [200, 500, 70],
 				body: [
-					[{ text: "ROW 1 — 200 pt", fillColor: colors.lightBlue }],
-					[{ text: "ROW 2 — 500 pt", fillColor: colors.lightGreen }],
-					[{ text: "ROW 3 — 70 pt; must start on page 2", fillColor: colors.lightOrange }],
+					{
+						rows: [
+							[{ text: "ROW 1 — 200 pt", fillColor: colors.lightBlue }],
+							[{ text: "ROW 2 — 500 pt", fillColor: colors.lightGreen }],
+							[{ text: "ROW 3 — 70 pt; must start on page 2", fillColor: colors.lightOrange }],
+						],
+					},
 				],
 			},
 			layout: tableLayout,
@@ -289,25 +324,33 @@ const paginationBorders = {
 		},
 		{
 			table: {
-				headerRows: 1,
-				dontBreakRows: true,
+				header: {
+					rows: [
+						[
+							{ text: "Description", bold: true, fillColor: colors.lightBlue },
+							{ text: "Value", bold: true, fillColor: colors.lightBlue },
+							{ text: "Open edge", bold: true, fillColor: colors.lightBlue },
+						],
+					],
+				},
+
 				widths: ["*", 90, 80],
 				body: [
-					[
-						{ text: "Description", bold: true, fillColor: colors.lightBlue },
-						{ text: "Value", bold: true, fillColor: colors.lightBlue },
-						{ text: "Open edge", bold: true, fillColor: colors.lightBlue },
-					],
-					...Array.from({ length: 45 }, (_, index) => [
-						`Pagination row ${index + 1}`,
-						`${(index + 1) * 10}.00`,
-						{
-							text: "no bottom/right border",
-							fontSize: 7,
-							color: colors.slate,
-							border: [false, false, false, false],
-						},
-					]),
+					{
+						rows: [
+							...Array.from({ length: 45 }, (_, index) => [
+								`Pagination row ${index + 1}`,
+								`${(index + 1) * 10}.00`,
+								{
+									text: "no bottom/right border",
+									fontSize: 7,
+									color: colors.slate,
+									border: [false, false, false, false],
+								},
+							]),
+						],
+						dontBreakRows: true,
+					},
 				],
 			},
 			layout: {
@@ -331,8 +374,15 @@ const paginationBorders = {
 			table: {
 				widths: ["*", 80],
 				body: [
-					["Long final row", "Status"],
-					[{ text: "This content deliberately continues across the page. ".repeat(260) }, "Final"],
+					{
+						rows: [
+							["Long final row", "Status"],
+							[
+								{ text: "This content deliberately continues across the page. ".repeat(260) },
+								"Final",
+							],
+						],
+					},
 				],
 			},
 			layout: {

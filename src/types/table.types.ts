@@ -12,6 +12,14 @@ export interface PdfTable<Node = PdfNode, Widths = ColumnWidth[]> {
 	headerRows?: number;
 	keepWithHeaderRows?: number;
 	dontBreakRows?: boolean;
+	_rowGroups?: TableRowGroupRange[];
+}
+
+export interface TableRowGroupRange {
+	startRow: number;
+	endRow: number;
+	keepTogether: boolean;
+	dontBreakRows: boolean;
 }
 
 export interface ColumnWidth {

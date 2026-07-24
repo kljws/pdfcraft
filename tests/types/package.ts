@@ -46,7 +46,24 @@ const definition: DocumentDefinition = {
 		},
 		{
 			tableAlignment: "center",
-			table: { widths: [100], body: [["Centered table"]] },
+			table: {
+				widths: [100, "*"],
+				header: { rows: [["Item", "Details"]] },
+				body: [
+					{
+						keepTogether: true,
+						dontBreakRows: true,
+						rows: [["Centered table", "Value"], [{ text: "Description", colSpan: 2 }]],
+					},
+				],
+			},
+		},
+		{
+			image: "photo",
+			width: 120,
+			borderRadius: 12,
+			borderWidth: 2,
+			borderColor: "#334155",
 		},
 		{
 			text: [
@@ -86,9 +103,19 @@ const misspelledContentProperty: DocumentDefinition = {
 	},
 };
 
+const legacyFlatTableDefinition: DocumentDefinition = {
+	// @ts-expect-error Flat row arrays were replaced by logical row-group objects.
+	content: {
+		table: {
+			body: [["Legacy table row"]],
+		},
+	},
+};
+
 void misspelledDefinition;
 void unknownPropertyDefinition;
 void misspelledContentProperty;
+void legacyFlatTableDefinition;
 const document: OutputDocumentServer = instance.createPdf(definition);
 
 document.getBuffer().then((buffer) => buffer.byteLength);

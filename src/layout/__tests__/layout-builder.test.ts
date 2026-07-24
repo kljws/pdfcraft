@@ -204,13 +204,17 @@ describe("LayoutBuilder", function () {
 						table: {
 							widths: [150, 150],
 							body: [
-								[
-									{
-										text: Array.from({ length: 400 }, (_, index) => `line ${index}`).join(" "),
-										verticalAlignment: "middle",
-									},
-									{ text: "short", verticalAlignment: "bottom" },
-								],
+								{
+									rows: [
+										[
+											{
+												text: Array.from({ length: 400 }, (_, index) => `line ${index}`).join(" "),
+												verticalAlignment: "middle",
+											},
+											{ text: "short", verticalAlignment: "bottom" },
+										],
+									],
+								},
 							],
 						},
 						layout: emptyTableLayout,
@@ -1095,12 +1099,16 @@ describe("LayoutBuilder", function () {
 					table: {
 						widths: [30, 50, 40],
 						body: [
-							["a", "b", "c"],
-							[
-								{ text: "aaa", noWrap: true },
-								{ text: "bbb", noWrap: true },
-								{ text: "ccc", noWrap: true },
-							],
+							{
+								rows: [
+									["a", "b", "c"],
+									[
+										{ text: "aaa", noWrap: true },
+										{ text: "bbb", noWrap: true },
+										{ text: "ccc", noWrap: true },
+									],
+								],
+							},
 						],
 					},
 					layout: emptyTableLayout,
@@ -1131,8 +1139,12 @@ describe("LayoutBuilder", function () {
 					table: {
 						widths: "auto",
 						body: [
-							["a", "b", "c"],
-							["aaa", "bbb", "ccc"],
+							{
+								rows: [
+									["a", "b", "c"],
+									["aaa", "bbb", "ccc"],
+								],
+							},
 						],
 					},
 					layout: emptyTableLayout,
@@ -1162,14 +1174,14 @@ describe("LayoutBuilder", function () {
 				{
 					table: {
 						widths: "auto",
-						body: [] as unknown[][],
+						body: [{ rows: [] as unknown[][] }],
 					},
 					layout: emptyTableLayout,
 				},
 			];
 
 			for (var i = 0; i < 80; i++) {
-				desc[0].table.body.push(["a", "b", "c"]);
+				desc[0].table.body[0].rows.push(["a", "b", "c"]);
 			}
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
@@ -1182,17 +1194,17 @@ describe("LayoutBuilder", function () {
 				{
 					table: {
 						widths: "auto",
-						body: [] as unknown[][],
+						body: [{ rows: [] as unknown[][] }],
 					},
 					layout: emptyTableLayout,
 				},
 			];
 
 			for (var i = 0; i < 59; i++) {
-				desc[0].table.body.push(["a", "b", "c"]);
+				desc[0].table.body[0].rows.push(["a", "b", "c"]);
 			}
 
-			desc[0].table.body.push(["a\nb\nc", "a\nb\nc", "a\nb\nc"]);
+			desc[0].table.body[0].rows.push(["a\nb\nc", "a\nb\nc", "a\nb\nc"]);
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
 
@@ -1207,12 +1219,9 @@ describe("LayoutBuilder", function () {
 				},
 				{
 					table: {
-						headerRows: 1,
+						header: { rows: [["a1\na2", "b1\nb2", "c1\nc2"]] },
 						widths: "auto",
-						body: [
-							["a1\na2", "b1\nb2", "c1\nc2"],
-							["a", "b", "c"],
-						],
+						body: [{ rows: [["a", "b", "c"]] }],
 					},
 					layout: emptyTableLayout,
 				},
@@ -1236,14 +1245,15 @@ describe("LayoutBuilder", function () {
 				},
 				{
 					table: {
-						headerRows: 2,
+						header: {
+							rows: [
+								["a1", "b1", "c1"],
+								["a2", "b2", "c2"],
+							],
+						},
 
 						widths: "auto",
-						body: [
-							["a1", "b1", "c1"],
-							["a2", "b2", "c2"],
-							["a", "b", "c"],
-						],
+						body: [{ rows: [["a", "b", "c"]] }],
 					},
 					layout: emptyTableLayout,
 				},
@@ -1264,16 +1274,16 @@ describe("LayoutBuilder", function () {
 			var desc = [
 				{
 					table: {
-						headerRows: 1,
+						header: { rows: [["h1", "h2", "h3"]] },
 						widths: "auto",
-						body: [["h1", "h2", "h3"]],
+						body: [{ rows: [] as unknown[][] }],
 					},
 					layout: emptyTableLayout,
 				},
 			];
 
 			for (var i = 0; i < 590; i++) {
-				desc[0].table.body.push(["a", "b", "c"]);
+				desc[0].table.body[0].rows.push(["a", "b", "c"]);
 			}
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
@@ -1290,17 +1300,20 @@ describe("LayoutBuilder", function () {
 			var desc = [
 				{
 					table: {
-						headerRows: 1,
+						header: { rows: [["h1", "h2", "h3"]] },
 						widths: "auto",
 						body: [
-							["h1", "h2", "h3"],
-							[
-								{
-									ul: [],
-								},
-								"b",
-								"c",
-							],
+							{
+								rows: [
+									[
+										{
+											ul: [],
+										},
+										"b",
+										"c",
+									],
+								],
+							},
 						],
 					},
 					layout: emptyTableLayout,
@@ -1308,7 +1321,7 @@ describe("LayoutBuilder", function () {
 			];
 
 			for (var i = 0; i < 100; i++) {
-				(desc[0].table.body[1][0] as { ul: string[] }).ul.push("item");
+				(desc[0].table.body[0].rows[0][0] as { ul: string[] }).ul.push("item");
 			}
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
@@ -1510,19 +1523,23 @@ describe("LayoutBuilder", function () {
 					table: {
 						widths: [200, 200],
 						body: [
-							[
-								{
-									text: "text 1",
-									style: {
-										alignment: "center",
-									},
-									relativePosition: { x: 10, y: 200 },
-								},
-								{
-									text: "text 2",
-									relativePosition: { x: 0, y: 0 },
-								},
-							],
+							{
+								rows: [
+									[
+										{
+											text: "text 1",
+											style: {
+												alignment: "center",
+											},
+											relativePosition: { x: 10, y: 200 },
+										},
+										{
+											text: "text 2",
+											relativePosition: { x: 0, y: 0 },
+										},
+									],
+								],
+							},
 						],
 					},
 					layout: emptyTableLayout,
@@ -1683,7 +1700,7 @@ describe("LayoutBuilder", function () {
 		): TableFixture {
 			var tableNode = {
 				table: {
-					headerRows: headerRows || 0,
+					headerRows,
 					widths: [100, 100],
 					body: [] as RowCellFixture[][],
 				},
@@ -2228,11 +2245,15 @@ describe("LayoutBuilder", function () {
 					id: "table",
 					table: {
 						body: [
-							[
-								{
-									text: "Column 1 (Page 1)",
-								},
-							],
+							{
+								rows: [
+									[
+										{
+											text: "Column 1 (Page 1)",
+										},
+									],
+								],
+							},
 						],
 					},
 				},

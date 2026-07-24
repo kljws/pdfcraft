@@ -1,6 +1,6 @@
 import type PageElementWriter from "./element-writer.page";
 import ColumnCalculator from "./column-calculator";
-import type { LayoutPdfNode, TableOffsets } from "../types/internal";
+import type { LayoutPdfNode, TableOffsets, TableRowGroupRange } from "../types/internal";
 import { isPositiveInteger } from "../utils/variable-type";
 import {
 	createRowSpanData,
@@ -13,11 +13,13 @@ import type { ResolvedTableLayout, RowSpanData } from "./table-processor.types";
 export interface TableLifecycleState {
 	tableNode: LayoutPdfNode;
 	_isCurrentRowUnbreakable: boolean;
+	_currentRowGroup?: TableRowGroupRange;
 	offsets: TableOffsets;
 	layout: ResolvedTableLayout;
 	tableWidth: number;
 	tableOffset: number;
 	rowSpanData: RowSpanData[];
+	rowGroupsByRow: Array<TableRowGroupRange | undefined>;
 	cleanUpRepeatables: boolean;
 	headerRows: number;
 	rowsWithoutPageBreak: number;
@@ -58,6 +60,12 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 				? remainingWidth / 2
 				: 0;
 	processor.rowSpanData = createRowSpanData(tableNode, processor.layout, processor.tableOffset);
+	processor.rowGroupsByRow = Array(table.body.length);
+	for (const group of table._rowGroups ?? []) {
+		for (let rowIndex = group.startRow; rowIndex <= group.endRow; rowIndex++) {
+			processor.rowGroupsByRow[rowIndex] = group;
+		}
+	}
 	processor.cleanUpRepeatables = false;
 	processor.headerRows = 0;
 	processor.rowsWithoutPageBreak = 0;
@@ -70,6 +78,12 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 			);
 		}
 		processor.rowsWithoutPageBreak = processor.headerRows;
+		const firstBodyGroup = table._rowGroups?.find(
+			(group) => group.startRow === processor.headerRows,
+		);
+		if (firstBodyGroup?.keepTogether) {
+			processor.rowsWithoutPageBreak = firstBodyGroup.endRow + 1;
+		}
 		if (isPositiveInteger(table.keepWithHeaderRows)) {
 			processor.rowsWithoutPageBreak += table.keepWithHeaderRows;
 		}
@@ -92,6 +106,12 @@ export function beginTableRow(
 	rowIndex: number,
 	writer: PageElementWriter,
 ): void {
+	const rowGroup = processor.rowGroupsByRow[rowIndex];
+	processor._currentRowGroup = rowGroup;
+	if (rowGroup?.keepTogether && rowIndex === rowGroup.startRow) {
+		writer.beginUnbreakableBlock();
+	}
+
 	processor.topLineWidth = processor.layout.hLineWidth(rowIndex, processor.tableNode);
 	processor.rowPaddingTop = processor.layout.paddingTop(rowIndex, processor.tableNode);
 	processor.bottomLineWidth = processor.layout.hLineWidth(rowIndex + 1, processor.tableNode);
@@ -116,7 +136,9 @@ export function beginTableRow(
 	processor.rowTopPageY = writer.context().y + processor.rowPaddingTop;
 	const rowCells = processor.tableNode.table!.body[rowIndex] || [];
 	const rowHasPageBreak = rowCells.some(hasExplicitPageBreak);
-	processor._isCurrentRowUnbreakable = processor.dontBreakRows && rowIndex > 0 && !rowHasPageBreak;
+	const rowMustNotBreak = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
+	processor._isCurrentRowUnbreakable =
+		rowMustNotBreak && !(processor.dontBreakRows && rowIndex === 0) && !rowHasPageBreak;
 	if (processor._isCurrentRowUnbreakable) writer.beginUnbreakableBlock();
 
 	processor.rowTopY = writer.context().y;

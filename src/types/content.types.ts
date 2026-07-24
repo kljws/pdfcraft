@@ -171,13 +171,34 @@ export interface TableCell extends ContentBase {
 
 export type TableCellDefinition = Content | TableCell;
 
+export type TableRow = TableCellDefinition[];
+
+export interface TableHeaderDefinition {
+	rows: TableRow[];
+}
+
+export interface TableRowGroup {
+	rows: TableRow[];
+	keepTogether?: boolean;
+	dontBreakRows?: boolean;
+}
+
 export interface TableDefinition {
-	body: TableCellDefinition[][];
+	header?: TableHeaderDefinition;
+	body: TableRowGroup[];
 	widths?: Array<number | "auto" | "*" | "star" | `${number}%`> | number | "auto" | "*" | "star";
 	heights?: number | "auto" | Array<number | "auto"> | ((row: number) => number | "auto");
-	headerRows?: number;
-	keepWithHeaderRows?: number;
-	dontBreakRows?: boolean;
+}
+
+export interface TableLayoutDefinition {
+	body: TableRow[];
+	widths: Array<number | "auto" | "*" | "star" | `${number}%`>;
+	heights?: number | "auto" | Array<number | "auto"> | ((row: number) => number | "auto");
+	headerRows: number;
+}
+
+export interface TableLayoutNode extends Omit<TableNode, "table"> {
+	table: TableLayoutDefinition;
 }
 
 export interface TableNode extends ContentBase {
@@ -186,27 +207,27 @@ export interface TableNode extends ContentBase {
 }
 
 export interface TableLayout {
-	hLineWidth?: (index: number, node: TableNode) => number;
-	vLineWidth?: (index: number, node: TableNode) => number;
-	hLineColor?: Color | ((index: number, node: TableNode, columnIndex?: number) => Color);
-	vLineColor?: Color | ((index: number, node: TableNode, rowIndex?: number) => Color);
-	paddingLeft?: (index: number, node: TableNode) => number;
-	paddingRight?: (index: number, node: TableNode) => number;
-	paddingTop?: (index: number, node: TableNode) => number;
-	paddingBottom?: (index: number, node: TableNode) => number;
-	hLineStyle?: (index: number, node: TableNode) => { dash?: CanvasVector["dash"] } | null;
-	vLineStyle?: (index: number, node: TableNode) => { dash?: CanvasVector["dash"] } | null;
+	hLineWidth?: (index: number, node: TableLayoutNode) => number;
+	vLineWidth?: (index: number, node: TableLayoutNode) => number;
+	hLineColor?: Color | ((index: number, node: TableLayoutNode, columnIndex?: number) => Color);
+	vLineColor?: Color | ((index: number, node: TableLayoutNode, rowIndex?: number) => Color);
+	paddingLeft?: (index: number, node: TableLayoutNode) => number;
+	paddingRight?: (index: number, node: TableLayoutNode) => number;
+	paddingTop?: (index: number, node: TableLayoutNode) => number;
+	paddingBottom?: (index: number, node: TableLayoutNode) => number;
+	hLineStyle?: (index: number, node: TableLayoutNode) => { dash?: CanvasVector["dash"] } | null;
+	vLineStyle?: (index: number, node: TableLayoutNode) => { dash?: CanvasVector["dash"] } | null;
 	hLineWhenBroken?: boolean;
 	fillColor?:
 		| Color
 		| null
-		| ((rowIndex: number, node: TableNode, columnIndex: number) => Color | null | undefined);
+		| ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => Color | null | undefined);
 	fillOpacity?:
-		number | ((rowIndex: number, node: TableNode, columnIndex: number) => number | undefined);
+		number | ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => number | undefined);
 	defaultBorder?: boolean;
 }
 
-export interface ImageNode extends ContentBase {
+export interface ImageNode extends Omit<ContentBase, "borderColor"> {
 	image: string | Uint8Array;
 	width?: number;
 	height?: number;
@@ -222,6 +243,9 @@ export interface ImageNode extends ContentBase {
 	maxWidth?: number;
 	minHeight?: number;
 	maxHeight?: number;
+	borderRadius?: number;
+	borderWidth?: number;
+	borderColor?: Color;
 }
 
 export interface SvgNode extends ContentBase {

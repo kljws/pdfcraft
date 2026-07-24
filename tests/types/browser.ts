@@ -8,11 +8,22 @@ const document: OutputDocumentBrowser = instance.createPdf({
 		{
 			table: {
 				body: [
-					["Name", "Value"],
-					["Browser", "Supported"],
+					{
+						rows: [
+							["Name", "Value"],
+							["Browser", "Supported"],
+						],
+					},
 				],
 				widths: ["*", "auto"],
 			},
+		},
+		{
+			image: "photo",
+			cover: { width: 120, height: 80 },
+			borderRadius: 10,
+			borderWidth: 1,
+			borderColor: "black",
 		},
 	],
 });

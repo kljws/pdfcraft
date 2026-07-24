@@ -101,6 +101,9 @@ export interface PdfNode {
 	fit?: [number, number] | number;
 	cover?: ImageCover;
 	opacity?: number;
+	borderRadius?: number;
+	borderWidth?: number;
+	_imageBorderColor?: Color;
 	colSpan?: number;
 	rowSpan?: number;
 	border?: [boolean, boolean, boolean, boolean];

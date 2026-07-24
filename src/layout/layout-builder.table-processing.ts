@@ -37,6 +37,8 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 	const table = tableNode.table!;
 	let lastRowHeight = 0;
 	for (let rowIndex = 0; rowIndex < table.body.length; rowIndex++) {
+		const rowGroup = processor.rowGroupsByRow[rowIndex];
+		const rowDontBreakRows = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
 		const rowHeight = getRowHeight(table.heights, rowIndex);
 		if (rowIndex > 0 && host.writer.context().inSnakingColumns()) {
 			const minimumRowHeight =
@@ -65,8 +67,7 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 			}
 		}
 
-		const isUnbreakableRow =
-			processor.dontBreakRows || rowIndex <= processor.rowsWithoutPageBreak - 1;
+		const isUnbreakableRow = rowDontBreakRows || rowIndex <= processor.rowsWithoutPageBreak - 1;
 		if (!isUnbreakableRow && rowHeight !== undefined) {
 			const context = host.writer.context();
 			const page = context.getCurrentPage();
@@ -102,7 +103,7 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 		}
 
 		const rowYBefore = host.writer.context().y;
-		if (processor.dontBreakRows) {
+		if (rowDontBreakRows) {
 			for (const cell of table.body[rowIndex]) {
 				if (cell.rowSpan && cell.rowSpan > 1) {
 					cell._startingRowSpanY = host.writer.context().y;
@@ -117,7 +118,7 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 		columnOffsets[0] = (columnOffsets[0] ?? 0) + processor.tableOffset;
 		const result = host.processRow({
 			marginX: tableNode._margin ? [tableNode._margin[0], tableNode._margin[2]] : [0, 0],
-			dontBreakRows: processor.dontBreakRows,
+			dontBreakRows: rowDontBreakRows,
 			rowsWithoutPageBreak: processor.rowsWithoutPageBreak,
 			cells: table.body[rowIndex],
 			widths: table.widths,

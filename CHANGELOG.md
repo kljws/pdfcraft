@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Converted every playground document sample from `.json5` or strict JSON to a formatted `.js` module using `export default`. Both playground editors now display the module source directly, preserve comments, callbacks and JavaScript expressions without the former `var dd` wrapper, and automatically reload the selected sample when its source file changes through Vite HMR or the server playground's file-event stream.
+- **Breaking:** replaced the flat table definition with an explicit header and logical body groups. Repeated rows now use `table.header.rows`; `table.body` contains `{ rows, keepTogether?, dontBreakRows? }` objects, allowing one logical item to combine ordinary column cells with a following `colSpan` description while moving the complete group together during pagination. The former public `headerRows`, `keepWithHeaderRows`, table-level `dontBreakRows` and `body: Row[]` forms now produce migration errors. Layout callbacks continue to receive the normalized flat row list so existing line and padding index calculations remain deterministic.
+
+### Fixed
+
+- Resolved the Kolecto sample's `playground/logo.jpg` resource in both React and server playgrounds, including the server-side local-file access policy and browser image-dictionary registration required for Vite development URLs.
+- Playground generation, reload and initialization failures now log their full error with an explicit React or server context in addition to displaying the concise message in the status area.
+- React and server PDF previews now render canvases at the display pixel ratio, capped at 2× to keep multi-page memory usage bounded, eliminating blurred text and vectors on Retina/HiDPI screens without changing their CSS size.
+
+### Added
+
+- Raster image nodes now support `borderRadius`, `borderWidth` and `borderColor`. Rounded clipping also applies to `cover`, excessive radii are bounded to the image dimensions, and borders are inset so they do not alter layout geometry.
+- Added preprocessing, type-level, layout and integration coverage for grouped table rows, repeated declarative headers, compact `colSpan` descriptions, indivisible physical rows and multi-row `keepTogether` pagination. Table examples and playground samples now use the new structure; the Kolecto invoice demonstrates product/title rows grouped with full-width descriptions.
+
+### Documentation
+
+- Added `ARCHITECTURE.md`, a detailed `src/` and `tests/` map covering the generation pipeline, every production and test file, architectural invariants, issue-routing guidance, feature feasibility categories and validation workflows for future maintainers and AI-assisted reviews.
+
 ## [0.6.1] - 2026-07-23
 
 ### Fixed

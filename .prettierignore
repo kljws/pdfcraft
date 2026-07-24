@@ -1,6 +1,5 @@
 node_modules
 dist
 src/vendor
-playground/shared/samples
 *.md
 *.min.js

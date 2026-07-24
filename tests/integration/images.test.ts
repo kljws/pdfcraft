@@ -8,6 +8,23 @@ describe("Integration Test: images", function () {
 		"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAGAQMAAADNIO3CAAAAA1BMVEUAAN7GEcIJAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98DBREbA3IZ3d8AAAALSURBVAjXY2BABwAAEgAB74lUpAAAAABJRU5ErkJggg==";
 
 	describe("basics", function () {
+		it("preserves rounded-corner and border options through layout", function () {
+			const pages = testHelper.renderPages("A6", {
+				content: {
+					image: INLINE_TEST_IMAGE,
+					width: 60,
+					borderRadius: 10,
+					borderWidth: 2,
+					borderColor: "#dc2626",
+				},
+			});
+			const image = pages[0].items.find((entry) => entry.type === "image")!.item;
+
+			assert.equal(image.borderRadius, 10);
+			assert.equal(image.borderWidth, 2);
+			assert.equal(image._imageBorderColor, "#dc2626");
+		});
+
 		it("renders next element below image", function () {
 			var imageHeight = 150;
 			var dd = {
