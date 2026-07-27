@@ -27,9 +27,7 @@ const sizeOfTree = async (url) => {
 
 const packageRoot = new URL("../", import.meta.url);
 const publishedRootFiles = await Promise.all(
-	["package.json", "README.md", "CHANGELOG.md", "LICENSE"].map(async (file) =>
-		stat(new URL(file, packageRoot)),
-	),
+	["package.json", "README.md", "LICENSE"].map(async (file) => stat(new URL(file, packageRoot))),
 );
 const packageBytes =
 	(await sizeOfTree(new URL("dist/", packageRoot))) +
