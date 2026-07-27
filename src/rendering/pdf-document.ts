@@ -35,6 +35,22 @@ const typeName = (bold: boolean, italics: boolean): FontStyle => {
 	return type;
 };
 
+const escapeXmpText = (value: unknown): string =>
+	String(value)
+		.replaceAll("&", "&amp;")
+		.replaceAll("<", "&lt;")
+		.replaceAll(">", "&gt;")
+		.replaceAll('"', "&quot;")
+		.replaceAll("'", "&apos;");
+
+interface PdfKitMetadataInternals {
+	info: Record<string, unknown>;
+}
+
+interface PdfKitMetadataPrototype {
+	endMetadata(this: object): void;
+}
+
 class PDFDocument extends PDFKit {
 	declare fonts: FontDescriptors;
 	declare fontCache: Dictionary<Partial<Record<FontStyle, EmbeddedFont>>>;
@@ -159,6 +175,22 @@ class PDFDocument extends PDFKit {
 		}
 
 		return this.fontCache[familyName][type]!;
+	}
+
+	override endMetadata(): void {
+		const internals = this as unknown as PdfKitMetadataInternals;
+		const originalInfo = internals.info;
+		internals.info = Object.fromEntries(
+			Object.entries(originalInfo).map(([key, value]) => [
+				key,
+				typeof value === "string" ? escapeXmpText(value) : value,
+			]),
+		);
+		try {
+			(PDFKit.prototype as unknown as PdfKitMetadataPrototype).endMetadata.call(this);
+		} finally {
+			internals.info = originalInfo;
+		}
 	}
 
 	provideImage(src: string): EmbeddedImage {
