@@ -11,7 +11,9 @@ Modern PDF document generation for Node.js and browsers, written in TypeScript.
 - Dedicated modern browser entry
 - Independent instances through `createPdfCraft()`
 - Promise-based document output methods
-- Tables, columns, lists, images, SVG, vectors, sections and attachments
+- Structured tables with declarative headers, logical row groups and independent layouts
+- Rounded tables, images and decorated stack blocks
+- Columns, lists, SVG, vectors, sections, attachments and AcroForm fields
 - Headers, footers, backgrounds, page breaks and page metadata
 - Table of contents, outlines and bookmarks
 - Configurable local-file and URL access policies
@@ -136,6 +138,57 @@ const documentDefinition: DocumentDefinition = {
 	content: ["Typed document definition"],
 };
 ```
+
+## Structured tables and decorated blocks
+
+Tables separate repeated headers from logical body groups. A group can contain several physical
+rows and move as one unit when `keepTogether` is enabled.
+
+```ts
+const documentDefinition = {
+	content: [
+		{
+			table: {
+				borderRadius: 10,
+				widths: ["*", "auto"],
+				header: {
+					rows: [["Product", "Total"]],
+					layout: {
+						fillColor: "#e0e7ff",
+					},
+				},
+				body: {
+					groups: [
+						{
+							keepTogether: true,
+							dontBreakRows: true,
+							rows: [
+								["Platform subscription", "490.00 EUR"],
+								[{ text: "Twelve-month service", colSpan: 2 }],
+							],
+						},
+					],
+					layout: {
+						hLineWidth: () => 0.5,
+					},
+				},
+			},
+		},
+		{
+			stack: [{ text: "Payment information", bold: true }, "IBAN: ..."],
+			backgroundColor: "#f8fafc",
+			borderColor: "#334155",
+			borderWidth: 1,
+			borderRadius: 10,
+			padding: 12,
+		},
+	],
+};
+```
+
+Images accept `borderRadius`, `borderWidth` and `borderColor` as well. Version 0.7 replaces the
+former flat `table.body`, `headerRows`, table-level `dontBreakRows` and node-level table `layout`
+properties; see the changelog and current examples when migrating from 0.6.
 
 ## Access policies
 
