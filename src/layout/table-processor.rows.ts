@@ -1,6 +1,7 @@
 import type PageElementWriter from "./element-writer.page";
 import { isNumber } from "../utils/variable-type";
 import type { TableProcessorState } from "./table-processor.types";
+import { createRoundedRectanglePath, type CornerRadii } from "./table-processor.helpers";
 
 const TABLE_FILL_CORRECTION = 0.5;
 
@@ -14,6 +15,7 @@ export interface TableRowRenderState extends TableProcessorState {
 	bottomLineWidth: number;
 	rowPaddingTop: number;
 	rowPaddingBottom: number;
+	topLineWidth: number;
 	reservedAtBottom: number;
 	rowTopPageY: number;
 	drawVerticalLine(
@@ -24,6 +26,7 @@ export interface TableRowRenderState extends TableProcessorState {
 		writer: PageElementWriter,
 		vLineRowIndex: number,
 		beforeVLineColIndex: number | null,
+		trim?: { top: number; bottom: number },
 	): void;
 }
 
@@ -32,6 +35,8 @@ interface RowSegment {
 	y2: number;
 	willBreak: boolean;
 	horizontalLineOffset: number;
+	roundTop?: boolean;
+	roundBottom?: boolean;
 }
 
 export function drawTableRowSegment(
@@ -42,7 +47,14 @@ export function drawTableRowSegment(
 	segment: RowSegment,
 ): void {
 	const body = processor.tableNode.table!.body;
-	const { y1, y2, willBreak, horizontalLineOffset } = segment;
+	const {
+		y1,
+		y2,
+		willBreak,
+		horizontalLineOffset,
+		roundTop = false,
+		roundBottom = false,
+	} = segment;
 	let lastCellIndex = -1;
 	for (let i = 0; i < xs.length - 1; i++) {
 		lastCellIndex = Math.max(lastCellIndex, xs[i].index);
@@ -68,6 +80,10 @@ export function drawTableRowSegment(
 		}
 
 		if (leftCellBorder) {
+			const isOuterBoundary = i === 0 || i === l - 1;
+			const edgeCell = i === 0 ? body[rowIndex][0] : body[rowIndex][xs[i - 1]?.index ?? colIndex];
+			const hasTopBorder = edgeCell.border ? edgeCell.border[1] : processor.layout.defaultBorder;
+			const hasBottomBorder = edgeCell.border ? edgeCell.border[3] : processor.layout.defaultBorder;
 			processor.drawVerticalLine(
 				xs[i].x,
 				y1 - horizontalLineOffset,
@@ -76,6 +92,18 @@ export function drawTableRowSegment(
 				writer,
 				rowIndex,
 				xs[i - 1]?.index ?? null,
+				isOuterBoundary
+					? {
+							top:
+								roundTop && processor.topLineWidth > 0 && hasTopBorder
+									? processor.borderRadius + processor.topLineWidth / 2
+									: 0,
+							bottom:
+								roundBottom && processor.bottomLineWidth > 0 && hasBottomBorder
+									? processor.borderRadius + processor.bottomLineWidth / 2
+									: 0,
+						}
+					: undefined,
 			);
 		}
 
@@ -142,10 +170,26 @@ export function drawTableRowSegment(
 			h: fillY2 - fillY1 + TABLE_FILL_CORRECTION * 2,
 			lineWidth: 0,
 		};
+		const cornerRadii: CornerRadii = [
+			roundTop && isFirstCell ? processor.borderRadius : 0,
+			roundTop && isLastCell ? processor.borderRadius : 0,
+			roundBottom && isLastCell ? processor.borderRadius : 0,
+			roundBottom && isFirstCell ? processor.borderRadius : 0,
+		];
+		const hasRoundedCorner = cornerRadii.some((radius) => radius > 0);
+		const shape = hasRoundedCorner
+			? {
+					type: "path" as const,
+					x: rectangle.x,
+					y: rectangle.y,
+					d: createRoundedRectanglePath(rectangle.w, rectangle.h, cornerRadii),
+					lineWidth: 0,
+				}
+			: rectangle;
 		if (fillColor) {
 			writer.addVector(
 				{
-					...rectangle,
+					...shape,
 					color: fillColor,
 					fillOpacity,
 					_isFillColorFromUnbreakable: Boolean(writer.transactionLevel),
@@ -158,7 +202,7 @@ export function drawTableRowSegment(
 		if (overlayPattern) {
 			writer.addVector(
 				{
-					...rectangle,
+					...shape,
 					color: overlayPattern,
 					fillOpacity: cell.overlayOpacity,
 				},

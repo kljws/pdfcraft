@@ -63,21 +63,23 @@ const columnSizing = {
 		{
 			table: {
 				widths: ["auto", "*"],
-				body: [
-					{
-						rows: [
-							[
-								{ text: "AUTO LABEL", fillColor: colors.lightBlue },
-								{
-									text: "Star content takes all remaining space and wraps normally when it reaches the right edge.",
-									fillColor: colors.lightGreen,
-								},
+				body: {
+					groups: [
+						{
+							rows: [
+								[
+									{ text: "AUTO LABEL", fillColor: colors.lightBlue },
+									{
+										text: "Star content takes all remaining space and wraps normally when it reaches the right edge.",
+										fillColor: colors.lightGreen,
+									},
+								],
 							],
-						],
-					},
-				],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 		{
 			text: "Expected: AUTO LABEL stays on one line; the green cell ends on the red guide.",
@@ -87,18 +89,20 @@ const columnSizing = {
 		{
 			table: {
 				widths: [150, "*"],
-				body: [
-					{
-						rows: [
-							[
-								{ text: "150 pt", fillColor: colors.lightOrange },
-								{ text: "[".repeat(180), fillColor: colors.lightPurple },
+				body: {
+					groups: [
+						{
+							rows: [
+								[
+									{ text: "150 pt", fillColor: colors.lightOrange },
+									{ text: "[".repeat(180), fillColor: colors.lightPurple },
+								],
 							],
-						],
-					},
-				],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 		{
 			text: "Expected: every bracket remains inside the purple cell and content boundary.",
@@ -108,16 +112,18 @@ const columnSizing = {
 		{
 			table: {
 				widths: [130, 130, 130, "*"],
-				body: [
-					{
-						rows: [
-							["130", "130", "130", { text: "STAR", fillColor: colors.lightBlue }],
-							["One", "Another one", "OK?", "thisisareallylongstringblah"],
-						],
-					},
-				],
+				body: {
+					groups: [
+						{
+							rows: [
+								["130", "130", "130", { text: "STAR", fillColor: colors.lightBlue }],
+								["One", "Another one", "OK?", "thisisareallylongstringblah"],
+							],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 		{
 			text: "Expected: the final column is narrow but remains entirely inside the red guide.",
@@ -127,21 +133,23 @@ const columnSizing = {
 		{
 			table: {
 				widths: ["*", "*"],
-				body: [
-					{
-						rows: [
-							[
-								{ text: "Short", fillColor: colors.lightGreen },
-								{
-									text: "fdafdsafdsafdafdsafdsa,".repeat(10),
-									fillColor: colors.lightOrange,
-								},
+				body: {
+					groups: [
+						{
+							rows: [
+								[
+									{ text: "Short", fillColor: colors.lightGreen },
+									{
+										text: "fdafdsafdsafdafdsafdsa,".repeat(10),
+										fillColor: colors.lightOrange,
+									},
+								],
 							],
-						],
-					},
-				],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 		{
 			text: "Expected: both cells have the same width; the orange text wraps inside its cell.",
@@ -158,48 +166,50 @@ const colspanSizing = {
 		{
 			table: {
 				widths: [40, 100, "*", 60, 60, 60, "auto", 30],
-				body: [
-					{
-						rows: [
-							[
-								"Code",
-								"Description",
-								"Provider",
-								"Range",
-								"Approval",
-								"Sent",
-								{ text: "Units", fillColor: colors.lightBlue },
-								"Type",
+				body: {
+					groups: [
+						{
+							rows: [
+								[
+									"Code",
+									"Description",
+									"Provider",
+									"Range",
+									"Approval",
+									"Sent",
+									{ text: "Units", fillColor: colors.lightBlue },
+									"Type",
+								],
+								["1", "Consulting", "Acme", "03/01", "03/14", "03/16", "2.5", "Hour"],
+								[
+									{
+										colSpan: 8,
+										columns: [
+											{ width: 75, text: "Justification:", bold: true },
+											{
+												width: "*",
+												text: "A long wrapped explanation should expand the flexible provider area without making the compact Units column abnormally wide. ".repeat(
+													4,
+												),
+											},
+										],
+										columnGap: 5,
+										fillColor: colors.lightGreen,
+									},
+									{},
+									{},
+									{},
+									{},
+									{},
+									{},
+									{},
+								],
 							],
-							["1", "Consulting", "Acme", "03/01", "03/14", "03/16", "2.5", "Hour"],
-							[
-								{
-									colSpan: 8,
-									columns: [
-										{ width: 75, text: "Justification:", bold: true },
-										{
-											width: "*",
-											text: "A long wrapped explanation should expand the flexible provider area without making the compact Units column abnormally wide. ".repeat(
-												4,
-											),
-										},
-									],
-									columnGap: 5,
-									fillColor: colors.lightGreen,
-								},
-								{},
-								{},
-								{},
-								{},
-								{},
-								{},
-								{},
-							],
-						],
-					},
-				],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 		{
 			text: "Expected: Units remains only wide enough for its header/value. The green spanning row stays inside the table and red page guide.",
@@ -216,20 +226,22 @@ const compactSpans = {
 		{
 			table: {
 				widths: [45, "*", 55, 65, 65],
-				body: [
-					{
-						rows: [
-							["Qty", "Description", "Units", "Price", "Total"],
-							["1", "Apple", "4", "0.30", "1.20"],
-							[
-								{ text: "SUM — spans the first four columns", colSpan: 4, alignment: "right" },
-								"1.20",
+				body: {
+					groups: [
+						{
+							rows: [
+								["Qty", "Description", "Units", "Price", "Total"],
+								["1", "Apple", "4", "0.30", "1.20"],
+								[
+									{ text: "SUM — spans the first four columns", colSpan: 4, alignment: "right" },
+									"1.20",
+								],
 							],
-						],
-					},
-				],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 		{
 			text: "Expected: 1.20 remains visible in the fifth column and SUM occupies exactly columns 1–4.",
@@ -239,21 +251,23 @@ const compactSpans = {
 		{
 			table: {
 				widths: ["*", "*", "*", "*"],
-				body: [
-					{
-						rows: [
-							["A", "B", "C", "D"],
-							[
-								{ text: "1\nrowSpan 2", rowSpan: 2, fillColor: colors.lightBlue },
-								{ text: "2 — colSpan 2", colSpan: 2, fillColor: colors.lightGreen },
-								"3",
+				body: {
+					groups: [
+						{
+							rows: [
+								["A", "B", "C", "D"],
+								[
+									{ text: "1\nrowSpan 2", rowSpan: 2, fillColor: colors.lightBlue },
+									{ text: "2 — colSpan 2", colSpan: 2, fillColor: colors.lightGreen },
+									"3",
+								],
+								[{ text: "4 — fills B, C and D", colSpan: 3, fillColor: colors.lightOrange }],
 							],
-							[{ text: "4 — fills B, C and D", colSpan: 3, fillColor: colors.lightOrange }],
-						],
-					},
-				],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 		{
 			text: "Expected: blue cell covers A on both rows; green covers B–C; 3 stays in D; orange covers B–D on the last row.",
@@ -276,17 +290,19 @@ const rowHeights = {
 			table: {
 				widths: ["*"],
 				heights: [200, 500, 70],
-				body: [
-					{
-						rows: [
-							[{ text: "ROW 1 — 200 pt", fillColor: colors.lightBlue }],
-							[{ text: "ROW 2 — 500 pt", fillColor: colors.lightGreen }],
-							[{ text: "ROW 3 — 70 pt; must start on page 2", fillColor: colors.lightOrange }],
-						],
-					},
-				],
+				body: {
+					groups: [
+						{
+							rows: [
+								[{ text: "ROW 1 — 200 pt", fillColor: colors.lightBlue }],
+								[{ text: "ROW 2 — 500 pt", fillColor: colors.lightGreen }],
+								[{ text: "ROW 3 — 70 pt; must start on page 2", fillColor: colors.lightOrange }],
+							],
+						},
+					],
+					layout: tableLayout,
+				},
 			},
-			layout: tableLayout,
 		},
 	],
 };
@@ -332,33 +348,42 @@ const paginationBorders = {
 							{ text: "Open edge", bold: true, fillColor: colors.lightBlue },
 						],
 					],
+					layout: {
+						...tableLayout,
+						hLineWhenBroken: true,
+						hLineWidth: (index, node) =>
+							index === 0 || index === 1 || index === node.table.body.length ? 2 : 0,
+						vLineWidth: () => 1,
+					},
 				},
 
 				widths: ["*", 90, 80],
-				body: [
-					{
-						rows: [
-							...Array.from({ length: 45 }, (_, index) => [
-								`Pagination row ${index + 1}`,
-								`${(index + 1) * 10}.00`,
-								{
-									text: "no bottom/right border",
-									fontSize: 7,
-									color: colors.slate,
-									border: [false, false, false, false],
-								},
-							]),
-						],
-						dontBreakRows: true,
+				body: {
+					groups: [
+						{
+							rows: [
+								...Array.from({ length: 45 }, (_, index) => [
+									`Pagination row ${index + 1}`,
+									`${(index + 1) * 10}.00`,
+									{
+										text: "no bottom/right border",
+										fontSize: 7,
+										color: colors.slate,
+										border: [false, false, false, false],
+									},
+								]),
+							],
+							dontBreakRows: true,
+						},
+					],
+					layout: {
+						...tableLayout,
+						hLineWhenBroken: true,
+						hLineWidth: (index, node) =>
+							index === 0 || index === 1 || index === node.table.body.length ? 2 : 0,
+						vLineWidth: () => 1,
 					},
-				],
-			},
-			layout: {
-				...tableLayout,
-				hLineWhenBroken: true,
-				hLineWidth: (index, node) =>
-					index === 0 || index === 1 || index === node.table.body.length ? 2 : 0,
-				vLineWidth: () => 1,
+				},
 			},
 		},
 		{
@@ -373,23 +398,106 @@ const paginationBorders = {
 		{
 			table: {
 				widths: ["*", 80],
-				body: [
-					{
-						rows: [
-							["Long final row", "Status"],
-							[
-								{ text: "This content deliberately continues across the page. ".repeat(260) },
-								"Final",
+				body: {
+					groups: [
+						{
+							rows: [
+								["Long final row", "Status"],
+								[
+									{ text: "This content deliberately continues across the page. ".repeat(260) },
+									"Final",
+								],
 							],
-						],
+						},
+					],
+					layout: {
+						...tableLayout,
+						hLineWhenBroken: false,
+						hLineWidth: (index, node) => (index === 0 || index === node.table.body.length ? 3 : 0),
+						vLineWidth: () => 1,
 					},
-				],
+				},
 			},
-			layout: {
-				...tableLayout,
-				hLineWhenBroken: false,
-				hLineWidth: (index, node) => (index === 0 || index === node.table.body.length ? 3 : 0),
-				vLineWidth: () => 1,
+		},
+	],
+};
+
+const roundedTableBorders = {
+	...common,
+	content: [
+		{ text: "Visual check 7 — rounded table borders", style: "title" },
+		{
+			text: "The outer contour and corner fills are rounded. Internal separators remain straight.",
+			style: "note",
+		},
+		{
+			table: {
+				borderRadius: 12,
+				widths: ["*", 90],
+				header: {
+					rows: [["Description", "Amount"]],
+					layout: {
+						...tableLayout,
+						fillColor: colors.lightBlue,
+						hLineWidth: () => 1,
+						vLineWidth: () => 1,
+					},
+				},
+				body: {
+					groups: [
+						{
+							rows: [
+								["Rounded outer table", "120.00"],
+								["Second row", "80.00"],
+							],
+						},
+					],
+					layout: {
+						...tableLayout,
+						fillColor: colors.lightGreen,
+						hLineWidth: () => 1,
+						vLineWidth: () => 1,
+					},
+				},
+			},
+		},
+		{ text: "Rounded one-cell block", style: "heading" },
+		{
+			stack: [
+				{ text: "Native decorated stack", bold: true },
+				{ text: "Background, padding and border follow the same rounded contour." },
+			],
+			borderRadius: 10,
+			borderWidth: 1.5,
+			borderColor: colors.purple,
+			backgroundColor: colors.lightPurple,
+			padding: 10,
+		},
+		{ text: "Paginated rounded table", style: "heading", pageBreak: "before" },
+		{
+			text: "Every page fragment has four rounded corners, including the closing edge on the first page.",
+			style: "note",
+		},
+		{
+			table: {
+				borderRadius: 9,
+				widths: ["*", 80],
+				body: {
+					groups: [
+						{
+							dontBreakRows: true,
+							rows: Array.from({ length: 42 }, (_, index) => [
+								`Rounded pagination row ${index + 1}`,
+								`${index + 1}.00`,
+							]),
+						},
+					],
+					layout: {
+						...tableLayout,
+						hLineWidth: () => 1,
+						vLineWidth: () => 1,
+					},
+				},
 			},
 		},
 	],
@@ -402,4 +510,5 @@ export const visualCases = [
 	{ filename: "04-row-heights.pdf", definition: rowHeights },
 	{ filename: "05-canvas-path-offset.pdf", definition: canvasPaths },
 	{ filename: "06-table-pagination-borders.pdf", definition: paginationBorders },
+	{ filename: "07-rounded-table-borders.pdf", definition: roundedTableBorders },
 ];

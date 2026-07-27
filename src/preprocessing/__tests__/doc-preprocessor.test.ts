@@ -31,6 +31,43 @@ describe("DocPreprocessor", function () {
 		});
 	});
 
+	describe("decorated stacks", function () {
+		it("normalizes a decorated stack through the rounded table container", function () {
+			const result = docPreprocessor.preprocessNode({
+				stack: ["Payment details", "IBAN: FR14"],
+				borderRadius: 12,
+				borderWidth: 2,
+				borderColor: "#334155",
+				backgroundColor: "#f8fafc",
+				padding: [8, 10],
+			});
+			const layout = result.table!._bodyLayout as {
+				fillColor: string;
+				paddingLeft(): number;
+				paddingTop(): number;
+			};
+
+			assert.equal(result.stack, undefined);
+			assert.equal(result.table!.borderRadius, 12);
+			assert.equal(result.table!._blockContainer, true);
+			assert.equal(result.table!.body[0][0].stack![0].text, "Payment details");
+			assert.equal(layout.fillColor, "#f8fafc");
+			assert.equal(layout.paddingLeft(), 8);
+			assert.equal(layout.paddingTop(), 10);
+		});
+
+		it("rejects invalid stack decoration dimensions", function () {
+			assert.throws(
+				() => docPreprocessor.preprocessNode({ stack: ["Invalid"], borderWidth: -1 }),
+				/'borderWidth' must be a finite non-negative number/,
+			);
+			assert.throws(
+				() => docPreprocessor.preprocessNode({ stack: ["Invalid"], padding: [4, -2] }),
+				/'padding' must be a finite non-negative number/,
+			);
+		});
+	});
+
 	describe("text", function () {
 		it("has been registered text node to normalizer", function () {
 			var ddContent = {
@@ -221,41 +258,50 @@ describe("DocPreprocessor", function () {
 				/Invalid stack node: 'stack' must be an array/,
 			);
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ table: { body: [{ rows: [] }] } }),
-				/Invalid table node: 'table\.body\[0\]\.rows' must contain at least one row/,
+				() => docPreprocessor.preprocessNode({ table: { body: { groups: [{ rows: [] }] } } }),
+				/Invalid table node: 'table\.body\.groups\[0\]\.rows' must contain at least one row/,
 			);
 			assert.throws(
 				() =>
 					docPreprocessor.preprocessNode({
-						table: { body: [{ rows: [[{ text: "Invalid", colSpan: "2" }]] }] },
+						table: { body: { groups: [{ rows: [[{ text: "Invalid", colSpan: "2" }]] }] } },
 					}),
 				/Invalid table cell at row 0, column 0: 'colSpan' must be a positive integer, received "2"/,
 			);
 			assert.throws(
 				() =>
 					docPreprocessor.preprocessNode({
-						table: { body: [{ rows: [[{ text: "Invalid", rowSpan: 0 }]] }] },
+						table: { body: { groups: [{ rows: [[{ text: "Invalid", rowSpan: 0 }]] }] } },
 					}),
 				/Invalid table cell at row 0, column 0: 'rowSpan' must be a positive integer, received 0/,
 			);
 		});
 
 		it("normalizes headers and logical row groups for table layout", function () {
+			const headerLayout = { fillColor: "#e0e3fd" };
+			const bodyLayout = { vLineWidth: () => 0 };
 			const result = docPreprocessor.preprocessNode({
 				table: {
-					header: { rows: [["Header A", "Header B"]] },
-					body: [
-						{
-							keepTogether: true,
-							dontBreakRows: true,
-							rows: [["Product", "2"], [{ text: "Description", colSpan: 2 }]],
-						},
-					],
+					borderRadius: 8,
+					header: { rows: [["Header A", "Header B"]], layout: headerLayout },
+					body: {
+						layout: bodyLayout,
+						groups: [
+							{
+								keepTogether: true,
+								dontBreakRows: true,
+								rows: [["Product", "2"], [{ text: "Description", colSpan: 2 }]],
+							},
+						],
+					},
 				},
 			});
 
 			assert.equal(result.table!.headerRows, 1);
+			assert.equal(result.table!.borderRadius, 8);
 			assert.equal(result.table!.body.length, 3);
+			assert.equal(result.table!._headerLayout, headerLayout);
+			assert.equal(result.table!._bodyLayout, bodyLayout);
 			assert.deepEqual(result.table!._rowGroups, [
 				{ startRow: 1, endRow: 2, keepTogether: true, dontBreakRows: true },
 			]);
@@ -266,31 +312,58 @@ describe("DocPreprocessor", function () {
 		it("rejects the replaced flat table API with migration guidance", function () {
 			assert.throws(
 				() => docPreprocessor.preprocessNode({ table: { body: [["Legacy row"]] } }),
-				/table\.body.*object with a 'rows' array/,
+				/table\.body.*object with a 'groups' array/,
 			);
 			assert.throws(
 				() =>
 					docPreprocessor.preprocessNode({
-						table: { headerRows: 1, body: [{ rows: [["Legacy header"]] }] },
+						table: { headerRows: 1, body: { groups: [{ rows: [["Legacy header"]] }] } },
 					}),
 				/'headerRows' is no longer supported/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { body: { groups: [{ rows: [["Legacy layout"]] }] } },
+						layout: "noBorders",
+					}),
+				/node-level 'layout' is no longer supported/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: {
+							header: { rows: [["Header"]], layout: 42 },
+							body: { groups: [] },
+						},
+					}),
+				/'table\.header\.layout' must be a layout name or object/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { borderRadius: -1, body: { groups: [{ rows: [["Invalid radius"]] }] } },
+					}),
+				/'table\.borderRadius' must be a finite non-negative number/,
 			);
 		});
 
 		it("expands compact colspan rows without overwriting following cells (#1814)", function () {
 			const node = {
 				table: {
-					body: [
-						{
-							rows: [
-								["Qty", "Description", "Units", "Price", "Total"],
-								[
-									{ text: "Sum", colSpan: 4 },
-									{ text: "2.85", alignment: "right" },
+					body: {
+						groups: [
+							{
+								rows: [
+									["Qty", "Description", "Units", "Price", "Total"],
+									[
+										{ text: "Sum", colSpan: 4 },
+										{ text: "2.85", alignment: "right" },
+									],
 								],
-							],
-						},
-					],
+							},
+						],
+					},
 				},
 			};
 
@@ -307,15 +380,17 @@ describe("DocPreprocessor", function () {
 		it("inserts compact row-span placeholders without overwriting following rows (#1814)", function () {
 			const result = docPreprocessor.preprocessNode({
 				table: {
-					body: [
-						{
-							rows: [
-								["A", "B", "C", "D"],
-								[{ text: "1", rowSpan: 2 }, { text: "2", colSpan: 2 }, { text: "3" }],
-								[{ text: "4", colSpan: 3 }],
-							],
-						},
-					],
+					body: {
+						groups: [
+							{
+								rows: [
+									["A", "B", "C", "D"],
+									[{ text: "1", rowSpan: 2 }, { text: "2", colSpan: 2 }, { text: "3" }],
+									[{ text: "4", colSpan: 3 }],
+								],
+							},
+						],
+					},
 				},
 			});
 			const row = result.table!.body[2];
@@ -417,7 +492,7 @@ describe("DocPreprocessor", function () {
 			var ddContent = [
 				{
 					table: {
-						body: [{ rows: [[{ section: [] }]] }],
+						body: { groups: [{ rows: [[{ section: [] }]] }] },
 					},
 				},
 			];

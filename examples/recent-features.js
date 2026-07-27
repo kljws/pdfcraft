@@ -11,19 +11,38 @@ const docDefinition = {
 		...["left", "center", "right"].map((tableAlignment) => ({
 			tableAlignment,
 			margin: [0, 3],
-			table: { widths: [110], body: [[`${tableAlignment}-aligned table`]] },
+			table: { widths: [110], body: { groups: [{ rows: [[`${tableAlignment}-aligned table`]] }] } },
 		})),
 		{ text: "Styled table-cell borders and fills", style: "heading" },
 		{
 			table: {
+				borderRadius: 10,
 				widths: [160, 160],
-				body: [
-					[
-						{ text: "Inherited style", style: "accentCell" },
-						{ text: "Local override", style: "accentCell", fillColor: "#fef3c7" },
+				body: {
+					groups: [
+						{
+							rows: [
+								[
+									{ text: "Inherited style", style: "accentCell" },
+									{ text: "Local override", style: "accentCell", fillColor: "#fef3c7" },
+								],
+							],
+						},
 					],
-				],
+				},
 			},
+		},
+		{ text: "Decorated stack blocks", style: "heading" },
+		{
+			stack: [
+				{ text: "Payment information", bold: true, color: "#1e293b" },
+				{ text: "IBAN: FR14 0099 8877 6655", margin: [0, 5, 0, 0] },
+			],
+			borderRadius: 12,
+			borderWidth: 2,
+			borderColor: "#334155",
+			backgroundColor: "#f8fafc",
+			padding: 12,
 		},
 		{ text: "Named SVG and inline image", style: "heading" },
 		{

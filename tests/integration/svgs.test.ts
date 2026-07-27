@@ -212,9 +212,13 @@ describe("Integration Test: svg's", function () {
 				content: [
 					{
 						table: {
-							body: [
-								{ rows: [[{ svg: '<svg width="200" height="100" viewBox="0 0 600 300"></svg>' }]] },
-							],
+							body: {
+								groups: [
+									{
+										rows: [[{ svg: '<svg width="200" height="100" viewBox="0 0 600 300"></svg>' }]],
+									},
+								],
+							},
 						},
 					},
 				],

@@ -132,8 +132,13 @@ export interface AcroFormNode extends ContentBase {
 	height?: number;
 }
 
-export interface StackNode extends ContentBase {
+export interface StackNode extends Omit<ContentBase, "borderColor"> {
 	stack: Content[];
+	borderRadius?: number;
+	borderWidth?: number;
+	borderColor?: Color;
+	backgroundColor?: Color;
+	padding?: Margin;
 }
 
 export interface ColumnsNode extends ContentBase {
@@ -175,6 +180,7 @@ export type TableRow = TableCellDefinition[];
 
 export interface TableHeaderDefinition {
 	rows: TableRow[];
+	layout?: string | TableLayout;
 }
 
 export interface TableRowGroup {
@@ -183,9 +189,15 @@ export interface TableRowGroup {
 	dontBreakRows?: boolean;
 }
 
+export interface TableBodyDefinition {
+	groups: TableRowGroup[];
+	layout?: string | TableLayout;
+}
+
 export interface TableDefinition {
 	header?: TableHeaderDefinition;
-	body: TableRowGroup[];
+	body: TableBodyDefinition;
+	borderRadius?: number;
 	widths?: Array<number | "auto" | "*" | "star" | `${number}%`> | number | "auto" | "*" | "star";
 	heights?: number | "auto" | Array<number | "auto"> | ((row: number) => number | "auto");
 }
@@ -203,7 +215,6 @@ export interface TableLayoutNode extends Omit<TableNode, "table"> {
 
 export interface TableNode extends ContentBase {
 	table: TableDefinition;
-	layout?: string | TableLayout;
 }
 
 export interface TableLayout {

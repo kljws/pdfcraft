@@ -59,6 +59,28 @@ const requireNodeArray = (
 	return value;
 };
 
+type ResolvedBlockPadding = [left: number, top: number, right: number, bottom: number];
+
+const resolveBlockPadding = (value: unknown): ResolvedBlockPadding => {
+	const values = isNumber(value)
+		? [value, value, value, value]
+		: Array.isArray(value) && value.length === 2
+			? [value[0], value[1], value[0], value[1]]
+			: Array.isArray(value) && value.length === 4
+				? value
+				: null;
+	if (!values || !values.every((item) => isNumber(item) && Number.isFinite(item) && item >= 0)) {
+		throw new Error(
+			`Invalid stack node: 'padding' must be a finite non-negative number or a two/four-number array, received ${stringifyNode(value)}`,
+		);
+	}
+	return values as ResolvedBlockPadding;
+};
+
+const isColor = (value: unknown): boolean =>
+	isString(value) ||
+	(Array.isArray(value) && value.length === 2 && value.every((part) => isString(part)));
+
 class DocPreprocessor {
 	declare parentNode: PreprocessedPdfNode | null;
 	declare tocs: Record<string, PreprocessedPdfNode>;
@@ -120,7 +142,13 @@ class DocPreprocessor {
 		} else if (node.columns) {
 			return this.preprocessColumns(node);
 		} else if (node.stack) {
-			return this.preprocessVerticalContainer(node, isSectionAllowed);
+			const block = node as unknown as Record<string, unknown>;
+			const hasBlockDecoration = ["borderRadius", "borderWidth", "backgroundColor", "padding"].some(
+				(property) => block[property] !== undefined,
+			);
+			return hasBlockDecoration
+				? this.preprocessDecoratedVerticalContainer(node, isSectionAllowed)
+				: this.preprocessVerticalContainer(node, isSectionAllowed);
 		} else if (node.ul) {
 			return this.preprocessList(node);
 		} else if (node.ol) {
@@ -205,6 +233,71 @@ class DocPreprocessor {
 		return node;
 	}
 
+	preprocessDecoratedVerticalContainer(
+		node: PreprocessedPdfNode,
+		isSectionAllowed: boolean,
+	): PreprocessedPdfNode {
+		const block = node as unknown as Record<string, unknown>;
+		for (const property of ["borderRadius", "borderWidth"] as const) {
+			const value = block[property];
+			if (value !== undefined && (!isNumber(value) || !Number.isFinite(value) || value < 0)) {
+				throw new Error(
+					`Invalid stack node: '${property}' must be a finite non-negative number, received ${stringifyNode(value)}`,
+				);
+			}
+		}
+		for (const property of ["borderColor", "backgroundColor"] as const) {
+			const value = block[property];
+			if (value !== undefined && !isColor(value)) {
+				throw new Error(
+					`Invalid stack node: '${property}' must be a color, received ${stringifyNode(value)}`,
+				);
+			}
+		}
+
+		const borderRadius = (block.borderRadius as number | undefined) ?? 0;
+		const borderWidth = (block.borderWidth as number | undefined) ?? 0;
+		const borderColor = block.borderColor ?? "black";
+		const backgroundColor = block.backgroundColor;
+		const padding = block.padding === undefined ? [0, 0, 0, 0] : resolveBlockPadding(block.padding);
+		const content = node.stack!;
+		const layout = {
+			hLineWidth: (index: number, tableNode: PreprocessedPdfNode) =>
+				index === 0 || index === tableNode.table!.body.length ? borderWidth : 0,
+			vLineWidth: (index: number, tableNode: PreprocessedPdfNode) =>
+				index === 0 || index === tableNode.table!.body[0].length ? borderWidth : 0,
+			hLineColor: borderColor,
+			vLineColor: borderColor,
+			paddingLeft: () => padding[0],
+			paddingTop: () => padding[1],
+			paddingRight: () => padding[2],
+			paddingBottom: () => padding[3],
+			fillColor: backgroundColor,
+		};
+
+		node.table = {
+			borderRadius,
+			widths: ["*"],
+			body: {
+				groups: [{ rows: [[{ stack: content }]] }],
+				layout,
+			},
+			_blockContainer: true,
+		} as unknown as PreprocessedPdfNode["table"];
+		delete node.stack;
+		for (const property of [
+			"borderRadius",
+			"borderWidth",
+			"borderColor",
+			"backgroundColor",
+			"padding",
+		]) {
+			delete block[property];
+		}
+
+		return this.preprocessTable(node, isSectionAllowed);
+	}
+
 	preprocessList(node: PreprocessedPdfNode): PreprocessedPdfNode {
 		const property = node.ul ? "ul" : "ol";
 		const items = requireNodeArray(node[property], property, node) as PreprocessedPdfNode[];
@@ -216,7 +309,10 @@ class DocPreprocessor {
 		return node;
 	}
 
-	preprocessTable(node: PreprocessedPdfNode): PreprocessedPdfNode {
+	preprocessTable(
+		node: PreprocessedPdfNode,
+		isSectionAllowed: boolean = false,
+	): PreprocessedPdfNode {
 		let col;
 		let row;
 		let cols;
@@ -230,6 +326,21 @@ class DocPreprocessor {
 		const table = node.table as unknown as Record<string, unknown>;
 		const alreadyNormalized = Array.isArray(table._rowGroups) && Array.isArray(table.body);
 		if (!alreadyNormalized) {
+			if (
+				table.borderRadius !== undefined &&
+				(!isNumber(table.borderRadius) ||
+					!Number.isFinite(table.borderRadius) ||
+					table.borderRadius < 0)
+			) {
+				throw new Error(
+					`Invalid table node: 'table.borderRadius' must be a finite non-negative number, received ${stringifyNode(table.borderRadius)}`,
+				);
+			}
+			if (node.layout !== undefined) {
+				throw new Error(
+					"Invalid table node: node-level 'layout' is no longer supported; use 'table.header.layout' and 'table.body.layout' instead",
+				);
+			}
 			for (const legacyProperty of ["headerRows", "keepWithHeaderRows", "dontBreakRows"]) {
 				if (legacyProperty in table) {
 					throw new Error(
@@ -240,6 +351,7 @@ class DocPreprocessor {
 		}
 
 		let headerRows: PreprocessedPdfNode[][] = [];
+		let headerLayout: unknown;
 		if (!alreadyNormalized && table.header !== undefined) {
 			if (!isObject(table.header)) {
 				throw new Error(
@@ -251,9 +363,30 @@ class DocPreprocessor {
 				"table.header.rows",
 				node,
 			) as PreprocessedPdfNode[][];
+			headerLayout = table.header.layout;
 		}
 
-		const groups = alreadyNormalized ? [] : requireNodeArray(table.body, "table.body", node);
+		let bodyLayout: unknown;
+		let groups: unknown[] = [];
+		if (!alreadyNormalized) {
+			if (!isObject(table.body)) {
+				throw new Error(
+					`Invalid table.body node: 'table.body' must be an object with a 'groups' array, received ${stringifyNode(table.body)}`,
+				);
+			}
+			groups = requireNodeArray(table.body.groups, "table.body.groups", node);
+			bodyLayout = table.body.layout;
+		}
+		for (const [property, layout] of [
+			["table.header.layout", headerLayout],
+			["table.body.layout", bodyLayout],
+		] as const) {
+			if (layout !== undefined && !isString(layout) && !isObject(layout)) {
+				throw new Error(
+					`Invalid table node: '${property}' must be a layout name or object, received ${stringifyNode(layout)}`,
+				);
+			}
+		}
 		const groupedRows: PreprocessedPdfNode[][] = [];
 		const rowGroups: Array<{
 			startRow: number;
@@ -265,17 +398,17 @@ class DocPreprocessor {
 			const group = groups[groupIndex];
 			if (!isObject(group)) {
 				throw new Error(
-					`Invalid table node: group ${groupIndex} in 'table.body' must be an object with a 'rows' array`,
+					`Invalid table node: group ${groupIndex} in 'table.body.groups' must be an object with a 'rows' array`,
 				);
 			}
 			const groupRows = requireNodeArray(
 				group.rows,
-				`table.body[${groupIndex}].rows`,
+				`table.body.groups[${groupIndex}].rows`,
 				node,
 			) as PreprocessedPdfNode[][];
 			if (groupRows.length === 0) {
 				throw new Error(
-					`Invalid table node: 'table.body[${groupIndex}].rows' must contain at least one row`,
+					`Invalid table node: 'table.body.groups[${groupIndex}].rows' must contain at least one row`,
 				);
 			}
 			for (const property of ["keepTogether", "dontBreakRows"] as const) {
@@ -306,6 +439,8 @@ class DocPreprocessor {
 			table.body = body;
 			table.headerRows = headerRows.length;
 			table._rowGroups = rowGroups;
+			table._headerLayout = headerLayout;
+			table._bodyLayout = bodyLayout;
 			delete table.header;
 		}
 		for (let row = 0; row < body.length; row++) {
@@ -375,7 +510,10 @@ class DocPreprocessor {
 				let data = rowData[col];
 				if (data !== undefined) {
 					if (!isObject(data) || !data._span) {
-						rowData[col] = this.preprocessNode(data);
+						rowData[col] = this.preprocessNode(
+							data,
+							table._blockContainer === true && isSectionAllowed,
+						);
 					}
 				}
 			}

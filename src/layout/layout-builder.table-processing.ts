@@ -37,6 +37,7 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 	const table = tableNode.table!;
 	let lastRowHeight = 0;
 	for (let rowIndex = 0; rowIndex < table.body.length; rowIndex++) {
+		processor.selectLayout(rowIndex);
 		const rowGroup = processor.rowGroupsByRow[rowIndex];
 		const rowDontBreakRows = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
 		const rowHeight = getRowHeight(table.heights, rowIndex);

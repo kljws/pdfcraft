@@ -47,7 +47,9 @@ describe("Integration test: dynamic page margins", () => {
 			content: {
 				table: {
 					header: { rows: [["Header"]] },
-					body: [{ rows: [...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])] }],
+					body: {
+						groups: [{ rows: [...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])] }],
+					},
 				},
 			},
 			pageMargins: (currentPage) => (currentPage % 2 === 0 ? [70, 30, 20, 30] : 30),

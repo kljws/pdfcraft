@@ -9,10 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Converted every playground document sample from `.json5` or strict JSON to a formatted `.js` module using `export default`. Both playground editors now display the module source directly, preserve comments, callbacks and JavaScript expressions without the former `var dd` wrapper, and automatically reload the selected sample when its source file changes through Vite HMR or the server playground's file-event stream.
-- **Breaking:** replaced the flat table definition with an explicit header and logical body groups. Repeated rows now use `table.header.rows`; `table.body` contains `{ rows, keepTogether?, dontBreakRows? }` objects, allowing one logical item to combine ordinary column cells with a following `colSpan` description while moving the complete group together during pagination. The former public `headerRows`, `keepWithHeaderRows`, table-level `dontBreakRows` and `body: Row[]` forms now produce migration errors. Layout callbacks continue to receive the normalized flat row list so existing line and padding index calculations remain deterministic.
+- **Breaking:** replaced the flat table definition with explicit header and body sections. Repeated rows now use `table.header.rows`; logical data rows live in `table.body.groups` as `{ rows, keepTogether?, dontBreakRows? }` objects, allowing one item to combine ordinary column cells with a following `colSpan` description while moving the complete group together during pagination. Each section owns its layout through `table.header.layout` and `table.body.layout`, so headers can retain fills and column separators while the body uses independent borders and group separators. The former node-level `layout`, public `headerRows`, `keepWithHeaderRows`, table-level `dontBreakRows` and `body: Row[]` forms now produce migration errors. Layout callbacks continue to receive the normalized flat row list so existing line and padding index calculations remain deterministic.
 
 ### Fixed
 
+- Paginated tables and decorated stacks now round the bottom corners of every non-final page and the top corners of the following fragment, including page breaks caused by moving a complete `keepTogether` row group. The rounded closing contour replaces the previously rendered row separator instead of drawing a second straight line underneath it; previously only the document-level first top and final bottom corners were curved.
 - Resolved the Kolecto sample's `playground/logo.jpg` resource in both React and server playgrounds, including the server-side local-file access policy and browser image-dictionary registration required for Vite development URLs.
 - Playground generation, reload and initialization failures now log their full error with an explicit React or server context in addition to displaying the concise message in the status area.
 - React and server PDF previews now render canvases at the display pixel ratio, capped at 2× to keep multi-page memory usage bounded, eliminating blurred text and vectors on Retina/HiDPI screens without changing their CSS size.
@@ -20,7 +21,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Raster image nodes now support `borderRadius`, `borderWidth` and `borderColor`. Rounded clipping also applies to `cover`, excessive radii are bounded to the image dimensions, and borders are inset so they do not alter layout geometry.
-- Added preprocessing, type-level, layout and integration coverage for grouped table rows, repeated declarative headers, compact `colSpan` descriptions, indivisible physical rows and multi-row `keepTogether` pagination. Table examples and playground samples now use the new structure; the Kolecto invoice demonstrates product/title rows grouped with full-width descriptions.
+- Table definitions now support `borderRadius` for a native rounded outer contour. Corner cell fills follow the same curve, internal separators remain unchanged, and every paginated fragment receives four rounded corners, including repeated headers and page-closing edges. Added package, integration and manual visual coverage plus rounded examples in the table, recent-features and Kolecto samples.
+- Stack blocks now support `borderRadius`, `borderWidth`, `borderColor`, `backgroundColor` and `padding`. Decorations follow the block's measured content across pages and use the same per-page rounded-fragment behavior as tables. The invoice, Kolecto and recent-features samples demonstrate the public block syntax.
+- Added preprocessing, type-level, layout and integration coverage for grouped table rows, repeated declarative headers, independent header/body layouts, compact `colSpan` descriptions, indivisible physical rows and multi-row `keepTogether` pagination. Table examples and playground samples now use the new structure; the Kolecto invoice demonstrates a filled multi-row header with vertical separators above product/title groups with full-width descriptions and body-only outer borders.
+
+### Tests
+
+- Recalibrated the unpacked-package size ceiling from 2.25 MB to 2.30 MB for native rounded-table rendering. The published package remains around 2.26 MB, while the browser raw and gzip budgets are unchanged.
 
 ### Documentation
 

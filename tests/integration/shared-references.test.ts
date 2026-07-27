@@ -24,8 +24,8 @@ describe("Integration test: shared document-node references", () => {
 	it("renders a shared row independently in multiple tables", () => {
 		const header = [{ text: "Shared header" }, { text: "Value" }];
 		const content = cloneValue([
-			{ table: { header: { rows: [header] }, body: [{ rows: [["First", "1"]] }] } },
-			{ table: { header: { rows: [header] }, body: [{ rows: [["Second", "2"]] }] } },
+			{ table: { header: { rows: [header] }, body: { groups: [{ rows: [["First", "1"]] }] } } },
+			{ table: { header: { rows: [header] }, body: { groups: [{ rows: [["Second", "2"]] }] } } },
 		]);
 
 		const pages = testHelper.renderPages("A6", { content });

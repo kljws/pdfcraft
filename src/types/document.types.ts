@@ -103,6 +103,7 @@ export interface PdfNode {
 	opacity?: number;
 	borderRadius?: number;
 	borderWidth?: number;
+	backgroundColor?: Color;
 	_imageBorderColor?: Color;
 	colSpan?: number;
 	rowSpan?: number;
@@ -162,7 +163,7 @@ export interface PdfNode {
 	mode?: "numeric" | "alphanumeric" | "octet";
 	version?: number;
 	mask?: number;
-	padding?: number;
+	padding?: Margin;
 
 	// Preprocessing references.
 	_nodeRef?: PdfNode;
@@ -188,6 +189,8 @@ export interface PdfNode {
 	_gapSize?: TextMeasurement;
 	_offsets?: TableOffsets;
 	_layout?: TableLayout;
+	_headerLayout?: TableLayout;
+	_bodyLayout?: TableLayout;
 	_span?: boolean;
 	_colSpan?: number;
 	_rowSpan?: number;
@@ -255,6 +258,8 @@ export interface MeasuredNodeState<Node = PdfNode> {
 	_gapSize?: TextMeasurement;
 	_offsets?: TableOffsets;
 	_layout?: TableLayout<Node>;
+	_headerLayout?: TableLayout<Node>;
+	_bodyLayout?: TableLayout<Node>;
 	_span?: boolean;
 	_colSpan?: number;
 	_rowSpan?: number;

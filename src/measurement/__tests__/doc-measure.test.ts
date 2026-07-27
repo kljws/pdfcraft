@@ -352,33 +352,35 @@ describe("DocMeasure", function () {
 				table: {
 					headerLines: 1,
 					widths: ["*", 150, "auto", "auto"],
-					body: [
-						{
-							rows: [
-								["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
-								["Column 1", "Column 2", "Column 3", "Column 4"],
-								[
-									"A text in the first column",
-									"Text in the second one",
-									"Other things go here",
-									"or here",
+					body: {
+						groups: [
+							{
+								rows: [
+									["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
+									["Column 1", "Column 2", "Column 3", "Column 4"],
+									[
+										"A text in the first column",
+										"Text in the second one",
+										"Other things go here",
+										"or here",
+									],
 								],
-							],
+							},
+						],
+						layout: {
+							vLineWidth: function () {
+								return 0;
+							},
+							hLineWidth: function () {
+								return 0;
+							},
+							paddingLeft: function () {
+								return 0;
+							},
+							paddingRight: function () {
+								return 0;
+							},
 						},
-					],
-				},
-				layout: {
-					vLineWidth: function () {
-						return 0;
-					},
-					hLineWidth: function () {
-						return 0;
-					},
-					paddingLeft: function () {
-						return 0;
-					},
-					paddingRight: function () {
-						return 0;
 					},
 				},
 			} as unknown as TableNodeFixture;
@@ -407,7 +409,7 @@ describe("DocMeasure", function () {
 				},
 			});
 			const node = {
-				table: { body: [{ rows: [[{ text: "Styled", style: "cell" }]] }] },
+				table: { body: { groups: [{ rows: [[{ text: "Styled", style: "cell" }]] }] } },
 			};
 
 			docPreprocessor.preprocessTable(node);
@@ -454,20 +456,22 @@ describe("DocMeasure", function () {
 				table: {
 					headerLines: 1,
 					widths: "auto",
-					body: [
-						{
-							rows: [
-								["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
-								["Column 1", "Column 2", "Column 3", "Column 4"],
-								[
-									"A text in the first column",
-									"Text in the second one",
-									"Other things go here",
-									"or here",
+					body: {
+						groups: [
+							{
+								rows: [
+									["Header 1", "H2", "Header\nwith\nlines", { text: "last", fontSize: 20 }],
+									["Column 1", "Column 2", "Column 3", "Column 4"],
+									[
+										"A text in the first column",
+										"Text in the second one",
+										"Other things go here",
+										"or here",
+									],
 								],
-							],
-						},
-					],
+							},
+						],
+					},
 				},
 			};
 
@@ -490,24 +494,18 @@ describe("DocMeasure", function () {
 		});
 
 		it("should support column spans", function () {
-			(tableNode.table.body[0] as unknown as { rows: unknown[][] }).rows.push([
-				{ text: "Column 1", colSpan: 2 },
-				{},
-				"Column 3",
-				"Column 4",
-			]);
+			(
+				tableNode.table.body as unknown as { groups: Array<{ rows: unknown[][] }> }
+			).groups[0].rows.push([{ text: "Column 1", colSpan: 2 }, {}, "Column 3", "Column 4"]);
 
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
 		});
 
 		it("should mark cells directly following colSpan-cell with _span property and set min/maxWidth to 0", function () {
-			(tableNode.table.body[0] as unknown as { rows: unknown[][] }).rows.push([
-				{ text: "Col 1", colSpan: 3 },
-				{},
-				{},
-				"Col 4",
-			]);
+			(
+				tableNode.table.body as unknown as { groups: Array<{ rows: unknown[][] }> }
+			).groups[0].rows.push([{ text: "Col 1", colSpan: 3 }, {}, {}, "Col 4"]);
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
 
@@ -522,7 +520,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("spanning cells should not influence min/max column widths if their min/max widths are lower or equal", function () {
-			tableNode.layout = emptyTableLayout;
+			(tableNode.table.body as unknown as { layout: unknown }).layout = emptyTableLayout;
 
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
@@ -543,7 +541,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("assigns spanning-cell minimum growth to star columns before fixed columns", function () {
-			tableNode.layout = emptyTableLayout;
+			(tableNode.table.body as unknown as { layout: unknown }).layout = emptyTableLayout;
 
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
@@ -571,7 +569,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("assigns spanning-cell maximum growth to star columns before fixed columns", function () {
-			tableNode.layout = emptyTableLayout;
+			(tableNode.table.body as unknown as { layout: unknown }).layout = emptyTableLayout;
 
 			docPreprocessor.preprocessTable(tableNode);
 			docMeasure.measureTable(tableNode);
@@ -597,7 +595,7 @@ describe("DocMeasure", function () {
 		it("calculating widths (when colSpan are used) should take into account cell padding and borders", function () {
 			// 5 + 3 + 4 == 12 --- the exact width of the overflowing letter in thisislongera
 			// it means we have enough space and there's no need to change column widths
-			tableNode.layout = {
+			(tableNode.table.body as unknown as { layout: unknown }).layout = {
 				vLineWidth: function () {
 					return 5;
 				},
@@ -631,7 +629,8 @@ describe("DocMeasure", function () {
 		});
 
 		it("should mark cells directly below rowSpan-cell with _span property and set min/maxWidth to 0", function () {
-			const rawRows = (tableNode.table.body[0] as unknown as { rows: unknown[][] }).rows;
+			const rawRows = (tableNode.table.body as unknown as { groups: Array<{ rows: unknown[][] }> })
+				.groups[0].rows;
 			rawRows.push([{ text: "Col 1", rowSpan: 3 }, "Col2", "Col 3", "Col 4"]);
 			rawRows.push([{}, "Col2", "Col 3", "Col 4"]);
 			rawRows.push([{}, "Col2", "Col 3", "Col 4"]);

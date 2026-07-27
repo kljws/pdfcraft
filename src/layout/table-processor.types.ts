@@ -32,4 +32,6 @@ export interface TableProcessorState {
 	tableNode: LayoutPdfNode;
 	layout: ResolvedTableLayout;
 	rowSpanData: RowSpanData[];
+	borderRadius: number;
+	roundedTopByPage: Map<number, number>;
 }

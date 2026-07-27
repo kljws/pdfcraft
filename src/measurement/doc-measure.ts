@@ -16,6 +16,7 @@ import {
 	markColumnSpans,
 	markRowSpans,
 	resolveTableLayout,
+	combineTableLayouts,
 } from "./doc-measure.table";
 import DocMeasureContainers from "./doc-measure.containers";
 import DocMeasureMedia from "./doc-measure.media";
@@ -231,7 +232,9 @@ class DocMeasure {
 		const tableAlignment = this.styleStack.getProperty("tableAlignment");
 		node._tableAlignment =
 			tableAlignment === "center" || tableAlignment === "right" ? tableAlignment : "left";
-		node._layout = resolveTableLayout(node, this.tableLayouts);
+		node._headerLayout = resolveTableLayout(node, this.tableLayouts, table._headerLayout);
+		node._bodyLayout = resolveTableLayout(node, this.tableLayouts, table._bodyLayout);
+		node._layout = combineTableLayouts(node._headerLayout, node._bodyLayout);
 		node._offsets = getTableOffsets(node, node._layout);
 
 		const colSpans: Array<{ col: number; span: number; minWidth: number; maxWidth: number }> = [];
@@ -345,7 +348,7 @@ class DocMeasure {
 			mode: node.mode,
 			version: node.version,
 			mask: node.mask,
-			padding: node.padding,
+			padding: isNumber(node.padding) ? node.padding : undefined,
 		});
 		Object.assign(node, measuredQr);
 		node._alignment = this.styleStack.getProperty("alignment") as Alignment | undefined;

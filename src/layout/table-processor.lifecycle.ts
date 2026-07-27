@@ -16,7 +16,11 @@ export interface TableLifecycleState {
 	_currentRowGroup?: TableRowGroupRange;
 	offsets: TableOffsets;
 	layout: ResolvedTableLayout;
+	headerLayout: ResolvedTableLayout;
+	bodyLayout: ResolvedTableLayout;
 	tableWidth: number;
+	borderRadius: number;
+	roundedTopByPage: Map<number, number>;
 	tableOffset: number;
 	rowSpanData: RowSpanData[];
 	rowGroupsByRow: Array<TableRowGroupRange | undefined>;
@@ -42,6 +46,8 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 	const table = tableNode.table!;
 	processor.offsets = tableNode._offsets!;
 	processor.layout = tableNode._layout as ResolvedTableLayout;
+	processor.headerLayout = (tableNode._headerLayout ?? tableNode._layout) as ResolvedTableLayout;
+	processor.bodyLayout = (tableNode._bodyLayout ?? tableNode._layout) as ResolvedTableLayout;
 
 	const contextWidth = writer.context().availableWidth;
 	const availableWidth = contextWidth - processor.offsets.total;
@@ -52,6 +58,11 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 		tableNode,
 	);
 	processor.tableWidth = processor.offsets.total + getTableInnerContentWidth(tableNode);
+	processor.borderRadius = Math.min(
+		Number.isFinite(table.borderRadius) ? Math.max(0, table.borderRadius ?? 0) : 0,
+		processor.tableWidth / 2,
+	);
+	processor.roundedTopByPage.clear();
 	const remainingWidth = Math.max(0, contextWidth - processor.tableWidth);
 	processor.tableOffset =
 		tableNode._tableAlignment === "right"
@@ -88,6 +99,7 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 			processor.rowsWithoutPageBreak += table.keepWithHeaderRows;
 		}
 	}
+	processor.layout = processor.headerRows ? processor.headerLayout : processor.bodyLayout;
 
 	processor.dontBreakRows = table.dontBreakRows || false;
 	if (processor.rowsWithoutPageBreak || processor.dontBreakRows) {
@@ -106,6 +118,10 @@ export function beginTableRow(
 	rowIndex: number,
 	writer: PageElementWriter,
 ): void {
+	processor.layout =
+		rowIndex < processor.headerRows
+			? (processor.headerLayout ?? processor.layout)
+			: (processor.bodyLayout ?? processor.layout);
 	const rowGroup = processor.rowGroupsByRow[rowIndex];
 	processor._currentRowGroup = rowGroup;
 	if (rowGroup?.keepTogether && rowIndex === rowGroup.startRow) {

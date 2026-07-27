@@ -10,16 +10,22 @@ var docDefinition = {
 		},
 		{
 			table: {
-				body: [
-					[
-						{ text: "page #", bold: true },
-						{ text: "title", bold: true },
+				body: {
+					groups: [
+						{
+							rows: [
+								[
+									{ text: "page #", bold: true },
+									{ text: "title", bold: true },
+								],
+								[{ pageReference: "header1", alignment: "right" }, "Header one"],
+								[{ pageReference: "subheader1", alignment: "right" }, "Subheader one"],
+								[{ pageReference: "subheader2", alignment: "right" }, "Subheader two"],
+								[{ pageReference: "subheader3", alignment: "right" }, "Subheader three"],
+							],
+						},
 					],
-					[{ pageReference: "header1", alignment: "right" }, "Header one"],
-					[{ pageReference: "subheader1", alignment: "right" }, "Subheader one"],
-					[{ pageReference: "subheader2", alignment: "right" }, "Subheader two"],
-					[{ pageReference: "subheader3", alignment: "right" }, "Subheader three"],
-				],
+				},
 			},
 		},
 		{
@@ -27,16 +33,31 @@ var docDefinition = {
 		},
 		{
 			table: {
-				body: [
-					[
-						{ text: "page #", bold: true },
-						{ text: "title", bold: true },
+				body: {
+					groups: [
+						{
+							rows: [
+								[
+									{ text: "page #", bold: true },
+									{ text: "title", bold: true },
+								],
+								[{ pageReference: "header1", alignment: "right" }, { textReference: "header1" }],
+								[
+									{ pageReference: "subheader1", alignment: "right" },
+									{ textReference: "subheader1" },
+								],
+								[
+									{ pageReference: "subheader2", alignment: "right" },
+									{ textReference: "subheader2" },
+								],
+								[
+									{ pageReference: "subheader3", alignment: "right" },
+									{ textReference: "subheader3" },
+								],
+							],
+						},
 					],
-					[{ pageReference: "header1", alignment: "right" }, { textReference: "header1" }],
-					[{ pageReference: "subheader1", alignment: "right" }, { textReference: "subheader1" }],
-					[{ pageReference: "subheader2", alignment: "right" }, { textReference: "subheader2" }],
-					[{ pageReference: "subheader3", alignment: "right" }, { textReference: "subheader3" }],
-				],
+				},
 			},
 		},
 		{

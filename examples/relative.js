@@ -31,31 +31,37 @@ var docDefinition = {
 		{
 			table: {
 				widths: [100, 100, 100],
-				body: [
-					[
-						"Column with a lot of text. Column with a lot of text. Column with a lot of text. Column with a lot of text.",
+				body: {
+					groups: [
 						{
-							text: "I'm aligned center",
-							style: {
-								alignment: "center",
-							},
-							relativePosition: {
-								x: 0,
-								y: 25,
-							},
-						},
-						{
-							text: "I'm aligned right",
-							style: {
-								alignment: "right",
-							},
-							relativePosition: {
-								x: 0,
-								y: 25,
-							},
+							rows: [
+								[
+									"Column with a lot of text. Column with a lot of text. Column with a lot of text. Column with a lot of text.",
+									{
+										text: "I'm aligned center",
+										style: {
+											alignment: "center",
+										},
+										relativePosition: {
+											x: 0,
+											y: 25,
+										},
+									},
+									{
+										text: "I'm aligned right",
+										style: {
+											alignment: "right",
+										},
+										relativePosition: {
+											x: 0,
+											y: 25,
+										},
+									},
+								],
+							],
 						},
 					],
-				],
+				},
 			},
 		},
 	],

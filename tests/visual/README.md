@@ -13,7 +13,7 @@ directory can be selected without editing the script:
 npm run visual:generate -- --output=/tmp/pdfcraft-visual
 ```
 
-Open the six PDFs in Preview, Acrobat or a browser. The red dashed rectangle
+Open the seven PDFs in Preview, Acrobat or a browser. The red dashed rectangle
 marks the usable content area. No table, border, text or canvas vector should
 cross it unless the document explicitly says otherwise.
 
@@ -66,15 +66,22 @@ cross it unless the document explicitly says otherwise.
 - In part B, intermediate pages have no 3 pt closing border because `hLineWhenBroken` is disabled.
 - Part B's single 3 pt bottom border appears only at the actual end of the table.
 
+### `07-rounded-table-borders.pdf`
+
+- The first table has four smooth outer corners while its internal separators remain straight.
+- The blue header and green body fills stop cleanly at the rounded contour without square overflow.
+- The native purple `stack` block has padding, one continuous rounded border and a matching background.
+- Every paginated table fragment has four smooth corners, especially the bottom corners on the first page and top corners on the following page.
+
 ## Recording the result
 
 Review each file at 100% and 200% zoom. Record the viewer and result, for
 example:
 
 ```text
-Preview 26.x — 6/6 pass
-Chrome PDF viewer — 6/6 pass
-Acrobat — 6/6 pass
+Preview 26.x — 7/7 pass
+Chrome PDF viewer — 7/7 pass
+Acrobat — 7/7 pass
 ```
 
 If a check fails, include the PDF filename, viewer, zoom level and a screenshot.

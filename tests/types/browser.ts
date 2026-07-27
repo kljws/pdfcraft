@@ -6,15 +6,26 @@ const document: OutputDocumentBrowser = instance.createPdf({
 	content: [
 		{ text: "Browser consumer", bold: true },
 		{
+			stack: ["Decorated browser block"],
+			borderRadius: 8,
+			borderWidth: 1,
+			borderColor: "#334155",
+			backgroundColor: "#f8fafc",
+			padding: 8,
+		},
+		{
 			table: {
-				body: [
-					{
-						rows: [
-							["Name", "Value"],
-							["Browser", "Supported"],
-						],
-					},
-				],
+				borderRadius: 6,
+				body: {
+					groups: [
+						{
+							rows: [
+								["Name", "Value"],
+								["Browser", "Supported"],
+							],
+						},
+					],
+				},
 				widths: ["*", "auto"],
 			},
 		},

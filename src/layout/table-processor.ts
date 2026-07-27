@@ -12,7 +12,11 @@ class TableProcessor {
 	_currentRowGroup?: TableRowGroupRange;
 	offsets!: TableOffsets;
 	layout!: ResolvedTableLayout;
+	headerLayout!: ResolvedTableLayout;
+	bodyLayout!: ResolvedTableLayout;
 	tableWidth = 0;
+	borderRadius = 0;
+	roundedTopByPage = new Map<number, number>();
 	tableOffset = 0;
 	rowSpanData: RowSpanData[] = [];
 	rowGroupsByRow: Array<TableRowGroupRange | undefined> = [];
@@ -49,6 +53,13 @@ class TableProcessor {
 		beginTableRow(this, rowIndex, writer);
 	}
 
+	selectLayout(rowIndex: number): void {
+		this.layout =
+			rowIndex < this.headerRows
+				? (this.headerLayout ?? this.layout)
+				: (this.bodyLayout ?? this.layout);
+	}
+
 	drawHorizontalLine(
 		lineIndex: number,
 		writer: PageElementWriter,
@@ -78,8 +89,19 @@ class TableProcessor {
 		writer: PageElementWriter,
 		vLineRowIndex: number,
 		beforeVLineColIndex: number | null,
+		trim?: { top: number; bottom: number },
 	): void {
-		drawVerticalLine(this, x, y0, y1, vLineColIndex, writer, vLineRowIndex, beforeVLineColIndex);
+		drawVerticalLine(
+			this,
+			x,
+			y0,
+			y1,
+			vLineColIndex,
+			writer,
+			vLineRowIndex,
+			beforeVLineColIndex,
+			trim,
+		);
 	}
 	endTable(writer: PageElementWriter): void {
 		if (this.cleanUpRepeatables) {
@@ -211,12 +233,21 @@ class TableProcessor {
 			if (rowBreakWithoutHeader && this.layout.hLineWhenBroken !== false) {
 				this.drawHorizontalLine(rowIndex, writer, y1, false, undefined, 0, "top");
 			}
+			const roundedTopY = this.roundedTopByPage.get(ys[yi].page);
+			const segmentTopY = y1 - hzLineOffset + this.topLineWidth / 2;
+			const startsRoundedPageFragment =
+				roundedTopY !== undefined && Math.abs(roundedTopY - segmentTopY) < 0.001;
 
 			drawTableRowSegment(this, rowIndex, writer, xs, {
 				y1,
 				y2,
 				willBreak,
 				horizontalLineOffset: hzLineOffset,
+				roundTop:
+					(rowIndex === 0 && yi === (skipOrphanePadding ? 1 : 0)) || startsRoundedPageFragment,
+				roundBottom:
+					(willBreak && this.layout.hLineWhenBroken !== false) ||
+					(rowIndex === this.table.body.length - 1 && !willBreak && yi === ys.length - 1),
 			});
 		}
 
@@ -296,7 +327,27 @@ class TableProcessor {
 		this._isCurrentRowUnbreakable = false;
 
 		if (this._currentRowGroup?.keepTogether && rowIndex === this._currentRowGroup.endRow) {
+			const groupStartRow = this._currentRowGroup.startRow;
+			const pageChangedCallback = (change: TablePageBreak) => {
+				if (groupStartRow > 0 && this.layout.hLineWhenBroken !== false) {
+					this.drawHorizontalLine(
+						groupStartRow,
+						writer,
+						change.prevY,
+						false,
+						change.prevPage,
+						this.table.body.length,
+						"bottom",
+					);
+					if (!this.headerRows) {
+						this.drawHorizontalLine(groupStartRow, writer, undefined, true, undefined, 0, "top");
+					}
+				}
+			};
+
+			writer.addListener("pageChanged", pageChangedCallback);
 			writer.commitUnbreakableBlock();
+			writer.removeListener("pageChanged", pageChangedCallback);
 		}
 		this._currentRowGroup = undefined;
 

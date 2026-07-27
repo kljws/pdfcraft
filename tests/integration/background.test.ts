@@ -56,18 +56,20 @@ describe("Integration test: background", function () {
 			content: [
 				{
 					table: {
-						body: [
-							{
-								rows: [
-									[
-										{
-											text: "\n",
-											fillColor: "#7d02c9",
-										},
+						body: {
+							groups: [
+								{
+									rows: [
+										[
+											{
+												text: "\n",
+												fillColor: "#7d02c9",
+											},
+										],
 									],
-								],
-							},
-						],
+								},
+							],
+						},
 					},
 				},
 			],
@@ -132,26 +134,28 @@ describe("Integration test: background", function () {
 			content: [
 				{
 					table: {
-						body: [
-							{
-								rows: [
-									[
-										{
-											text: "a",
-											fillColor: "#aaa",
-										},
-										{
-											text: "b",
-											fillColor: "#bbb",
-										},
-										{
-											text: "c",
-											fillColor: "#ccc",
-										},
+						body: {
+							groups: [
+								{
+									rows: [
+										[
+											{
+												text: "a",
+												fillColor: "#aaa",
+											},
+											{
+												text: "b",
+												fillColor: "#bbb",
+											},
+											{
+												text: "c",
+												fillColor: "#ccc",
+											},
+										],
 									],
-								],
-							},
-						],
+								},
+							],
+						},
 					},
 				},
 				{
@@ -172,26 +176,28 @@ describe("Integration test: background", function () {
 				},
 				{
 					table: {
-						body: [
-							{
-								rows: [
-									[
-										{
-											text: "a",
-											fillColor: "#aaa",
-										},
-										{
-											text: "b",
-											fillColor: "#bbb",
-										},
-										{
-											text: "c",
-											fillColor: "#ccc",
-										},
+						body: {
+							groups: [
+								{
+									rows: [
+										[
+											{
+												text: "a",
+												fillColor: "#aaa",
+											},
+											{
+												text: "b",
+												fillColor: "#bbb",
+											},
+											{
+												text: "c",
+												fillColor: "#ccc",
+											},
+										],
 									],
-								],
-							},
-						],
+								},
+							],
+						},
 					},
 				},
 			],

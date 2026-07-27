@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { generatePdf } from "./pdf-generator";
 import { renderPdf } from "./pdf-preview";
 import SampleSelect from "./SampleSelect";
-import { getInitialSample, getInitialSource, getSampleSource, saveState } from "./samples";
+import {
+	getInitialSample,
+	getInitialSource,
+	getSampleSource,
+	saveState,
+	subscribeToSampleChanges,
+} from "./samples";
 
 const downloadBlob = (blob, filename) => {
 	const url = URL.createObjectURL(blob);
@@ -11,6 +17,12 @@ const downloadBlob = (blob, filename) => {
 	link.download = filename;
 	link.click();
 	URL.revokeObjectURL(url);
+};
+
+const reportError = (setStatus, context, error, fallbackMessage) => {
+	const message = error instanceof Error ? error.message : fallbackMessage;
+	console.error(`[PDFCraft React playground] ${context}: ${message}`, error);
+	setStatus(message);
 };
 
 export default function App() {
@@ -45,9 +57,8 @@ export default function App() {
 			setStatus(`Generated in ${(performance.now() - startedAt).toFixed(1)} ms`);
 		} catch (error) {
 			if (currentGeneration === generation.current) {
-				console.error(error);
 				setPdfBlob(null);
-				setStatus(error instanceof Error ? error.message : "PDF generation failed");
+				reportError(setStatus, "PDF generation failed", error, "PDF generation failed");
 			}
 		}
 	}, [source]);
@@ -58,12 +69,23 @@ export default function App() {
 		return () => window.clearTimeout(timer);
 	}, [generate, sample, source]);
 
+	useEffect(
+		() =>
+			subscribeToSampleChanges((getUpdatedSampleSource) => {
+				setSource(getUpdatedSampleSource(sample));
+			}),
+		[sample],
+	);
+
 	return (
 		<div className="app">
 			<header>
-				<div className="identity">
-					<strong>React playground</strong>
-					<span>Runs entirely in the browser</span>
+				<div className="flex flex-row items-center justify-between">
+					<div className="identity">
+						<strong>React playground</strong>
+						<span>Runs entirely in the browser</span>
+					</div>
+					<output title={status}>{status}</output>
 				</div>
 				<SampleSelect
 					value={sample}
@@ -82,7 +104,6 @@ export default function App() {
 				>
 					Download
 				</button>
-				<output title={status}>{status}</output>
 			</header>
 			<main>
 				<label className="editor-pane">

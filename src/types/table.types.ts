@@ -8,11 +8,15 @@ export type RawTableWidths = RawColumnWidth | RawColumnWidth[];
 export interface PdfTable<Node = PdfNode, Widths = ColumnWidth[]> {
 	body: Node[][];
 	widths: Widths;
+	borderRadius?: number;
 	heights?: number | "auto" | Array<number | "auto"> | ((rowIndex: number) => number | "auto");
 	headerRows?: number;
 	keepWithHeaderRows?: number;
 	dontBreakRows?: boolean;
 	_rowGroups?: TableRowGroupRange[];
+	_headerLayout?: string | Partial<TableLayout<Node>>;
+	_bodyLayout?: string | Partial<TableLayout<Node>>;
+	_blockContainer?: boolean;
 }
 
 export interface TableRowGroupRange {
@@ -36,6 +40,7 @@ export interface TableOffsets {
 }
 
 export interface TableLayout<Node = PdfNode> {
+	hLineWhenBroken?: boolean;
 	hLineWidth(index: number, node: Node): number;
 	vLineWidth(index: number, node: Node): number;
 	hLineColor(index: number, node: Node, columnIndex?: number): unknown;

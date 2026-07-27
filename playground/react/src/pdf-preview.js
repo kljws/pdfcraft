@@ -20,6 +20,7 @@ export const renderPdf = async ({ blob, container, isCurrent }) => {
 			const availableWidth = Math.max(1, (container?.clientWidth ?? baseViewport.width) - 32);
 			const scale = Math.min(1.5, availableWidth / baseViewport.width);
 			const viewport = page.getViewport({ scale });
+			const outputScale = Math.min(window.devicePixelRatio || 1, 2);
 			const pageElement = document.createElement("div");
 			pageElement.className = "pdf-page";
 			pageElement.style.width = `${viewport.width}px`;
@@ -28,13 +29,16 @@ export const renderPdf = async ({ blob, container, isCurrent }) => {
 			pageElement.style.setProperty("--user-unit", String(viewport.userUnit));
 			const canvas = document.createElement("canvas");
 			canvas.className = "pdf-page-canvas";
-			canvas.width = viewport.width;
-			canvas.height = viewport.height;
+			canvas.width = Math.ceil(viewport.width * outputScale);
+			canvas.height = Math.ceil(viewport.height * outputScale);
+			canvas.style.width = `${viewport.width}px`;
+			canvas.style.height = `${viewport.height}px`;
 			pageElement.append(canvas);
 			await page.render({
 				canvas,
 				canvasContext: canvas.getContext("2d"),
 				viewport,
+				transform: outputScale === 1 ? undefined : [outputScale, 0, 0, outputScale, 0, 0],
 				annotationMode: AnnotationMode.ENABLE_FORMS,
 			}).promise;
 

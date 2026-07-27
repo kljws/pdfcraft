@@ -76,39 +76,51 @@ var docDefinition = {
 			absolutePosition: { x: 100, y: 100 },
 			style: "tableExample",
 			table: {
-				body: [
-					["Column 1", "Column 2", "Column 3"],
-					[
+				body: {
+					groups: [
 						{
-							stack: [
-								"Let's try an unordered list",
-								{
-									ul: ["item 1", "item 2"],
-								},
-							],
-						},
-						/* a nested table will appear here as soon as I fix a bug */
-						[
-							"or a nested table",
-							{
-								table: {
-									body: [
-										["Col1", "Col2", "Col3"],
-										["1", "2", "3"],
-										["1", "2", "3"],
+							rows: [
+								["Column 1", "Column 2", "Column 3"],
+								[
+									{
+										stack: [
+											"Let's try an unordered list",
+											{
+												ul: ["item 1", "item 2"],
+											},
+										],
+									},
+									/* a nested table will appear here as soon as I fix a bug */
+									[
+										"or a nested table",
+										{
+											table: {
+												body: {
+													groups: [
+														{
+															rows: [
+																["Col1", "Col2", "Col3"],
+																["1", "2", "3"],
+																["1", "2", "3"],
+															],
+														},
+													],
+												},
+											},
+										},
 									],
-								},
-							},
-						],
-						{
-							text: [
-								"Inlines can be ",
-								{ text: "styled\n", italics: true },
-								{ text: "easily as everywhere else", fontSize: 10 },
+									{
+										text: [
+											"Inlines can be ",
+											{ text: "styled\n", italics: true },
+											{ text: "easily as everywhere else", fontSize: 10 },
+										],
+									},
+								],
 							],
 						},
 					],
-				],
+				},
 			},
 		},
 	],

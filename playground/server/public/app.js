@@ -12,6 +12,7 @@ const status = document.querySelector("#status");
 let timer;
 let generation = 0;
 let pdfBlob = null;
+const sampleSourceBases = new Map();
 
 const downloadBlob = (blob, filename) => {
 	const url = URL.createObjectURL(blob);
@@ -28,6 +29,12 @@ const setStatus = (message, isError = false) => {
 	status.classList.toggle("error", isError);
 };
 
+const reportError = (context, error, fallbackMessage) => {
+	const message = error instanceof Error ? error.message : fallbackMessage;
+	console.error(`[PDFCraft server playground] ${context}: ${message}`, error);
+	setStatus(message, true);
+};
+
 const renderPdf = async (blob, currentGeneration) => {
 	const loadingTask = getDocument({ data: new Uint8Array(await blob.arrayBuffer()) });
 	const pdf = await loadingTask.promise;
@@ -40,6 +47,7 @@ const renderPdf = async (blob, currentGeneration) => {
 			const availableWidth = Math.max(1, pdfContainer.clientWidth - 32);
 			const scale = Math.min(1.5, availableWidth / baseViewport.width);
 			const viewport = page.getViewport({ scale });
+			const outputScale = Math.min(window.devicePixelRatio || 1, 2);
 			const pageElement = document.createElement("div");
 			pageElement.className = "pdf-page";
 			pageElement.style.width = `${viewport.width}px`;
@@ -48,13 +56,16 @@ const renderPdf = async (blob, currentGeneration) => {
 			pageElement.style.setProperty("--user-unit", String(viewport.userUnit));
 			const canvas = document.createElement("canvas");
 			canvas.className = "pdf-page-canvas";
-			canvas.width = viewport.width;
-			canvas.height = viewport.height;
+			canvas.width = Math.ceil(viewport.width * outputScale);
+			canvas.height = Math.ceil(viewport.height * outputScale);
+			canvas.style.width = `${viewport.width}px`;
+			canvas.style.height = `${viewport.height}px`;
 			pageElement.append(canvas);
 			await page.render({
 				canvas,
 				canvasContext: canvas.getContext("2d"),
 				viewport,
+				transform: outputScale === 1 ? undefined : [outputScale, 0, 0, outputScale, 0, 0],
 				annotationMode: AnnotationMode.ENABLE_FORMS,
 			}).promise;
 
@@ -122,10 +133,9 @@ const generate = async () => {
 		setStatus(`Server ${serverTime} ms · total ${totalTime} ms`);
 	} catch (error) {
 		if (currentGeneration === generation) {
-			console.error(error);
 			pdfBlob = null;
 			downloadButton.disabled = true;
-			setStatus(error instanceof Error ? error.message : "PDF generation failed", true);
+			reportError("PDF generation failed", error, "PDF generation failed");
 		}
 	}
 };
@@ -134,6 +144,7 @@ const scheduleGeneration = () => {
 	window.clearTimeout(timer);
 	localStorage.setItem("pdfcraft.server.sample", sample.value);
 	localStorage.setItem("pdfcraft.server.source", editor.value);
+	localStorage.setItem("pdfcraft.server.source-base", sampleSourceBases.get(sample.value) ?? "");
 	timer = window.setTimeout(() => void generate(), 400);
 };
 
@@ -143,9 +154,21 @@ const loadSample = async (name) => {
 		throw new Error(await response.text());
 	}
 	sample.value = name;
-	editor.value = await response.text();
+	const source = await response.text();
+	sampleSourceBases.set(name, source);
+	editor.value = source;
 	scheduleGeneration();
 };
+
+const sampleEvents = new EventSource("/sample-events");
+sampleEvents.addEventListener("message", (event) => {
+	const { sample: changedSample } = JSON.parse(event.data);
+	if (changedSample === sample.value) {
+		void loadSample(changedSample).catch((error) => {
+			reportError("Sample reload failed", error, "Sample reload failed");
+		});
+	}
+});
 
 const initialize = async () => {
 	try {
@@ -160,17 +183,23 @@ const initialize = async () => {
 
 		const storedSample = localStorage.getItem("pdfcraft.server.sample");
 		const storedSource = localStorage.getItem("pdfcraft.server.source");
+		const storedSourceBase = localStorage.getItem("pdfcraft.server.source-base");
 
 		if (storedSample && names.includes(storedSample) && storedSource) {
+			const response = await fetch(`/samples/${encodeURIComponent(storedSample)}`);
+			if (!response.ok) {
+				throw new Error(await response.text());
+			}
+			const sampleSource = await response.text();
+			sampleSourceBases.set(storedSample, sampleSource);
 			sample.value = storedSample;
-			editor.value = storedSource;
+			editor.value = storedSourceBase === sampleSource ? storedSource : sampleSource;
 			scheduleGeneration();
 		} else {
 			await loadSample(names[0]);
 		}
 	} catch (error) {
-		console.error(error);
-		setStatus(error instanceof Error ? error.message : "Playground initialization failed", true);
+		reportError("Playground initialization failed", error, "Playground initialization failed");
 	}
 };
 

@@ -12,17 +12,22 @@ export const sampleNames = [
 	"attachments",
 	"recent-features",
 	"invoice",
+	"kolecto",
 ];
 
 export const createSampleSource = (sample) => {
-	return `// Assign the document definition to a variable named dd.
-
-var dd = ${sample.trim()};
-`;
+	return `${sample.trim()}\n`;
 };
 
 export const parseDocumentDefinition = (source) => {
-	// The playground intentionally executes locally edited document definitions.
+	const trimmedSource = source.trim();
+	if (trimmedSource.startsWith("export default")) {
+		const expression = trimmedSource.slice("export default".length).trim().replace(/;$/, "");
+		// The playground intentionally executes locally edited document definitions.
+		return new Function(`"use strict";\nreturn (${expression});`)();
+	}
+
+	// Support source saved by playground versions older than the module-based samples.
 	return new Function(`"use strict";\n${source}\nreturn dd;`)();
 };
 

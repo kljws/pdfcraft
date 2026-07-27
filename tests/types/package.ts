@@ -45,17 +45,38 @@ const definition: DocumentDefinition = {
 			height: 20,
 		},
 		{
+			stack: [
+				{ text: "Decorated block", bold: true },
+				{ text: "Native rounded border and background" },
+			],
+			borderRadius: 12,
+			borderWidth: 2,
+			borderColor: "#334155",
+			backgroundColor: "#f8fafc",
+			padding: [12, 10],
+		},
+		{
 			tableAlignment: "center",
 			table: {
+				borderRadius: 8,
 				widths: [100, "*"],
-				header: { rows: [["Item", "Details"]] },
-				body: [
-					{
-						keepTogether: true,
-						dontBreakRows: true,
-						rows: [["Centered table", "Value"], [{ text: "Description", colSpan: 2 }]],
+				header: {
+					rows: [["Item", "Details"]],
+					layout: { fillColor: "#e0e3fd", vLineWidth: () => 0.5 },
+				},
+				body: {
+					groups: [
+						{
+							keepTogether: true,
+							dontBreakRows: true,
+							rows: [["Centered table", "Value"], [{ text: "Description", colSpan: 2 }]],
+						},
+					],
+					layout: {
+						vLineWidth: (index, node) =>
+							index === 0 || index === node.table.widths.length ? 0.5 : 0,
 					},
-				],
+				},
 			},
 		},
 		{

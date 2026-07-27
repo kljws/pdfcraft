@@ -13,378 +13,424 @@ var docDefinition = {
 		{
 			table: {
 				heights: 240,
-				body: [
-					[
+				body: {
+					groups: [
 						{
-							text: "multiline\nmultiline\nmultiline\nmultiline\nmultiline\nmultiline\nmultiline",
-							verticalAlignment: "middle",
-						},
-						{ text: "top", verticalAlignment: "top" },
-						{ text: "bottom", verticalAlignment: "bottom" },
-						{
-							ul: ["item 1", "item 2", "item 3"],
-							verticalAlignment: "middle",
-						},
-						{
-							ol: [
-								{ text: "item 1", counter: 10 },
-								{ text: "item 2", counter: 20 },
-								{ text: "item 3", counter: 30 },
-								{ text: "item 4 without own value" },
-							],
-							verticalAlignment: "middle",
-						},
-						{
-							type: "square",
-							color: "blue",
-							ul: ["item 1", "item 2", "item 3"],
-							verticalAlignment: "middle",
-						},
-						{
-							ul: [
-								"item 1",
-								{ text: "item 2", listType: "circle" },
-								{ text: "item 3", listType: "none" },
-							],
-							verticalAlignment: "middle",
-						},
-						{
-							columns: [
-								{
-									ul: [
-										"item 1",
-										"Lorem ipsum dolor sit amet, consectetur adipisicing elit. Malit profecta versatur nomine ocurreret multavit",
-									],
-								},
-								{
-									ul: [
-										"item 2",
-										"Lorem ipsum dolor sit amet, consectetur adipisicing elit. Malit profecta versatur nomine ocurreret multavit",
-									],
-								},
-							],
-							verticalAlignment: "middle",
-						},
-						{
-							ul: [
-								"item 1",
-								"Lorem ipsum dolor sit amet, consectetur adipisicing elit. Malit profecta versatur nomine ocurreret multavit",
-								{
-									ol: [
-										[
+							rows: [
+								[
+									{
+										text: "multiline\nmultiline\nmultiline\nmultiline\nmultiline\nmultiline\nmultiline",
+										verticalAlignment: "middle",
+									},
+									{ text: "top", verticalAlignment: "top" },
+									{ text: "bottom", verticalAlignment: "bottom" },
+									{
+										ul: ["item 1", "item 2", "item 3"],
+										verticalAlignment: "middle",
+									},
+									{
+										ol: [
+											{ text: "item 1", counter: 10 },
+											{ text: "item 2", counter: 20 },
+											{ text: "item 3", counter: 30 },
+											{ text: "item 4 without own value" },
+										],
+										verticalAlignment: "middle",
+									},
+									{
+										type: "square",
+										color: "blue",
+										ul: ["item 1", "item 2", "item 3"],
+										verticalAlignment: "middle",
+									},
+									{
+										ul: [
+											"item 1",
+											{ text: "item 2", listType: "circle" },
+											{ text: "item 3", listType: "none" },
+										],
+										verticalAlignment: "middle",
+									},
+									{
+										columns: [
 											{
-												columns: [
-													"column 1",
-													{
-														stack: [
-															"column 2",
+												ul: [
+													"item 1",
+													"Lorem ipsum dolor sit amet, consectetur adipisicing elit. Malit profecta versatur nomine ocurreret multavit",
+												],
+											},
+											{
+												ul: [
+													"item 2",
+													"Lorem ipsum dolor sit amet, consectetur adipisicing elit. Malit profecta versatur nomine ocurreret multavit",
+												],
+											},
+										],
+										verticalAlignment: "middle",
+									},
+									{
+										ul: [
+											"item 1",
+											"Lorem ipsum dolor sit amet, consectetur adipisicing elit. Malit profecta versatur nomine ocurreret multavit",
+											{
+												ol: [
+													[
+														{
+															columns: [
+																"column 1",
+																{
+																	stack: [
+																		"column 2",
+																		{
+																			ul: [
+																				"item 1",
+																				"item 2",
+																				{
+																					ul: ["item", "item", "item"],
+																				},
+																				"item 4",
+																			],
+																		},
+																	],
+																},
+																"column 3",
+																"column 4",
+															],
+														},
+														"subitem 1 in a vertical container",
+														"subitem 2 in a vertical container",
+													],
+													"subitem 2",
+												],
+											},
+										],
+										verticalAlignment: "middle",
+									},
+									{ text: [{ text: "middle" }, { text: "\nmiddle" }], verticalAlignment: "middle" },
+									{ qr: "text in QR", verticalAlignment: "middle" },
+									{ svg: tiger, width: 100, verticalAlignment: "middle" },
+								],
+								[
+									{
+										stack: [
+											{ text: "or a nested table", verticalAlignment: "middle" },
+											{ text: "or a nested table" },
+											{
+												table: {
+													heights: 25,
+													body: {
+														groups: [
 															{
-																ul: [
-																	"item 1",
-																	"item 2",
-																	{
-																		ul: ["item", "item", "item"],
-																	},
-																	"item 4",
+																rows: [
+																	[
+																		{ text: "Col1", verticalAlignment: "middle" },
+																		{ text: "Col2", verticalAlignment: "middle" },
+																		{ text: "Col3", verticalAlignment: "middle" },
+																	],
+																	["1", "2", "3"],
+																	[
+																		"4",
+																		{ text: "5", verticalAlignment: "middle" },
+																		{
+																			/*text: "x\n\n\n\n\n\n\n\n\n\nx"*/
+																			table: {
+																				heights: 50,
+																				body: {
+																					groups: [
+																						{
+																							rows: [
+																								[
+																									{ text: "ColA", verticalAlignment: "middle" },
+																									{ text: "ColB", verticalAlignment: "middle" },
+																									{ text: "ColC", verticalAlignment: "middle" },
+																								],
+																								[
+																									"6",
+																									"7",
+																									{
+																										table: {
+																											body: {
+																												groups: [
+																													{
+																														rows: [
+																															["ColD", "ColE", "ColF"],
+																															["8", "9", "10"],
+																														],
+																													},
+																												],
+																												layout: {
+																													hLineWidth: () => 0.1,
+																													vLineWidth: () => 0.1,
+																												},
+																											},
+																										},
+
+																										verticalAlignment: "middle",
+																									},
+																								],
+																							],
+																						},
+																					],
+																					layout: {
+																						hLineWidth: () => 0.1,
+																						vLineWidth: () => 0.1,
+																					},
+																				},
+																			},
+																		},
+																	],
 																],
 															},
 														],
+														layout: {
+															hLineWidth: () => 0.1,
+															vLineWidth: () => 0.1,
+														},
 													},
-													"column 3",
-													"column 4",
-												],
+												},
+
+												verticalAlignment: "middle",
 											},
-											"subitem 1 in a vertical container",
-											"subitem 2 in a vertical container",
 										],
-										"subitem 2",
-									],
-								},
-							],
-							verticalAlignment: "middle",
-						},
-						{ text: [{ text: "middle" }, { text: "\nmiddle" }], verticalAlignment: "middle" },
-						{ qr: "text in QR", verticalAlignment: "middle" },
-						{ svg: tiger, width: 100, verticalAlignment: "middle" },
-					],
-					[
-						{
-							stack: [
-								{ text: "or a nested table", verticalAlignment: "middle" },
-								{ text: "or a nested table" },
-								{
-									table: {
-										heights: 25,
-										body: [
-											[
-												{ text: "Col1", verticalAlignment: "middle" },
-												{ text: "Col2", verticalAlignment: "middle" },
-												{ text: "Col3", verticalAlignment: "middle" },
-											],
-											["1", "2", "3"],
-											[
-												"4",
-												{ text: "5", verticalAlignment: "middle" },
-												{
-													/*text: "x\n\n\n\n\n\n\n\n\n\nx"*/
-													table: {
-														heights: 50,
-														body: [
+										verticalAlignment: "middle",
+										colSpan: 5,
+									},
+									"",
+									"",
+									"",
+									"",
+									{
+										table: {
+											heights: [20, "*", 20],
+											body: {
+												groups: [
+													{
+														rows: [
+															["ColG", "ColH"],
+															["vstretsh", "9"],
+															["10", "11"],
+														],
+													},
+												],
+												layout: {
+													hLineWidth: (i) => (i === 1 ? 5 : 1),
+												},
+											},
+										},
+									},
+									{
+										table: {
+											heights: 25,
+											body: {
+												groups: [
+													{
+														rows: [
 															[
-																{ text: "ColA", verticalAlignment: "middle" },
-																{ text: "ColB", verticalAlignment: "middle" },
-																{ text: "ColC", verticalAlignment: "middle" },
+																{ text: "ColJ", border: [false, true, false, false] },
+																{ text: "ColK", border: [false, true, false, false] },
+																{ text: "ColL", border: [false, true, false, false] },
 															],
 															[
-																"6",
-																"7",
-																{
-																	table: {
-																		body: [
-																			["ColD", "ColE", "ColF"],
-																			["8", "9", "10"],
-																		],
-																	},
-																	layout: {
-																		hLineWidth: () => 0.1,
-																		vLineWidth: () => 0.1,
-																	},
-																	verticalAlignment: "middle",
-																},
+																{ text: "8", border: [false, false, false, false] },
+																{ text: "9", border: [false, false, false, false] },
+																{ text: "10", rowSpan: 2, border: [false, false, false, false] },
+															],
+															[
+																{ text: "11", border: [false, false, false, false] },
+																{ text: "12", border: [false, false, false, true] },
+																"",
 															],
 														],
 													},
-													layout: {
-														hLineWidth: () => 0.1,
-														vLineWidth: () => 0.1,
-													},
+												],
+												layout: {
+													hLineWidth: (i) => (i === 0 ? 5 : i === 1 ? 50 : 1),
 												},
-											],
+											},
+										},
+
+										verticalAlignment: "bottom",
+									},
+									{
+										table: {
+											heights: 25,
+											body: {
+												groups: [
+													{
+														rows: [
+															[
+																{ text: "ColM", border: [false, true, false, false] },
+																{ text: "ColN", border: [false, true, false, false] },
+																{ text: "Col0", border: [false, true, false, false] },
+															],
+															[
+																{ text: "8", border: [false, false, false, false] },
+																{ text: "9", border: [false, false, false, false] },
+																{ text: "10", rowSpan: 2, border: [false, false, false, false] },
+															],
+															[
+																{ text: "11", border: [false, false, false, false] },
+																{ text: "12", border: [false, false, false, true] },
+																"",
+															],
+														],
+													},
+												],
+												layout: {
+													hLineWidth: (i) => (i === 0 ? 5 : i === 1 ? 50 : 1),
+													paddingBottom: () => 5,
+													paddingTop: () => 5,
+												},
+											},
+										},
+
+										verticalAlignment: "middle",
+									},
+									{
+										canvas: [
+											{
+												type: "rect",
+												x: 0,
+												y: 0,
+												w: 310,
+												h: 190,
+												r: 5,
+												dash: { length: 5 },
+												lineColor: "blue",
+											},
+											{
+												type: "rect",
+												x: 1,
+												y: 1,
+												w: 308,
+												h: 188,
+												r: 4,
+												lineColor: "red",
+												color: "#ffffe0",
+											},
+											{
+												type: "polyline",
+												lineWidth: 3,
+												closePath: true,
+												points: [
+													{ x: 10, y: 10 },
+													{ x: 35, y: 40 },
+													{ x: 100, y: 40 },
+													{ x: 125, y: 10 },
+												],
+											},
+											{
+												type: "polyline",
+												lineWidth: 2,
+												color: "blue",
+												lineColor: "red",
+												points: [
+													{ x: 10, y: 110 },
+													{ x: 35, y: 140 },
+													{ x: 100, y: 140 },
+													{ x: 125, y: 110 },
+													{ x: 10, y: 110 },
+												],
+											},
+											{
+												type: "line",
+												x1: 40,
+												y1: 60,
+												x2: 260,
+												y2: 60,
+												lineWidth: 3,
+											},
+											{
+												type: "line",
+												x1: 40,
+												y1: 80,
+												x2: 260,
+												y2: 80,
+												lineWidth: 10,
+												lineCap: "round",
+											},
+											{
+												type: "line",
+												x1: 40,
+												y1: 100,
+												x2: 260,
+												y2: 100,
+												lineWidth: 10,
+												lineCap: "square",
+											},
+											{
+												type: "ellipse",
+												x: 150,
+												y: 140,
+												color: "red",
+												fillOpacity: 0.5,
+												r1: 80,
+												r2: 40,
+											},
+											{
+												type: "rect",
+												x: 150,
+												y: 150,
+												w: 150,
+												h: 25,
+											},
+											{
+												type: "rect",
+												x: 10,
+												y: 145,
+												w: 100,
+												h: 10,
+												linearGradient: ["red", "blue"],
+											},
+											{
+												type: "rect",
+												x: 10,
+												y: 160,
+												w: 100,
+												h: 10,
+												linearGradient: ["red", "green", "blue"],
+											},
+											{
+												type: "rect",
+												x: 10,
+												y: 175,
+												w: 100,
+												h: 10,
+												linearGradient: ["red", "yellow", "green", "blue"],
+											},
+											{
+												type: "ellipse",
+												x: 260,
+												y: 140,
+												r1: 30,
+												r2: 20,
+												linearGradient: ["red", "green", "blue", "red"],
+											},
+											{
+												type: "rect",
+												x: 200,
+												y: 10,
+												w: 50,
+												h: 30,
+												color: ["stripe45d", "blue"],
+											},
 										],
+										colSpan: 4,
+										alignment: "center",
+										verticalAlignment: "middle",
 									},
-									layout: {
-										hLineWidth: () => 0.1,
-										vLineWidth: () => 0.1,
-									},
-									verticalAlignment: "middle",
-								},
+									"",
+									"",
+									"",
+								],
 							],
-							verticalAlignment: "middle",
-							colSpan: 5,
 						},
-						"",
-						"",
-						"",
-						"",
-						{
-							table: {
-								heights: [20, "*", 20],
-								body: [
-									["ColG", "ColH"],
-									["vstretsh", "9"],
-									["10", "11"],
-								],
-							},
-							layout: {
-								hLineWidth: (i) => (i === 1 ? 5 : 1),
-							},
-						},
-						{
-							table: {
-								heights: 25,
-								body: [
-									[
-										{ text: "ColJ", border: [false, true, false, false] },
-										{ text: "ColK", border: [false, true, false, false] },
-										{ text: "ColL", border: [false, true, false, false] },
-									],
-									[
-										{ text: "8", border: [false, false, false, false] },
-										{ text: "9", border: [false, false, false, false] },
-										{ text: "10", rowSpan: 2, border: [false, false, false, false] },
-									],
-									[
-										{ text: "11", border: [false, false, false, false] },
-										{ text: "12", border: [false, false, false, true] },
-										"",
-									],
-								],
-							},
-							layout: {
-								hLineWidth: (i) => (i === 0 ? 5 : i === 1 ? 50 : 1),
-							},
-							verticalAlignment: "bottom",
-						},
-						{
-							table: {
-								heights: 25,
-								body: [
-									[
-										{ text: "ColM", border: [false, true, false, false] },
-										{ text: "ColN", border: [false, true, false, false] },
-										{ text: "Col0", border: [false, true, false, false] },
-									],
-									[
-										{ text: "8", border: [false, false, false, false] },
-										{ text: "9", border: [false, false, false, false] },
-										{ text: "10", rowSpan: 2, border: [false, false, false, false] },
-									],
-									[
-										{ text: "11", border: [false, false, false, false] },
-										{ text: "12", border: [false, false, false, true] },
-										"",
-									],
-								],
-							},
-							layout: {
-								hLineWidth: (i) => (i === 0 ? 5 : i === 1 ? 50 : 1),
-								paddingBottom: () => 5,
-								paddingTop: () => 5,
-							},
-							verticalAlignment: "middle",
-						},
-						{
-							canvas: [
-								{
-									type: "rect",
-									x: 0,
-									y: 0,
-									w: 310,
-									h: 190,
-									r: 5,
-									dash: { length: 5 },
-									lineColor: "blue",
-								},
-								{
-									type: "rect",
-									x: 1,
-									y: 1,
-									w: 308,
-									h: 188,
-									r: 4,
-									lineColor: "red",
-									color: "#ffffe0",
-								},
-								{
-									type: "polyline",
-									lineWidth: 3,
-									closePath: true,
-									points: [
-										{ x: 10, y: 10 },
-										{ x: 35, y: 40 },
-										{ x: 100, y: 40 },
-										{ x: 125, y: 10 },
-									],
-								},
-								{
-									type: "polyline",
-									lineWidth: 2,
-									color: "blue",
-									lineColor: "red",
-									points: [
-										{ x: 10, y: 110 },
-										{ x: 35, y: 140 },
-										{ x: 100, y: 140 },
-										{ x: 125, y: 110 },
-										{ x: 10, y: 110 },
-									],
-								},
-								{
-									type: "line",
-									x1: 40,
-									y1: 60,
-									x2: 260,
-									y2: 60,
-									lineWidth: 3,
-								},
-								{
-									type: "line",
-									x1: 40,
-									y1: 80,
-									x2: 260,
-									y2: 80,
-									lineWidth: 10,
-									lineCap: "round",
-								},
-								{
-									type: "line",
-									x1: 40,
-									y1: 100,
-									x2: 260,
-									y2: 100,
-									lineWidth: 10,
-									lineCap: "square",
-								},
-								{
-									type: "ellipse",
-									x: 150,
-									y: 140,
-									color: "red",
-									fillOpacity: 0.5,
-									r1: 80,
-									r2: 40,
-								},
-								{
-									type: "rect",
-									x: 150,
-									y: 150,
-									w: 150,
-									h: 25,
-								},
-								{
-									type: "rect",
-									x: 10,
-									y: 145,
-									w: 100,
-									h: 10,
-									linearGradient: ["red", "blue"],
-								},
-								{
-									type: "rect",
-									x: 10,
-									y: 160,
-									w: 100,
-									h: 10,
-									linearGradient: ["red", "green", "blue"],
-								},
-								{
-									type: "rect",
-									x: 10,
-									y: 175,
-									w: 100,
-									h: 10,
-									linearGradient: ["red", "yellow", "green", "blue"],
-								},
-								{
-									type: "ellipse",
-									x: 260,
-									y: 140,
-									r1: 30,
-									r2: 20,
-									linearGradient: ["red", "green", "blue", "red"],
-								},
-								{
-									type: "rect",
-									x: 200,
-									y: 10,
-									w: 50,
-									h: 30,
-									color: ["stripe45d", "blue"],
-								},
-							],
-							colSpan: 4,
-							alignment: "center",
-							verticalAlignment: "middle",
-						},
-						"",
-						"",
-						"",
 					],
-				],
-			},
-			layout: {
-				hLineWidth: () => 0.1,
-				vLineWidth: () => 0.1,
+					layout: {
+						hLineWidth: () => 0.1,
+						vLineWidth: () => 0.1,
+					},
+				},
 			},
 		},
 	],

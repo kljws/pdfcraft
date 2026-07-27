@@ -400,7 +400,7 @@ describe("Integration test: snaking columns", function () {
 						{
 							table: {
 								header: { rows: tableBody.slice(0, 1) },
-								body: [{ rows: tableBody.slice(1) }],
+								body: { groups: [{ rows: tableBody.slice(1) }] },
 							},
 						},
 						{ text: "" },
@@ -778,15 +778,17 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: [["Header A", "Header B", "Header C"]] },
-										body: [
-											{
-												rows: [
-													["Row 1 A", "Row 1 B", "Row 1 C"],
-													["Row 2 A", "Row 2 B", "Row 2 C"],
-													["Row 3 A", "Row 3 B", "Row 3 C"],
-												],
-											},
-										],
+										body: {
+											groups: [
+												{
+													rows: [
+														["Row 1 A", "Row 1 B", "Row 1 C"],
+														["Row 2 A", "Row 2 B", "Row 2 C"],
+														["Row 3 A", "Row 3 B", "Row 3 C"],
+													],
+												},
+											],
+										},
 									},
 									unbreakable: true,
 								},
@@ -1169,7 +1171,7 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: tableBody.slice(0, 1) },
-										body: [{ rows: tableBody.slice(1) }],
+										body: { groups: [{ rows: tableBody.slice(1) }] },
 									},
 									width: "*",
 								},
@@ -1219,7 +1221,7 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: tableBody.slice(0, 1) },
-										body: [{ rows: tableBody.slice(1) }],
+										body: { groups: [{ rows: tableBody.slice(1) }] },
 									},
 									width: "*",
 								},
@@ -1289,7 +1291,7 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: tableBody.slice(0, 1) },
-										body: [{ rows: tableBody.slice(1) }],
+										body: { groups: [{ rows: tableBody.slice(1) }] },
 									},
 									width: "*",
 								},
@@ -1340,7 +1342,7 @@ describe("Integration test: snaking columns", function () {
 					content: [
 						{
 							columns: [
-								{ table: { body: [{ rows: tableBody }] }, width: "*" },
+								{ table: { body: { groups: [{ rows: tableBody }] } }, width: "*" },
 								{ text: "", width: "*" },
 							],
 							columnGap: 30,
@@ -1379,10 +1381,12 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: tableBody.slice(0, 1) },
-										body: [
-											{ rows: tableBody.slice(1, 2), keepTogether: true },
-											...tableBody.slice(2).map((row) => ({ rows: [row] })),
-										],
+										body: {
+											groups: [
+												{ rows: tableBody.slice(1, 2), keepTogether: true },
+												...tableBody.slice(2).map((row) => ({ rows: [row] })),
+											],
+										},
 									},
 									width: "*",
 								},
@@ -1442,10 +1446,12 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: tableBody.slice(0, 2) },
-										body: [
-											{ rows: tableBody.slice(2, 3), keepTogether: true },
-											...tableBody.slice(3).map((row) => ({ rows: [row] })),
-										],
+										body: {
+											groups: [
+												{ rows: tableBody.slice(2, 3), keepTogether: true },
+												...tableBody.slice(3).map((row) => ({ rows: [row] })),
+											],
+										},
 									},
 									width: "*",
 								},
@@ -1518,10 +1524,12 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: tableBody.slice(0, 2) },
-										body: [
-											{ rows: tableBody.slice(2, 3), keepTogether: true },
-											...tableBody.slice(3).map((row) => ({ rows: [row] })),
-										],
+										body: {
+											groups: [
+												{ rows: tableBody.slice(2, 3), keepTogether: true },
+												...tableBody.slice(3).map((row) => ({ rows: [row] })),
+											],
+										},
 									},
 									width: "*",
 								},
@@ -1585,10 +1593,12 @@ describe("Integration test: snaking columns", function () {
 								{
 									table: {
 										header: { rows: tableBody.slice(0, 1) },
-										body: [
-											{ rows: tableBody.slice(1, 2), keepTogether: true },
-											...tableBody.slice(2).map((row) => ({ rows: [row] })),
-										],
+										body: {
+											groups: [
+												{ rows: tableBody.slice(1, 2), keepTogether: true },
+												...tableBody.slice(2).map((row) => ({ rows: [row] })),
+											],
+										},
 									},
 									width: "*",
 								},
@@ -1630,7 +1640,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: [{ rows: tableBody }],
+									body: { groups: [{ rows: tableBody }] },
 								},
 								width: "*",
 							},
@@ -1671,7 +1681,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: [{ rows: tableBody }],
+									body: { groups: [{ rows: tableBody }] },
 								},
 								width: "*",
 							},
@@ -1714,7 +1724,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: [{ rows: tableBody }],
+									body: { groups: [{ rows: tableBody }] },
 								},
 								width: "*",
 							},
@@ -1762,7 +1772,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: [{ rows: tableBody }],
+									body: { groups: [{ rows: tableBody }] },
 								},
 								width: "*",
 							},
@@ -1809,7 +1819,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: [{ rows: tableBody }],
+									body: { groups: [{ rows: tableBody }] },
 								},
 								width: "*",
 							},
@@ -1840,7 +1850,7 @@ describe("Integration test: snaking columns", function () {
 							{
 								table: {
 									widths: ["*", 60],
-									body: [{ rows: tableBody }],
+									body: { groups: [{ rows: tableBody }] },
 								},
 								width: "*",
 							},
@@ -1876,7 +1886,7 @@ describe("Integration test: snaking columns", function () {
 						columns: [
 							{
 								table: {
-									body: [{ rows: tableBody }],
+									body: { groups: [{ rows: tableBody }] },
 								},
 								width: "*",
 							},

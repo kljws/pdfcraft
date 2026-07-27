@@ -203,21 +203,25 @@ describe("LayoutBuilder", function () {
 					{
 						table: {
 							widths: [150, 150],
-							body: [
-								{
-									rows: [
-										[
-											{
-												text: Array.from({ length: 400 }, (_, index) => `line ${index}`).join(" "),
-												verticalAlignment: "middle",
-											},
-											{ text: "short", verticalAlignment: "bottom" },
+							body: {
+								groups: [
+									{
+										rows: [
+											[
+												{
+													text: Array.from({ length: 400 }, (_, index) => `line ${index}`).join(
+														" ",
+													),
+													verticalAlignment: "middle",
+												},
+												{ text: "short", verticalAlignment: "bottom" },
+											],
 										],
-									],
-								},
-							],
+									},
+								],
+								layout: emptyTableLayout,
+							},
 						},
-						layout: emptyTableLayout,
 					},
 				],
 				sampleTestProvider,
@@ -1098,20 +1102,22 @@ describe("LayoutBuilder", function () {
 				{
 					table: {
 						widths: [30, 50, 40],
-						body: [
-							{
-								rows: [
-									["a", "b", "c"],
-									[
-										{ text: "aaa", noWrap: true },
-										{ text: "bbb", noWrap: true },
-										{ text: "ccc", noWrap: true },
+						body: {
+							groups: [
+								{
+									rows: [
+										["a", "b", "c"],
+										[
+											{ text: "aaa", noWrap: true },
+											{ text: "bbb", noWrap: true },
+											{ text: "ccc", noWrap: true },
+										],
 									],
-								],
-							},
-						],
+								},
+							],
+							layout: emptyTableLayout,
+						},
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
@@ -1138,16 +1144,18 @@ describe("LayoutBuilder", function () {
 				{
 					table: {
 						widths: "auto",
-						body: [
-							{
-								rows: [
-									["a", "b", "c"],
-									["aaa", "bbb", "ccc"],
-								],
-							},
-						],
+						body: {
+							groups: [
+								{
+									rows: [
+										["a", "b", "c"],
+										["aaa", "bbb", "ccc"],
+									],
+								},
+							],
+							layout: emptyTableLayout,
+						},
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
@@ -1174,14 +1182,13 @@ describe("LayoutBuilder", function () {
 				{
 					table: {
 						widths: "auto",
-						body: [{ rows: [] as unknown[][] }],
+						body: { groups: [{ rows: [] as unknown[][] }], layout: emptyTableLayout },
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
 			for (var i = 0; i < 80; i++) {
-				desc[0].table.body[0].rows.push(["a", "b", "c"]);
+				desc[0].table.body.groups[0].rows.push(["a", "b", "c"]);
 			}
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
@@ -1194,17 +1201,16 @@ describe("LayoutBuilder", function () {
 				{
 					table: {
 						widths: "auto",
-						body: [{ rows: [] as unknown[][] }],
+						body: { groups: [{ rows: [] as unknown[][] }], layout: emptyTableLayout },
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
 			for (var i = 0; i < 59; i++) {
-				desc[0].table.body[0].rows.push(["a", "b", "c"]);
+				desc[0].table.body.groups[0].rows.push(["a", "b", "c"]);
 			}
 
-			desc[0].table.body[0].rows.push(["a\nb\nc", "a\nb\nc", "a\nb\nc"]);
+			desc[0].table.body.groups[0].rows.push(["a\nb\nc", "a\nb\nc", "a\nb\nc"]);
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
 
@@ -1219,11 +1225,10 @@ describe("LayoutBuilder", function () {
 				},
 				{
 					table: {
-						header: { rows: [["a1\na2", "b1\nb2", "c1\nc2"]] },
+						header: { rows: [["a1\na2", "b1\nb2", "c1\nc2"]], layout: emptyTableLayout },
 						widths: "auto",
-						body: [{ rows: [["a", "b", "c"]] }],
+						body: { groups: [{ rows: [["a", "b", "c"]] }], layout: emptyTableLayout },
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
@@ -1250,12 +1255,12 @@ describe("LayoutBuilder", function () {
 								["a1", "b1", "c1"],
 								["a2", "b2", "c2"],
 							],
+							layout: emptyTableLayout,
 						},
 
 						widths: "auto",
-						body: [{ rows: [["a", "b", "c"]] }],
+						body: { groups: [{ rows: [["a", "b", "c"]] }], layout: emptyTableLayout },
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
@@ -1274,16 +1279,15 @@ describe("LayoutBuilder", function () {
 			var desc = [
 				{
 					table: {
-						header: { rows: [["h1", "h2", "h3"]] },
+						header: { rows: [["h1", "h2", "h3"]], layout: emptyTableLayout },
 						widths: "auto",
-						body: [{ rows: [] as unknown[][] }],
+						body: { groups: [{ rows: [] as unknown[][] }], layout: emptyTableLayout },
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
 			for (var i = 0; i < 590; i++) {
-				desc[0].table.body[0].rows.push(["a", "b", "c"]);
+				desc[0].table.body.groups[0].rows.push(["a", "b", "c"]);
 			}
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
@@ -1300,28 +1304,30 @@ describe("LayoutBuilder", function () {
 			var desc = [
 				{
 					table: {
-						header: { rows: [["h1", "h2", "h3"]] },
+						header: { rows: [["h1", "h2", "h3"]], layout: emptyTableLayout },
 						widths: "auto",
-						body: [
-							{
-								rows: [
-									[
-										{
-											ul: [],
-										},
-										"b",
-										"c",
+						body: {
+							groups: [
+								{
+									rows: [
+										[
+											{
+												ul: [],
+											},
+											"b",
+											"c",
+										],
 									],
-								],
-							},
-						],
+								},
+							],
+							layout: emptyTableLayout,
+						},
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
 			for (var i = 0; i < 100; i++) {
-				(desc[0].table.body[0].rows[0][0] as { ul: string[] }).ul.push("item");
+				(desc[0].table.body.groups[0].rows[0][0] as { ul: string[] }).ul.push("item");
 			}
 
 			var pages = builder.layoutDocument(desc, sampleTestProvider);
@@ -1522,27 +1528,29 @@ describe("LayoutBuilder", function () {
 				{
 					table: {
 						widths: [200, 200],
-						body: [
-							{
-								rows: [
-									[
-										{
-											text: "text 1",
-											style: {
-												alignment: "center",
+						body: {
+							groups: [
+								{
+									rows: [
+										[
+											{
+												text: "text 1",
+												style: {
+													alignment: "center",
+												},
+												relativePosition: { x: 10, y: 200 },
 											},
-											relativePosition: { x: 10, y: 200 },
-										},
-										{
-											text: "text 2",
-											relativePosition: { x: 0, y: 0 },
-										},
+											{
+												text: "text 2",
+												relativePosition: { x: 0, y: 0 },
+											},
+										],
 									],
-								],
-							},
-						],
+								},
+							],
+							layout: emptyTableLayout,
+						},
 					},
-					layout: emptyTableLayout,
 				},
 			];
 
@@ -2244,17 +2252,19 @@ describe("LayoutBuilder", function () {
 				{
 					id: "table",
 					table: {
-						body: [
-							{
-								rows: [
-									[
-										{
-											text: "Column 1 (Page 1)",
-										},
+						body: {
+							groups: [
+								{
+									rows: [
+										[
+											{
+												text: "Column 1 (Page 1)",
+											},
+										],
 									],
-								],
-							},
-						],
+								},
+							],
+						},
 					},
 				},
 				{ id: "ul", ul: [{ text: "ul Item", id: "ul-item" }] },

@@ -15,6 +15,47 @@ export const getTableInnerContentWidth = (tableNode: LayoutPdfNode): number =>
 		return width + (column._calcWidth ?? column._minWidth);
 	}, 0);
 
+export type CornerRadii = [
+	topLeft: number,
+	topRight: number,
+	bottomRight: number,
+	bottomLeft: number,
+];
+
+export const createRoundedRectanglePath = (
+	width: number,
+	height: number,
+	radii: CornerRadii,
+): string => {
+	let [topLeft, topRight, bottomRight, bottomLeft] = radii.map((radius) =>
+		Math.max(0, radius),
+	) as CornerRadii;
+	const scales = [
+		topLeft + topRight > 0 ? width / (topLeft + topRight) : 1,
+		bottomLeft + bottomRight > 0 ? width / (bottomLeft + bottomRight) : 1,
+		topLeft + bottomLeft > 0 ? height / (topLeft + bottomLeft) : 1,
+		topRight + bottomRight > 0 ? height / (topRight + bottomRight) : 1,
+	];
+	const scale = Math.min(1, ...scales);
+	topLeft *= scale;
+	topRight *= scale;
+	bottomRight *= scale;
+	bottomLeft *= scale;
+
+	return [
+		`M ${topLeft} 0`,
+		`H ${width - topRight}`,
+		`Q ${width} 0 ${width} ${topRight}`,
+		`V ${height - bottomRight}`,
+		`Q ${width} ${height} ${width - bottomRight} ${height}`,
+		`H ${bottomLeft}`,
+		`Q 0 ${height} 0 ${height - bottomLeft}`,
+		`V ${topLeft}`,
+		`Q 0 0 ${topLeft} 0`,
+		"Z",
+	].join(" ");
+};
+
 export const createRowSpanData = (
 	tableNode: LayoutPdfNode,
 	layout: ResolvedTableLayout,

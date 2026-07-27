@@ -13,12 +13,69 @@ import { isNumber, isObject, isString } from "../utils/variable-type";
 export function resolveTableLayout(
 	node: MeasuredPdfNode,
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
+	layoutDefinition: unknown = node.layout,
 ): TableLayout<MeasuredPdfNode> {
-	const layout = isString(node.layout) ? tableLayouts[node.layout] : node.layout;
+	const layout = isString(layoutDefinition) ? tableLayouts[layoutDefinition] : layoutDefinition;
 	return pack<TableLayout<MeasuredPdfNode>>(
 		defaultTableLayout,
 		isObject(layout) ? (layout as Partial<TableLayout>) : undefined,
 	);
+}
+
+export function combineTableLayouts(
+	headerLayout: TableLayout<MeasuredPdfNode>,
+	bodyLayout: TableLayout<MeasuredPdfNode>,
+): TableLayout<MeasuredPdfNode> {
+	const useHeader = (index: number, node: MeasuredPdfNode) =>
+		(node.table!.headerRows ?? 0) > 0 && index < (node.table!.headerRows ?? 0);
+	const useHeaderBoundary = (index: number, node: MeasuredPdfNode) =>
+		(node.table!.headerRows ?? 0) > 0 && index <= (node.table!.headerRows ?? 0);
+
+	return {
+		hLineWidth: (index, node) =>
+			(useHeaderBoundary(index, node) ? headerLayout : bodyLayout).hLineWidth(index, node),
+		vLineWidth: (index, node) =>
+			(node.table!.headerRows ?? 0) > 0
+				? Math.max(headerLayout.vLineWidth(index, node), bodyLayout.vLineWidth(index, node))
+				: bodyLayout.vLineWidth(index, node),
+		hLineColor: (index, node, columnIndex) => {
+			const layout = useHeaderBoundary(index, node) ? headerLayout : bodyLayout;
+			return typeof layout.hLineColor === "function"
+				? layout.hLineColor(index, node, columnIndex)
+				: layout.hLineColor;
+		},
+		vLineColor: headerLayout.vLineColor,
+		hLineStyle: (index, node) =>
+			(useHeaderBoundary(index, node) ? headerLayout : bodyLayout).hLineStyle?.(index, node),
+		vLineStyle: (index, node) =>
+			headerLayout.vLineStyle?.(index, node) ?? bodyLayout.vLineStyle?.(index, node),
+		paddingLeft: (index, node) =>
+			(node.table!.headerRows ?? 0) > 0
+				? Math.max(headerLayout.paddingLeft(index, node), bodyLayout.paddingLeft(index, node))
+				: bodyLayout.paddingLeft(index, node),
+		paddingRight: (index, node) =>
+			(node.table!.headerRows ?? 0) > 0
+				? Math.max(headerLayout.paddingRight(index, node), bodyLayout.paddingRight(index, node))
+				: bodyLayout.paddingRight(index, node),
+		paddingTop: (index, node) =>
+			(useHeader(index, node) ? headerLayout : bodyLayout).paddingTop(index, node),
+		paddingBottom: (index, node) =>
+			(useHeader(index, node) ? headerLayout : bodyLayout).paddingBottom(index, node),
+		fillColor: (rowIndex: number, node: MeasuredPdfNode, columnIndex: number) => {
+			const layout = useHeader(rowIndex, node) ? headerLayout : bodyLayout;
+			return typeof layout.fillColor === "function"
+				? layout.fillColor(rowIndex, node, columnIndex)
+				: layout.fillColor;
+		},
+		fillOpacity: (rowIndex: number, node: MeasuredPdfNode, columnIndex: number) => {
+			const layout = useHeader(rowIndex, node) ? headerLayout : bodyLayout;
+			return typeof layout.fillOpacity === "function"
+				? layout.fillOpacity(rowIndex, node, columnIndex)
+				: layout.fillOpacity;
+		},
+		defaultBorder: headerLayout.defaultBorder || bodyLayout.defaultBorder,
+		hLineWhenBroken: bodyLayout.hLineWhenBroken,
+	};
 }
 
 export interface TableOffsets {

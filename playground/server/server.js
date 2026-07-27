@@ -15,8 +15,11 @@ const publicDirectory = path.join(directory, "public");
 const sampleDirectory = path.resolve(directory, "../shared/samples");
 const fontDirectory = path.resolve(directory, "../../fonts/Roboto");
 const exampleImageDirectory = path.resolve(directory, "../../examples/images");
+const playgroundLogo = path.resolve(directory, "../logo.jpg");
 const port = Number(process.env.PORT) || 1234;
 const requestLimit = 2 * 1024 * 1024;
+const sampleEventResponses = new Set();
+const sampleChangeTimers = new Map();
 
 pdfcraft.addFonts({
 	Roboto: {
@@ -37,7 +40,8 @@ pdfcraft.setLocalAccessPolicy((filename) => {
 	return (
 		isWithin(fontDirectory, resolved) ||
 		isWithin(sampleDirectory, resolved) ||
-		isWithin(exampleImageDirectory, resolved)
+		isWithin(exampleImageDirectory, resolved) ||
+		resolved === playgroundLogo
 	);
 });
 
@@ -48,6 +52,7 @@ pdfcraft.setUrlAccessPolicy((resource) => {
 
 const resourcePaths = new Map([
 	["examples/images/sampleImage.jpg", path.join(exampleImageDirectory, "sampleImage.jpg")],
+	["playground/logo.jpg", playgroundLogo],
 ]);
 
 const resolveDocumentFilePaths = (documentDefinition) => {
@@ -138,13 +143,47 @@ const sendSamples = async (pathname, response) => {
 		return;
 	}
 
-	const content = await fs.promises.readFile(path.join(sampleDirectory, `${sample}.json5`), "utf8");
+	const content = await fs.promises.readFile(path.join(sampleDirectory, `${sample}.js`), "utf8");
 	response.writeHead(200, {
 		"Content-Type": "text/javascript; charset=utf-8",
 		"Cache-Control": "no-store",
 	});
 	response.end(createSampleSource(content));
 };
+
+const sendSampleEvents = (response) => {
+	response.writeHead(200, {
+		"Content-Type": "text/event-stream; charset=utf-8",
+		"Cache-Control": "no-store",
+		Connection: "keep-alive",
+	});
+	response.write(": connected\n\n");
+	sampleEventResponses.add(response);
+	response.on("close", () => sampleEventResponses.delete(response));
+};
+
+fs.watch(sampleDirectory, { persistent: false }, (_eventType, filename) => {
+	if (!filename?.endsWith(".js")) {
+		return;
+	}
+
+	const sample = path.basename(filename, ".js");
+	if (!sampleNames.includes(sample)) {
+		return;
+	}
+
+	clearTimeout(sampleChangeTimers.get(sample));
+	sampleChangeTimers.set(
+		sample,
+		setTimeout(() => {
+			sampleChangeTimers.delete(sample);
+			const message = `data: ${JSON.stringify({ sample })}\n\n`;
+			for (const response of sampleEventResponses) {
+				response.write(message);
+			}
+		}, 50),
+	);
+});
 
 const sendStaticFile = (pathname, response) => {
 	const file = staticFiles.get(pathname);
@@ -168,6 +207,10 @@ const server = http.createServer(async (request, response) => {
 			await sendPdf(request, response);
 			return;
 		}
+		if (url.pathname === "/sample-events" && request.method === "GET") {
+			sendSampleEvents(response);
+			return;
+		}
 		if (url.pathname === "/samples" || url.pathname.startsWith("/samples/")) {
 			await sendSamples(url.pathname, response);
 			return;
@@ -175,7 +218,7 @@ const server = http.createServer(async (request, response) => {
 
 		sendStaticFile(url.pathname, response);
 	} catch (error) {
-		console.error(error);
+		console.error("[PDFCraft server playground] Request failed:", error);
 		response
 			.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" })
 			.end(error instanceof Error ? error.message : "PDF generation failed");

@@ -264,7 +264,7 @@ var docDefinition = {
 			columns: [
 				{
 					table: {
-						body: generateTableBody(200),
+						body: { groups: [{ rows: generateTableBody(200) }] },
 					},
 					width: "*",
 				},
@@ -274,15 +274,15 @@ var docDefinition = {
 			snakingColumns: true,
 		},
 
-		{ text: "Example 2: Table with headerRows", style: "subheader" },
+		{ text: "Example 2: Table with a declarative header", style: "subheader" },
 		{ text: "", style: "description" },
 		" ",
 		{
 			columns: [
 				{
 					table: {
-						headerRows: 1,
-						body: generateTableBody(200),
+						header: { rows: generateTableBody(200).slice(0, 1) },
+						body: { groups: [{ rows: generateTableBody(200).slice(1) }] },
 					},
 					width: "*",
 				},
@@ -292,16 +292,22 @@ var docDefinition = {
 			snakingColumns: true,
 		},
 
-		{ text: "Example 3: Table with headerRows and keepWithHeaderRows", style: "subheader" },
+		{ text: "Example 3: Header with a grouped first logical row", style: "subheader" },
 		{ text: "", style: "description" },
 		" ",
 		{
 			columns: [
 				{
 					table: {
-						headerRows: 2,
-						keepWithHeaderRows: 1,
-						body: generateTableBody(200),
+						header: { rows: generateTableBody(200).slice(0, 2) },
+						body: {
+							groups: [
+								{ rows: generateTableBody(200).slice(2, 3), keepTogether: true },
+								...generateTableBody(200)
+									.slice(3)
+									.map((row) => ({ rows: [row] })),
+							],
+						},
 					},
 					width: "*",
 				},
