@@ -184,6 +184,59 @@ describe("Integration test: tables", function () {
 		);
 	});
 
+	it("does not mutate an unrelated vector aligned with a rounded table border", function () {
+		const table = {
+			borderRadius: 8,
+			widths: [60, 60],
+			body: {
+				groups: [{ rows: [["Body A", "Body B"]] }],
+				layout: { hLineWidth: () => 1, vLineWidth: () => 1 },
+			},
+		};
+		const baseline = testHelper.renderPages("A6", { content: { table } });
+		const bottomLines = baseline[0].items
+			.filter(
+				(entry) =>
+					entry.type === "vector" && entry.item.type === "line" && entry.item.y1 === entry.item.y2,
+			)
+			.map((entry) => entry.item)
+			.sort((left, right) => (right.y1 ?? 0) - (left.y1 ?? 0));
+		const bottomLine = bottomLines[0];
+		const x1 = bottomLine.x1 ?? 0;
+		const x2 = bottomLine.x2 ?? 0;
+		const y = bottomLine.y1 ?? 0;
+
+		const pages = testHelper.renderPages("A6", {
+			content: [
+				{
+					absolutePosition: { x: x1, y },
+					canvas: [
+						{
+							type: "line",
+							x1: 0,
+							x2: x2 - x1,
+							y1: 0,
+							y2: 0,
+							lineWidth: 1,
+							lineColor: "#ff00ff",
+						},
+					],
+				},
+				{ table },
+			],
+		});
+		const unrelated = pages[0].items.find(
+			(entry) => entry.type === "vector" && entry.item.lineColor === "#ff00ff",
+		);
+
+		assert.ok(unrelated && unrelated.type === "vector");
+		assert.equal(unrelated.item.type, "line");
+		assert.equal(unrelated.item.x1, x1);
+		assert.equal(unrelated.item.x2, x2);
+		assert.equal(unrelated.item.y1, y);
+		assert.equal(unrelated.item.y2, y);
+	});
+
 	it("rounds every fragment of a paginated table", function () {
 		const pages = testHelper.renderPages("A6", {
 			content: {

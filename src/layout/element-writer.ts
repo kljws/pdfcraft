@@ -7,12 +7,38 @@ import type {
 	LineLike,
 	PageBreak,
 	PageItem,
+	PdfPage,
 	Position,
 	Vector,
 } from "../types/internal";
 import { addPageItem, alignCanvas, alignImage, getAlignmentOffset } from "./element-writer.helpers";
 import { addAttachment, addCanvas, addImage, addQr, addSVG } from "./element-writer.media";
 import { addAcroForm } from "./element-writer.form";
+
+type VectorPageItem = Extract<PageItem, { type: "vector" }>;
+type VectorInsertionListener = (pageIndex: number, page: PdfPage, pageItem: VectorPageItem) => void;
+
+const vectorInsertionListener = Symbol("vectorInsertionListener");
+type TrackedVector = Vector & {
+	[vectorInsertionListener]?: VectorInsertionListener;
+};
+
+export const trackVectorInsertion = (vector: Vector, listener: VectorInsertionListener): void => {
+	Object.defineProperty(vector, vectorInsertionListener, {
+		value: listener,
+		enumerable: true,
+		configurable: true,
+	});
+};
+
+const notifyVectorInsertion = (
+	vector: Vector,
+	pageIndex: number,
+	page: PdfPage,
+	pageItem: VectorPageItem,
+): void => {
+	(vector as TrackedVector)[vectorInsertionListener]?.(pageIndex, page, pageItem);
+};
 
 export interface ElementWriterEvents {
 	lineAdded: [line: LineLike];
@@ -151,14 +177,12 @@ class ElementWriter {
 
 		if (page) {
 			offsetVector(vector, ignoreContextX ? 0 : context.x, ignoreContextY ? 0 : context.y);
-			addPageItem(
-				page,
-				{
-					type: "vector",
-					item: vector,
-				},
-				index,
-			);
+			const pageItem: VectorPageItem = {
+				type: "vector",
+				item: vector,
+			};
+			addPageItem(page, pageItem, index);
+			notifyVectorInsertion(vector, isNumber(forcePage) ? forcePage : context.page, page, pageItem);
 			return position;
 		}
 	}
@@ -235,8 +259,8 @@ class ElementWriter {
 					});
 					break;
 
-				case "vector":
-					var v = pack(item.item as Vector) as Vector & {
+				case "vector": {
+					const v = pack(item.item as Vector) as Vector & {
 						_isFillColorFromUnbreakable?: boolean;
 					};
 					updateNodePageNumbers(v, ctx.page + 1);
@@ -246,22 +270,22 @@ class ElementWriter {
 						useBlockXOffset ? block.xOffset || 0 : ctx.x,
 						useBlockYOffset ? block.yOffset || 0 : ctx.y,
 					);
+					const pageItem: VectorPageItem = {
+						type: "vector",
+						item: v,
+					};
 					if (v._isFillColorFromUnbreakable) {
 						// If the item is a fillColor from an unbreakable block
 						// We have to add it at the beginning of the items body array of the page
 						delete v._isFillColorFromUnbreakable;
 						const endOfBackgroundItemsIndex = ctx.backgroundLength[ctx.page];
-						page.items.splice(endOfBackgroundItemsIndex, 0, {
-							type: "vector",
-							item: v,
-						});
+						page.items.splice(endOfBackgroundItemsIndex, 0, pageItem);
 					} else {
-						page.items.push({
-							type: "vector",
-							item: v,
-						});
+						page.items.push(pageItem);
 					}
+					notifyVectorInsertion(v, ctx.page, page, pageItem);
 					break;
+				}
 
 				case "image":
 				case "svg":

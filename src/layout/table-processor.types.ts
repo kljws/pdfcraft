@@ -1,5 +1,18 @@
 import type { Color } from "../types";
-import type { LayoutPdfNode, Vector } from "../types/internal";
+import type { LayoutPdfNode, PageItem, PdfPage, Vector } from "../types/internal";
+
+export type VectorPageItem = Extract<PageItem, { type: "vector" }>;
+
+export interface TablePageVectorRegistry {
+	horizontalGroup?: object;
+	horizontalItems: Set<VectorPageItem>;
+	leftVerticals: Set<VectorPageItem>;
+	rightVerticals: Set<VectorPageItem>;
+	leftFillGroup?: object;
+	leftFills: Set<VectorPageItem>;
+	rightFillGroup?: object;
+	rightFills: Set<VectorPageItem>;
+}
 
 export interface RowSpanData {
 	left: number;
@@ -34,4 +47,5 @@ export interface TableProcessorState {
 	rowSpanData: RowSpanData[];
 	borderRadius: number;
 	roundedTopByPage: Map<number, number>;
+	vectorRegistryByPage: Map<PdfPage, TablePageVectorRegistry>;
 }

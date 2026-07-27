@@ -14,14 +14,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - Automatic-height pages now resolve their finite content height before dynamic headers, footers and watermarks are measured. Automatic watermark font sizing therefore respects the real page height instead of treating it as `Infinity`, and footer callbacks receive the finalized page dimensions.
+- Rounded paginated tables now identify their own closing borders, outer verticals and corner fills through a per-table, per-page vector registry instead of matching every page vector by approximate coordinates. Adjacent tables, decorated stack containers and unrelated canvas vectors aligned with a table boundary can no longer be removed or rounded accidentally.
 - URL resource resolution now follows at most 30 observable redirects, preserves access-policy, missing-`Location`, redirect-limit and HTTP-status errors without incorrectly wrapping them as network failures, retries a resource after an earlier resolution failed instead of permanently caching the rejected promise, and releases settled in-flight records after direct or batched resolution. Browser `opaqueredirect` fallback behavior is now explicitly documented: its hidden browser-controlled hops cannot be counted, while the final response URL remains subject to the configured access policy.
 - Replaced the virtual file system's plain-object storage with a `Map`, so prototype-like filenames such as `constructor`, `toString`, `__proto__` and `hasOwnProperty` are no longer reported as phantom files and can be stored safely.
 
 ### Tests
 
 - Added a regression covering finite automatic page height, footer dimensions and bounded automatic watermark sizing before repeatables are laid out.
+- Added regressions for table-vector ownership and insertion tracking through cloned unbreakable fragments, while retaining the existing rounded-border, repeated-header and grouped-row pagination coverage.
 - Added URL resolver regressions for the exact redirect boundary, error classification and causes, failed-request retries, settled-record cleanup, and browser `opaqueredirect` fallback requests.
 - Added virtual-file-system regressions for prototype-like filenames and the existing single virtual-root slash normalization.
+
+### Performance
+
+- Replaced page-wide geometric scans used to close rounded table fragments with direct references to the vectors emitted by the current `TableProcessor`. Only the registered vectors for the relevant page fragment are now inspected or invalidated.
+
+### Documentation
+
+- Updated the source architecture map with the vector-insertion and per-table border-registry ownership model used across cloned fragments and page boundaries.
 
 ## [0.7.2] - 2026-07-27
 

@@ -1,7 +1,12 @@
 import type PageElementWriter from "./element-writer.page";
 import { isNumber } from "../utils/variable-type";
 import type { TableProcessorState } from "./table-processor.types";
-import { createRoundedRectanglePath, type CornerRadii } from "./table-processor.helpers";
+import {
+	createRoundedRectanglePath,
+	trackTableVector,
+	type CornerRadii,
+	type TableVectorRole,
+} from "./table-processor.helpers";
 
 const TABLE_FILL_CORRECTION = 0.5;
 
@@ -186,29 +191,35 @@ export function drawTableRowSegment(
 					lineWidth: 0,
 				}
 			: rectangle;
+		const fillRoles: TableVectorRole[] = [];
+		const fillGroup = {};
+		if (!hasRoundedCorner && processor.borderRadius > 0) {
+			if (isFirstCell) fillRoles.push("leftFill");
+			if (isLastCell) fillRoles.push("rightFill");
+		}
 		if (fillColor) {
+			const vector = {
+				...shape,
+				color: fillColor,
+				fillOpacity,
+				_isFillColorFromUnbreakable: Boolean(writer.transactionLevel),
+			};
+			if (fillRoles.length > 0) trackTableVector(processor, vector, fillRoles, fillGroup);
 			writer.addVector(
-				{
-					...shape,
-					color: fillColor,
-					fillOpacity,
-					_isFillColorFromUnbreakable: Boolean(writer.transactionLevel),
-				},
+				vector,
 				false,
 				true,
 				writer.context().backgroundLength[writer.context().page],
 			);
 		}
 		if (overlayPattern) {
-			writer.addVector(
-				{
-					...shape,
-					color: overlayPattern,
-					fillOpacity: cell.overlayOpacity,
-				},
-				false,
-				true,
-			);
+			const vector = {
+				...shape,
+				color: overlayPattern,
+				fillOpacity: cell.overlayOpacity,
+			};
+			if (fillRoles.length > 0) trackTableVector(processor, vector, fillRoles, fillGroup);
+			writer.addVector(vector, false, true);
 		}
 	}
 }

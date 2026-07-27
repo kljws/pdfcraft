@@ -1,6 +1,75 @@
 import { PAGE_BREAK_VALUES } from "./table-processor.constants";
-import type { ColumnWidth, LayoutPdfNode } from "../types/internal";
-import type { ResolvedTableLayout, RowSpanData } from "./table-processor.types";
+import type { ColumnWidth, LayoutPdfNode, PdfPage, Vector } from "../types/internal";
+import { trackVectorInsertion } from "./element-writer";
+import type {
+	ResolvedTableLayout,
+	RowSpanData,
+	TablePageVectorRegistry,
+	TableProcessorState,
+} from "./table-processor.types";
+
+export type TableVectorRole =
+	"horizontal" | "leftVertical" | "rightVertical" | "leftFill" | "rightFill";
+
+const getPageVectorRegistry = (
+	processor: TableProcessorState,
+	page: PdfPage,
+): TablePageVectorRegistry => {
+	let registry = processor.vectorRegistryByPage.get(page);
+	if (!registry) {
+		registry = {
+			horizontalItems: new Set(),
+			leftVerticals: new Set(),
+			rightVerticals: new Set(),
+			leftFills: new Set(),
+			rightFills: new Set(),
+		};
+		processor.vectorRegistryByPage.set(page, registry);
+	}
+	return registry;
+};
+
+export const trackTableVector = (
+	processor: TableProcessorState,
+	vector: Vector,
+	roles: TableVectorRole[],
+	group?: object,
+): void => {
+	trackVectorInsertion(vector, (_pageIndex, page, pageItem) => {
+		const registry = getPageVectorRegistry(processor, page);
+		for (const role of roles) {
+			switch (role) {
+				case "horizontal":
+					if (registry.horizontalGroup !== group) {
+						registry.horizontalGroup = group;
+						registry.horizontalItems.clear();
+					}
+					registry.horizontalItems.add(pageItem);
+					break;
+				case "leftVertical":
+					registry.leftVerticals.add(pageItem);
+					break;
+				case "rightVertical":
+					registry.rightVerticals.add(pageItem);
+					break;
+				case "leftFill":
+					if (registry.leftFillGroup !== group) {
+						registry.leftFillGroup = group;
+						registry.leftFills.clear();
+					}
+					registry.leftFills.add(pageItem);
+					break;
+				case "rightFill":
+					if (registry.rightFillGroup !== group) {
+						registry.rightFillGroup = group;
+						registry.rightFills.clear();
+					}
+					registry.rightFills.add(pageItem);
+					break;
+			}
+		}
+	});
+};
 
 export const hasExplicitPageBreak = (cell: LayoutPdfNode): boolean => {
 	if (!cell || typeof cell !== "object") {

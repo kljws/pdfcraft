@@ -1,6 +1,6 @@
 import type PageElementWriter from "./element-writer.page";
 import ColumnCalculator from "./column-calculator";
-import type { LayoutPdfNode, TableOffsets, TableRowGroupRange } from "../types/internal";
+import type { LayoutPdfNode, PdfPage, TableOffsets, TableRowGroupRange } from "../types/internal";
 import { isPositiveInteger } from "../utils/variable-type";
 import {
 	createRowSpanData,
@@ -8,7 +8,11 @@ import {
 	hasExplicitPageBreak,
 	propagateCellBorders,
 } from "./table-processor.helpers";
-import type { ResolvedTableLayout, RowSpanData } from "./table-processor.types";
+import type {
+	ResolvedTableLayout,
+	RowSpanData,
+	TablePageVectorRegistry,
+} from "./table-processor.types";
 
 export interface TableLifecycleState {
 	tableNode: LayoutPdfNode;
@@ -21,6 +25,7 @@ export interface TableLifecycleState {
 	tableWidth: number;
 	borderRadius: number;
 	roundedTopByPage: Map<number, number>;
+	vectorRegistryByPage: Map<PdfPage, TablePageVectorRegistry>;
 	tableOffset: number;
 	rowSpanData: RowSpanData[];
 	rowGroupsByRow: Array<TableRowGroupRange | undefined>;
@@ -63,6 +68,7 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 		processor.tableWidth / 2,
 	);
 	processor.roundedTopByPage.clear();
+	processor.vectorRegistryByPage.clear();
 	const remainingWidth = Math.max(0, contextWidth - processor.tableWidth);
 	processor.tableOffset =
 		tableNode._tableAlignment === "right"

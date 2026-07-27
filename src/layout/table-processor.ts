@@ -1,8 +1,18 @@
 import { drawHorizontalLine, drawVerticalLine } from "./table-processor.borders";
 import type PageElementWriter from "./element-writer.page";
-import type { LayoutPdfNode, PdfTable, TableOffsets, TableRowGroupRange } from "../types/internal";
+import type {
+	LayoutPdfNode,
+	PdfPage,
+	PdfTable,
+	TableOffsets,
+	TableRowGroupRange,
+} from "../types/internal";
 import type { TablePageBreak } from "./layout-builder.table";
-import type { ResolvedTableLayout, RowSpanData } from "./table-processor.types";
+import type {
+	ResolvedTableLayout,
+	RowSpanData,
+	TablePageVectorRegistry,
+} from "./table-processor.types";
 import { beginTable, beginTableRow } from "./table-processor.lifecycle";
 import { drawTableRowSegment, type TableLinePosition } from "./table-processor.rows";
 
@@ -17,6 +27,7 @@ class TableProcessor {
 	tableWidth = 0;
 	borderRadius = 0;
 	roundedTopByPage = new Map<number, number>();
+	vectorRegistryByPage = new Map<PdfPage, TablePageVectorRegistry>();
 	tableOffset = 0;
 	rowSpanData: RowSpanData[] = [];
 	rowGroupsByRow: Array<TableRowGroupRange | undefined> = [];

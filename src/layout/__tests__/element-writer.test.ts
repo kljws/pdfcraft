@@ -1,7 +1,7 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import type DocumentContext from "../../document/document-context.ts";
-import ElementWriter from "../element-writer.ts";
-import type { CurrentPosition, LineLike, PageItem, Vector } from "../../types/internal.ts";
+import ElementWriter, { trackVectorInsertion } from "../element-writer.ts";
+import type { CurrentPosition, LineLike, PageItem, PdfPage, Vector } from "../../types/internal.ts";
 
 interface TestPage {
 	items: Array<{ item: { x?: number; y?: number } }>;
@@ -144,6 +144,19 @@ describe("ElementWriter", function () {
 			assert.equal(page.items.length, 1);
 		});
 
+		it("reports the page item inserted for a tracked vector", function () {
+			const vector: Vector = { type: "rect", x: 10, y: 10 };
+			let insertedPageItem: PageItem | undefined;
+			trackVectorInsertion(vector, (_pageIndex, insertedPage, pageItem) => {
+				assert.equal(insertedPage, page as unknown as PdfPage);
+				insertedPageItem = pageItem;
+			});
+
+			ew.addVector(vector);
+
+			assert.equal(insertedPageItem, page.items[0] as unknown as PageItem);
+		});
+
 		it("should offset vectors to the current position", function () {
 			var rect: Vector = { type: "rect", x: 10, y: 10 };
 			var ellipse: Vector = { type: "ellipse", x: 10, y: 10 };
@@ -252,6 +265,23 @@ describe("ElementWriter", function () {
 
 			assert.equal(fragment.items[3].item!.x, 40);
 			assert.equal(fragment.items[3].item!.y, 60);
+		});
+
+		it("preserves vector insertion tracking when a fragment is cloned", function () {
+			const source = fragment.items[2];
+			if (source.type !== "vector") throw new Error("Expected a vector fixture");
+			let insertedPageItem: PageItem | undefined;
+			trackVectorInsertion(source.item, (_pageIndex, insertedPage, pageItem) => {
+				assert.equal(insertedPage, page as unknown as PdfPage);
+				insertedPageItem = pageItem;
+			});
+
+			ew.addFragment(fragment);
+
+			assert.equal(insertedPageItem, page.items[2] as unknown as PageItem);
+			assert.notEqual(insertedPageItem, source);
+			if (insertedPageItem?.type !== "vector") throw new Error("Expected a tracked vector");
+			assert.notEqual(insertedPageItem.item, source.item);
 		});
 	});
 });

@@ -3,89 +3,79 @@ import type { Color } from "../types";
 import type { Vector } from "../types/internal";
 import type PageElementWriter from "./element-writer.page";
 import type { TableProcessorState } from "./table-processor.types";
-import { createRoundedRectanglePath } from "./table-processor.helpers";
+import {
+	createRoundedRectanglePath,
+	trackTableVector,
+	type TableVectorRole,
+} from "./table-processor.helpers";
 
 const removeExistingPageBottomLines = (
+	processor: TableProcessorState,
 	writer: PageElementWriter,
 	pageIndex: number,
 	bottomY: number,
-	tableLeft: number,
-	tableRight: number,
 ): void => {
 	const page = writer.context().pages[pageIndex];
-	if (!page) return;
+	const registry = page ? processor.vectorRegistryByPage.get(page) : undefined;
+	if (!page || !registry) return;
+
+	const removed = new Set(
+		[...registry.horizontalItems].filter(({ item }) => {
+			const lineWidth = item.lineWidth ?? 1;
+			return item.type === "line" && Math.abs((item.y1 ?? 0) - bottomY) <= lineWidth + 1;
+		}),
+	);
+	if (removed.size === 0) return;
+
 	for (let index = page.items.length - 1; index >= 0; index--) {
 		const entry = page.items[index];
-		if (entry.type !== "vector" || entry.item.type !== "line") continue;
-		const vector = entry.item;
-		const lineWidth = vector.lineWidth ?? 1;
-		const isHorizontal = Math.abs((vector.y1 ?? 0) - (vector.y2 ?? 0)) < 0.001;
-		const isAtBoundary = Math.abs((vector.y1 ?? 0) - bottomY) <= lineWidth + 1;
-		const left = Math.min(vector.x1 ?? 0, vector.x2 ?? 0);
-		const right = Math.max(vector.x1 ?? 0, vector.x2 ?? 0);
-		const belongsToTable = left >= tableLeft - 1 && right <= tableRight + 1;
-		if (isHorizontal && isAtBoundary && belongsToTable) page.items.splice(index, 1);
+		if (entry.type === "vector" && removed.has(entry)) page.items.splice(index, 1);
 	}
+	for (const item of removed) registry.horizontalItems.delete(item);
 };
 
 const roundExistingPageBottom = (
+	processor: TableProcessorState,
 	writer: PageElementWriter,
 	pageIndex: number,
 	bottomY: number,
 	radius: number,
-	tableLeft: number,
-	tableRight: number,
 ): void => {
 	const page = writer.context().pages[pageIndex];
-	if (!page) return;
-	const verticals: Vector[] = [];
-	for (const entry of page.items) {
-		if (
-			entry.type === "vector" &&
-			entry.item.type === "line" &&
-			Math.abs((entry.item.x1 ?? 0) - (entry.item.x2 ?? 0)) < 0.001 &&
-			(Math.abs((entry.item.x1 ?? 0) - tableLeft) < 0.001 ||
-				Math.abs((entry.item.x1 ?? 0) - tableRight) < 0.001) &&
-			Math.abs((entry.item.y2 ?? 0) - bottomY) <= (entry.item.lineWidth ?? 1) + 1
-		) {
-			verticals.push(entry.item);
+	const registry = page ? processor.vectorRegistryByPage.get(page) : undefined;
+	if (!registry) return;
+
+	for (const entries of [registry.leftVerticals, registry.rightVerticals]) {
+		for (const entry of entries) {
+			const vector = entry.item;
+			if (
+				vector.type === "line" &&
+				Math.abs((vector.y2 ?? 0) - bottomY) <= (vector.lineWidth ?? 1) + 1
+			) {
+				vector.y2 = Math.min(vector.y2 ?? bottomY, bottomY - radius);
+				entries.delete(entry);
+			}
 		}
-	}
-	for (const vector of verticals) {
-		vector.y2 = Math.min(vector.y2 ?? bottomY, bottomY - radius);
 	}
 
-	const fills: Vector[] = [];
-	for (const entry of page.items) {
-		if (
-			entry.type === "vector" &&
-			entry.item.type === "rect" &&
-			entry.item.color !== undefined &&
-			(entry.item.lineWidth ?? 0) === 0 &&
-			(entry.item.x ?? 0) + (entry.item.w ?? 0) >= tableLeft - 1 &&
-			(entry.item.x ?? 0) <= tableRight + 1 &&
-			Math.abs((entry.item.y ?? 0) + (entry.item.h ?? 0) - bottomY) <= 2
-		) {
-			fills.push(entry.item);
+	const left = registry.leftFills;
+	const right = registry.rightFills;
+	for (const entry of new Set([...left, ...right])) {
+		const vector = entry.item;
+		if (vector.type !== "rect" || Math.abs((vector.y ?? 0) + (vector.h ?? 0) - bottomY) > 2) {
+			continue;
 		}
-	}
-	if (fills.length === 0) return;
-	const left = fills.reduce((current, vector) =>
-		(vector.x ?? 0) < (current.x ?? 0) ? vector : current,
-	);
-	const right = fills.reduce((current, vector) =>
-		(vector.x ?? 0) + (vector.w ?? 0) > (current.x ?? 0) + (current.w ?? 0) ? vector : current,
-	);
-	for (const vector of new Set([left, right])) {
 		const width = vector.w ?? 0;
 		const height = vector.h ?? 0;
 		vector.type = "path";
 		vector.d = createRoundedRectanglePath(width, height, [
 			0,
 			0,
-			vector === right ? radius : 0,
-			vector === left ? radius : 0,
+			right.has(entry) ? radius : 0,
+			left.has(entry) ? radius : 0,
 		]);
+		left.delete(entry);
+		right.delete(entry);
 	}
 };
 
@@ -180,6 +170,7 @@ export function drawHorizontalLine(
 		const rightLineWidth = processor.layout.vLineWidth(boundaryColumn, processor.tableNode);
 		const leftCenter = tableLeft + leftLineWidth / 2;
 		const rightCenter = tableRight + rightLineWidth / 2;
+		const horizontalGroup = {};
 		const edgeRowIndex = isTopRoundedEdge
 			? Math.min(body.length - 1, Math.max(0, lineIndex))
 			: Math.min(body.length - 1, Math.max(0, lineIndex - 1));
@@ -201,13 +192,7 @@ export function drawHorizontalLine(
 			const y = (overrideY || 0) + offset;
 			const pageIndex = forcePage ?? writer.context().page;
 			const absoluteY = isNumber(overrideY) ? y : writer.context().y + y;
-			removeExistingPageBottomLines(
-				writer,
-				pageIndex,
-				absoluteY,
-				writer.context().x + leftCenter,
-				writer.context().x + rightCenter,
-			);
+			removeExistingPageBottomLines(processor, writer, pageIndex, absoluteY);
 		}
 		let cellAbove;
 		let currentCell;
@@ -316,22 +301,18 @@ export function drawHorizontalLine(
 						currentLine = null;
 						continue;
 					}
-					writer.addVector(
-						{
-							type: "line",
-							x1,
-							x2,
-							y1: y,
-							y2: y,
-							lineWidth: lineWidth,
-							dash: dash,
-							lineColor: borderColor,
-						},
-						false,
-						isNumber(overrideY),
-						undefined,
-						forcePage,
-					);
+					const vector: Vector = {
+						type: "line",
+						x1,
+						x2,
+						y1: y,
+						y2: y,
+						lineWidth: lineWidth,
+						dash: dash,
+						lineColor: borderColor,
+					};
+					trackTableVector(processor, vector, ["horizontal"], horizontalGroup);
+					writer.addVector(vector, false, isNumber(overrideY), undefined, forcePage);
 					currentLine = null;
 				}
 			}
@@ -345,14 +326,7 @@ export function drawHorizontalLine(
 			const absoluteY = ignoreContextY ? y : writer.context().y + y;
 			if (isTopRoundedEdge) processor.roundedTopByPage.set(pageIndex, absoluteY);
 			if (isBottomRoundedEdge) {
-				roundExistingPageBottom(
-					writer,
-					pageIndex,
-					absoluteY,
-					radius,
-					writer.context().x + leftCenter,
-					writer.context().x + rightCenter,
-				);
+				roundExistingPageBottom(processor, writer, pageIndex, absoluteY, radius);
 			}
 			if (roundLeft) {
 				addRoundedCorner(
@@ -479,18 +453,19 @@ export function drawVerticalLine(
 	const adjustedY1 = y1 - (trim?.bottom ?? 0);
 	if (adjustedY1 <= adjustedY0) return;
 
-	writer.addVector(
-		{
-			type: "line",
-			x1: x + width / 2,
-			x2: x + width / 2,
-			y1: adjustedY0,
-			y2: adjustedY1,
-			lineWidth: width,
-			dash: dash,
-			lineColor: borderColor,
-		},
-		false,
-		true,
-	);
+	const vector: Vector = {
+		type: "line",
+		x1: x + width / 2,
+		x2: x + width / 2,
+		y1: adjustedY0,
+		y2: adjustedY1,
+		lineWidth: width,
+		dash: dash,
+		lineColor: borderColor,
+	};
+	const roles: TableVectorRole[] = [];
+	if (vLineColIndex === 0) roles.push("leftVertical");
+	if (vLineColIndex === processor.rowSpanData.length - 1) roles.push("rightVertical");
+	if (roles.length > 0) trackTableVector(processor, vector, roles);
+	writer.addVector(vector, false, true);
 }

@@ -220,7 +220,7 @@ Tests:
 
 | File | Responsibility |
 | --- | --- |
-| `src/layout/element-writer.ts` | Base positioned-item writer, events, transactions/fragments and node page-number updates. |
+| `src/layout/element-writer.ts` | Base positioned-item writer, events, transactions/fragments, node page-number updates and internal vector-insertion tracking that survives fragment cloning. |
 | `src/layout/element-writer.page.ts` | Page-aware writer: automatic page changes, repeatable blocks, unbreakable transactions and column transitions. |
 | `src/layout/element-writer.media.ts` | Places images, SVGs, canvases, QR codes and attachments with overflow/page-fit rules. |
 | `src/layout/element-writer.form.ts` | Places block and inline AcroForm controls. |
@@ -235,13 +235,13 @@ Tests:
 | File | Responsibility |
 | --- | --- |
 | `src/layout/column-calculator.ts` | Allocates fixed, percentage, auto and star column widths under min/max and available-width constraints. |
-| `src/layout/table-processor.ts` | Per-table state and row lifecycle coordinator; closes table/repeatable transactions and delegates border/row rendering. |
-| `src/layout/table-processor.lifecycle.ts` | Initializes table widths, header/dont-break transactions and per-row padding/border reservations. |
-| `src/layout/table-processor.rows.ts` | Draws row-segment vertical borders and fills across one or more pages. |
-| `src/layout/table-processor.borders.ts` | Draws horizontal/vertical table lines, applies layout styles/colors and resolves per-cell border precedence. Route border-pagination defects here. |
-| `src/layout/table-processor.helpers.ts` | Creates row-span geometry, propagates borders, detects explicit cell page breaks and computes table width. |
+| `src/layout/table-processor.ts` | Per-table state and row lifecycle coordinator; owns the isolated page-vector registry, closes table/repeatable transactions and delegates border/row rendering. |
+| `src/layout/table-processor.lifecycle.ts` | Initializes table widths, the per-pass vector registry, header/dont-break transactions and per-row padding/border reservations. |
+| `src/layout/table-processor.rows.ts` | Draws row-segment vertical borders and fills across one or more pages, registering only rectangular outer fills that may need later corner rounding. |
+| `src/layout/table-processor.borders.ts` | Draws horizontal/vertical table lines, applies layout styles/colors, resolves per-cell border precedence and closes rounded page fragments through structurally owned vector references. Route border-pagination defects here. |
+| `src/layout/table-processor.helpers.ts` | Creates row-span geometry, propagates borders, detects explicit cell page breaks, computes table width and attaches page-aware table-vector tracking. |
 | `src/layout/table-processor.constants.ts` | Accepted explicit page-break values used by tables. |
-| `src/layout/table-processor.types.ts` | Resolved layout, row-span and processor collaborator contracts. |
+| `src/layout/table-processor.types.ts` | Resolved layout, row-span, processor collaborator and per-page table-vector registry contracts. |
 
 #### Layout unit tests
 
