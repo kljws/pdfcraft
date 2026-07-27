@@ -37,21 +37,27 @@ const tableDocument = (rowCount) => ({
 		{ text: `Large table benchmark: ${rowCount.toLocaleString("en-US")} rows`, fontSize: 18 },
 		{
 			table: {
-				headerRows: 1,
 				widths: [45, "*", 70, 70, 70, 70],
-				body: [
-					["#", "Description", "Quantity", "Unit price", "Tax", "Total"],
-					...Array.from({ length: rowCount }, (_, index) => [
-						index + 1,
-						`Line item ${index + 1}: ${"repeatable content ".repeat(2)}`,
-						(index % 9) + 1,
-						`${(10 + (index % 100) * 0.37).toFixed(2)} EUR`,
-						`${index % 3 === 0 ? 20 : 10}%`,
-						`${(25 + (index % 100) * 1.13).toFixed(2)} EUR`,
-					]),
-				],
+				header: {
+					rows: [["#", "Description", "Quantity", "Unit price", "Tax", "Total"]],
+					layout: "lightHorizontalLines",
+				},
+				body: {
+					groups: Array.from({ length: rowCount }, (_, index) => ({
+						rows: [
+							[
+								index + 1,
+								`Line item ${index + 1}: ${"repeatable content ".repeat(2)}`,
+								(index % 9) + 1,
+								`${(10 + (index % 100) * 0.37).toFixed(2)} EUR`,
+								`${index % 3 === 0 ? 20 : 10}%`,
+								`${(25 + (index % 100) * 1.13).toFixed(2)} EUR`,
+							],
+						],
+					})),
+					layout: "lightHorizontalLines",
+				},
 			},
-			layout: "lightHorizontalLines",
 		},
 	],
 });
