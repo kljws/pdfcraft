@@ -247,30 +247,43 @@ export default {
 								[
 									{
 										text: "Audit de l’infrastructure réseau",
+										fontSize: 10,
 									},
 									{
 										text: "3",
 										alignment: "center",
+										color: "#222222",
+										fontSize: 9,
 									},
 									{
 										text: "Forfaits",
 										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
 									},
 									{
 										text: "1 850,00 €",
 										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
 									},
 									{
 										text: "20%",
 										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
 									},
 									{
 										text: "5 550,00 €",
 										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
 									},
 									{
 										text: "6 660,00 €",
 										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
 									},
 								],
 								[
@@ -280,6 +293,7 @@ export default {
 												text: "Ref: AUD-RESEAU-2026",
 												color: "#52577A",
 												fontSize: 9,
+												margin: [0, 0, 0, 5],
 											},
 											{
 												text: "Analyse complète de la couverture Wi-Fi, de la segmentation du réseau et des équipements critiques sur les trois zones du site.\n\nLivrables inclus :\n- Cartographie des points d’accès\n- Rapport de sécurité et de performance\n- Plan d’actions priorisé",
@@ -305,30 +319,37 @@ export default {
 								[
 									{
 										text: "Déploiement de capteurs de qualité de l’air",
+										fontSize: 10,
 									},
 									{
 										text: "24",
 										alignment: "center",
+										fontSize: 9,
 									},
 									{
 										text: "Unités",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "285,00 €",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "20%",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "6 840,00 €",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "8 208,00 €",
 										alignment: "right",
+										fontSize: 9,
 									},
 								],
 								[
@@ -363,30 +384,37 @@ export default {
 								[
 									{
 										text: "Maintenance de la plateforme de supervision",
+										fontSize: 10,
 									},
 									{
 										text: "12",
 										alignment: "center",
+										fontSize: 9,
 									},
 									{
 										text: "Mois",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "490,00 €",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "20%",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "5 880,00 €",
 										alignment: "right",
+										fontSize: 9,
 									},
 									{
 										text: "7 056,00 €",
 										alignment: "right",
+										fontSize: 9,
 									},
 								],
 								[
@@ -440,19 +468,23 @@ export default {
 						hLineColor() {
 							return "#E3E3E8";
 						},
+						paddingTop(rowIndex, node) {
+							const headerRows = node.table.headerRows ?? 0;
+							const bodyRowIndex = rowIndex - headerRows;
 
-						paddingTop() {
-							return 8;
+							// Padding uniquement au début du groupe
+							return bodyRowIndex % 2 === 0 ? 8 : 2;
 						},
+						paddingBottom(rowIndex, node) {
+							const headerRows = node.table.headerRows ?? 0;
+							const bodyRowIndex = rowIndex - headerRows;
 
-						paddingBottom() {
-							return 8;
+							// Padding uniquement à la fin du groupe
+							return bodyRowIndex % 2 === 1 ? 8 : 2;
 						},
-
 						paddingLeft() {
 							return 10;
 						},
-
 						paddingRight() {
 							return 10;
 						},
@@ -857,7 +889,7 @@ export default {
 		tableHeader: {
 			bold: true,
 			color: "#52577A",
-			fontSize: 9,
+			fontSize: 8,
 		},
 		total: {
 			fontSize: 12,
