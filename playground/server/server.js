@@ -13,7 +13,8 @@ import {
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const publicDirectory = path.join(directory, "public");
 const sampleDirectory = path.resolve(directory, "../shared/samples");
-const fontDirectory = path.resolve(directory, "../../fonts/Roboto");
+const robotoFontDirectory = path.resolve(directory, "../../fonts/Roboto");
+const figtreeFontDirectory = path.resolve(directory, "../../fonts/Figtree");
 const exampleImageDirectory = path.resolve(directory, "../../examples/images");
 const playgroundLogo = path.resolve(directory, "../logo.jpg");
 const port = Number(process.env.PORT) || 1234;
@@ -23,10 +24,20 @@ const sampleChangeTimers = new Map();
 
 pdfcraft.addFonts({
 	Roboto: {
-		normal: path.join(fontDirectory, "Roboto-Regular.ttf"),
-		bold: path.join(fontDirectory, "Roboto-Medium.ttf"),
-		italics: path.join(fontDirectory, "Roboto-Italic.ttf"),
-		bolditalics: path.join(fontDirectory, "Roboto-MediumItalic.ttf"),
+		normal: path.join(robotoFontDirectory, "Roboto-Regular.ttf"),
+		bold: path.join(robotoFontDirectory, "Roboto-Medium.ttf"),
+		italics: path.join(robotoFontDirectory, "Roboto-Italic.ttf"),
+		bolditalics: path.join(robotoFontDirectory, "Roboto-MediumItalic.ttf"),
+	},
+	Figtree: {
+		normal: path.join(figtreeFontDirectory, "Figtree-Regular.ttf"),
+		bold: path.join(figtreeFontDirectory, "Figtree-SemiBold.ttf"),
+		italics: path.join(figtreeFontDirectory, "Figtree-Italic.ttf"),
+		bolditalics: path.join(figtreeFontDirectory, "Figtree-BoldItalic.ttf"),
+	},
+	FigtreeSemiBold: {
+		normal: path.join(figtreeFontDirectory, "Figtree-SemiBold.ttf"),
+		italics: path.join(figtreeFontDirectory, "Figtree-SemiBoldItalic.ttf"),
 	},
 });
 
@@ -38,7 +49,8 @@ const isWithin = (root, filename) => filename === root || filename.startsWith(`$
 pdfcraft.setLocalAccessPolicy((filename) => {
 	const resolved = resolveLocalPath(filename);
 	return (
-		isWithin(fontDirectory, resolved) ||
+		isWithin(robotoFontDirectory, resolved) ||
+		isWithin(figtreeFontDirectory, resolved) ||
 		isWithin(sampleDirectory, resolved) ||
 		isWithin(exampleImageDirectory, resolved) ||
 		resolved === playgroundLogo

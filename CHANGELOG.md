@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added matching Figtree and Figtree SemiBold font registrations to both React and server playground generation, including local-file access for the server-side font directory.
 - Raster image nodes now support `borderRadius`, `borderWidth` and `borderColor`. Rounded clipping also applies to `cover`, excessive radii are bounded to the image dimensions, and borders are inset so they do not alter layout geometry.
 - Table definitions now support `borderRadius` for a native rounded outer contour. Corner cell fills follow the same curve, internal separators remain unchanged, and every paginated fragment receives four rounded corners, including repeated headers and page-closing edges. Added package, integration and manual visual coverage plus rounded examples in the table, recent-features and Kolecto samples.
 - Stack blocks now support `borderRadius`, `borderWidth`, `borderColor`, `backgroundColor` and `padding`. Decorations follow the block's measured content across pages and use the same per-page rounded-fragment behavior as tables. The invoice, Kolecto and recent-features samples demonstrate the public block syntax.
