@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated the reproducible large-table benchmark to the current separated `table.header` and `table.body.groups` API, so the complete benchmark suite exercises the public table format introduced in 0.7.0.
+
+### Performance
+
+- Reduced text-line construction allocations by replacing per-inline array slicing and repeated front removals with indexed inline consumption and one batched removal per completed line. The standard benchmark comparison improved median generation time by roughly 6–9% across explicit-page, large-table, media-heavy and concurrent workloads, with unchanged PDF output sizes.
+
+### Tests
+
+- Added coverage for indexed `noNewLine` lookahead and verified every executable example and playground sample against the current package API.
+
 ## [0.7.1] - 2026-07-27
 
 ### Fixed
