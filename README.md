@@ -4,6 +4,8 @@ Modern PDF document generation for Node.js and browsers, written in TypeScript.
 
 `pdfcraft` 0.4.0 starts from the [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) codebase. It preserves the familiar document-definition model while delivering a cleaner package, first-class TypeScript declarations, explicit ESM and CommonJS exports, isolated instances, a modern browser entry, and a Vitest test suite.
 
+Numerous pull requests and issues from pdfmake have been fixed or incorporated in this package—see the [CHANGELOG.md](./CHANGELOG.md) for detailed information. 
+
 ## Highlights
 
 - TypeScript source and public declarations
@@ -267,7 +269,3 @@ Thanks to all upstream pdfmake and PDFKit contributors, as well as everyone cont
 pdfcraft is distributed under the MIT License.
 
 This project includes code derived from pdfmake. The original pdfmake copyright notices and MIT License are preserved in [LICENSE](./LICENSE).
-
-## Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md) for release history and notable changes.
