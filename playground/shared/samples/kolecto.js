@@ -5,13 +5,11 @@ export default {
 	displayTitle: true,
 	pageSize: "A4",
 	pageMargins: [24, 24, 24, 24],
-
 	info: {
 		title: "Facture QZ-8741",
 		author: "Orbe & Sève SAS",
 		subject: "Facture Atelier Quasar",
 	},
-
 	files: {
 		"factur-x.xml": {
 			src: "./test.xml",
@@ -21,7 +19,6 @@ export default {
 			description: "Factur-X invoice",
 		},
 	},
-
 	content: [
 		{
 			columns: [

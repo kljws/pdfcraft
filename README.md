@@ -30,8 +30,12 @@ Fonts are not bundled with the npm package. Applications must provide their own 
 ## Installation
 
 ```sh
-npm install pdfcraft
+npm install --allow-git=all git+https://github.com/kljws/pdfcraft.git#v0.7.0
 ```
+
+The tag pins the installed source to an exact release. npm runs the repository's `prepack` script
+to build the package before installation. npm 12 requires `--allow-git=all` to opt in to Git
+dependencies explicitly.
 
 ## Node.js
 

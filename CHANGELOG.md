@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Documentation
+
+- Replaced the npm-registry installation example with a GitHub repository URL pinned to the `v0.7.0` tag, including the explicit Git opt-in required by npm 12.
+
 ## [0.7.0] - 2026-07-27
 
 ### Changed
