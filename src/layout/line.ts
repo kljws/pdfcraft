@@ -29,9 +29,6 @@ class Line {
 		this.maxWidth = maxWidth;
 	}
 
-	/**
-	 * @param inline
-	 */
 	addInline(inline: Inline): void {
 		if (this.inlines.length === 0) {
 			this.leadingCut = inline.leadingCut || 0;
@@ -48,9 +45,6 @@ class Line {
 		}
 	}
 
-	/**
-	 * @returns
-	 */
 	getHeight(): number {
 		let max = 0;
 
@@ -61,9 +55,6 @@ class Line {
 		return max;
 	}
 
-	/**
-	 * @returns
-	 */
 	getAscenderHeight(): number {
 		let y = 0;
 
@@ -79,26 +70,14 @@ class Line {
 		return y;
 	}
 
-	/**
-	 * @returns
-	 */
 	getWidth(): number {
 		return this.inlineWidths - this.leadingCut - this.trailingCut;
 	}
 
-	/**
-	 * @returns
-	 */
 	getAvailableWidth(): number {
 		return this.maxWidth - this.getWidth();
 	}
 
-	/**
-	 * @param inline
-	 * @param nextInlines
-	 * @param nextInlineIndex
-	 * @returns
-	 */
 	hasEnoughSpaceForInline(
 		inline: Inline,
 		nextInlines: readonly Inline[] = [],

@@ -29,18 +29,12 @@ class ElementWriter {
 	contextStack: DocumentContext[];
 	private readonly onLineAdded?: (line: LineLike) => void;
 
-	/**
-	 * @param context
-	 */
 	constructor(context: DocumentContext, onLineAdded?: (line: LineLike) => void) {
 		this._context = context;
 		this.onLineAdded = onLineAdded;
 		this.contextStack = [];
 	}
 
-	/**
-	 * @returns
-	 */
 	context(): DocumentContext {
 		return this._context;
 	}

@@ -167,10 +167,6 @@ class PdfPrinter {
 		return this.pdfKitDoc;
 	}
 
-	/**
-	 * @param docDefinition
-	 * @returns
-	 */
 	async resolveUrls(docDefinition: PrinterDocumentDefinition): Promise<void> {
 		await resolvePrinterUrls(docDefinition, this.fontDescriptors, this.urlResolver);
 	}

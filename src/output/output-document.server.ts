@@ -15,10 +15,6 @@ class OutputDocumentServer extends OutputDocument {
 		return `data:application/pdf;base64,${await this.getBase64()}`;
 	}
 
-	/**
-	 * @param filename
-	 * @returns
-	 */
 	async write(filename: string): Promise<void> {
 		await fs.promises.writeFile(filename, await this.getData());
 	}

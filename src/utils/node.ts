@@ -27,10 +27,6 @@ export function stringifyNode(node: unknown): string {
 	return JSON.stringify(node, fontStringify);
 }
 
-/**
- * @param node
- * @returns
- */
 export function getNodeId(node: { id?: unknown; text?: unknown }): string | null {
 	if (isString(node.id)) {
 		return node.id;

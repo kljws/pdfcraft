@@ -13,10 +13,6 @@ import type {
 const LEADING = /^(\s)+/g;
 const TRAILING = /(\s)+$/g;
 
-/**
- * @param array
- * @returns
- */
 const flattenTextArray = (input: TextFragment | TextFragment[]): TextFragment[] => {
 	const combineStyles = (parent: unknown, child: unknown): unknown => {
 		if (parent === undefined) return child;

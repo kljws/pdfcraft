@@ -10,9 +10,6 @@ class PdfCraft extends PdfCraftBase<OutputDocumentServer> {
 		super(options);
 	}
 
-	/**
-	 * @param callback
-	 */
 	setLocalAccessPolicy(callback?: LocalAccessPolicy): void {
 		if (callback !== undefined && typeof callback !== "function") {
 			throw new Error("Parameter 'callback' has an invalid type. Function or undefined expected.");

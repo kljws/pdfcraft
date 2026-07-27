@@ -200,13 +200,6 @@ class StyleContextStack {
 		return undefined;
 	}
 
-	/**
-	 * @param item
-	 * @param styleContextStack
-	 * @param property
-	 * @param defaultValue
-	 * @returns
-	 */
 	static getStyleProperty<T, Node extends StyleNode>(
 		item: Node,
 		styleContextStack: StyleContextStack | null,
@@ -232,11 +225,6 @@ class StyleContextStack {
 		return isValue(value) ? (value as Widen<T>) : (defaultValue as Widen<T>);
 	}
 
-	/**
-	 * @param source
-	 * @param destination
-	 * @returns
-	 */
 	static copyStyle<T extends Record<string, unknown>>(
 		source?: object | null,
 		destination: T = {} as T,

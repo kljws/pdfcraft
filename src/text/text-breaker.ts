@@ -4,12 +4,6 @@ import StyleContextStack from "../layout/style-context-stack";
 import type { PdfNode } from "../types/internal";
 import type { BrokenInline, BrokenWord, TextFragment } from "./text.types";
 
-/**
- * @param text
- * @param noWrap
- * @param breakAll
- * @returns
- */
 const splitWords = (input: unknown, noWrap: boolean, breakAll: boolean = false): BrokenWord[] => {
 	const words: BrokenWord[] = [];
 	let text: string;
@@ -59,11 +53,6 @@ const splitWords = (input: unknown, noWrap: boolean, breakAll: boolean = false):
 	return words;
 };
 
-/**
- * @param words
- * @param noWrap
- * @returns
- */
 const getFirstWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 	let word = words[0];
 	if (word === undefined) {
@@ -82,11 +71,6 @@ const getFirstWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 	return word.text;
 };
 
-/**
- * @param words
- * @param noWrap
- * @returns
- */
 const getLastWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 	let word = words[words.length - 1];
 	if (word === undefined) {
@@ -110,11 +94,6 @@ const getLastWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 };
 
 class TextBreaker {
-	/**
-	 * @param texts
-	 * @param styleContextStack
-	 * @returns
-	 */
 	getBreaks(
 		input: TextFragment | TextFragment[],
 		styleContextStack: StyleContextStack = new StyleContextStack(null),

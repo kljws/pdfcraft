@@ -34,11 +34,6 @@ class PdfCraftBase<Output = unknown> {
 		this.localAccessPolicy = options.localAccessPolicy;
 	}
 
-	/**
-	 * @param docDefinition
-	 * @param options
-	 * @returns
-	 */
 	createPdf(docDefinition: DocumentDefinition, options: CreatePdfOptions = {}): Output {
 		if (!isObject(docDefinition)) {
 			throw new Error("Parameter 'docDefinition' has an invalid type. Object expected.");
@@ -95,9 +90,6 @@ class PdfCraftBase<Output = unknown> {
 		return this._transformToDocument(pdfDocumentPromise);
 	}
 
-	/**
-	 * @param callback
-	 */
 	setUrlAccessPolicy(callback?: AccessPolicy): void {
 		if (callback !== undefined && typeof callback !== "function") {
 			throw new Error("Parameter 'callback' has an invalid type. Function or undefined expected.");

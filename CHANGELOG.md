@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Removed tag-only JSDoc blocks from production sources when they merely repeated TypeScript parameter names or contained an empty return tag, while preserving comments that document behavior or constraints.
+
 ### Fixed
 
 - URL resource resolution now follows at most 30 observable redirects, preserves access-policy, missing-`Location`, redirect-limit and HTTP-status errors without incorrectly wrapping them as network failures, retries a resource after an earlier resolution failed instead of permanently caching the rejected promise, and releases settled in-flight records after direct or batched resolution. Browser `opaqueredirect` fallback behavior is now explicitly documented: its hidden browser-controlled hops cannot be counted, while the final response URL remains subject to the configured access policy.

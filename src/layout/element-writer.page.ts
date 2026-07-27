@@ -37,9 +37,6 @@ class PageElementWriter {
 	repeatables: ElementFragment[];
 	originalX = 0;
 
-	/**
-	 * @param context
-	 */
 	constructor(context: DocumentContext) {
 		this.writer = new ElementWriter(context, (line) => this.emit("lineAdded", line));
 		this.transactionLevel = 0;
