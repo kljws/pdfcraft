@@ -6,13 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-07-27
+
 ### Fixed
 
 - Restored PDF/A-3 conformance for metadata containing XML-sensitive characters such as `&`, `<` or quotes. This keeps the PDF/A identification XMP readable, prevents valid associated files such as Factur-X XML from being misclassified as forbidden PDF/A-1 attachments, and avoids invalid partial `CIDSet` streams for PDF/A-2 and PDF/A-3 embedded fonts.
 
 ### Documentation
 
-- Replaced the npm-registry installation example with a GitHub repository URL pinned to the `v0.7.0` tag, including the explicit Git opt-in required by npm 12.
+- Replaced the npm-registry installation example with a GitHub repository URL pinned to the `v0.7.1` tag, including the explicit Git opt-in required by npm 12, and clarified the changelog and contribution references.
 
 ## [0.7.0] - 2026-07-27
 
