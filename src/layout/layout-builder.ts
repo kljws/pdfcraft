@@ -24,6 +24,7 @@ import type { PageMarginSource, PageSize, PdfPage, TableLayout } from "../types/
 import type { VerticalAlignmentStackEntry } from "./layout-builder.rows";
 import type { LayoutResult, PageBreakBefore } from "./layout-builder.types";
 import { resolveSectionPage, type SectionNode } from "./layout-builder.sections";
+import { calculatePageHeight } from "./page-item-geometry";
 type TableLayoutSource = Partial<TableLayout> | PublicTableLayout;
 
 /**
@@ -243,6 +244,14 @@ class LayoutBuilder {
 		}
 
 		this.processNode(layoutDocument);
+		for (const page of this.writer.context().pages) {
+			if (page.pageSize.height === Infinity) {
+				page.pageSize = {
+					...page.pageSize,
+					height: calculatePageHeight(page, page.pageMargins),
+				};
+			}
+		}
 		this.repeatables.addHeadersAndFooters(header, footer);
 		this.repeatables.addWatermark(watermark, pdfDocument, defaultStyle);
 

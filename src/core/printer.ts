@@ -8,7 +8,6 @@ import type { RenderablePage } from "../rendering/renderer.types";
 import { isNumber, isValue } from "../utils/variable-type";
 import { convertToDynamicContent } from "../utils/tools";
 import type { FontDescriptors, LocalAccessPolicy, VirtualFileSystem } from "../types";
-import type { PdfPage } from "../types/internal";
 import type URLResolver from "../resources/url-resolver";
 import type {
 	PdfKitCreationOptions,
@@ -16,7 +15,6 @@ import type {
 	PrinterOptions,
 } from "./printer.types";
 import {
-	calculatePageHeight,
 	createMetadata,
 	embedFiles,
 	getResolvedAttachments,
@@ -152,14 +150,6 @@ class PdfPrinter {
 		if (isNumber(maxNumberPages) && maxNumberPages > -1) {
 			pages = pages.slice(0, maxNumberPages);
 		}
-
-		// if pageSize.height is set to Infinity, calculate the actual height of the page that
-		// was laid out using the height of each of the items in the page.
-		pages.forEach((page: PdfPage) => {
-			if (page.pageSize.height === Infinity) {
-				page.pageSize.height = calculatePageHeight(page, page.pageMargins);
-			}
-		});
 
 		const renderer = new Renderer(this.pdfKitDoc, options.progressCallback);
 		renderer.renderPages(pages as RenderablePage[]);

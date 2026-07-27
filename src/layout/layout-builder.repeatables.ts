@@ -57,6 +57,9 @@ class LayoutBuilderRepeatables {
 			typeof background === "function" ? (background as BackgroundGetter) : () => background;
 		const context = this.writer.context();
 		const pageSize = context.getCurrentPage().pageSize;
+		// Three-argument backgrounds run during iterative layout, so pageCount is the
+		// current pass estimate. Returning content marks the pass as page-count-dependent
+		// and makes LayoutBuilder rerun it when the actual count changes.
 		const pageBackground =
 			typeof background === "function" && background.length === 2
 				? (getBackground as (pageNumber: number, pageSize: PageSize) => unknown)(

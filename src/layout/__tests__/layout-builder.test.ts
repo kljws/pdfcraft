@@ -1912,6 +1912,35 @@ describe("LayoutBuilder", function () {
 			assert.equal(footer.mock.calls[0][1], 1);
 			assert.deepEqual(footer.mock.calls[0][2], pageSize);
 		});
+
+		it("finalizes automatic page height before footer and watermark layout", function () {
+			const autoHeightBuilder = new LayoutBuilder(
+				{ width: 200, height: Infinity, orientation: "portrait" },
+				{ left: 40, right: 40, top: 40, bottom: 40 },
+			);
+			footer = vi.fn(() => "Footer");
+
+			const pages = autoHeightBuilder.layoutDocument(
+				["Short content"],
+				sampleTestProvider,
+				{},
+				{ fontSize: 12, font: "Roboto" },
+				undefined,
+				undefined,
+				footer,
+				"DRAFT",
+			);
+
+			const measuredWatermark = pages[0].watermark as {
+				fontSize: number;
+				_size: { rotatedSize: { height: number } };
+			};
+			assert.equal(Number.isFinite(pages[0].pageSize.height), true);
+			assert.equal(autoHeightBuilder.pageSize.height, Infinity);
+			assert.equal(footer.mock.calls[0][2].height, pages[0].pageSize.height);
+			assert.ok(measuredWatermark.fontSize < 100);
+			assert.ok(measuredWatermark._size.rotatedSize.height <= pages[0].pageSize.height + 1);
+		});
 	});
 
 	describe("dynamic background", function () {

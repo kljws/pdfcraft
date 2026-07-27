@@ -1,4 +1,5 @@
-import type { PageItem, Vector } from "../types/internal";
+import { normalizePageMargin } from "../configuration/page-size";
+import type { PageItem, PageMargins, PdfPage, Vector } from "../types/internal";
 
 export function getVectorBottom(vector: Vector): number {
 	const strokeOffset = (vector.lineWidth ?? 0) / 2;
@@ -34,4 +35,10 @@ export function getPageItemBottom(item: PageItem): number {
 		case "endVerticalAlignment":
 			return item.item.y ?? 0;
 	}
+}
+
+export function calculatePageHeight(page: PdfPage, margins: PageMargins): number {
+	const fixedMargins = normalizePageMargin(margins || 40);
+	const height = Math.max(fixedMargins.top, ...page.items.map(getPageItemBottom));
+	return height + fixedMargins.bottom;
 }

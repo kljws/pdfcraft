@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { PdfPage } from "../../types/internal";
-import { calculatePageHeight, getResolvedAttachments } from "../printer.helpers";
+import { calculatePageHeight } from "../../layout/page-item-geometry";
+import { getResolvedAttachments } from "../printer.helpers";
 
 describe("getResolvedAttachments", () => {
 	it("preserves binary attachment sources", () => {

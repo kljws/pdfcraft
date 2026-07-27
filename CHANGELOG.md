@@ -13,11 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Automatic-height pages now resolve their finite content height before dynamic headers, footers and watermarks are measured. Automatic watermark font sizing therefore respects the real page height instead of treating it as `Infinity`, and footer callbacks receive the finalized page dimensions.
 - URL resource resolution now follows at most 30 observable redirects, preserves access-policy, missing-`Location`, redirect-limit and HTTP-status errors without incorrectly wrapping them as network failures, retries a resource after an earlier resolution failed instead of permanently caching the rejected promise, and releases settled in-flight records after direct or batched resolution. Browser `opaqueredirect` fallback behavior is now explicitly documented: its hidden browser-controlled hops cannot be counted, while the final response URL remains subject to the configured access policy.
 - Replaced the virtual file system's plain-object storage with a `Map`, so prototype-like filenames such as `constructor`, `toString`, `__proto__` and `hasOwnProperty` are no longer reported as phantom files and can be stored safely.
 
 ### Tests
 
+- Added a regression covering finite automatic page height, footer dimensions and bounded automatic watermark sizing before repeatables are laid out.
 - Added URL resolver regressions for the exact redirect boundary, error classification and causes, failed-request retries, settled-record cleanup, and browser `opaqueredirect` fallback requests.
 - Added virtual-file-system regressions for prototype-like filenames and the existing single virtual-root slash normalization.
 

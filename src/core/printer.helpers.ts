@@ -1,9 +1,6 @@
-import { normalizePageMargin } from "../configuration/page-size";
-import { getPageItemBottom } from "../layout/page-item-geometry";
 import type PDFDocument from "../rendering/pdf-document";
 import type { AttachmentDefinition as ResolvedAttachmentDefinition } from "../rendering/renderer.types";
 import type { Dictionary } from "../types";
-import type { PageMargins, PdfPage } from "../types/internal";
 import type { PrinterDocumentDefinition } from "./printer.types";
 
 export function getResolvedImages(images: PrinterDocumentDefinition["images"]): Dictionary<string> {
@@ -92,10 +89,4 @@ export function embedFiles(docDefinition: PrinterDocumentDefinition, pdfKitDoc: 
 		file.name ||= key;
 		pdfKitDoc.file(file.src, file);
 	}
-}
-
-export function calculatePageHeight(page: PdfPage, margins: PageMargins): number {
-	const fixedMargins = normalizePageMargin(margins || 40);
-	const height = Math.max(fixedMargins.top, ...page.items.map(getPageItemBottom));
-	return height + fixedMargins.bottom;
 }
