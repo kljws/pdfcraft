@@ -21,6 +21,32 @@ describe("VirtualFileSystem", () => {
 		expect(second.existsSync("first.txt")).toBe(false);
 	});
 
+	it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
+		"stores prototype-like filename %s as an ordinary file",
+		(filename) => {
+			const fileSystem = new VirtualFileSystem();
+
+			expect(fileSystem.existsSync(filename)).toBe(false);
+			expect(() => fileSystem.readFileSync(filename)).toThrow(
+				`File '${filename}' not found in virtual file system`,
+			);
+
+			fileSystem.writeFileSync(filename, filename);
+
+			expect(fileSystem.existsSync(filename)).toBe(true);
+			expect(fileSystem.readFileSync(filename, "utf8")).toBe(filename);
+		},
+	);
+
+	it("removes only one virtual-root slash from filenames", () => {
+		const fileSystem = new VirtualFileSystem();
+		fileSystem.writeFileSync("//nested.txt", "nested");
+
+		expect(fileSystem.existsSync("//nested.txt")).toBe(true);
+		expect(fileSystem.existsSync("/nested.txt")).toBe(false);
+		expect(fileSystem.readFileSync("//nested.txt", "utf8")).toBe("nested");
+	});
+
 	it.each([
 		["utf8", "héllo"],
 		["utf16le", "héllo"],

@@ -10,22 +10,13 @@ const normalizeFilename = (filename: string): string => {
 };
 
 class VirtualFileSystem implements VirtualFileSystemContract {
-	private readonly storage: Record<string, Uint8Array> = {};
+	private readonly storage = new Map<string, Uint8Array>();
 
-	/**
-	 * @param filename
-	 * @returns
-	 */
 	existsSync(filename: string): boolean {
 		const normalizedFilename = normalizeFilename(filename);
-		return typeof this.storage[normalizedFilename] !== "undefined";
+		return this.storage.has(normalizedFilename);
 	}
 
-	/**
-	 * @param filename
-	 * @param options
-	 * @returns
-	 */
 	readFileSync(
 		filename: string,
 		options?: VfsEncoding | { encoding?: VfsEncoding },
@@ -33,11 +24,11 @@ class VirtualFileSystem implements VirtualFileSystemContract {
 		const normalizedFilename = normalizeFilename(filename);
 		const encoding = typeof options === "object" ? options.encoding : options;
 
-		if (!this.existsSync(normalizedFilename)) {
+		const buffer = this.storage.get(normalizedFilename);
+		if (buffer === undefined) {
 			throw new Error(`File '${normalizedFilename}' not found in virtual file system`);
 		}
 
-		const buffer = this.storage[normalizedFilename]!;
 		if (encoding) {
 			return decodeBytes(buffer, encoding);
 		}
@@ -45,11 +36,6 @@ class VirtualFileSystem implements VirtualFileSystemContract {
 		return buffer;
 	}
 
-	/**
-	 * @param filename
-	 * @param content
-	 * @param options
-	 */
 	writeFileSync(
 		filename: string,
 		content: string | ArrayBuffer | ArrayBufferView,
@@ -59,13 +45,16 @@ class VirtualFileSystem implements VirtualFileSystemContract {
 		const encoding = typeof options === "object" ? options.encoding : options;
 
 		if (typeof content === "string") {
-			this.storage[normalizedFilename] = encodeBytes(content, encoding);
+			this.storage.set(normalizedFilename, encodeBytes(content, encoding));
 		} else if (ArrayBuffer.isView(content)) {
-			this.storage[normalizedFilename] = new Uint8Array(
-				content.buffer.slice(content.byteOffset, content.byteOffset + content.byteLength),
+			this.storage.set(
+				normalizedFilename,
+				new Uint8Array(
+					content.buffer.slice(content.byteOffset, content.byteOffset + content.byteLength),
+				),
 			);
 		} else {
-			this.storage[normalizedFilename] = new Uint8Array(content.slice(0));
+			this.storage.set(normalizedFilename, new Uint8Array(content.slice(0)));
 		}
 	}
 }

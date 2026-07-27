@@ -32,68 +32,77 @@ const getResourceKey = (url: string, headers: ResourceHeaders): string => {
 		: `${url}#pdfcraft-headers=${encodeURIComponent(normalizedHeaders)}`;
 };
 
-/**
- * @param url
- * @param headers
- * @param urlAccessPolicy
- * @returns
- */
+const fetchNetworkResource = async (
+	url: string,
+	headers: ResourceHeaders,
+	redirect: RequestRedirect,
+): Promise<Response> => {
+	try {
+		return await fetch(url, { headers: headers as HeadersInit, redirect });
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new Error(`Network request failed (url: "${url}", error: ${message})`, {
+			cause: error,
+		});
+	}
+};
+
 async function fetchUrl(
 	url: string,
 	headers: ResourceHeaders = {},
 	urlAccessPolicy?: AccessPolicy,
 ): Promise<Response> {
-	for (let i = 0; i <= MAX_REDIRECTS; i++) {
+	let redirectCount = 0;
+	while (true) {
 		if (typeof urlAccessPolicy !== "undefined" && (await urlAccessPolicy(url)) !== true) {
 			throw new Error(`Access to URL denied by resource access policy: ${url}`);
 		}
 
-		try {
-			let response = await fetch(url, { headers: headers as HeadersInit, redirect: "manual" });
+		let response = await fetchNetworkResource(url, headers, "manual");
 
-			// redirect url
-			if (response.status >= 300 && response.status < 400) {
-				let location = response.headers.get("location");
-				if (!location) {
-					throw new Error("Redirect response missing Location header");
-				}
-				url = new URL(location, url).href;
-				continue;
+		// redirect url
+		if (response.status >= 300 && response.status < 400) {
+			let location = response.headers.get("location");
+			if (!location) {
+				throw new Error("Redirect response missing Location header");
 			}
-
-			// browsers do not support redirect: 'manual'
-			if (response.type === "opaqueredirect") {
-				response = await fetch(url, { headers: headers as HeadersInit });
+			if (redirectCount >= MAX_REDIRECTS) {
+				throw new Error(`Too many redirects (maximum: ${MAX_REDIRECTS})`);
 			}
-
-			if (!response.ok) {
-				throw new Error(`Failed to fetch (status code: ${response.status})`);
-			}
-
-			return response;
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			throw new Error(`Network request failed (url: "${url}", error: ${message})`, {
-				cause: error,
-			});
+			redirectCount++;
+			url = new URL(location, url).href;
+			continue;
 		}
-	}
 
-	throw new Error(`Network request failed (url: "${url}", error: Too many redirects)`);
+		// Browsers expose manual redirects as opaqueredirect and do not reveal each hop.
+		// The browser-controlled redirect chain therefore cannot contribute to the manual
+		// counter above; the final response URL is still checked by URLResolver.queue().
+		if (response.type === "opaqueredirect") {
+			response = await fetchNetworkResource(url, headers, "follow");
+		}
+
+		if (!response.ok) {
+			throw new Error(`Failed to fetch (status code: ${response.status})`);
+		}
+
+		return response;
+	}
 }
+
+type ResolvingResource = {
+	failed: boolean;
+	promise: Promise<void>;
+};
 
 class URLResolver {
 	private readonly fs: VirtualFileSystem;
-	private readonly resolving: Record<string, Promise<void>> = {};
+	private readonly resolving: Record<string, ResolvingResource> = {};
 	private urlAccessPolicy?: AccessPolicy;
 
 	constructor(fs: VirtualFileSystem) {
 		this.fs = fs;
 	}
 
-	/**
-	 * @param callback
-	 */
 	setUrlAccessPolicy(callback?: AccessPolicy): void {
 		this.urlAccessPolicy = callback;
 	}
@@ -127,14 +136,31 @@ class URLResolver {
 			// else cannot be resolved
 		};
 
-		if (this.resolving[key] === undefined) {
-			this.resolving[key] = resolveUrlInternal();
+		let resolving = this.resolving[key];
+		if (resolving === undefined || resolving.failed) {
+			const nextResolving: ResolvingResource = {
+				failed: false,
+				promise: Promise.resolve(),
+			};
+			nextResolving.promise = resolveUrlInternal().catch((error: unknown) => {
+				nextResolving.failed = true;
+				throw error;
+			});
+			this.resolving[key] = nextResolving;
+			resolving = nextResolving;
 		}
-		return { key, promise: this.resolving[key] };
+		return { key, promise: resolving.promise };
+	}
+
+	private forget(key: string, promise: Promise<void>): void {
+		if (this.resolving[key]?.promise === promise) {
+			delete this.resolving[key];
+		}
 	}
 
 	resolve(url: string, headers: ResourceHeaders = {}): Promise<void> {
-		return this.queue(url, headers).promise;
+		const { key, promise } = this.queue(url, headers);
+		return promise.finally(() => this.forget(key, promise));
 	}
 
 	resolveReference(url: string, headers: ResourceHeaders = {}): string {
@@ -142,7 +168,17 @@ class URLResolver {
 	}
 
 	async resolved(): Promise<void> {
-		await Promise.all(Object.values(this.resolving));
+		const resolutions = Object.entries(this.resolving);
+		const results = await Promise.allSettled(resolutions.map(([, { promise }]) => promise));
+
+		for (const [key, { promise }] of resolutions) {
+			this.forget(key, promise);
+		}
+
+		const failure = results.find((result) => result.status === "rejected");
+		if (failure?.status === "rejected") {
+			throw failure.reason;
+		}
 	}
 }
 
