@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Removed tag-only JSDoc blocks from production sources when they merely repeated TypeScript parameter names or contained an empty return tag, while preserving comments that document behavior or constraints.
+- Added a deterministic `context:src` generator that combines production files from `src/` into an AI-reviewable Markdown document with source paths and fenced contents, excluding test directories and test/spec files.
 
 ### Fixed
 

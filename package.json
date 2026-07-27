@@ -67,6 +67,7 @@
 		"benchmark:quick": "npm run build && node benchmarks/run.mjs --quick",
 		"visual:generate": "npm run build && node tests/visual/generate.mjs",
 		"analyze:dependencies": "node scripts/analyze-dependency-weight.mjs",
+		"context:src": "node scripts/generate-source-context.mjs",
 		"check:size": "node scripts/check-package-size.mjs",
 		"lint": "eslint \"./src/**/*.ts\" \"./tests/**/*.{ts,cts,mjs}\" \"./benchmarks/**/*.mjs\" \"./examples/**/*.js\" \"./playground/**/*.{js,jsx}\" \"./*.config.mts\"",
 		"format": "prettier --write .",
