@@ -31,7 +31,6 @@ export interface ProcessRowOptions {
 }
 
 export interface ProcessRowResult {
-	pageBreaksBySpan: TablePageBreak[];
 	pageBreaks: TablePageBreak[];
 	positions: Position[];
 }
@@ -88,7 +87,6 @@ class LayoutBuilderRows {
 		rowIndex ??= 0;
 		const isUnbreakableRow = dontBreakRows || rowIndex <= rowsWithoutPageBreak - 1;
 		const pageBreaks: TablePageBreak[] = [];
-		const pageBreaksByRowSpan: TablePageBreak[] = [];
 		const positions: Position[] = [];
 		let willBreakByHeight = false;
 		const verticalAlignmentCells: Record<number, number> = {};
@@ -338,7 +336,6 @@ class LayoutBuilderRows {
 		}
 
 		return {
-			pageBreaksBySpan: pageBreaksByRowSpan,
 			pageBreaks: pageBreaks,
 			positions: positions,
 		};
