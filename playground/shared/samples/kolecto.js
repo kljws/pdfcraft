@@ -249,18 +249,18 @@ export default {
 							rows: [
 								[
 									{
-										text: "Installation de balises atmosphériques",
+										text: "Audit de l’infrastructure réseau",
 									},
 									{
-										text: "60",
+										text: "3",
 										alignment: "center",
 									},
 									{
-										text: "Jours",
+										text: "Forfaits",
 										alignment: "right",
 									},
 									{
-										text: "667,83 €",
+										text: "1 850,00 €",
 										alignment: "right",
 									},
 									{
@@ -268,11 +268,11 @@ export default {
 										alignment: "right",
 									},
 									{
-										text: "10 080,00 €",
+										text: "5 550,00 €",
 										alignment: "right",
 									},
 									{
-										text: "50 040,00 €",
+										text: "6 660,00 €",
 										alignment: "right",
 									},
 								],
@@ -280,12 +280,12 @@ export default {
 									{
 										stack: [
 											{
-												text: "Ref: AZERT13249",
+												text: "Ref: AUD-RESEAU-2026",
 												color: "#52577A",
 												fontSize: 9,
 											},
 											{
-												text: "L'iPhone 17 Pro repousse à nouveau les limites de l'innovation. Taillé dans un titane de qualité aérospatiale, plus léger et plus résistant que jamais, il abrite une puissance brute prête à donner vie à toutes vos ambitions, de la création de contenus professionnels au gaming de salon.\n\nLes innovations majeures :\n- Puce A19 Pro\n- Écran Super Retina XDR avec ProMotion 2.0\n- Système photo pro ultra-avancé",
+												text: "Analyse complète de la couverture Wi-Fi, de la segmentation du réseau et des équipements critiques sur les trois zones du site.\n\nLivrables inclus :\n- Cartographie des points d’accès\n- Rapport de sécurité et de performance\n- Plan d’actions priorisé",
 												color: "#52577A",
 												fontSize: 9,
 											},
@@ -307,18 +307,18 @@ export default {
 							rows: [
 								[
 									{
-										text: "Installation de balises atmosphériques",
+										text: "Déploiement de capteurs de qualité de l’air",
 									},
 									{
-										text: "60",
+										text: "24",
 										alignment: "center",
 									},
 									{
-										text: "Jours",
+										text: "Unités",
 										alignment: "right",
 									},
 									{
-										text: "667,83 €",
+										text: "285,00 €",
 										alignment: "right",
 									},
 									{
@@ -326,11 +326,11 @@ export default {
 										alignment: "right",
 									},
 									{
-										text: "10 080,00 €",
+										text: "6 840,00 €",
 										alignment: "right",
 									},
 									{
-										text: "50 040,00 €",
+										text: "8 208,00 €",
 										alignment: "right",
 									},
 								],
@@ -338,12 +338,12 @@ export default {
 									{
 										stack: [
 											{
-												text: "Ref: AZERT13249",
+												text: "Ref: CAPT-AIR-024",
 												color: "#52577A",
 												fontSize: 9,
 											},
 											{
-												text: "L'iPhone 17 Pro repousse à nouveau les limites de l'innovation. Taillé dans un titane de qualité aérospatiale, plus léger et plus résistant que jamais, il abrite une puissance brute prête à donner vie à toutes vos ambitions, de la création de contenus professionnels au gaming de salon.\n\nLes innovations majeures :\n- Puce A19 Pro\n- Écran Super Retina XDR avec ProMotion 2.0\n- Système photo pro ultra-avancé",
+												text: "Fourniture, configuration et pose de capteurs connectés mesurant le CO₂, les particules fines, la température et l’humidité.\n\nLa prestation comprend :\n- Installation dans les espaces sélectionnés\n- Connexion au réseau sécurisé\n- Calibration et recette sur site\n- Calibration et recette sur site",
 												color: "#52577A",
 												fontSize: 9,
 											},
@@ -365,18 +365,18 @@ export default {
 							rows: [
 								[
 									{
-										text: "Installation de balises atmosphériques",
+										text: "Maintenance de la plateforme de supervision",
 									},
 									{
-										text: "60",
+										text: "12",
 										alignment: "center",
 									},
 									{
-										text: "Jours",
+										text: "Mois",
 										alignment: "right",
 									},
 									{
-										text: "667,83 €",
+										text: "490,00 €",
 										alignment: "right",
 									},
 									{
@@ -384,11 +384,11 @@ export default {
 										alignment: "right",
 									},
 									{
-										text: "10 080,00 €",
+										text: "5 880,00 €",
 										alignment: "right",
 									},
 									{
-										text: "50 040,00 €",
+										text: "7 056,00 €",
 										alignment: "right",
 									},
 								],
@@ -396,12 +396,12 @@ export default {
 									{
 										stack: [
 											{
-												text: "Ref: AZERT13249",
+												text: "Ref: SUP-MCO-12M",
 												color: "#52577A",
 												fontSize: 9,
 											},
 											{
-												text: "L'iPhone 17 Pro repousse à nouveau les limites de l'innovation. Taillé dans un titane de qualité aérospatiale, plus léger et plus résistant que jamais, il abrite une puissance brute prête à donner vie à toutes vos ambitions, de la création de contenus professionnels au gaming de salon.\n\nLes innovations majeures :\n- Puce A19 Pro\n- Écran Super Retina XDR avec ProMotion 2.0\n- Système photo pro ultra-avancé",
+												text: "Maintien en condition opérationnelle de la plateforme pendant douze mois, avec suivi des alertes et accompagnement des administrateurs.\n\nServices inclus :\n- Mises à jour fonctionnelles et de sécurité\n- Assistance à distance les jours ouvrés\n- Rapport mensuel de disponibilité",
 												color: "#52577A",
 												fontSize: 9,
 											},
