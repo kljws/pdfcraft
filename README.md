@@ -4,7 +4,7 @@ Modern PDF document generation for Node.js and browsers, written in TypeScript.
 
 `pdfcraft` 0.4.0 starts from the [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) codebase. It preserves the familiar document-definition model while delivering a cleaner package, first-class TypeScript declarations, explicit ESM and CommonJS exports, isolated instances, a modern browser entry, and a Vitest test suite.
 
-Numerous pull requests and issues from pdfmake have been fixed or incorporated in this package—see the [CHANGELOG.md](./CHANGELOG.md) for detailed information. 
+Numerous pull requests and issues from pdfmake have been fixed or incorporated in this package. See the [CHANGELOG.md](./CHANGELOG.md) for detailed information. 
 
 ## Highlights
 
@@ -247,10 +247,10 @@ Both provide a live editor, shared examples and a PDF.js canvas preview.
 
 The package is built from one TypeScript source tree:
 
-- `pdfcraft` — Node.js ESM entry;
-- `pdfcraft` through `require()` — generated CommonJS compatibility output;
-- `pdfcraft/browser` — modern browser ESM entry;
-- `pdfcraft/types` — public TypeScript contracts.
+- `pdfcraft` - Node.js ESM entry;
+- `pdfcraft` through `require()` - generated CommonJS compatibility output;
+- `pdfcraft/browser` - modern browser ESM entry;
+- `pdfcraft/types` - public TypeScript contracts.
 
 The Node.js bundles and declarations are produced with `tsdown`. Browser-specific output is kept separate from the core document-generation code.
 
