@@ -11,9 +11,14 @@ class Line extends BaseLine {
 
 	override hasEnoughSpaceForInline(
 		inline: InlineFixture,
-		nextInlines: InlineFixture[] = [],
+		nextInlines: readonly InlineFixture[] = [],
+		nextInlineIndex: number = 0,
 	): boolean {
-		return super.hasEnoughSpaceForInline(inline as Inline, nextInlines as Inline[]);
+		return super.hasEnoughSpaceForInline(
+			inline as Inline,
+			nextInlines as readonly Inline[],
+			nextInlineIndex,
+		);
 	}
 }
 
@@ -185,6 +190,18 @@ describe("Line", function () {
 					{ width: 25, trailingCut: 10 },
 				]),
 			);
+		});
+
+		it("should inspect following inlines from the provided index", function () {
+			var line = new Line(100);
+			line.addInline({ width: 40 });
+			const inlines = [
+				{ width: 500 },
+				{ width: 20, noNewLine: true },
+				{ width: 25, trailingCut: 10 },
+			];
+
+			assert(line.hasEnoughSpaceForInline(inlines[1], inlines, 2));
 		});
 	});
 });

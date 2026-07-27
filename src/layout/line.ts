@@ -96,9 +96,14 @@ class Line {
 	/**
 	 * @param inline
 	 * @param nextInlines
+	 * @param nextInlineIndex
 	 * @returns
 	 */
-	hasEnoughSpaceForInline(inline: Inline, nextInlines: Inline[] = []): boolean {
+	hasEnoughSpaceForInline(
+		inline: Inline,
+		nextInlines: readonly Inline[] = [],
+		nextInlineIndex: number = 0,
+	): boolean {
 		if (this.inlines.length === 0) {
 			return true;
 		}
@@ -109,7 +114,7 @@ class Line {
 		let inlineWidth = inline.width;
 		let inlineTrailingCut = inline.trailingCut || 0;
 		if (inline.noNewLine) {
-			for (let i = 0, l = nextInlines.length; i < l; i++) {
+			for (let i = nextInlineIndex, l = nextInlines.length; i < l; i++) {
 				let nextInline = nextInlines[i];
 				inlineWidth += nextInline.width;
 				inlineTrailingCut = nextInline.trailingCut || 0;

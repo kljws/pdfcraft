@@ -200,16 +200,21 @@ class LayoutBuilderContent {
 
 		let line = new Line(this.writer.context().availableWidth);
 		const textInlines = new TextInlines(null);
+		const inlines = textNode._inlines;
+		let consumedInlineCount = 0;
 
 		let isForceContinue = false;
 		while (
-			textNode._inlines &&
-			textNode._inlines.length > 0 &&
-			(line.hasEnoughSpaceForInline(textNode._inlines[0], textNode._inlines.slice(1)) ||
+			consumedInlineCount < inlines.length &&
+			(line.hasEnoughSpaceForInline(
+				inlines[consumedInlineCount],
+				inlines,
+				consumedInlineCount + 1,
+			) ||
 				isForceContinue)
 		) {
 			let isHardWrap = false;
-			const inline = textNode._inlines.shift()!;
+			const inline = inlines[consumedInlineCount];
 
 			if (!inline.noWrap && inline.text.length > 1 && inline.width > line.getAvailableWidth()) {
 				let maxChars = findMaxFitLength(inline.text, line.getAvailableWidth(), (txt: string) =>
@@ -224,17 +229,19 @@ class LayoutBuilderContent {
 					newInline.width = textInlines.widthOfText(newInline.text, newInline);
 					inline.width = textInlines.widthOfText(inline.text, inline);
 
-					textNode._inlines.unshift(newInline);
+					inlines.splice(consumedInlineCount + 1, 0, newInline);
 					isHardWrap = true;
 				}
 			}
 
 			line.addInline(inline);
+			consumedInlineCount++;
 
 			isForceContinue = Boolean(inline.noNewLine && !isHardWrap);
 		}
 
-		line.lastLineInParagraph = textNode._inlines.length === 0;
+		inlines.splice(0, consumedInlineCount);
+		line.lastLineInParagraph = inlines.length === 0;
 
 		return line;
 	}
