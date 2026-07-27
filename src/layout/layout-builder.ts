@@ -274,12 +274,12 @@ class LayoutBuilder {
 				this.writer.moveToNextPage(node.pageOrientation);
 			} else if (node.pageBreak === "beforeOdd") {
 				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 === 1) {
+				if ((this.writer.context().page + 1) % 2 !== 1) {
 					this.writer.moveToNextPage(node.pageOrientation);
 				}
 			} else if (node.pageBreak === "beforeEven") {
 				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 === 0) {
+				if ((this.writer.context().page + 1) % 2 !== 0) {
 					this.writer.moveToNextPage(node.pageOrientation);
 				}
 			}
@@ -305,12 +305,12 @@ class LayoutBuilder {
 				this.writer.moveToNextPage(node.pageOrientation);
 			} else if (node.pageBreak === "afterOdd") {
 				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 === 1) {
+				if ((this.writer.context().page + 1) % 2 !== 1) {
 					this.writer.moveToNextPage(node.pageOrientation);
 				}
 			} else if (node.pageBreak === "afterEven") {
 				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 === 0) {
+				if ((this.writer.context().page + 1) % 2 !== 0) {
 					this.writer.moveToNextPage(node.pageOrientation);
 				}
 			}

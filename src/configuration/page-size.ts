@@ -34,11 +34,6 @@ export function normalizePageSize(
 		};
 	}
 
-	// if pageSize.height is set to auto, set the height to infinity so there are no page breaks.
-	if (pageSize && !isString(pageSize) && pageSize.height === "auto") {
-		pageSize.height = Infinity;
-	}
-
 	let size: PageSize = { ...pageSizeToWidthAndHeight(pageSize || "A4"), orientation: "portrait" };
 	if (isNeedSwapPageSizes(pageOrientation)) {
 		// swap page sizes

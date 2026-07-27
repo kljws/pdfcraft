@@ -4,6 +4,7 @@ import type PageElementWriter from "../element-writer.page.ts";
 import BaseTableProcessor from "../table-processor.ts";
 import type { TablePageBreak } from "../layout-builder.table.ts";
 import type { ResolvedTableLayout } from "../table-processor.types.ts";
+import { resetTableLayoutState } from "../table-processor.lifecycle.ts";
 import type { PdfNode, Vector } from "../../types/internal.ts";
 
 interface MutableTableFixture {
@@ -159,6 +160,50 @@ describe("TableProcessor", function () {
 		processor.endRow(0, writerFake, []);
 
 		assert.equal(addVectorCallCount, 3);
+	});
+
+	it("uses the current row width when resolving vertical cell border colors", function () {
+		const tableNode = {
+			table: {
+				body: [[{ text: "A1" }, { text: "A2", borderColor: ["red", "black", "black", "black"] }]],
+			},
+		};
+		const processor = new TableProcessor(tableNode);
+		processor.layout = defaultLayout;
+		processor.rowSpanData = [
+			{ left: 0, rowSpan: 0 },
+			{ left: 50, rowSpan: 0 },
+			{ left: 100, rowSpan: 0 },
+		];
+		writerFake.addVector = function (vector: Vector) {
+			assert.equal(vector.lineColor, "red");
+		};
+
+		processor.drawVerticalLine(50, 0, 20, 1, writerFake, 0, 0);
+	});
+
+	it("clears table and cell layout metadata before a new pass", function () {
+		const cell = {
+			text: "A1",
+			_bottomY: 20,
+			_willBreak: true,
+			_rowTopPageY: 10,
+			_startingRowSpanPage: 1,
+		};
+		const tableNode = asNode({
+			table: { body: [[cell]] },
+			_breaksBySpan: [{ prevPage: 0, prevY: 10, y: 0 }],
+			_bottomByPage: { 0: 20 },
+		});
+
+		resetTableLayoutState(tableNode);
+
+		assert.notProperty(tableNode, "_breaksBySpan");
+		assert.notProperty(tableNode, "_bottomByPage");
+		assert.notProperty(cell, "_bottomY");
+		assert.notProperty(cell, "_willBreak");
+		assert.notProperty(cell, "_rowTopPageY");
+		assert.notProperty(cell, "_startingRowSpanPage");
 	});
 
 	it("preserves available height while drawing a row across pages", function () {

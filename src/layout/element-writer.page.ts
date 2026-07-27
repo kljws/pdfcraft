@@ -79,7 +79,14 @@ class PageElementWriter {
 		dontUpdateContextPosition?: boolean,
 		index?: number,
 	): CurrentPosition | false {
-		return this._fitOnPage(() => this.writer.addLine(line, dontUpdateContextPosition, index));
+		return this._fitOnPage((allowOverflow) =>
+			this.writer.addLine(
+				line,
+				dontUpdateContextPosition,
+				index,
+				allowOverflow || this.context().getCurrentPage()?.items.length === 0,
+			),
+		);
 	}
 
 	addImage(image: LayoutPdfNode, index?: number): CurrentPosition | false {
@@ -95,7 +102,13 @@ class PageElementWriter {
 	}
 
 	addQr(qr: LayoutPdfNode, index?: number): CurrentPosition | false {
-		return this._fitOnPage(() => this.writer.addQr(qr, index));
+		return this._fitOnPage((allowOverflow) =>
+			this.writer.addQr(
+				qr,
+				index,
+				allowOverflow || this.context().getCurrentPage()?.items.length === 0,
+			),
+		);
 	}
 
 	addAttachment(attachment: LayoutPdfNode, index?: number): CurrentPosition | false {
@@ -396,12 +409,12 @@ class PageElementWriter {
 		return false;
 	}
 
-	_fitOnPage<T>(addFct: () => T | false): T | false {
-		let position = addFct();
+	_fitOnPage<T>(addFct: (allowOverflow?: boolean) => T | false): T | false {
+		let position = addFct(false);
 		if (!position) {
 			if (this.canMoveToNextColumn()) {
 				this.moveToNextColumn();
-				position = addFct();
+				position = addFct(false);
 			}
 
 			if (!position) {
@@ -425,7 +438,7 @@ class PageElementWriter {
 						ctx.lastColumnWidth = savedLastColumnWidth;
 					}
 
-					position = addFct();
+					position = addFct(false);
 				} else {
 					while (ctx.snapshots.length > 0 && ctx.snapshots[ctx.snapshots.length - 1].overflowed) {
 						let popped = ctx.snapshots.pop();
@@ -440,10 +453,11 @@ class PageElementWriter {
 					}
 
 					this.moveToNextPage();
-					position = addFct();
+					position = addFct(false);
 				}
 			}
 		}
+		if (!position) position = addFct(true);
 		return position;
 	}
 }

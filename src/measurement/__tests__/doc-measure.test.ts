@@ -770,6 +770,17 @@ describe("DocMeasure", function () {
 		});
 	});
 
+	describe("measureCanvas", function () {
+		it("measures translated path commands", function () {
+			const result = docMeasure.measureCanvas({
+				canvas: [{ type: "path", d: "M 5 10 L 30 40", x: 7, y: 11 }],
+			} as MeasuredPdfNode);
+
+			assert.equal(result._minWidth, 37);
+			assert.equal(result._minHeight, 51);
+		});
+	});
+
 	describe("measureDocument", function () {
 		it("should treat margin in styling properties with higher priority", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { "marginStyle": { margin: 10 } }, {});

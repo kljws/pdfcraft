@@ -31,6 +31,7 @@ function buildColumnWidths<Node extends object>(
 	});
 
 	fixedColumns.forEach(({ column: col, index: colIndex }) => {
+		let resolvedWidth = col.width;
 		// width specified as %
 		if (isString(col.width) && /\d+%/.test(col.width)) {
 			// In tables we have to take into consideration the reserved width for paddings and borders
@@ -54,9 +55,9 @@ function buildColumnWidths<Node extends object>(
 				}
 			}
 			const totalAvailableWidth = initialAvailableWidth + offsetTotal;
-			col.width = (parseFloat(col.width) * totalAvailableWidth) / 100 - reservedWidth;
+			resolvedWidth = (parseFloat(col.width) * totalAvailableWidth) / 100 - reservedWidth;
 		}
-		const fixedWidth = typeof col.width === "number" ? col.width : col._minWidth;
+		const fixedWidth = typeof resolvedWidth === "number" ? resolvedWidth : col._minWidth;
 		if (fixedWidth < col._minWidth && col.elasticWidth) {
 			col._calcWidth = col._minWidth;
 		} else {

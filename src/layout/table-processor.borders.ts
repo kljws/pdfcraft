@@ -414,8 +414,9 @@ export function drawVerticalLine(
 	}
 
 	// the current cell
-	if (borderColor == null && vLineColIndex < body.length) {
-		currentCell = body[vLineRowIndex][vLineColIndex];
+	const currentRow = body[vLineRowIndex];
+	if (borderColor == null && currentRow && vLineColIndex < currentRow.length) {
+		currentCell = currentRow[vLineColIndex];
 		if (currentCell && currentCell.borderColor) {
 			if (currentCell.border ? currentCell.border[0] : processor.layout.defaultBorder) {
 				borderColor = currentCell.borderColor[0];

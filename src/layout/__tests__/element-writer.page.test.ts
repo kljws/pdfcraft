@@ -96,6 +96,18 @@ describe("PageElementWriter", function () {
 		};
 	}
 
+	function buildQr(height: number): PdfNode {
+		return {
+			qr: "oversized",
+			_margin: null,
+			_minWidth: 100,
+			_minHeight: height,
+			_height: height,
+			_canvas: [{ type: "rect", x: 0, y: 0, w: 100, h: height }],
+			positions: [],
+		};
+	}
+
 	function addOneTenthLines(count: number): CurrentPosition | false | undefined {
 		var lastPosition: CurrentPosition | false | undefined;
 		for (var i = 0; i < count; i++) {
@@ -173,6 +185,14 @@ describe("PageElementWriter", function () {
 
 			assert.equal(ctx.y, MARGINS.top + 40);
 			assert.equal(ctx.availableHeight, AVAILABLE_HEIGHT - 40);
+		});
+
+		it("renders a line taller than an otherwise empty page", function () {
+			const position = pew.addLine(buildLine(1200));
+
+			assert.equal(ctx.pages.length, 1);
+			assert.equal(ctx.pages[0].items.length, 1);
+			assert.equal(position && position.pageNumber, 1);
 		});
 
 		it("should add repeatable fragments if they exist and a new page is created before adding the line", function () {
@@ -290,6 +310,25 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages.length, 1);
 			assert.equal(ctx.pages[0].items.length, 1);
 			assert.equal(ctx.pages[0].items[0].type, "svg");
+			assert.equal(position && position.pageNumber, 1);
+		});
+	});
+
+	describe("addQr", function () {
+		it("moves a QR to a new page when it only exceeds the remaining height", function () {
+			pew.addLine(buildLine(900));
+
+			const position = pew.addQr(buildQr(300));
+
+			assert.equal(ctx.pages.length, 2);
+			assert.equal(position && position.pageNumber, 2);
+		});
+
+		it("renders a QR taller than an otherwise empty page", function () {
+			const position = pew.addQr(buildQr(1200));
+
+			assert.equal(ctx.pages.length, 1);
+			assert.equal(ctx.pages[0].items.length, 1);
 			assert.equal(position && position.pageNumber, 1);
 		});
 	});

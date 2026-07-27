@@ -77,8 +77,8 @@ class ElementWriter {
 		return addSVG(this, image, index);
 	}
 
-	addQr(qr: LayoutPdfNode, index?: number): CurrentPosition | false {
-		return addQr(this, qr, index);
+	addQr(qr: LayoutPdfNode, index?: number, allowOverflow = false): CurrentPosition | false {
+		return addQr(this, qr, index, allowOverflow);
 	}
 
 	addAttachment(attachment: LayoutPdfNode, index?: number): CurrentPosition | false {
@@ -101,13 +101,14 @@ class ElementWriter {
 		line: LineLike,
 		dontUpdateContextPosition?: boolean,
 		index?: number,
+		allowOverflow = false,
 	): CurrentPosition | false {
 		let height = line.getHeight();
 		let context = this.context();
 		let page = context.getCurrentPage();
 		let position = this.getCurrentPositionOnPage();
 
-		if (context.availableHeight < height || !page) {
+		if (!page || (!allowOverflow && context.availableHeight < height)) {
 			return false;
 		}
 

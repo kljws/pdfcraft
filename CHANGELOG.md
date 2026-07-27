@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Corrected `beforeOdd`, `beforeEven`, `afterOdd` and `afterEven` page breaks so the destination content now lands on the requested one-based page parity instead of the opposite parity.
+- Percentage column widths now preserve their original string definitions and write only the pass-specific result to `_calcWidth`, allowing dynamic-margin and other multi-pass layouts to recalculate them against the current available width.
+- Reset table, row-span and cell pagination metadata when each table layout pass begins, preventing `_breaksBySpan`, `_bottomByPage`, `_willBreak` and related geometry from leaking into later passes.
+- Vertical table borders now resolve cell-specific colors against the current row's column count rather than the table's row count, restoring custom colors in wide or short tables.
+- Canvas `path` vectors now contribute their translated command bounds to measurement and automatic page-height calculation instead of being treated as zero-sized geometry.
+- Automatic-height page-size normalization no longer replaces the caller's `height: "auto"` value with `Infinity`; only the returned normalized page size uses the internal infinite layout height.
+- Page-position ratios now remain finite when page margins leave zero inner width or height.
+- Oversized text lines and QR codes now follow the existing image, SVG and canvas behavior: they move to a fresh page when only the remaining space is insufficient and render once when they exceed a complete page instead of being silently consumed.
 - Automatic-height pages now resolve their finite content height before dynamic headers, footers and watermarks are measured. Automatic watermark font sizing therefore respects the real page height instead of treating it as `Infinity`, and footer callbacks receive the finalized page dimensions.
 - Rounded paginated tables now identify their own closing borders, outer verticals and corner fills through a per-table, per-page vector registry instead of matching every page vector by approximate coordinates. Adjacent tables, decorated stack containers and unrelated canvas vectors aligned with a table boundary can no longer be removed or rounded accidentally.
 - Table preprocessing now rejects empty/invalid width definitions, invalid static or dynamic heights, empty and non-rectangular rows, spans outside table bounds and `colSpan`/`rowSpan` overlaps before measurement or rendering. Compact span rows and existing explicit placeholder rows remain supported and normalize to the same rectangular internal grid.
@@ -23,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Tests
 
+- Added regressions for odd/even page-break parity, repeatable percentage sizing, per-pass table-state cleanup, row-aware vertical border colors, path-vector bounds, immutable automatic page definitions, zero-sized inner-page ratios, and oversized line/QR rendering.
 - Added a regression covering finite automatic page height, footer dimensions and bounded automatic watermark sizing before repeatables are laid out.
 - Added regressions for table-vector ownership and insertion tracking through cloned unbreakable fragments, while retaining the existing rounded-border, repeated-header and grouped-row pagination coverage.
 - Added preprocessing and integration regressions for malformed widths/heights, empty or inconsistent rows, out-of-bounds spans, overlapping spans and dynamic height callback results.

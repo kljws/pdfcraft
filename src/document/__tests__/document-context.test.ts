@@ -1,5 +1,6 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import DocumentContext, { bottomMostContext } from "../document-context.ts";
+import { getPagePosition } from "../document-context.helpers.ts";
 import type { ColumnEndingCell, ContextCoordinates } from "../document-context.types.ts";
 import type { PageSize } from "../../types/internal.ts";
 
@@ -19,6 +20,20 @@ describe("DocumentContext", function () {
 		assert.equal(pc.y, 60);
 		assert.equal(pc.availableWidth, 400 - 40 - 40);
 		assert.equal(pc.availableHeight, 800 - 60 - 60);
+	});
+
+	it("returns finite ratios when margins leave no inner page dimensions", function () {
+		const page = {
+			items: [],
+			pageSize: { width: 100, height: 100, orientation: "portrait" as const },
+			pageMargins: { left: 50, right: 50, top: 50, bottom: 50 },
+			customProperties: {},
+		};
+
+		const position = getPagePosition(page, 0, page.pageMargins, 50, 50);
+
+		assert.equal(position.horizontalRatio, 0);
+		assert.equal(position.verticalRatio, 0);
 	});
 
 	describe("beginColumnGroup", function () {

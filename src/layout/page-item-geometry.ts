@@ -1,5 +1,6 @@
 import { normalizePageMargin } from "../configuration/page-size";
 import type { PageItem, PageMargins, PdfPage, Vector } from "../types/internal";
+import { getSvgPathBounds } from "../utils/svg-path-bounds";
 
 export function getVectorBottom(vector: Vector): number {
 	const strokeOffset = (vector.lineWidth ?? 0) / 2;
@@ -13,7 +14,7 @@ export function getVectorBottom(vector: Vector): number {
 		case "polyline":
 			return Math.max(0, ...(vector.points ?? []).map((point) => point.y)) + strokeOffset;
 		case "path":
-			return vector.y ?? 0;
+			return (vector.y ?? 0) + (getSvgPathBounds(vector.d)?.maxY ?? 0) + strokeOffset;
 	}
 }
 

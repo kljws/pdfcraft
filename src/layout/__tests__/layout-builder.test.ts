@@ -1388,6 +1388,23 @@ describe("LayoutBuilder", function () {
 			assert.equal(pages[2].pageSize.orientation, "landscape");
 		});
 
+		it.each([
+			["beforeOdd", 3],
+			["beforeEven", 2],
+			["afterOdd", 3],
+			["afterEven", 2],
+		] as const)("places content on the requested page parity for %s", function (pageBreak, page) {
+			const isBefore = pageBreak.startsWith("before");
+			const desc = isBefore
+				? [{ text: "first" }, { text: "target", pageBreak }]
+				: [{ text: "first", pageBreak }, { text: "target" }];
+
+			const pages = builder.layoutDocument(desc, sampleTestProvider);
+
+			assert.equal(pages.length, page);
+			assert.equal(pages[page - 1].items.length, 1);
+		});
+
 		it("should use the absolutePosition attribute to position in absolute coordinates", function () {
 			var desc = [
 				{

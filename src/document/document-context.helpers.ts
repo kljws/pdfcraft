@@ -46,6 +46,8 @@ export function getPagePosition(
 	const { pageSize } = page;
 	const innerHeight = pageSize.height - pageMargins.top - pageMargins.bottom;
 	const innerWidth = pageSize.width - pageMargins.left - pageMargins.right;
+	const ratio = (offset: number, size: number): number =>
+		Number.isFinite(size) && size !== 0 ? offset / size : 0;
 	return {
 		pageNumber: pageIndex + 1,
 		pageOrientation: pageSize.orientation,
@@ -53,7 +55,7 @@ export function getPagePosition(
 		pageInnerWidth: innerWidth,
 		left: x,
 		top: y,
-		verticalRatio: (y - pageMargins.top) / innerHeight,
-		horizontalRatio: (x - pageMargins.left) / innerWidth,
+		verticalRatio: ratio(y - pageMargins.top, innerHeight),
+		horizontalRatio: ratio(x - pageMargins.left, innerWidth),
 	};
 }

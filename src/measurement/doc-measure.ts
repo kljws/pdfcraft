@@ -20,6 +20,7 @@ import {
 } from "./doc-measure.table";
 import DocMeasureContainers from "./doc-measure.containers";
 import DocMeasureMedia from "./doc-measure.media";
+import { getSvgPathBounds } from "../utils/svg-path-bounds";
 
 class DocMeasure {
 	readonly pdfDocument: PDFDocument;
@@ -328,6 +329,14 @@ class DocMeasure {
 						h = Math.max(h, point.y);
 					}
 					break;
+				case "path": {
+					const bounds = getSvgPathBounds(vector.d);
+					if (bounds) {
+						w = Math.max(w, (vector.x ?? 0) + bounds.maxX);
+						h = Math.max(h, (vector.y ?? 0) + bounds.maxY);
+					}
+					break;
+				}
 			}
 		}
 

@@ -100,13 +100,17 @@ export function addQr(
 	writer: MediaWriter,
 	qr: LayoutPdfNode,
 	index?: number,
+	allowOverflow = false,
 ): CurrentPosition | false {
 	const height = qr._height ?? 0;
 	const context = writer.context();
 	const page = context.getCurrentPage();
 	const position = writer.getCurrentPositionOnPage();
 
-	if (!page || (qr.absolutePosition === undefined && context.availableHeight < height))
+	if (
+		!page ||
+		(!allowOverflow && qr.absolutePosition === undefined && context.availableHeight < height)
+	)
 		return false;
 
 	qr._x ??= qr.x || 0;

@@ -150,7 +150,8 @@ describe("ColumnCalculator", function () {
 			ColumnCalculator.buildColumnWidths(columns, 90, 10, tableNode);
 
 			// 50% of 100, less padding 1 + 2 and half of borders 2/2 + 4/2.
-			assert.equal(columns[1].width, 44);
+			assert.equal(columns[1].width, "50%");
+			assert.equal(columns[1]._calcWidth, 44);
 		});
 
 		it("should calculate widths of columns correctly", function () {
@@ -221,15 +222,29 @@ describe("ColumnCalculator", function () {
 			// 200 Total available width (availableWidth + offsetTotal) === 149 + 51
 			// Fist column is 50% width of 200 === 100
 			// 100 - 4 borderLeft - 6/2 = 3 borderRight - 5 paddingLeft - 7 paddingRight
-			assert.equal(Number(columns[0].width), 81);
+			assert.equal(columns[0].width, "50%");
+			assert.equal(columns[0]._calcWidth, 81);
 			// Second column has 25% width of 200 which is 50
 			// 50 - 3 (6/2) borderLeft - 2.5 (5/2) borderRight - 3 paddingLeft - 7 paddingRight
-			assert.equal(Number(columns[1].width), 34.5);
+			assert.equal(columns[1].width, "25%");
+			assert.equal(columns[1]._calcWidth, 34.5);
 			// Third column has 25% width of 200 which is 50
 			// 50 - 2.5 (5/2) borderLeft - 4 borderRight - 3 paddingLeft - 7 paddingRight
-			assert.equal(Number(columns[2].width), 33.5);
+			assert.equal(columns[2].width, "25%");
+			assert.equal(columns[2]._calcWidth, 33.5);
 			// The sum of all column width should be equal to totalAvailableWidth - offsetTotal
 			assert.equal(availableWidth, 81 + 34.5 + 33.5);
+		});
+
+		it("recalculates percentage widths without mutating their definitions", function () {
+			const columns: ColumnWidth[] = [{ width: "50%", _minWidth: 10, _maxWidth: 10 }];
+
+			ColumnCalculator.buildColumnWidths(columns, 200);
+			assert.equal(columns[0]._calcWidth, 100);
+			ColumnCalculator.buildColumnWidths(columns, 300);
+
+			assert.equal(columns[0].width, "50%");
+			assert.equal(columns[0]._calcWidth, 150);
 		});
 	});
 

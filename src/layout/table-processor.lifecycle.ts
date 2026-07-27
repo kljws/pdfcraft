@@ -47,8 +47,33 @@ export interface TableLifecycleState {
 	drawHorizontalLine(lineIndex: number, writer: PageElementWriter): void;
 }
 
+export function resetTableLayoutState(tableNode: LayoutPdfNode): void {
+	delete tableNode._breaksBySpan;
+	delete tableNode._bottomByPage;
+	const table = requireTable(tableNode);
+	for (const row of table.body) {
+		for (const cell of row) {
+			delete cell._bottomY;
+			delete cell._originalXOffset;
+			delete cell._columnEndingContext;
+			delete cell._endingCell;
+			delete cell._leftEndingCell;
+			delete cell._startingRowSpanY;
+			delete cell._startingRowSpanPage;
+			delete cell._rowTopPageY;
+			delete cell._willBreak;
+			delete cell._isUnbreakableContext;
+			delete cell.__height;
+			delete cell._rowTopPageYPadding;
+			delete cell._lastPageNumber;
+			delete cell._rowSpanCurrentOffset;
+		}
+	}
+}
+
 export function beginTable(processor: TableLifecycleState, writer: PageElementWriter): void {
 	const tableNode = processor.tableNode;
+	resetTableLayoutState(tableNode);
 	const table = requireTable(tableNode);
 	const offsets = tableNode._offsets;
 	if (!offsets) throw new Error("Internal layout error: table offsets were not measured");
