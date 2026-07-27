@@ -229,6 +229,9 @@ class LayoutBuilder {
 		this.writer = new PageElementWriter(documentContext);
 		let dynamicBackgroundUsesPageCount = false;
 
+		// Backgrounds are created as each page is added, so they receive this pass's
+		// estimated pageCount. Headers, footers and watermarks are added after content
+		// layout below and therefore observe the pass's actual pages array.
 		this.writer.context().addListener("pageAdded", (page: PdfPage) => {
 			let backgroundGetter = background;
 			if (page.customProperties["background"] || page.customProperties["background"] === null) {

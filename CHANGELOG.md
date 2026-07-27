@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Updated the source architecture map with the vector-insertion and per-table border-registry ownership model used across cloned fragments and page boundaries.
 - Documented strict table-grid preprocessing and explicit layout-state guards in the source architecture map.
+- Clarified why dynamic backgrounds receive the current iterative pass's estimated page count while headers, footers and watermarks are added after content layout against the pass's actual pages.
 
 ## [0.7.2] - 2026-07-27
 
