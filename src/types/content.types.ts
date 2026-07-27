@@ -187,6 +187,73 @@ export interface TableRowGroup {
 	rows: TableRow[];
 	keepTogether?: boolean;
 	dontBreakRows?: boolean;
+	layout?: TableRowGroupLayout;
+}
+
+export interface TableRowGroupLayoutContext {
+	groupIndex: number;
+	rowCount: number;
+	startRow: number;
+	endRow: number;
+}
+
+export interface TableRowGroupLayout {
+	hLineWidth?: (
+		boundaryIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => number;
+	vLineWidth?: (
+		columnIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => number;
+	hLineColor?:
+		| Color
+		| ((
+				boundaryIndex: number,
+				node: TableLayoutNode,
+				columnIndex: number | undefined,
+				group: TableRowGroupLayoutContext,
+		  ) => Color);
+	vLineColor?:
+		| Color
+		| ((
+				columnIndex: number,
+				node: TableLayoutNode,
+				rowIndex: number | undefined,
+				group: TableRowGroupLayoutContext,
+		  ) => Color);
+	paddingLeft?: (
+		columnIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => number;
+	paddingRight?: (
+		columnIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => number;
+	paddingTop?: (
+		rowIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => number;
+	paddingBottom?: (
+		rowIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => number;
+	hLineStyle?: (
+		boundaryIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => { dash?: CanvasVector["dash"] } | null;
+	vLineStyle?: (
+		columnIndex: number,
+		node: TableLayoutNode,
+		group: TableRowGroupLayoutContext,
+	) => { dash?: CanvasVector["dash"] } | null;
 }
 
 export interface TableBodyDefinition {

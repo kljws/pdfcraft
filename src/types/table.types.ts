@@ -1,4 +1,5 @@
 import type { PdfNode } from "./document.types";
+import type { TableRowGroupLayout } from "./content.types";
 
 export type ColumnNode<Node = PdfNode> = Node & ColumnWidth;
 
@@ -13,17 +14,20 @@ export interface PdfTable<Node = PdfNode, Widths = ColumnWidth[]> {
 	headerRows?: number;
 	keepWithHeaderRows?: number;
 	dontBreakRows?: boolean;
-	_rowGroups?: TableRowGroupRange[];
+	_rowGroups?: TableRowGroupRange<Node>[];
 	_headerLayout?: string | Partial<TableLayout<Node>>;
 	_bodyLayout?: string | Partial<TableLayout<Node>>;
 	_blockContainer?: boolean;
 }
 
-export interface TableRowGroupRange {
+export interface TableRowGroupRange<Node = PdfNode> {
+	groupIndex: number;
 	startRow: number;
 	endRow: number;
 	keepTogether: boolean;
 	dontBreakRows: boolean;
+	layoutDefinition?: TableRowGroupLayout;
+	layout?: TableLayout<Node>;
 }
 
 export interface ColumnWidth {

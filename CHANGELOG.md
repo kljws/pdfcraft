@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Logical table body groups now accept a partial inline `layout` for all four cell paddings and internal horizontal/vertical separator widths, colors and dash styles. Unspecified callbacks inherit from `body.layout`, while outer borders, group boundaries, the header/body boundary, page-closing borders and rounded contours remain structurally owned by the table.
+
+### Changed
+
+- Updated the Kolecto playground invoice with clearer service typography and a category-style multi-row product group that demonstrates group-local spacing and separator control without splitting the surrounding table outline.
+
+### Fixed
+
+- Corrected the Kolecto group-layout example to use the public `group.rowCount` callback context instead of reading a nonexistent `group.rows` collection.
+- Kept compact Kolecto headers and monetary values on one line, preventing `Qté` from hard-wrapping and euro symbols from moving below their amounts in narrow automatic columns.
+
+### Tests
+
+- Added public type, preprocessing and rendering regressions for row-group layout validation, local callback indexes, inherited behavior, left/right/top/bottom padding, internal separator suppression and protected structural borders.
+
+### Documentation
+
+- Added a comprehensive styling guide covering PDFCraft's public typography, layout, table, media, vector and document controls, and documented partial group layouts in the README, table example, playground sample and source architecture map.
+
 ## [0.7.3] - 2026-07-27
 
 ### Changed

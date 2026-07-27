@@ -372,6 +372,7 @@ describe("DocPreprocessor", function () {
 		it("normalizes headers and logical row groups for table layout", function () {
 			const headerLayout = { fillColor: "#e0e3fd" };
 			const bodyLayout = { vLineWidth: () => 0 };
+			const groupLayout = { paddingTop: () => 8 };
 			const result = docPreprocessor.preprocessNode({
 				table: {
 					borderRadius: 8,
@@ -382,6 +383,7 @@ describe("DocPreprocessor", function () {
 							{
 								keepTogether: true,
 								dontBreakRows: true,
+								layout: groupLayout,
 								rows: [["Product", "2"], [{ text: "Description", colSpan: 2 }]],
 							},
 						],
@@ -395,10 +397,36 @@ describe("DocPreprocessor", function () {
 			assert.equal(result.table!._headerLayout, headerLayout);
 			assert.equal(result.table!._bodyLayout, bodyLayout);
 			assert.deepEqual(result.table!._rowGroups, [
-				{ startRow: 1, endRow: 2, keepTogether: true, dontBreakRows: true },
+				{
+					groupIndex: 0,
+					startRow: 1,
+					endRow: 2,
+					keepTogether: true,
+					dontBreakRows: true,
+					layoutDefinition: groupLayout,
+				},
 			]);
 			assert.equal(result.table!.body[2].length, 2);
 			assert.equal("_span" in result.table!.body[2][1] && result.table!.body[2][1]._span, true);
+		});
+
+		it("rejects invalid or unsupported row-group layouts", function () {
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { body: { groups: [{ rows: [["A"]], layout: "noBorders" }] } },
+					}),
+				/'layout' must be an object/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: {
+							body: { groups: [{ rows: [["A"]], layout: { fillColor: "red" } }] },
+						},
+					}),
+				/unsupported layout property 'fillColor'/,
+			);
 		});
 
 		it("rejects the replaced flat table API with migration guidance", function () {

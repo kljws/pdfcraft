@@ -14,6 +14,20 @@ import type {
 	PreprocessedPdfNode,
 	RawPdfNode,
 } from "../types/internal";
+import type { TableRowGroupLayout } from "../types";
+
+const TABLE_ROW_GROUP_LAYOUT_PROPERTIES = new Set([
+	"hLineWidth",
+	"vLineWidth",
+	"hLineColor",
+	"vLineColor",
+	"paddingLeft",
+	"paddingRight",
+	"paddingTop",
+	"paddingBottom",
+	"hLineStyle",
+	"vLineStyle",
+]);
 
 const convertValueToString = (value: unknown): unknown => {
 	if (isString(value)) {
@@ -522,10 +536,12 @@ class DocPreprocessor {
 		}
 		const groupedRows: PreprocessedPdfNode[][] = [];
 		const rowGroups: Array<{
+			groupIndex: number;
 			startRow: number;
 			endRow: number;
 			keepTogether: boolean;
 			dontBreakRows: boolean;
+			layoutDefinition?: TableRowGroupLayout;
 		}> = [];
 		for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
 			const group = groups[groupIndex];
@@ -551,14 +567,28 @@ class DocPreprocessor {
 					);
 				}
 			}
+			if (group.layout !== undefined && !isObject(group.layout)) {
+				throw new Error(
+					`Invalid table row group ${groupIndex}: 'layout' must be an object, received ${stringifyNode(group.layout)}`,
+				);
+			}
+			for (const property of Object.keys(group.layout ?? {})) {
+				if (!TABLE_ROW_GROUP_LAYOUT_PROPERTIES.has(property)) {
+					throw new Error(
+						`Invalid table row group ${groupIndex}: unsupported layout property '${property}'`,
+					);
+				}
+			}
 
 			const startRow = headerRows.length + groupedRows.length;
 			groupedRows.push(...groupRows);
 			rowGroups.push({
+				groupIndex,
 				startRow,
 				endRow: startRow + groupRows.length - 1,
 				keepTogether: group.keepTogether === true,
 				dontBreakRows: group.dontBreakRows === true,
+				layoutDefinition: group.layout as TableRowGroupLayout | undefined,
 			});
 		}
 

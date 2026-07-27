@@ -158,7 +158,7 @@ Tests:
 
 | File | Responsibility |
 | --- | --- |
-| `src/preprocessing/doc-preprocessor.ts` | Converts shorthand values into nodes, normalizes text/lists/tables/TOCs/sections, validates dimensions and expands compact or explicit span rows into a strict rectangular table grid. Route malformed-definition issues here first. |
+| `src/preprocessing/doc-preprocessor.ts` | Converts shorthand values into nodes, normalizes text/lists/tables/TOCs/sections, validates dimensions and group-layout capabilities, and expands compact or explicit span rows into a strict rectangular table grid. Route malformed-definition issues here first. |
 | `src/preprocessing/__tests__/doc-preprocessor.test.ts` | Supported shorthand, invalid structures and dimensions, rectangular table-grid constraints, section constraints, spans and preprocessing errors. |
 
 ### `src/measurement/`: intrinsic sizing
@@ -168,7 +168,7 @@ Tests:
 | `src/measurement/doc-measure.ts` | Main measurement dispatcher and style-stack owner. Produces measured nodes for every content type. |
 | `src/measurement/doc-measure.containers.ts` | Measures stacks, columns, lists, TOCs and other container structures. |
 | `src/measurement/doc-measure.media.ts` | Measures images, SVGs, QR codes, canvas vectors, attachments and AcroForms. |
-| `src/measurement/doc-measure.table.ts` | Resolves table layouts, offsets, min/max widths and `colSpan`/`rowSpan` measurement effects. Route column-width and span-sizing issues here. |
+| `src/measurement/doc-measure.table.ts` | Resolves header/body layouts and partial row-group overrides, reserves maximum horizontal padding/border geometry, and computes offsets, min/max widths and `colSpan`/`rowSpan` measurement effects. Route column-width and span-sizing issues here. |
 | `src/measurement/list-markers.ts` | Builds unordered markers and formats ordered alphabetic/Roman counters. |
 | `src/measurement/svg-measure.ts` | Parses SVG dimensions/viewBox and computes intrinsic/scaled sizes. |
 | `src/measurement/__tests__/doc-measure.test.ts` | General node, style, media, list, column and table measurement behavior. |
@@ -236,7 +236,7 @@ Tests:
 | --- | --- |
 | `src/layout/column-calculator.ts` | Allocates fixed, percentage, auto and star column widths under min/max and available-width constraints. |
 | `src/layout/table-processor.ts` | Per-table state and row lifecycle coordinator; owns the isolated page-vector registry, closes table/repeatable transactions and delegates border/row rendering. |
-| `src/layout/table-processor.lifecycle.ts` | Initializes table widths, the per-pass vector registry, header/dont-break transactions and per-row padding/border reservations. |
+| `src/layout/table-processor.lifecycle.ts` | Initializes table widths, the per-pass vector registry, header/dont-break transactions and the applicable header/body/group padding and border reservations for each row. |
 | `src/layout/table-processor.rows.ts` | Draws row-segment vertical borders and fills across one or more pages, registering only rectangular outer fills that may need later corner rounding. |
 | `src/layout/table-processor.borders.ts` | Draws horizontal/vertical table lines, applies layout styles/colors, resolves per-cell border precedence and closes rounded page fragments through structurally owned vector references. Route border-pagination defects here. |
 | `src/layout/table-processor.helpers.ts` | Creates row-span geometry, propagates borders, detects explicit cell page breaks, computes table width and attaches page-aware table-vector tracking. |
@@ -288,7 +288,7 @@ Tests:
 | `src/types/index.ts` | Public type barrel for `pdfcraft/types`. |
 | `src/types/common.types.ts` | Shared primitives such as color, margin, alignment, page break and dictionary. |
 | `src/types/configuration.types.ts` | Instance and per-document creation options. |
-| `src/types/content.types.ts` | Public content nodes, styles, tables, media (including raster border/radius options), forms, sections and dynamic content callbacks. |
+| `src/types/content.types.ts` | Public content nodes, styles, tables (including partial logical-group layout callbacks), media, forms, sections and dynamic content callbacks. |
 | `src/types/document-definition.types.ts` | Top-level document definition, metadata, permissions, patterns, resources and page callbacks. |
 | `src/types/output-document.types.ts` | Public Node/browser output capabilities and runtime-neutral browser object shapes. |
 | `src/types/resource.types.ts` | Fonts, VFS, URL/local policies, headers and resource references. |
@@ -333,7 +333,7 @@ Tests:
 | `tests/integration/alignment.test.ts` | Horizontal/vertical/table alignment behavior. |
 | `tests/integration/columns.test.ts` | Standard and nested column pagination. |
 | `tests/integration/snaking-columns.test.ts` | Snaking column order, transitions and tables. |
-| `tests/integration/tables.test.ts` | Table widths, spans, heights, fills, borders, pagination, headers and upstream regressions. |
+| `tests/integration/tables.test.ts` | Table widths, spans, heights, fills, borders, pagination, headers, partial group-layout inheritance and upstream regressions. |
 | `tests/integration/lists.test.ts` | Ordered/unordered/nested lists and multi-page markers. |
 | `tests/integration/images.test.ts` | Raster sizing, caching, URL/VFS/binary inputs and placement. |
 | `tests/integration/svgs.test.ts` | SVG resources, sizing, data URLs and placement. |

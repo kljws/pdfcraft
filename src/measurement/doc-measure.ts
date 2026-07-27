@@ -16,6 +16,7 @@ import {
 	markColumnSpans,
 	markRowSpans,
 	resolveTableLayout,
+	resolveTableRowGroupLayout,
 	combineTableLayouts,
 } from "./doc-measure.table";
 import DocMeasureContainers from "./doc-measure.containers";
@@ -235,7 +236,15 @@ class DocMeasure {
 			tableAlignment === "center" || tableAlignment === "right" ? tableAlignment : "left";
 		node._headerLayout = resolveTableLayout(node, this.tableLayouts, table._headerLayout);
 		node._bodyLayout = resolveTableLayout(node, this.tableLayouts, table._bodyLayout);
-		node._layout = combineTableLayouts(node._headerLayout, node._bodyLayout);
+		const bodyLayout = node._bodyLayout;
+		for (const group of table._rowGroups ?? []) {
+			group.layout = resolveTableRowGroupLayout(node, bodyLayout, group);
+		}
+		node._layout = combineTableLayouts(
+			node._headerLayout,
+			bodyLayout,
+			(table._rowGroups ?? []).map((group) => group.layout ?? bodyLayout),
+		);
 		node._offsets = getTableOffsets(node, node._layout);
 
 		const colSpans: Array<{ col: number; span: number; minWidth: number; maxWidth: number }> = [];

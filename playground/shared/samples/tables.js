@@ -23,7 +23,7 @@ export default {
 			},
 		},
 		{ text: "Headers and logical row groups", style: "subheader" },
-		"A body group may contain several physical rows. keepTogether keeps the complete item on one page when it fits, while dontBreakRows keeps each of its physical rows indivisible.",
+		"A body group may contain several physical rows. keepTogether keeps the complete item on one page when it fits, while dontBreakRows keeps each of its physical rows indivisible. A partial group layout can customize its internal separators and all four paddings without removing the table outline.",
 		{
 			style: "tableExample",
 			table: {
@@ -42,6 +42,15 @@ export default {
 						{
 							keepTogether: true,
 							dontBreakRows: true,
+							layout: {
+								hLineWidth: () => 0,
+								vLineWidth: () => 0,
+								paddingLeft: () => 12,
+								paddingRight: () => 12,
+								paddingTop: (rowIndex) => (rowIndex === 0 ? 8 : 2),
+								paddingBottom: (rowIndex, _node, group) =>
+									rowIndex === group.rowCount - 1 ? 8 : 2,
+							},
 							rows: [
 								["Atmospheric sensor", "2", "480 €"],
 								[{ text: "Reference ATM-204 · Full-width product description", colSpan: 3 }],

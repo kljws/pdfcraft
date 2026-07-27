@@ -152,11 +152,12 @@ export function beginTableRow(
 	rowIndex: number,
 	writer: PageElementWriter,
 ): void {
+	const rowGroup = processor.rowGroupsByRow[rowIndex];
+	const groupLayout = rowGroup?.layout as ResolvedTableLayout | undefined;
 	processor.layout =
 		rowIndex < processor.headerRows
 			? (processor.headerLayout ?? processor.layout)
-			: (processor.bodyLayout ?? processor.layout);
-	const rowGroup = processor.rowGroupsByRow[rowIndex];
+			: (groupLayout ?? processor.bodyLayout ?? processor.layout);
 	processor._currentRowGroup = rowGroup;
 	if (rowGroup?.keepTogether && rowIndex === rowGroup.startRow) {
 		writer.beginUnbreakableBlock();

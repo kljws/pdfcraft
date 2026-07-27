@@ -1,5 +1,5 @@
 import type PageElementWriter from "./element-writer.page";
-import type { LayoutPdfNode, PdfTable } from "../types/internal";
+import type { ColumnWidth, LayoutPdfNode, PdfTable } from "../types/internal";
 import { addAll } from "./layout-builder.helpers";
 import TableProcessor from "./table-processor";
 import {
@@ -33,6 +33,34 @@ function getRowHeight(
 		);
 	}
 	return height;
+}
+
+function getRowColumnGeometry(
+	tableNode: LayoutPdfNode,
+	processor: TableProcessor,
+): { widths: ColumnWidth[]; offsets: number[] } {
+	const table = tableNode.table;
+	if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
+	const widths: ColumnWidth[] = [];
+	const offsets: number[] = [];
+	for (let columnIndex = 0; columnIndex < table.widths.length; columnIndex++) {
+		const leftBorder = processor.layout.vLineWidth(columnIndex, tableNode);
+		const leftPadding = processor.layout.paddingLeft(columnIndex, tableNode);
+		const rightPadding = processor.layout.paddingRight(columnIndex, tableNode);
+		const slotStart = processor.rowSpanData[columnIndex]?.left;
+		const slotEnd = processor.rowSpanData[columnIndex + 1]?.left;
+		if (slotStart === undefined || slotEnd === undefined) {
+			throw new Error(`Internal layout error: missing table boundary for column ${columnIndex}`);
+		}
+		const contentWidth = Math.max(0, slotEnd - slotStart - leftBorder - leftPadding - rightPadding);
+		widths.push({ ...table.widths[columnIndex], _calcWidth: contentWidth });
+		offsets.push(
+			columnIndex === 0
+				? processor.tableOffset + leftBorder + leftPadding
+				: processor.layout.paddingRight(columnIndex - 1, tableNode) + leftBorder + leftPadding,
+		);
+	}
+	return { widths, offsets };
 }
 
 export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): void {
@@ -122,17 +150,14 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 
 		processor.beginRow(rowIndex, host.writer);
 		const pageBeforeProcessing = host.writer.context().page;
-		const offsets = tableNode._offsets;
-		if (!offsets) throw new Error("Internal layout error: table offsets were not measured");
-		const columnOffsets = [...offsets.offsets];
-		columnOffsets[0] = (columnOffsets[0] ?? 0) + processor.tableOffset;
+		const rowGeometry = getRowColumnGeometry(tableNode, processor);
 		const result = host.processRow({
 			marginX: tableNode._margin ? [tableNode._margin[0], tableNode._margin[2]] : [0, 0],
 			dontBreakRows: rowDontBreakRows,
 			rowsWithoutPageBreak: processor.rowsWithoutPageBreak,
 			cells: table.body[rowIndex],
-			widths: table.widths,
-			gaps: columnOffsets,
+			widths: rowGeometry.widths,
+			gaps: rowGeometry.offsets,
 			tableBody: table.body,
 			tableNode,
 			rowIndex,

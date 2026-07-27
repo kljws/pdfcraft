@@ -47,6 +47,17 @@ var docDefinition = {
 						{
 							keepTogether: true,
 							dontBreakRows: true,
+							layout: {
+								// Group callbacks receive local row/boundary indexes. Structural table
+								// borders continue to come from body.layout.
+								hLineWidth: () => 0,
+								vLineWidth: () => 0,
+								paddingLeft: () => 12,
+								paddingRight: () => 12,
+								paddingTop: (rowIndex) => (rowIndex === 0 ? 8 : 2),
+								paddingBottom: (rowIndex, _node, group) =>
+									rowIndex === group.rowCount - 1 ? 8 : 2,
+							},
 							rows: [
 								["Atmospheric sensor", "2", "480 €"],
 								[{ text: "Reference ATM-204 · Full-width product description", colSpan: 3 }],

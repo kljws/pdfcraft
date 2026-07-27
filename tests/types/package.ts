@@ -69,6 +69,16 @@ const definition: DocumentDefinition = {
 						{
 							keepTogether: true,
 							dontBreakRows: true,
+							layout: {
+								hLineWidth: (boundaryIndex, _node, group) =>
+									boundaryIndex < group.rowCount ? 0 : 0.5,
+								vLineWidth: () => 0,
+								paddingLeft: (_columnIndex, _node, group) => 4 + group.groupIndex,
+								paddingRight: () => 6,
+								paddingTop: (rowIndex) => (rowIndex === 0 ? 8 : 2),
+								paddingBottom: (rowIndex, _node, group) =>
+									rowIndex === group.rowCount - 1 ? 8 : 2,
+							},
 							rows: [["Centered table", "Value"], [{ text: "Description", colSpan: 2 }]],
 						},
 					],

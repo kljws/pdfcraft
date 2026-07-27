@@ -230,16 +230,215 @@ export default {
 						paddingBottom() {
 							return 5;
 						},
-						paddingLeft() {
-							return 10;
+						paddingLeft(colIndex) {
+							return colIndex === 0 ? 10 : 8;
 						},
-						paddingRight() {
-							return 10;
+						paddingRight(colIndex, node) {
+							return colIndex === node.table.widths.length - 1 ? 10 : 8;
 						},
 					},
 				},
 				body: {
 					groups: [
+						{
+							keepTogether: true,
+							dontBreakRows: true,
+							rows: [
+								[
+									{
+										stack: [
+											{
+												text: "Maintenance de la plateforme de supervision",
+												fontSize: 10,
+											},
+											{
+												text: "Gestion proactive et support complet comprenant la supervision 24/7 des systèmes, interventions préventives, rapports mensuels détaillés, assistance technique prioritaire, et accompagnement personnalisé.",
+												color: "#52577A",
+												fontSize: 9,
+												margin: [0, 2, 0, 0],
+											},
+										],
+										colSpan: 7,
+									},
+									{},
+									{},
+									{},
+									{},
+									{},
+									{},
+								],
+								[
+									{
+										text: "- Mises à jour fonctionnelles et de sécurité",
+										fontSize: 10,
+									},
+									{
+										text: "12",
+										alignment: "center",
+										fontSize: 9,
+									},
+									{
+										text: "Mois",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "490,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "20%",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "5 880,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "7 056,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+								],
+								[
+									{
+										text: "Ref: SUP-MCO-12M",
+										color: "#52577A",
+										fontSize: 9,
+										colSpan: 7,
+									},
+									{},
+									{},
+									{},
+									{},
+									{},
+									{},
+								],
+								[
+									{
+										text: "- Assistance à distance les jours ouvrés",
+										fontSize: 10,
+									},
+									{
+										text: "12",
+										alignment: "center",
+										fontSize: 9,
+									},
+									{
+										text: "Mois",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "490,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "20%",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "5 880,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "7 056,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+								],
+								[
+									{
+										text: "Ref: SUP-MCO-12M",
+										color: "#52577A",
+										fontSize: 9,
+										colSpan: 7,
+									},
+									{},
+									{},
+									{},
+									{},
+									{},
+									{},
+								],
+								[
+									{
+										text: "- Rapport mensuel de disponibilité",
+										fontSize: 10,
+									},
+									{
+										text: "12",
+										alignment: "center",
+										fontSize: 9,
+									},
+									{
+										text: "Mois",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "490,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "20%",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "5 880,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+									{
+										text: "7 056,00 €",
+										alignment: "right",
+										fontSize: 9,
+									},
+								],
+								[
+									{
+										text: "Ref: SUP-MCO-12M",
+										color: "#52577A",
+										fontSize: 9,
+										colSpan: 7,
+									},
+									{},
+									{},
+									{},
+									{},
+									{},
+									{},
+								],
+							],
+							layout: {
+								hLineWidth() {
+									return 0;
+								},
+								vLineWidth() {
+									return 0;
+								},
+								paddingTop(rowIndex, _node, group) {
+									if (rowIndex === 0) {
+										return 8;
+									}
+									return 2;
+								},
+								paddingBottom(rowIndex, _node, group) {
+									if (rowIndex === group.rowCount - 1) {
+										return 8;
+									}
+									return 2;
+								},
+							},
+						},
 						{
 							keepTogether: true,
 							dontBreakRows: true,
@@ -311,6 +510,20 @@ export default {
 									{},
 								],
 							],
+							layout: {
+								hLineWidth() {
+									return 0;
+								},
+								vLineWidth() {
+									return 0;
+								},
+								paddingTop(rowIndex) {
+									return 8;
+								},
+								paddingBottom(rowIndex, _node, group) {
+									return 8;
+								},
+							},
 						},
 						{
 							keepTogether: true,
@@ -359,9 +572,10 @@ export default {
 												text: "Ref: CAPT-AIR-024",
 												color: "#52577A",
 												fontSize: 9,
+												margin: [0, 0, 0, 5],
 											},
 											{
-												text: "Fourniture, configuration et pose de capteurs connectés mesurant le CO₂, les particules fines, la température et l’humidité.\n\nLa prestation comprend :\n- Installation dans les espaces sélectionnés\n- Connexion au réseau sécurisé\n- Calibration et recette sur site\n- Calibration et recette sur site",
+												text: "Fourniture, configuration et pose de capteurs connectés mesurant le CO₂, les particules fines, la température et l’humidité.\n\nLa prestation comprend :\n- Installation dans les espaces sélectionnés\n- Connexion au réseau sécurisé\n- Calibration et recette sur site",
 												color: "#52577A",
 												fontSize: 9,
 											},
@@ -376,71 +590,20 @@ export default {
 									{},
 								],
 							],
-						},
-						{
-							keepTogether: true,
-							dontBreakRows: true,
-							rows: [
-								[
-									{
-										text: "Maintenance de la plateforme de supervision",
-										fontSize: 10,
-									},
-									{
-										text: "12",
-										alignment: "center",
-										fontSize: 9,
-									},
-									{
-										text: "Mois",
-										alignment: "right",
-										fontSize: 9,
-									},
-									{
-										text: "490,00 €",
-										alignment: "right",
-										fontSize: 9,
-									},
-									{
-										text: "20%",
-										alignment: "right",
-										fontSize: 9,
-									},
-									{
-										text: "5 880,00 €",
-										alignment: "right",
-										fontSize: 9,
-									},
-									{
-										text: "7 056,00 €",
-										alignment: "right",
-										fontSize: 9,
-									},
-								],
-								[
-									{
-										stack: [
-											{
-												text: "Ref: SUP-MCO-12M",
-												color: "#52577A",
-												fontSize: 9,
-											},
-											{
-												text: "Maintien en condition opérationnelle de la plateforme pendant douze mois, avec suivi des alertes et accompagnement des administrateurs.\n\nServices inclus :\n- Mises à jour fonctionnelles et de sécurité\n- Assistance à distance les jours ouvrés\n- Rapport mensuel de disponibilité",
-												color: "#52577A",
-												fontSize: 9,
-											},
-										],
-										colSpan: 7,
-									},
-									{},
-									{},
-									{},
-									{},
-									{},
-									{},
-								],
-							],
+							layout: {
+								hLineWidth() {
+									return 0;
+								},
+								vLineWidth() {
+									return 0;
+								},
+								paddingTop(rowIndex) {
+									return 2;
+								},
+								paddingBottom(rowIndex, _node, group) {
+									return 2;
+								},
+							},
 						},
 					],
 					layout: {
@@ -451,42 +614,22 @@ export default {
 							return "#E3E3E8";
 						},
 						hLineWidth(index, node) {
-							const headerRows = node.table.headerRows;
-							const lastBoundary = node.table.body.length;
-
-							// Bas du tableau
-							if (index === lastBoundary) {
-								return 0.5;
-							}
-
-							// Index relatif au body, sans compter le header
-							const bodyBoundary = index - headerRows;
-
-							// Une ligne après chaque groupe de deux rows
-							return bodyBoundary > 0 && bodyBoundary % 2 === 0 ? 0.5 : 0;
+							return 0.5;
 						},
 						hLineColor() {
 							return "#E3E3E8";
 						},
 						paddingTop(rowIndex, node) {
-							const headerRows = node.table.headerRows ?? 0;
-							const bodyRowIndex = rowIndex - headerRows;
-
-							// Padding uniquement au début du groupe
-							return bodyRowIndex % 2 === 0 ? 8 : 2;
+							return 8;
 						},
 						paddingBottom(rowIndex, node) {
-							const headerRows = node.table.headerRows ?? 0;
-							const bodyRowIndex = rowIndex - headerRows;
-
-							// Padding uniquement à la fin du groupe
-							return bodyRowIndex % 2 === 1 ? 8 : 2;
+							return 8;
 						},
-						paddingLeft() {
-							return 10;
+						paddingLeft(colIndex) {
+							return colIndex === 0 ? 10 : 8;
 						},
-						paddingRight() {
-							return 10;
+						paddingRight(colIndex, node) {
+							return colIndex === node.table.widths.length - 1 ? 10 : 8;
 						},
 					},
 				},
@@ -514,6 +657,7 @@ export default {
 							margin: [0, 10, 0, 0],
 						},
 						{
+							noWrap: true,
 							table: {
 								widths: ["auto", "auto", "auto"],
 								header: {
@@ -656,6 +800,7 @@ export default {
 														margin: [0, 0, 0, 10],
 													},
 													{
+														noWrap: true,
 														table: {
 															widths: ["auto", "auto"],
 
@@ -890,6 +1035,7 @@ export default {
 			bold: true,
 			color: "#52577A",
 			fontSize: 8,
+			noWrap: true,
 		},
 		total: {
 			fontSize: 12,

@@ -13,7 +13,7 @@ Numerous pull requests and issues from pdfmake have been fixed or incorporated i
 - Dedicated modern browser entry
 - Independent instances through `createPdfCraft()`
 - Promise-based document output methods
-- Structured tables with declarative headers, logical row groups and independent layouts
+- Structured tables with declarative headers and inheritable body/group layouts
 - Rounded tables, images and decorated stack blocks
 - Columns, lists, SVG, vectors, sections, attachments and AcroForm fields
 - Headers, footers, backgrounds, page breaks and page metadata
@@ -168,6 +168,15 @@ const documentDefinition = {
 						{
 							keepTogether: true,
 							dontBreakRows: true,
+							layout: {
+								hLineWidth: () => 0,
+								vLineWidth: () => 0,
+								paddingLeft: () => 12,
+								paddingRight: () => 12,
+								paddingTop: (rowIndex) => (rowIndex === 0 ? 8 : 2),
+								paddingBottom: (rowIndex, _node, group) =>
+									rowIndex === group.rowCount - 1 ? 8 : 2,
+							},
 							rows: [
 								["Platform subscription", "490.00 EUR"],
 								[{ text: "Twelve-month service", colSpan: 2 }],
@@ -191,6 +200,11 @@ const documentDefinition = {
 	],
 };
 ```
+
+A group layout partially overrides `body.layout`. It can customize all four paddings and the
+horizontal or vertical separators inside that group. Omitted callbacks inherit from the body;
+the table's outer border, group boundaries, header/body boundary and page-closing borders remain
+owned by the body layout.
 
 Images accept `borderRadius`, `borderWidth` and `borderColor` as well. Version 0.7 replaces the
 former flat `table.body`, `headerRows`, table-level `dontBreakRows` and node-level table `layout`

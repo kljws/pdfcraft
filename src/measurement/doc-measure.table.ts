@@ -1,11 +1,13 @@
 import { defaultTableLayout } from "../configuration/table-layouts";
 import type { Dictionary } from "../types";
+import type { TableLayoutNode, TableRowGroupLayout, TableRowGroupLayoutContext } from "../types";
 import type {
 	ColumnWidth,
 	MeasuredPdfNode,
 	PdfTable,
 	RawColumnWidth,
 	TableLayout,
+	TableRowGroupRange,
 } from "../types/internal";
 import { pack } from "../utils/tools";
 import { isNumber, isObject, isString } from "../utils/variable-type";
@@ -22,9 +24,90 @@ export function resolveTableLayout(
 	);
 }
 
+export function resolveTableRowGroupLayout(
+	node: MeasuredPdfNode,
+	bodyLayout: TableLayout<MeasuredPdfNode>,
+	group: TableRowGroupRange<MeasuredPdfNode>,
+): TableLayout<MeasuredPdfNode> {
+	const definition = group.layoutDefinition as TableRowGroupLayout | undefined;
+	if (!definition) return bodyLayout;
+	const context: TableRowGroupLayoutContext = {
+		groupIndex: group.groupIndex,
+		rowCount: group.endRow - group.startRow + 1,
+		startRow: group.startRow,
+		endRow: group.endRow,
+	};
+	const publicNode = node as unknown as TableLayoutNode;
+	const isInternalHorizontalBoundary = (index: number): boolean =>
+		index > group.startRow && index <= group.endRow;
+	const isInternalVerticalBoundary = (index: number): boolean =>
+		index > 0 && index < (node.table?.widths.length ?? 0);
+	const localRow = (index: number): number => index - group.startRow;
+	const localBoundary = (index: number): number => index - group.startRow;
+
+	return {
+		...bodyLayout,
+		hLineWidth: (index, layoutNode) =>
+			definition.hLineWidth && isInternalHorizontalBoundary(index)
+				? definition.hLineWidth(localBoundary(index), publicNode, context)
+				: bodyLayout.hLineWidth(index, layoutNode),
+		vLineWidth: (index, layoutNode) =>
+			definition.vLineWidth && isInternalVerticalBoundary(index)
+				? definition.vLineWidth(index, publicNode, context)
+				: bodyLayout.vLineWidth(index, layoutNode),
+		hLineColor: (index, layoutNode, columnIndex) => {
+			if (definition.hLineColor !== undefined && isInternalHorizontalBoundary(index)) {
+				return typeof definition.hLineColor === "function"
+					? definition.hLineColor(localBoundary(index), publicNode, columnIndex, context)
+					: definition.hLineColor;
+			}
+			return bodyLayout.hLineColor(index, layoutNode, columnIndex);
+		},
+		vLineColor: (index, layoutNode, rowIndex) => {
+			if (definition.vLineColor !== undefined && isInternalVerticalBoundary(index)) {
+				return typeof definition.vLineColor === "function"
+					? definition.vLineColor(
+							index,
+							publicNode,
+							rowIndex === undefined ? undefined : localRow(rowIndex),
+							context,
+						)
+					: definition.vLineColor;
+			}
+			return bodyLayout.vLineColor(index, layoutNode, rowIndex);
+		},
+		paddingLeft: (index, layoutNode) =>
+			definition.paddingLeft
+				? definition.paddingLeft(index, publicNode, context)
+				: bodyLayout.paddingLeft(index, layoutNode),
+		paddingRight: (index, layoutNode) =>
+			definition.paddingRight
+				? definition.paddingRight(index, publicNode, context)
+				: bodyLayout.paddingRight(index, layoutNode),
+		paddingTop: (index, layoutNode) =>
+			definition.paddingTop
+				? definition.paddingTop(localRow(index), publicNode, context)
+				: bodyLayout.paddingTop(index, layoutNode),
+		paddingBottom: (index, layoutNode) =>
+			definition.paddingBottom
+				? definition.paddingBottom(localRow(index), publicNode, context)
+				: bodyLayout.paddingBottom(index, layoutNode),
+		hLineStyle: (index, layoutNode) =>
+			definition.hLineStyle && isInternalHorizontalBoundary(index)
+				? definition.hLineStyle(localBoundary(index), publicNode, context)
+				: bodyLayout.hLineStyle?.(index, layoutNode),
+		vLineStyle: (index, layoutNode) =>
+			definition.vLineStyle && isInternalVerticalBoundary(index)
+				? definition.vLineStyle(index, publicNode, context)
+				: bodyLayout.vLineStyle?.(index, layoutNode),
+		hLineWhenBroken: bodyLayout.hLineWhenBroken,
+	};
+}
+
 export function combineTableLayouts(
 	headerLayout: TableLayout<MeasuredPdfNode>,
 	bodyLayout: TableLayout<MeasuredPdfNode>,
+	groupLayouts: TableLayout<MeasuredPdfNode>[] = [],
 ): TableLayout<MeasuredPdfNode> {
 	const useHeader = (index: number, node: MeasuredPdfNode) =>
 		(node.table!.headerRows ?? 0) > 0 && index < (node.table!.headerRows ?? 0);
@@ -35,9 +118,11 @@ export function combineTableLayouts(
 		hLineWidth: (index, node) =>
 			(useHeaderBoundary(index, node) ? headerLayout : bodyLayout).hLineWidth(index, node),
 		vLineWidth: (index, node) =>
-			(node.table!.headerRows ?? 0) > 0
-				? Math.max(headerLayout.vLineWidth(index, node), bodyLayout.vLineWidth(index, node))
-				: bodyLayout.vLineWidth(index, node),
+			Math.max(
+				(node.table!.headerRows ?? 0) > 0 ? headerLayout.vLineWidth(index, node) : 0,
+				bodyLayout.vLineWidth(index, node),
+				...groupLayouts.map((layout) => layout.vLineWidth(index, node)),
+			),
 		hLineColor: (index, node, columnIndex) => {
 			const layout = useHeaderBoundary(index, node) ? headerLayout : bodyLayout;
 			return typeof layout.hLineColor === "function"
@@ -50,13 +135,17 @@ export function combineTableLayouts(
 		vLineStyle: (index, node) =>
 			headerLayout.vLineStyle?.(index, node) ?? bodyLayout.vLineStyle?.(index, node),
 		paddingLeft: (index, node) =>
-			(node.table!.headerRows ?? 0) > 0
-				? Math.max(headerLayout.paddingLeft(index, node), bodyLayout.paddingLeft(index, node))
-				: bodyLayout.paddingLeft(index, node),
+			Math.max(
+				(node.table!.headerRows ?? 0) > 0 ? headerLayout.paddingLeft(index, node) : 0,
+				bodyLayout.paddingLeft(index, node),
+				...groupLayouts.map((layout) => layout.paddingLeft(index, node)),
+			),
 		paddingRight: (index, node) =>
-			(node.table!.headerRows ?? 0) > 0
-				? Math.max(headerLayout.paddingRight(index, node), bodyLayout.paddingRight(index, node))
-				: bodyLayout.paddingRight(index, node),
+			Math.max(
+				(node.table!.headerRows ?? 0) > 0 ? headerLayout.paddingRight(index, node) : 0,
+				bodyLayout.paddingRight(index, node),
+				...groupLayouts.map((layout) => layout.paddingRight(index, node)),
+			),
 		paddingTop: (index, node) =>
 			(useHeader(index, node) ? headerLayout : bodyLayout).paddingTop(index, node),
 		paddingBottom: (index, node) =>

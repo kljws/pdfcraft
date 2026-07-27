@@ -139,6 +139,71 @@ describe("Integration test: tables", function () {
 		);
 	});
 
+	it("applies partial group layouts without removing structural table borders", function () {
+		const pages = testHelper.renderPages("A6", {
+			content: {
+				table: {
+					widths: [60, 60],
+					body: {
+						groups: [
+							{
+								layout: {
+									hLineWidth: () => 0,
+									vLineWidth: () => 0,
+									paddingLeft: () => 10,
+									paddingRight: () => 12,
+									paddingTop: (rowIndex: number, _node: unknown, group: { rowCount: number }) => {
+										assert.equal(group.rowCount, 2);
+										return rowIndex === 0 ? 7 : 1;
+									},
+									paddingBottom: (rowIndex: number) => (rowIndex === 1 ? 9 : 1),
+								},
+								rows: [
+									["Group A1", "Value A1"],
+									["Group A2", "Value A2"],
+								],
+							},
+							{ rows: [["Group B", "Value B"]] },
+						],
+						layout: {
+							hLineWidth: () => 1,
+							vLineWidth: () => 1,
+							paddingLeft: () => 2,
+							paddingRight: () => 2,
+							paddingTop: () => 2,
+							paddingBottom: () => 2,
+						},
+					},
+				},
+			},
+		});
+		const lines = getCells(pages, { pageNumber: 0 });
+		assert.equal(lines.length, 6);
+		assert.equal(lines[0].item.x - lines[4].item.x, 8);
+		assert.equal(lines[0].item.y, testHelper.MARGINS.top + 8);
+		assert.ok(lines[4].item.y - lines[2].item.y > lines[2].item.y - lines[0].item.y);
+		assert.ok(lines[4].item.maxWidth > lines[0].item.maxWidth);
+
+		const horizontalLines = pages[0].items.filter(
+			(entry) =>
+				entry.type === "vector" &&
+				entry.item.type === "line" &&
+				Math.abs(entry.item.y1 - entry.item.y2) < 0.001,
+		);
+		assert.equal(new Set(horizontalLines.map((entry) => entry.item.y1.toFixed(3))).size, 3);
+
+		const verticalLines = pages[0].items.filter(
+			(entry) =>
+				entry.type === "vector" &&
+				entry.item.type === "line" &&
+				Math.abs(entry.item.x1 - entry.item.x2) < 0.001,
+		);
+		const xCoordinates = [...new Set(verticalLines.map((entry) => entry.item.x1.toFixed(3)))];
+		assert.equal(xCoordinates.length, 3);
+		const middleX = xCoordinates.sort((left, right) => Number(left) - Number(right))[1];
+		assert.equal(verticalLines.filter((entry) => entry.item.x1.toFixed(3) === middleX).length, 1);
+	});
+
 	it("rounds the outer table border and corner fills", function () {
 		const pages = testHelper.renderPages("A6", {
 			content: {

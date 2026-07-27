@@ -67,10 +67,11 @@ class TableProcessor {
 	}
 
 	selectLayout(rowIndex: number): void {
+		const groupLayout = this.rowGroupsByRow[rowIndex]?.layout as ResolvedTableLayout | undefined;
 		this.layout =
 			rowIndex < this.headerRows
 				? (this.headerLayout ?? this.layout)
-				: (this.bodyLayout ?? this.layout);
+				: (groupLayout ?? this.bodyLayout ?? this.layout);
 	}
 
 	drawHorizontalLine(

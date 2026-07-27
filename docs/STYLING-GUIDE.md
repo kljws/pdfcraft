@@ -745,6 +745,15 @@ Tables support widths, heights, headers, row groups, spanning, borders, fills, a
           ],
           keepTogether: true,
           dontBreakRows: true,
+          layout: {
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+            paddingLeft: () => 12,
+            paddingRight: () => 12,
+            paddingTop: rowIndex => rowIndex === 0 ? 8 : 2,
+            paddingBottom: (rowIndex, _node, group) =>
+              rowIndex === group.rowCount - 1 ? 8 : 2,
+          },
         },
       ],
       layout: "lightHorizontalLines",
@@ -761,6 +770,25 @@ Built-in layouts visible in the source:
 - `noBorders`
 - `headerLineOnly`
 - `lightHorizontalLines`
+
+### Group layout overrides
+
+Each body group may define a partial inline `layout`. It inherits omitted callbacks from
+`body.layout` and may override only:
+
+- `paddingLeft`, `paddingRight`, `paddingTop`, `paddingBottom`
+- `hLineWidth`, `hLineColor`, `hLineStyle`
+- `vLineWidth`, `vLineColor`, `vLineStyle`
+
+Horizontal group callbacks receive a boundary index local to the group. Top and bottom padding
+callbacks receive a local row index. Every callback also receives a group context containing
+`groupIndex`, `rowCount`, `startRow`, and `endRow`. Vertical callbacks use the table column index;
+their optional row index is local to the group.
+
+Group line overrides apply only between the group's physical rows and columns. Structural edges
+remain controlled by the body layout: the outer table border, boundaries between groups, the
+header/body boundary, page-break closing borders, and rounded contours. Fill callbacks,
+`defaultBorder`, and `hLineWhenBroken` therefore remain body-level controls.
 
 ### Cell styling
 
