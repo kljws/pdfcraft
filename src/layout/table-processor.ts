@@ -53,7 +53,9 @@ class TableProcessor {
 	}
 
 	private get table(): PdfTable<LayoutPdfNode> {
-		return this.tableNode.table!;
+		const table = this.tableNode.table;
+		if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
+		return table;
 	}
 
 	beginTable(writer: PageElementWriter): void {
@@ -176,7 +178,11 @@ class TableProcessor {
 
 		ys[ys.length - 1].y1 = endingY;
 
-		let skipOrphanePadding = ys[0].y1! - ys[0].y0 === this.rowPaddingTop;
+		const firstSegmentEnd = ys[0].y1;
+		if (firstSegmentEnd === undefined) {
+			throw new Error("Internal layout error: table row segment has no ending position");
+		}
+		let skipOrphanePadding = firstSegmentEnd - ys[0].y0 === this.rowPaddingTop;
 		if (skipOrphanePadding && pageBreaks.length > 0 && this.layout.hLineWhenBroken !== false) {
 			const firstBreak = pageBreaks[0];
 			this.drawHorizontalLine(
@@ -208,7 +214,10 @@ class TableProcessor {
 			let rowBreakWithoutHeader = yi > 0 && !this.headerRows;
 			let hzLineOffset = rowBreakWithoutHeader ? 0 : this.topLineWidth;
 			let y1 = ys[yi].y0;
-			let y2 = ys[yi].y1!;
+			let y2 = ys[yi].y1;
+			if (y2 === undefined) {
+				throw new Error("Internal layout error: table row segment has no ending position");
+			}
 
 			if (willBreak) {
 				y2 = y2 + this.rowPaddingBottom;

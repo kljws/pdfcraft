@@ -31,15 +31,17 @@ export function addPageBreaksIfNecessary(
 		(node) => Boolean(node.positions?.length) && (node.text !== "" || Boolean(node.listMarker)),
 	);
 	for (const node of nodes) {
+		const positions = node.positions;
+		if (!positions?.length) continue;
 		const nodeInfo = {} as PageBreakNodeInfo;
 		for (const key of NODE_INFO_KEYS) {
 			if (node[key] !== undefined) nodeInfo[key] = node[key];
 		}
-		nodeInfo.startPosition = node.positions![0];
+		nodeInfo.startPosition = positions[0];
 		nodeInfo.pageNumbers = Array.from(
 			new Set(
-				node
-					.positions!.map((position: Position) => position.pageNumber)
+				positions
+					.map((position: Position) => position.pageNumber)
 					.filter((pageNumber): pageNumber is number => pageNumber !== undefined),
 			),
 		);
@@ -53,12 +55,14 @@ export function addPageBreaksIfNecessary(
 		if (node.pageBreak === "before" || node.pageBreakCalculated) continue;
 
 		node.pageBreakCalculated = true;
-		const nodeInfo = node.nodeInfo!;
+		const nodeInfo = node.nodeInfo;
+		if (!nodeInfo) continue;
 		const pageNumber = nodeInfo.pageNumbers[0];
 		const getNodes = (start: number, end: number, targetPage: number): PageBreakNodeInfo[] => {
 			const result: PageBreakNodeInfo[] = [];
 			for (let nodeIndex = start; nodeIndex < end; nodeIndex++) {
-				const info = nodes[nodeIndex].nodeInfo!;
+				const info = nodes[nodeIndex].nodeInfo;
+				if (!info) continue;
 				if (info.pageNumbers.includes(targetPage)) result.push(info);
 			}
 			return result;

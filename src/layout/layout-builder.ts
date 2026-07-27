@@ -438,11 +438,15 @@ class LayoutBuilder {
 
 	// vertical container
 	processVerticalContainer(node: LayoutPdfNode): void {
-		node.stack!.forEach((item: LayoutPdfNode, index: number) => {
+		const stack = node.stack;
+		if (!stack) throw new Error("Internal layout error: expected a preprocessed stack node");
+		node.positions ??= [];
+		const positions = node.positions;
+		stack.forEach((item: LayoutPdfNode, index: number) => {
 			this.processNode(item);
-			addAll(node.positions!, item.positions!);
+			addAll(positions, item.positions ?? []);
 
-			if (item.text !== undefined && index < node.stack!.length - 1) {
+			if (item.text !== undefined && index < stack.length - 1) {
 				this.moveDownWithPageBreak(item._paragraphGap ?? 0, item.pageOrientation);
 			}
 		}, this);
@@ -473,7 +477,9 @@ class LayoutBuilder {
 	// columns
 	processColumns(columnNode: LayoutPdfNode): void {
 		this.nestedLevel++;
-		const columns = columnNode.columns!;
+		const columns = columnNode.columns;
+		if (!columns) throw new Error("Internal layout error: expected preprocessed columns");
+		const columnCount = columns.length;
 		let availableWidth = this.writer.context().availableWidth;
 		let gaps = gapArray(columnNode._gap ?? 0);
 
@@ -489,7 +495,8 @@ class LayoutBuilder {
 			gaps,
 			snakingColumns: columnNode.snakingColumns,
 		});
-		addAll(columnNode.positions!, result.positions);
+		columnNode.positions ??= [];
+		addAll(columnNode.positions, result.positions);
 		this.nestedLevel--;
 		if (this.nestedLevel === 0) {
 			this.writer.context().resetMarginXTopParent();
@@ -502,7 +509,7 @@ class LayoutBuilder {
 			const gaps: number[] = [];
 			gaps.push(0);
 
-			for (let i = columns.length - 1; i > 0; i--) {
+			for (let i = columnCount - 1; i > 0; i--) {
 				gaps.push(gap);
 			}
 

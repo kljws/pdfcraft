@@ -3,6 +3,7 @@ import { isNumber } from "../utils/variable-type";
 import type { TableProcessorState } from "./table-processor.types";
 import {
 	createRoundedRectanglePath,
+	requireTable,
 	trackTableVector,
 	type CornerRadii,
 	type TableVectorRole,
@@ -51,7 +52,7 @@ export function drawTableRowSegment(
 	xs: TableLinePosition[],
 	segment: RowSegment,
 ): void {
-	const body = processor.tableNode.table!.body;
+	const body = requireTable(processor.tableNode).body;
 	const {
 		y1,
 		y2,

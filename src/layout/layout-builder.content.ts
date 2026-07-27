@@ -58,8 +58,12 @@ class LayoutBuilderContent {
 			}
 		};
 
-		const items = (orderedList ? node.ol : node.ul)!;
-		const gapSize = node._gapSize!;
+		const items = orderedList ? node.ol : node.ul;
+		if (!items) throw new Error("Internal layout error: expected a preprocessed list node");
+		const gapSize = node._gapSize;
+		if (!gapSize) throw new Error("Internal layout error: list gap was not measured");
+		node.positions ??= [];
+		const positions = node.positions;
 
 		this.writer.context().addMargin(gapSize.width);
 
@@ -70,7 +74,7 @@ class LayoutBuilderContent {
 		items.forEach((item: LayoutPdfNode) => {
 			nextMarker = item.listMarker ?? null;
 			this.processNode(item);
-			addAll(node.positions!, item.positions!);
+			addAll(positions, item.positions ?? []);
 		});
 
 		this.writer.removeListener("lineAdded", addMarkerToFirstLeaf);
@@ -157,7 +161,8 @@ class LayoutBuilderContent {
 					// Always reflow text after a snaking break (column or page).
 					// This ensures text adapts to the new column width, whether it's narrower or wider.
 					if (line.inlines && line.inlines.length > 0) {
-						node._inlines!.unshift(...line.inlines);
+						node._inlines ??= [];
+						node._inlines.unshift(...line.inlines);
 					}
 					// Rebuild line with new width
 					line = this.buildNextLine(node);
@@ -170,7 +175,8 @@ class LayoutBuilderContent {
 			let positions = this.writer.addLine(line);
 			if (positions) {
 				line._position = positions;
-				node.positions!.push(positions);
+				node.positions ??= [];
+				node.positions.push(positions);
 			}
 			line = this.buildNextLine(node);
 			if (line) {
@@ -180,7 +186,8 @@ class LayoutBuilderContent {
 	}
 
 	processToc(node: LayoutPdfNode): void {
-		const toc = node.toc!;
+		const toc = node.toc;
+		if (!toc) throw new Error("Internal layout error: expected a preprocessed TOC node");
 		if (!toc._table && toc.hideEmpty === true) {
 			return;
 		}
@@ -251,7 +258,8 @@ class LayoutBuilderContent {
 		let position = this.writer.addImage(node);
 		if (position) {
 			node._position = position;
-			node.positions!.push(position);
+			node.positions ??= [];
+			node.positions.push(position);
 		}
 		node._node = node;
 	}
@@ -259,9 +267,11 @@ class LayoutBuilderContent {
 	processCanvas(node: LayoutPdfNode): void {
 		let positions = this.writer.addCanvas(node);
 		if (positions) {
-			addAll(node.positions!, positions);
-			for (let index = 0; index < (node.canvas?.length ?? 0); index++) {
-				node.canvas![index]._position = positions[index];
+			node.positions ??= [];
+			addAll(node.positions, positions);
+			const canvas = node.canvas ?? [];
+			for (let index = 0; index < canvas.length; index++) {
+				canvas[index]._position = positions[index];
 			}
 		}
 		for (const vector of node.canvas ?? []) vector._node = node;
@@ -271,7 +281,8 @@ class LayoutBuilderContent {
 		let position = this.writer.addSVG(node);
 		if (position) {
 			node._position = position;
-			node.positions!.push(position);
+			node.positions ??= [];
+			node.positions.push(position);
 		}
 		node._node = node;
 	}
@@ -279,7 +290,8 @@ class LayoutBuilderContent {
 	processQr(node: LayoutPdfNode): void {
 		let position = this.writer.addQr(node);
 		if (position) {
-			node.positions!.push(position);
+			node.positions ??= [];
+			node.positions.push(position);
 			for (const vector of node._canvas ?? []) vector._position = position;
 		}
 		for (const vector of node._canvas ?? []) vector._node = node;
@@ -289,7 +301,8 @@ class LayoutBuilderContent {
 		let position = this.writer.addAttachment(node);
 		if (position) {
 			node._position = position;
-			node.positions!.push(position);
+			node.positions ??= [];
+			node.positions.push(position);
 		}
 		node._node = node;
 	}
@@ -298,7 +311,8 @@ class LayoutBuilderContent {
 		const position = this.writer.addAcroForm(node);
 		if (position) {
 			node._position = position;
-			node.positions!.push(position);
+			node.positions ??= [];
+			node.positions.push(position);
 		}
 		node._node = node;
 	}

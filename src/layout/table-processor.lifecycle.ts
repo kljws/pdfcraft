@@ -7,6 +7,7 @@ import {
 	getTableInnerContentWidth,
 	hasExplicitPageBreak,
 	propagateCellBorders,
+	requireTable,
 } from "./table-processor.helpers";
 import type {
 	ResolvedTableLayout,
@@ -48,8 +49,10 @@ export interface TableLifecycleState {
 
 export function beginTable(processor: TableLifecycleState, writer: PageElementWriter): void {
 	const tableNode = processor.tableNode;
-	const table = tableNode.table!;
-	processor.offsets = tableNode._offsets!;
+	const table = requireTable(tableNode);
+	const offsets = tableNode._offsets;
+	if (!offsets) throw new Error("Internal layout error: table offsets were not measured");
+	processor.offsets = offsets;
 	processor.layout = tableNode._layout as ResolvedTableLayout;
 	processor.headerLayout = (tableNode._headerLayout ?? tableNode._layout) as ResolvedTableLayout;
 	processor.bodyLayout = (tableNode._bodyLayout ?? tableNode._layout) as ResolvedTableLayout;
@@ -156,7 +159,7 @@ export function beginTableRow(
 	}
 
 	processor.rowTopPageY = writer.context().y + processor.rowPaddingTop;
-	const rowCells = processor.tableNode.table!.body[rowIndex] || [];
+	const rowCells = requireTable(processor.tableNode).body[rowIndex] ?? [];
 	const rowHasPageBreak = rowCells.some(hasExplicitPageBreak);
 	const rowMustNotBreak = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
 	processor._isCurrentRowUnbreakable =

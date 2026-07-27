@@ -34,7 +34,9 @@ export function getPageBreakListBySpan(
 
 	const breaks = tableNode._breaksBySpan.filter(
 		(description: TablePageBreak) =>
-			description.prevPage === page && rowIndex <= description.rowIndexOfSpanEnd!,
+			description.prevPage === page &&
+			typeof description.rowIndexOfSpanEnd === "number" &&
+			rowIndex <= description.rowIndexOfSpanEnd,
 	);
 	let y = Number.MAX_VALUE;
 	let prevY = Number.MIN_VALUE;
@@ -79,7 +81,9 @@ export function updatePageBreaksData(
 
 		const spanBreaks = tableNode._breaksBySpan?.filter(
 			(candidate: TablePageBreak) =>
-				candidate.prevPage === page && rowIndex <= candidate.rowIndexOfSpanEnd!,
+				candidate.prevPage === page &&
+				typeof candidate.rowIndexOfSpanEnd === "number" &&
+				rowIndex <= candidate.rowIndexOfSpanEnd,
 		);
 		for (const spanBreak of spanBreaks ?? []) {
 			spanBreak.prevY = Math.max(spanBreak.prevY, bottomByPage[page]);
@@ -93,9 +97,13 @@ export function storePageBreakData(
 	pageBreaks: TablePageBreak[],
 	tableNode: LayoutPdfNode | undefined,
 ): void {
+	const rowIndex = data.rowIndex;
+	if (rowIndex === undefined) {
+		throw new Error("Internal layout error: table page break has no row index");
+	}
 	if (!startsRowSpan) {
 		let pageBreak = getPageBreak(pageBreaks, data.prevPage);
-		const spanBreak = getPageBreakListBySpan(tableNode, data.prevPage, data.rowIndex!);
+		const spanBreak = getPageBreakListBySpan(tableNode, data.prevPage, rowIndex);
 		if (!pageBreak) {
 			pageBreak = { ...data };
 			pageBreaks.push(pageBreak);
@@ -105,13 +113,17 @@ export function storePageBreakData(
 		return;
 	}
 	if (!tableNode) return;
+	const rowSpan = data.rowSpan;
+	if (rowSpan === undefined) {
+		throw new Error("Internal layout error: row-span page break has no span length");
+	}
 
 	const breaksBySpan = tableNode._breaksBySpan as TablePageBreak[] | undefined;
-	let spanBreak = findSameRowPageBreakByRowSpanData(breaksBySpan, data.prevPage, data.rowIndex!);
+	let spanBreak = findSameRowPageBreakByRowSpanData(breaksBySpan, data.prevPage, rowIndex);
 	if (!spanBreak) {
 		spanBreak = {
 			...data,
-			rowIndexOfSpanEnd: data.rowIndex! + data.rowSpan! - 1,
+			rowIndexOfSpanEnd: rowIndex + rowSpan - 1,
 		};
 		tableNode._breaksBySpan ??= [];
 		tableNode._breaksBySpan.push(spanBreak);

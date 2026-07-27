@@ -26,15 +26,22 @@ function getRowHeight(
 			: Array.isArray(heights)
 				? heights[rowIndex]
 				: heights;
-	return height === "auto" ? undefined : height;
+	if (height === undefined || height === "auto") return undefined;
+	if (typeof height !== "number" || !Number.isFinite(height) || height < 0) {
+		throw new Error(
+			`Invalid table height at row ${rowIndex}: expected a finite non-negative number or 'auto'`,
+		);
+	}
+	return height;
 }
 
 export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): void {
+	const table = tableNode.table;
+	if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
 	host.nestedLevel++;
 	const processor = new TableProcessor(tableNode);
 	processor.beginTable(host.writer);
 
-	const table = tableNode.table!;
 	let lastRowHeight = 0;
 	for (let rowIndex = 0; rowIndex < table.body.length; rowIndex++) {
 		processor.selectLayout(rowIndex);
@@ -115,7 +122,9 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 
 		processor.beginRow(rowIndex, host.writer);
 		const pageBeforeProcessing = host.writer.context().page;
-		const columnOffsets = [...tableNode._offsets!.offsets];
+		const offsets = tableNode._offsets;
+		if (!offsets) throw new Error("Internal layout error: table offsets were not measured");
+		const columnOffsets = [...offsets.offsets];
 		columnOffsets[0] = (columnOffsets[0] ?? 0) + processor.tableOffset;
 		const result = host.processRow({
 			marginX: tableNode._margin ? [tableNode._margin[0], tableNode._margin[2]] : [0, 0],
@@ -130,7 +139,8 @@ export function processTable(host: TableLayoutHost, tableNode: LayoutPdfNode): v
 			height: rowHeight,
 		});
 
-		addAll(tableNode.positions!, result.positions);
+		tableNode.positions ??= [];
+		addAll(tableNode.positions, result.positions);
 		if (result.pageBreaks.length === 0) {
 			const breaksBySpan = tableNode._breaksBySpan as TablePageBreak[] | undefined;
 			const breakData = findSameRowPageBreakByRowSpanData(

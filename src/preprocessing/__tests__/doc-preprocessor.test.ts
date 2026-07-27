@@ -277,6 +277,98 @@ describe("DocPreprocessor", function () {
 			);
 		});
 
+		it("rejects table geometry that cannot produce a rectangular layout grid", function () {
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { widths: [], body: { groups: [{ rows: [["Cell"]] }] } },
+					}),
+				/'table\.widths' must not be an empty array/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { widths: ["auto", {}], body: { groups: [{ rows: [["A", "B"]] }] } },
+					}),
+				/'table\.widths\[1\]' must be/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { heights: -1, body: { groups: [{ rows: [["Cell"]] }] } },
+					}),
+				/'table\.heights' must contain only/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { body: { groups: [{ rows: [[]] }] } },
+					}),
+				/table rows must contain at least one cell/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: { body: { groups: [{ rows: [["A", "B"], ["A"]] }] } },
+					}),
+				/row 1: resolves to fewer than 2 columns/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: {
+							body: {
+								groups: [
+									{
+										rows: [
+											["A", "B"],
+											["A", "B", "C"],
+										],
+									},
+								],
+							},
+						},
+					}),
+				/row 1: resolves to more than 2 columns/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: {
+							body: { groups: [{ rows: [["A", "B"], [{ text: "Invalid", colSpan: 3 }]] }] },
+						},
+					}),
+				/'colSpan' exceeds the table's 2 columns/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: {
+							body: { groups: [{ rows: [[{ text: "Invalid", rowSpan: 2 }]] }] },
+						},
+					}),
+				/'rowSpan' exceeds the table's 1 rows/,
+			);
+			assert.throws(
+				() =>
+					docPreprocessor.preprocessNode({
+						table: {
+							body: {
+								groups: [
+									{
+										rows: [
+											["A", { text: "B", rowSpan: 2 }, "C"],
+											[{ text: "Invalid", colSpan: 2 }, "D"],
+										],
+									},
+								],
+							},
+						},
+					}),
+				/'colSpan' overlaps an active rowSpan/,
+			);
+		});
+
 		it("normalizes headers and logical row groups for table layout", function () {
 			const headerLayout = { fillColor: "#e0e3fd" };
 			const bodyLayout = { vLineWidth: () => 0 };

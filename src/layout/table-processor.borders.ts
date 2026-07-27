@@ -5,6 +5,7 @@ import type PageElementWriter from "./element-writer.page";
 import type { TableProcessorState } from "./table-processor.types";
 import {
 	createRoundedRectanglePath,
+	requireTable,
 	trackTableVector,
 	type TableVectorRole,
 } from "./table-processor.helpers";
@@ -155,7 +156,7 @@ export function drawHorizontalLine(
 
 		let offset = lineWidth / 2;
 		let currentLine: { left: number; width: number } | null = null;
-		let body = processor.tableNode.table!.body;
+		const body = requireTable(processor.tableNode).body;
 		const isTopRoundedEdge =
 			processor.borderRadius > 0 &&
 			(borderSide === "top" || (borderSide === "both" && lineIndex === 0));
@@ -264,24 +265,27 @@ export function drawHorizontalLine(
 			}
 
 			if (shouldDrawLine) {
+				if (!currentLine) {
+					throw new Error("Internal layout error: missing active horizontal table line");
+				}
 				let colSpanIndex = 0;
 				if (rowCellAbove && rowCellAbove.colSpan && rowBottomBorder) {
 					while (rowCellAbove.colSpan > colSpanIndex) {
-						currentLine!.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
+						currentLine.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
 					}
 					i += colSpanIndex - 1;
 				} else if (cellAbove && cellAbove.colSpan && bottomBorder) {
 					while (cellAbove.colSpan > colSpanIndex) {
-						currentLine!.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
+						currentLine.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
 					}
 					i += colSpanIndex - 1;
 				} else if (currentCell && currentCell.colSpan && topBorder) {
 					while (currentCell.colSpan > colSpanIndex) {
-						currentLine!.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
+						currentLine.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
 					}
 					i += colSpanIndex - 1;
 				} else {
-					currentLine!.width += processor.rowSpanData[i].width || 0;
+					currentLine.width += processor.rowSpanData[i].width || 0;
 				}
 			}
 
@@ -393,7 +397,7 @@ export function drawVerticalLine(
 		dash = style.dash;
 	}
 
-	let body = processor.tableNode.table!.body;
+	const body = requireTable(processor.tableNode).body;
 	let cellBefore;
 	let currentCell;
 	let borderColor;

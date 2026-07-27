@@ -141,7 +141,11 @@ class LayoutBuilderRows {
 
 			this.writer.addListener("pageChanged", storePageBreakClosure);
 
-			let width = resolvedWidths[i]._calcWidth ?? resolvedWidths[i]._minWidth;
+			const resolvedWidth = resolvedWidths[i];
+			if (!resolvedWidth) {
+				throw new Error(`Internal layout error: missing measured width for table column ${i}`);
+			}
+			let width = resolvedWidth._calcWidth ?? resolvedWidth._minWidth;
 			let leftOffset = columnLeftOffset(i, gaps);
 			// Check if exists and retrieve the cell that started the rowspan in case we are in the cell just after
 			let startingSpanCell = findStartingRowSpanCell(cells, i);
@@ -149,6 +153,9 @@ class LayoutBuilderRows {
 			if (cell.colSpan && cell.colSpan > 1) {
 				for (let j = 1; j < cell.colSpan; j++) {
 					const spannedWidth = resolvedWidths[++i];
+					if (!spannedWidth) {
+						throw new Error(`Internal layout error: missing measured width for table column ${i}`);
+					}
 					width += (spannedWidth._calcWidth ?? spannedWidth._minWidth) + (gaps?.[i] ?? 0);
 				}
 			}
@@ -198,13 +205,16 @@ class LayoutBuilderRows {
 					verticalAlignmentCells[cellIndexBegin] = this.verticalAlignmentItemStack.length - 1;
 				}
 
-				addAll(positions, cell.positions!);
+				addAll(positions, cell.positions ?? []);
 			} else if (cell._columnEndingContext) {
 				let discountY = 0;
 				if (dontBreakRows) {
 					// Calculate how many points we have to discount to Y when dontBreakRows and rowSpan are combined
 					const ctxBeforeRowSpanLastRow =
 						this.writer.contextStack[this.writer.contextStack.length - 1];
+					if (!ctxBeforeRowSpanLastRow) {
+						throw new Error("Internal layout error: missing row-span transaction context");
+					}
 					const startsOnCurrentPage =
 						typeof cell._startingRowSpanPage === "number" &&
 						cell._startingRowSpanPage === ctxBeforeRowSpanLastRow.page;
@@ -274,22 +284,35 @@ class LayoutBuilderRows {
 		for (let i = 0, l = cells.length; i < l; i++) {
 			let cell = cells[i];
 			if (!cell._span && cell.verticalAlignment) {
-				let itemBegin = this.verticalAlignmentItemStack[verticalAlignmentCells[i]].begin.item;
+				const alignmentEntry = this.verticalAlignmentItemStack[verticalAlignmentCells[i]];
+				if (!alignmentEntry) {
+					throw new Error(
+						`Internal layout error: missing vertical-alignment controls for table cell ${i}`,
+					);
+				}
+				let itemBegin = alignmentEntry.begin.item;
 				itemBegin.viewHeight = rowHeight;
 				itemBegin.nodeHeight = cell.__height;
 				itemBegin.cell = cell;
 				itemBegin.bottomY = this.writer.context().y;
-				itemBegin.isCellContentMultiPage = !itemBegin.cell!.positions!.every(
-					(item: Position) => item.pageNumber === itemBegin.cell!.positions![0].pageNumber,
+				const cellPositions = cell.positions ?? [];
+				const firstPageNumber = cellPositions[0]?.pageNumber;
+				itemBegin.isCellContentMultiPage = cellPositions.some(
+					(item: Position) => item.pageNumber !== firstPageNumber,
 				);
 				itemBegin.getViewHeight = function (this: LayoutPdfNode): number {
-					const cell = this.cell!;
+					const cell = this.cell;
+					if (!cell)
+						throw new Error("Internal layout error: missing vertically aligned table cell");
 					if (cell._willBreak) {
 						return (cell._bottomY ?? 0) - (cell._rowTopPageY ?? 0);
 					}
 
 					if (cell.rowSpan && cell.rowSpan > 1) {
-						const endingCell = cell._leftEndingCell!;
+						const endingCell = cell._leftEndingCell;
+						if (!endingCell) {
+							throw new Error("Internal layout error: missing row-span ending cell");
+						}
 						if (dontBreakRows) {
 							let rowTopPageY =
 								(endingCell._startingRowSpanY ?? 0) + (endingCell._rowTopPageYPadding ?? 0);
@@ -309,7 +332,7 @@ class LayoutBuilderRows {
 					return this.nodeHeight ?? 0;
 				};
 
-				let itemEnd = this.verticalAlignmentItemStack[verticalAlignmentCells[i]].end.item;
+				let itemEnd = alignmentEntry.end.item;
 				itemEnd.isCellContentMultiPage = itemBegin.isCellContentMultiPage;
 			}
 		}

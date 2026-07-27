@@ -467,6 +467,21 @@ describe("Integration test: tables", function () {
 		for (const height of fillHeights) assert.approximately(height, fillHeights[0], 0.001);
 	});
 
+	it("rejects an invalid dynamic row height before applying table geometry", function () {
+		assert.throws(
+			() =>
+				testHelper.renderPages("A6", {
+					content: {
+						table: {
+							heights: () => Number.NaN,
+							body: { groups: [{ rows: [["Invalid height"]] }] },
+						},
+					},
+				}),
+			/Invalid table height at row 0/,
+		);
+	});
+
 	it("keeps the first body row after repeated headers at full height (#2876)", function () {
 		const pages = testHelper.renderPages("A6", {
 			content: {

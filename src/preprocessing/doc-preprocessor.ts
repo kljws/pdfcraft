@@ -81,6 +81,111 @@ const isColor = (value: unknown): boolean =>
 	isString(value) ||
 	(Array.isArray(value) && value.length === 2 && value.every((part) => isString(part)));
 
+const isSpanPlaceholder = (value: unknown): boolean =>
+	(isObject(value) && (value._span === true || isEmptyObject(value))) ||
+	value === "" ||
+	!isValue(value);
+
+const getCellSpan = (cell: unknown): number =>
+	isObject(cell) && isPositiveInteger(cell.colSpan) ? cell.colSpan : 1;
+
+const normalizeTableBody = (body: PreprocessedPdfNode[][]): number => {
+	const columnCount = body[0].length;
+	if (columnCount === 0) {
+		throw new Error("Invalid table node: table rows must contain at least one cell");
+	}
+
+	let activeRowSpans = Array<number>(columnCount).fill(0);
+	for (let rowIndex = 0; rowIndex < body.length; rowIndex++) {
+		const sourceRow = body[rowIndex];
+		const normalizedRow: PreprocessedPdfNode[] = [];
+		let sourceIndex = 0;
+		const usesExplicitSlots = sourceRow.length === columnCount;
+		if (sourceRow.length > columnCount) {
+			throw new Error(
+				`Invalid table row ${rowIndex}: resolves to more than ${columnCount} columns`,
+			);
+		}
+
+		for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+			if (activeRowSpans[columnIndex] > 0) {
+				if (usesExplicitSlots || isSpanPlaceholder(sourceRow[sourceIndex])) sourceIndex++;
+				normalizedRow.push({ _span: true } as unknown as PreprocessedPdfNode);
+				continue;
+			}
+
+			if (sourceIndex >= sourceRow.length) {
+				throw new Error(
+					`Invalid table row ${rowIndex}: resolves to fewer than ${columnCount} columns`,
+				);
+			}
+			const cell = sourceRow[sourceIndex++];
+			if (isObject(cell) && cell._span === true) {
+				throw new Error(
+					`Invalid table cell at row ${rowIndex}, column ${columnIndex}: span placeholder has no active span`,
+				);
+			}
+			const colSpan = getCellSpan(cell);
+			if (columnIndex + colSpan > columnCount) {
+				throw new Error(
+					`Invalid table cell at row ${rowIndex}, column ${columnIndex}: 'colSpan' exceeds the table's ${columnCount} columns`,
+				);
+			}
+			for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
+				if (activeRowSpans[columnIndex + spanIndex] > 0) {
+					throw new Error(
+						`Invalid table cell at row ${rowIndex}, column ${columnIndex}: 'colSpan' overlaps an active rowSpan`,
+					);
+				}
+			}
+
+			normalizedRow.push(cell);
+			for (let spanIndex = 1; spanIndex < colSpan; spanIndex++) {
+				if (usesExplicitSlots || isSpanPlaceholder(sourceRow[sourceIndex])) sourceIndex++;
+				normalizedRow.push({ _span: true } as unknown as PreprocessedPdfNode);
+				columnIndex++;
+			}
+		}
+
+		if (sourceIndex < sourceRow.length) {
+			throw new Error(
+				`Invalid table row ${rowIndex}: resolves to more than ${columnCount} columns`,
+			);
+		}
+
+		const nextRowSpans = activeRowSpans.map((remaining) => Math.max(0, remaining - 1));
+		for (let columnIndex = 0; columnIndex < normalizedRow.length; columnIndex++) {
+			const cell = normalizedRow[columnIndex];
+			if (!isObject(cell) || cell._span || !isPositiveInteger(cell.rowSpan)) continue;
+			if (rowIndex + cell.rowSpan > body.length) {
+				throw new Error(
+					`Invalid table cell at row ${rowIndex}, column ${columnIndex}: 'rowSpan' exceeds the table's ${body.length} rows`,
+				);
+			}
+			const colSpan = getCellSpan(cell);
+			for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
+				nextRowSpans[columnIndex + spanIndex] = Math.max(
+					nextRowSpans[columnIndex + spanIndex],
+					cell.rowSpan - 1,
+				);
+			}
+		}
+
+		body[rowIndex] = normalizedRow;
+		activeRowSpans = nextRowSpans;
+	}
+
+	return columnCount;
+};
+
+const isValidTableWidth = (value: unknown): boolean =>
+	(isNumber(value) && Number.isFinite(value) && value >= 0) ||
+	(isString(value) &&
+		(value === "auto" ||
+			value === "*" ||
+			value === "star" ||
+			(/^\d+(?:\.\d+)?%$/.test(value) && Number.parseFloat(value) >= 0)));
+
 class DocPreprocessor {
 	declare parentNode: PreprocessedPdfNode | null;
 	declare tocs: Record<string, PreprocessedPdfNode>;
@@ -260,12 +365,13 @@ class DocPreprocessor {
 		const borderColor = block.borderColor ?? "black";
 		const backgroundColor = block.backgroundColor;
 		const padding = block.padding === undefined ? [0, 0, 0, 0] : resolveBlockPadding(block.padding);
-		const content = node.stack!;
+		const content = node.stack;
+		if (!content) throw new Error("Internal preprocessing error: expected a stack node");
 		const layout = {
 			hLineWidth: (index: number, tableNode: PreprocessedPdfNode) =>
-				index === 0 || index === tableNode.table!.body.length ? borderWidth : 0,
+				index === 0 || index === (tableNode.table?.body.length ?? 0) ? borderWidth : 0,
 			vLineWidth: (index: number, tableNode: PreprocessedPdfNode) =>
-				index === 0 || index === tableNode.table!.body[0].length ? borderWidth : 0,
+				index === 0 || index === (tableNode.table?.body[0]?.length ?? 0) ? borderWidth : 0,
 			hLineColor: borderColor,
 			vLineColor: borderColor,
 			paddingLeft: () => padding[0],
@@ -345,6 +451,33 @@ class DocPreprocessor {
 				if (legacyProperty in table) {
 					throw new Error(
 						`Invalid table node: '${legacyProperty}' is no longer supported; use 'table.header.rows' and grouped 'table.body[].rows' instead`,
+					);
+				}
+			}
+			if (table.widths !== undefined) {
+				const widths = Array.isArray(table.widths) ? table.widths : [table.widths];
+				if (widths.length === 0) {
+					throw new Error("Invalid table node: 'table.widths' must not be an empty array");
+				}
+				for (let index = 0; index < widths.length; index++) {
+					if (!isValidTableWidth(widths[index])) {
+						throw new Error(
+							`Invalid table node: 'table.widths[${index}]' must be a finite non-negative number, 'auto', '*', 'star' or a percentage, received ${stringifyNode(widths[index])}`,
+						);
+					}
+				}
+			}
+			if (table.heights !== undefined) {
+				const heights = Array.isArray(table.heights) ? table.heights : [table.heights];
+				const valid =
+					typeof table.heights === "function" ||
+					heights.every(
+						(height) =>
+							height === "auto" || (isNumber(height) && Number.isFinite(height) && height >= 0),
+					);
+				if (!valid) {
+					throw new Error(
+						`Invalid table node: 'table.heights' must contain only finite non-negative numbers or 'auto', received ${stringifyNode(table.heights)}`,
 					);
 				}
 			}
@@ -459,50 +592,11 @@ class DocPreprocessor {
 				}
 			}
 		}
-		const columnCount = body[0].length;
-		const activeRowSpans = Array<number>(columnCount).fill(0);
-		for (let row = 0; row < body.length; row++) {
-			const rowData = body[row];
-			const occupiedColumns = activeRowSpans.filter((remaining) => remaining > 0).length;
-			const expandedLength = rowData.reduce(
-				(total, cell) =>
-					total + (isObject(cell) && isPositiveInteger(cell.colSpan) ? cell.colSpan : 1),
-				0,
+		const columnCount = normalizeTableBody(body);
+		if (!alreadyNormalized && Array.isArray(table.widths) && table.widths.length > columnCount) {
+			throw new Error(
+				`Invalid table node: 'table.widths' defines ${table.widths.length} columns but table rows define ${columnCount}`,
 			);
-			if (rowData.length < columnCount && expandedLength + occupiedColumns === columnCount) {
-				const expandedRow: PreprocessedPdfNode[] = [];
-				let sourceIndex = 0;
-				for (let col = 0; col < columnCount; col++) {
-					if (activeRowSpans[col] > 0) {
-						expandedRow.push({ _span: true } as unknown as PreprocessedPdfNode);
-						continue;
-					}
-					const cell = rowData[sourceIndex++];
-					expandedRow.push(cell);
-					const colSpan = isObject(cell) && isPositiveInteger(cell.colSpan) ? cell.colSpan : 1;
-					for (let spanIndex = 1; spanIndex < colSpan; spanIndex++) {
-						expandedRow.push({ _span: true } as unknown as PreprocessedPdfNode);
-						col++;
-					}
-				}
-				body[row] = expandedRow;
-			}
-
-			for (let col = 0; col < columnCount; col++) {
-				activeRowSpans[col] = Math.max(0, activeRowSpans[col] - 1);
-			}
-			const normalizedRow = body[row];
-			for (let col = 0; col < normalizedRow.length; col++) {
-				const cell = normalizedRow[col];
-				if (!isObject(cell) || cell._span || !isPositiveInteger(cell.rowSpan)) continue;
-				const colSpan = isPositiveInteger(cell.colSpan) ? cell.colSpan : 1;
-				for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
-					activeRowSpans[col + spanIndex] = Math.max(
-						activeRowSpans[col + spanIndex],
-						cell.rowSpan - 1,
-					);
-				}
-			}
 		}
 		for (col = 0, cols = columnCount; col < cols; col++) {
 			for (row = 0, rows = body.length; row < rows; row++) {
@@ -538,16 +632,18 @@ class DocPreprocessor {
 				if (!this.tocs[tocItemId]) {
 					this.tocs[tocItemId] = { toc: { _items: [], _pseudo: true } };
 				}
+				const toc = this.tocs[tocItemId].toc;
+				if (!toc) throw new Error(`Internal preprocessing error: missing TOC '${tocItemId}'`);
 
 				if (!node.id) {
-					node.id = `toc-${tocItemId}-${this.tocs[tocItemId].toc!._items.length}`;
+					node.id = `toc-${tocItemId}-${toc._items.length}`;
 				}
 
 				let tocItemRef = {
 					_nodeRef: this._getNodeForNodeRef(node),
 					_textNodeRef: node,
 				};
-				this.tocs[tocItemId].toc!._items.push(tocItemRef);
+				toc._items.push(tocItemRef);
 			}
 		}
 
@@ -613,7 +709,8 @@ class DocPreprocessor {
 	}
 
 	preprocessToc(node: PreprocessedPdfNode): PreprocessedPdfNode {
-		const toc = node.toc!;
+		const toc = node.toc;
+		if (!toc) throw new Error("Internal preprocessing error: expected a TOC node");
 		if (!toc.id) {
 			toc.id = "_default_";
 		}
@@ -622,11 +719,13 @@ class DocPreprocessor {
 		toc._items = [];
 
 		if (this.tocs[toc.id]) {
-			if (!this.tocs[toc.id].toc!._pseudo) {
+			const registeredToc = this.tocs[toc.id].toc;
+			if (!registeredToc) throw new Error(`Internal preprocessing error: missing TOC '${toc.id}'`);
+			if (!registeredToc._pseudo) {
 				throw new Error(`TOC '${toc.id}' already exists`);
 			}
 
-			toc._items = this.tocs[toc.id].toc!._items;
+			toc._items = registeredToc._items;
 		}
 
 		this.tocs[toc.id] = node;

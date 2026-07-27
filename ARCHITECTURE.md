@@ -158,8 +158,8 @@ Tests:
 
 | File | Responsibility |
 | --- | --- |
-| `src/preprocessing/doc-preprocessor.ts` | Converts shorthand values into nodes, normalizes text/lists/tables/TOCs/sections, validates structures and expands compact span placeholders. Route malformed-definition issues here first. |
-| `src/preprocessing/__tests__/doc-preprocessor.test.ts` | Supported shorthand, invalid structures, section constraints, spans and preprocessing errors. |
+| `src/preprocessing/doc-preprocessor.ts` | Converts shorthand values into nodes, normalizes text/lists/tables/TOCs/sections, validates dimensions and expands compact or explicit span rows into a strict rectangular table grid. Route malformed-definition issues here first. |
+| `src/preprocessing/__tests__/doc-preprocessor.test.ts` | Supported shorthand, invalid structures and dimensions, rectangular table-grid constraints, section constraints, spans and preprocessing errors. |
 
 ### `src/measurement/`: intrinsic sizing
 
@@ -206,8 +206,8 @@ Tests:
 | --- | --- |
 | `src/layout/layout-builder.ts` | Runs preprocessing/measurement/layout passes, owns the writer, dispatches node processing and returns all `PdfPage` objects. Handles bounded relayout for page-count-dependent margins/backgrounds and `pageBreakBefore`. |
 | `src/layout/layout-builder.content.ts` | Processes measured node kinds, node positions, TOCs and page references. |
-| `src/layout/layout-builder.rows.ts` | Lays out table-row cells, reconciles cell heights/page breaks and vertical alignment. |
-| `src/layout/layout-builder.table-processing.ts` | Coordinates `TableProcessor` per table row, including fixed-height pre-breaks and table-level lifecycle. |
+| `src/layout/layout-builder.rows.ts` | Lays out table-row cells, reconciles cell heights/page breaks and vertical alignment, and reports explicit internal-state errors if measured grid data is missing. |
+| `src/layout/layout-builder.table-processing.ts` | Coordinates `TableProcessor` per table row, validates dynamic height callback results and guards measured offsets before table-level layout. |
 | `src/layout/layout-builder.table.ts` | Table page-break metadata and row-span break reconciliation utilities. |
 | `src/layout/layout-builder.repeatables.ts` | Backgrounds, headers, footers and their page-count-aware dynamic callbacks. |
 | `src/layout/layout-builder.page-breaks.ts` | Builds `pageBreakBefore` node metadata, evaluates callbacks and resets positions for relayout. |

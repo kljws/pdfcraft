@@ -76,6 +76,11 @@ describe("TableProcessor", function () {
 		addVectorCallCount = 0;
 
 		contextFake = {
+			page: 0,
+			x: 0,
+			y: 0,
+			availableWidth: 100,
+			availableHeight: 100,
 			moveDown: function () {},
 		} as unknown as DocumentContext;
 
@@ -240,7 +245,11 @@ describe("TableProcessor", function () {
 			var fakeWriter = {
 				context: function () {
 					return {
+						page: 0,
+						x: 0,
+						y: 0,
 						availableWidth: 56473,
+						availableHeight: 100,
 						moveDown: function () {},
 					};
 				},

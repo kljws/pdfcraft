@@ -13,6 +13,8 @@ When generating Git commit messages:
 - Keep the entire message under 72 characters.
 - Describe the primary change only.
 - Avoid vague words such as `update`, `changes`, `improvements` or `misc`.
+- Ensure the commit includes a relevant entry in `CHANGELOG.md` for every new or modified file, unless the change is trivial.
+- Do not add duplicate or already-committed changelog entries.
 
 Examples:
 
