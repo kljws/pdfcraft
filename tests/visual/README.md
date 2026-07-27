@@ -6,7 +6,7 @@ Generate the PDFs from the package root:
 npm run visual:generate
 ```
 
-The files are written to `pdfs/visual/`, which is ignored by Git. A different
+The files are written to `private/pdfs/visual/`, which is ignored by Git. A different
 directory can be selected without editing the script:
 
 ```sh

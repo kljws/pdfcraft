@@ -10,7 +10,7 @@ const packageRoot = path.resolve(visualDirectory, "../..");
 const outputArgument = process.argv.find((argument) => argument.startsWith("--output="));
 const outputDirectory = path.resolve(
 	packageRoot,
-	outputArgument ? outputArgument.slice("--output=".length) : "pdfs/visual",
+	outputArgument ? outputArgument.slice("--output=".length) : "private/pdfs/visual",
 );
 const fontDirectory = path.join(packageRoot, "fonts/Roboto");
 const isWithinPackage = (filename) => {

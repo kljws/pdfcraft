@@ -6,6 +6,7 @@ export const testConfig = {
 	restoreMocks: true,
 	coverage: {
 		provider: "v8",
+		reportsDirectory: "private/coverage",
 		reporter: ["text", "json-summary", "html"],
 		include: ["src/**/*.ts"],
 		exclude: [

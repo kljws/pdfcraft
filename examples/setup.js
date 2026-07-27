@@ -20,5 +20,5 @@ export const configureExample = (pdfcraft) => {
 	pdfcraft.addFonts(fonts);
 	pdfcraft.setLocalAccessPolicy((filename) => isWithin(projectDirectory, path.resolve(filename)));
 	pdfcraft.setUrlAccessPolicy(() => false);
-	fs.mkdirSync(path.resolve(process.cwd(), "pdfs"), { recursive: true });
+	fs.mkdirSync(path.resolve(process.cwd(), "private/pdfs"), { recursive: true });
 };

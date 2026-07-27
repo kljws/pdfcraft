@@ -1,9 +1,6 @@
-coverage/
 .vitest-attachments/
 dist/
 node_modules/
-pdfs/
-pdfmake/
 private/
 .cursor/
 .DS_Store
