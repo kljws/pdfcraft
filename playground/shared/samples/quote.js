@@ -293,7 +293,7 @@ export default {
 										fontSize: 9,
 									},
 									{
-										text: "490,00 €",
+										text: "490,549 €",
 										alignment: "right",
 										fontSize: 9,
 									},
@@ -303,12 +303,12 @@ export default {
 										fontSize: 9,
 									},
 									{
-										text: "5 880,00 €",
+										text: "5 886,588 €",
 										alignment: "right",
 										fontSize: 9,
 									},
 									{
-										text: "7 056,00 €",
+										text: "7 063,906 €",
 										alignment: "right",
 										fontSize: 9,
 									},
