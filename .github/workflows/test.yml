@@ -1,6 +1,9 @@
 name: Test
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 concurrency:
   group: test-${{ github.workflow }}-${{ github.ref }}
@@ -50,30 +53,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:coverage
-
-  unit:
-    name: Unit tests (Node 24.x)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24.x
-          cache: npm
-      - run: npm ci
-      - run: npm run test:unit
-
-  integration:
-    name: Integration tests (Node 24.x)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24.x
-          cache: npm
-      - run: npm ci
-      - run: npm run test:integration
 
   browser:
     name: Browser tests
