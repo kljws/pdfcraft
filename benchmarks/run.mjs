@@ -97,7 +97,7 @@ console.log(`PDFCraft benchmark (${profile}, Node ${process.version}, ${iteratio
 console.table(rows);
 if (outputPath) console.log(`JSON report: ${path.resolve(outputPath)}`);
 
-const markdownPath = path.join(benchmarkDirectory, "benchmark-report.md");
+const markdownPath = path.join(benchmarkDirectory, "REPORT.md");
 const markdownRows = rows
 	.map(
 		(row) =>
