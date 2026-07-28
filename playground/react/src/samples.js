@@ -1,4 +1,4 @@
-import { createSampleSource, sampleNames } from "../../shared/editor";
+import { createSampleSource } from "../../shared/editor";
 
 const SAMPLE_KEY = "pdfcraft.react.sample";
 const SOURCE_KEY = "pdfcraft.react.source";
@@ -18,7 +18,9 @@ const samples = Object.fromEntries(
 );
 
 export const initialSample = "basics";
-export const availableSamples = sampleNames;
+export const availableSamples = Object.keys(samples).sort((left, right) =>
+	left.localeCompare(right),
+);
 
 export const getSampleSource = (name) => createSampleSource(samples[name]);
 

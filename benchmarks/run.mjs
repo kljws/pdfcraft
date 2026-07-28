@@ -96,3 +96,27 @@ const rows = results.map(({ name, description, summary }) => ({
 console.log(`PDFCraft benchmark (${profile}, Node ${process.version}, ${iterations} iteration(s))`);
 console.table(rows);
 if (outputPath) console.log(`JSON report: ${path.resolve(outputPath)}`);
+
+const markdownPath = path.join(benchmarkDirectory, "benchmark-report.md");
+const markdownRows = rows
+	.map(
+		(row) =>
+			`| ${row.scenario} | ${row.workload} | ${row.medianMs} | ${row.p95Ms} | ${row.peakRssMiB} | ${row.peakHeapMiB} | ${row.outputMiB} |`,
+	)
+	.join("\n");
+const markdown = `# PDFCraft benchmark report
+
+- Profile: \`${profile}\`
+- Node: \`${process.version}\`
+- Iterations: ${iterations}
+- Warmup: ${warmup}
+- Created: ${report.createdAt}
+- Runtime: ${report.runtime.cpuModel} · ${report.runtime.cpus} CPUs · ${report.runtime.platform}/${report.runtime.architecture}
+
+| Scenario | Workload | Median ms | P95 ms | RSS MiB | Heap MiB | Output MiB |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+${markdownRows}
+`;
+
+await writeFile(markdownPath, markdown);
+console.log(`Markdown report: ${markdownPath}`);

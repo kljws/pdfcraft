@@ -130,5 +130,15 @@ export function createScenarios(profile) {
 				return sizes.reduce((total, size) => total + size, 0);
 			},
 		},
+		{
+			name: "concurrent-10x3",
+			description: "10 concurrent documents × 3 pages",
+			run: async () => {
+				const sizes = await Promise.all(
+					Array.from({ length: 10 }, () => render(pageDocument(3))),
+				);
+				return sizes.reduce((total, size) => total + size, 0);
+			},
+		},
 	];
 }

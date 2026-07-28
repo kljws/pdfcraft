@@ -1,20 +1,3 @@
-export const sampleNames = [
-	"basics",
-	"named-styles",
-	"inline-styling",
-	"style-overrides",
-	"columns",
-	"tables",
-	"lists",
-	"margins",
-	"images",
-	"svgs",
-	"attachments",
-	"recent-features",
-	"invoice",
-	"kolecto",
-];
-
 export const createSampleSource = (sample) => {
 	return `${sample.trim()}\n`;
 };

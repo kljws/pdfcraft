@@ -7,7 +7,6 @@ import {
 	createSampleSource,
 	parseDocumentDefinition,
 	resolveDocumentResources,
-	sampleNames,
 } from "../shared/editor.js";
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
@@ -139,23 +138,32 @@ const sendPdf = async (request, response) => {
 	response.end(buffer);
 };
 
+const listSampleNames = async () => {
+	const entries = await fs.promises.readdir(sampleDirectory);
+	return entries
+		.filter((filename) => filename.endsWith(".js"))
+		.map((filename) => path.basename(filename, ".js"))
+		.sort((left, right) => left.localeCompare(right));
+};
+
 const sendSamples = async (pathname, response) => {
 	if (pathname === "/samples") {
 		response.writeHead(200, {
 			"Content-Type": "application/json; charset=utf-8",
 			"Cache-Control": "no-store",
 		});
-		response.end(JSON.stringify(sampleNames));
+		response.end(JSON.stringify(await listSampleNames()));
 		return;
 	}
 
 	const sample = pathname.slice("/samples/".length);
-	if (!sampleNames.includes(sample)) {
+	const samplePath = path.join(sampleDirectory, `${sample}.js`);
+	if (path.basename(samplePath) !== `${sample}.js` || !fs.existsSync(samplePath)) {
 		response.writeHead(404).end("Sample not found");
 		return;
 	}
 
-	const content = await fs.promises.readFile(path.join(sampleDirectory, `${sample}.js`), "utf8");
+	const content = await fs.promises.readFile(samplePath, "utf8");
 	response.writeHead(200, {
 		"Content-Type": "text/javascript; charset=utf-8",
 		"Cache-Control": "no-store",
@@ -180,9 +188,6 @@ fs.watch(sampleDirectory, { persistent: false }, (_eventType, filename) => {
 	}
 
 	const sample = path.basename(filename, ".js");
-	if (!sampleNames.includes(sample)) {
-		return;
-	}
 
 	clearTimeout(sampleChangeTimers.get(sample));
 	sampleChangeTimers.set(

@@ -6,9 +6,9 @@ export default {
 	pageSize: "A4",
 	pageMargins: [24, 24, 24, 24],
 	info: {
-		title: "Facture QZ-8741",
-		author: "Orbe & Sève SAS",
-		subject: "Facture Atelier Quasar",
+		title: "Devis D-2026-0842",
+		author: "Lumen Atelier SAS",
+		subject: "Devis Nordique Design",
 	},
 	files: {
 		"factur-x.xml": {
@@ -39,7 +39,7 @@ export default {
 					width: "auto",
 					stack: [
 						{ text: "Date d'émission", color: "#52577A", fontSize: 9 },
-						{ text: "08/01/2023", font: "FigtreeSemiBold" },
+						{ text: "14/03/2026", font: "FigtreeSemiBold" },
 					],
 					margin: [0, 0, 0, 0],
 					alignment: "left",
@@ -48,7 +48,7 @@ export default {
 					width: "auto",
 					stack: [
 						{ text: "Date d'expiration", color: "#52577A", fontSize: 9 },
-						{ text: "08/01/2023", font: "FigtreeSemiBold" },
+						{ text: "14/04/2026", font: "FigtreeSemiBold" },
 					],
 					margin: [0, 0, 0, 0],
 					alignment: "left",
@@ -60,12 +60,12 @@ export default {
 			margin: [0, 15, 0, 0],
 			stack: [
 				{
-					text: "Devis N°D-2026-018",
+					text: "Devis N°D-2026-0842",
 					bold: true,
 					fontSize: 15,
 				},
 				{
-					text: "Bon de commande N°46374",
+					text: "Bon de commande N°BC-9173",
 					color: "#52577A",
 					fontSize: 9,
 				},
@@ -83,26 +83,26 @@ export default {
 							fontSize: 8,
 						},
 						{
-							text: "Orbe & Sève SAS",
+							text: "Lumen Atelier SAS",
 							fontSize: 15,
 						},
 						{
-							text: "7 passage des Lucioles",
+							text: "14 rue des Glycines",
 							color: "#52577A",
 							fontSize: 9,
 						},
 						{
-							text: "44000 Nantes, France",
+							text: "33000 Bordeaux, France",
 							color: "#52577A",
 							fontSize: 9,
 						},
 						{
-							text: "entreprise@mail.com",
+							text: "contact@lumen-atelier.example",
 							color: "#52577A",
 							fontSize: 9,
 						},
 						{
-							text: "06 12 34 56 78",
+							text: "05 56 12 34 56",
 							color: "#52577A",
 							fontSize: 9,
 						},
@@ -118,26 +118,26 @@ export default {
 							fontSize: 8,
 						},
 						{
-							text: "Atelier Quasar SARL",
+							text: "Nordique Design SARL",
 							fontSize: 15,
 						},
 						{
-							text: "42 quai des Météores",
+							text: "8 allée du Phare",
 							color: "#52577A",
 							fontSize: 9,
 						},
 						{
-							text: "69007 Lyon, France",
+							text: "59000 Lille, France",
 							color: "#52577A",
 							fontSize: 9,
 						},
 						{
-							text: "SIREN : 582 947 130",
+							text: "SIREN : 491 203 847",
 							color: "#52577A",
 							fontSize: 9,
 						},
 						{
-							text: "N° de TVA : FR61 582 947 130",
+							text: "N° de TVA : FR28 491 203 847",
 							color: "#52577A",
 							fontSize: 9,
 						},
@@ -152,11 +152,11 @@ export default {
 			width: "auto",
 			stack: [
 				{
-					text: "Titre personnalisé",
+					text: "Projet campus connecté",
 					fontSize: 14,
 				},
 				{
-					text: "Description personnalisée un peu plus longue que le titre",
+					text: "Prestation pluridisciplinaire pour le déploiement et la supervision du site de Lille",
 					fontSize: 8,
 				},
 			],
@@ -248,11 +248,11 @@ export default {
 									{
 										stack: [
 											{
-												text: "Maintenance de la plateforme de supervision",
+												text: "Abonnement supervision cloud",
 												fontSize: 10,
 											},
 											{
-												text: "Gestion proactive et support complet comprenant la supervision 24/7 des systèmes, interventions préventives, rapports mensuels détaillés, assistance technique prioritaire, et accompagnement personnalisé.",
+												text: "Supervision continue des équipements, interventions préventives, rapports mensuels, assistance prioritaire et accompagnement des équipes locales.",
 												color: "#52577A",
 												fontSize: 9,
 												margin: [0, 2, 0, 0],
@@ -269,8 +269,18 @@ export default {
 								],
 								[
 									{
-										text: "- Mises à jour fonctionnelles et de sécurité",
-										fontSize: 10,
+										stack: [
+											{
+												text: "Mises à jour logicielles et correctifs",
+												fontSize: 9,
+												bold: true,
+											},
+											{
+												text: "Ref: CLOUD-MON-12",
+												color: "#52577A",
+												fontSize: 9,
+											},
+										],
 									},
 									{
 										text: "12",
@@ -305,22 +315,18 @@ export default {
 								],
 								[
 									{
-										text: "Ref: SUP-MCO-12M",
-										color: "#52577A",
-										fontSize: 9,
-										colSpan: 7,
-									},
-									{},
-									{},
-									{},
-									{},
-									{},
-									{},
-								],
-								[
-									{
-										text: "- Assistance à distance les jours ouvrés",
-										fontSize: 10,
+										stack: [
+											{
+												text: "Hotline jours ouvrés",
+												fontSize: 9,
+												bold: true,
+											},
+											{
+												text: "Ref: CLOUD-MON-12",
+												color: "#52577A",
+												fontSize: 9,
+											},
+										],
 									},
 									{
 										text: "12",
@@ -355,22 +361,18 @@ export default {
 								],
 								[
 									{
-										text: "Ref: SUP-MCO-12M",
-										color: "#52577A",
-										fontSize: 9,
-										colSpan: 7,
-									},
-									{},
-									{},
-									{},
-									{},
-									{},
-									{},
-								],
-								[
-									{
-										text: "- Rapport mensuel de disponibilité",
-										fontSize: 10,
+										stack: [
+											{
+												text: "Rapport mensuel de disponibilité",
+												fontSize: 9,
+												bold: true,
+											},
+											{
+												text: "Ref: CLOUD-MON-12",
+												color: "#52577A",
+												fontSize: 9,
+											},
+										],
 									},
 									{
 										text: "12",
@@ -402,20 +404,6 @@ export default {
 										alignment: "right",
 										fontSize: 9,
 									},
-								],
-								[
-									{
-										text: "Ref: SUP-MCO-12M",
-										color: "#52577A",
-										fontSize: 9,
-										colSpan: 7,
-									},
-									{},
-									{},
-									{},
-									{},
-									{},
-									{},
 								],
 							],
 							layout: {
@@ -425,17 +413,11 @@ export default {
 								vLineWidth() {
 									return 0;
 								},
-								paddingTop(rowIndex, _node, group) {
-									if (rowIndex === 0) {
-										return 8;
-									}
-									return 2;
+								paddingTop(rowIndex) {
+									return rowIndex === 0 ? 6 : 2;
 								},
 								paddingBottom(rowIndex, _node, group) {
-									if (rowIndex === group.rowCount - 1) {
-										return 8;
-									}
-									return 2;
+									return rowIndex === group.rowCount - 1 ? 6 : 2;
 								},
 							},
 						},
@@ -445,8 +427,17 @@ export default {
 							rows: [
 								[
 									{
-										text: "Audit de l’infrastructure réseau",
-										fontSize: 10,
+										stack: [
+											{
+												text: "Audit Wi-Fi campus",
+												fontSize: 10,
+											},
+											{
+												text: "Ref: AUD-WIFI-26",
+												color: "#52577A",
+												fontSize: 9,
+											},
+										],
 									},
 									{
 										text: "3",
@@ -487,19 +478,9 @@ export default {
 								],
 								[
 									{
-										stack: [
-											{
-												text: "Ref: AUD-RESEAU-2026",
-												color: "#52577A",
-												fontSize: 9,
-												margin: [0, 0, 0, 5],
-											},
-											{
-												text: "Analyse complète de la couverture Wi-Fi, de la segmentation du réseau et des équipements critiques sur les trois zones du site.\n\nLivrables inclus :\n- Cartographie des points d’accès\n- Rapport de sécurité et de performance\n- Plan d’actions priorisé",
-												color: "#52577A",
-												fontSize: 9,
-											},
-										],
+										text: "Cartographie radio, segmentation et revue des équipements critiques sur trois bâtiments.\n\nLivrables :\n- Plan de couverture\n- Rapport sécurité / performance\n- Feuille de route priorisée",
+										color: "#52577A",
+										fontSize: 9,
 										colSpan: 7,
 									},
 									{},
@@ -518,10 +499,10 @@ export default {
 									return 0;
 								},
 								paddingTop(rowIndex) {
-									return 8;
+									return rowIndex === 0 ? 6 : 2;
 								},
 								paddingBottom(rowIndex, _node, group) {
-									return 8;
+									return rowIndex === group.rowCount - 1 ? 6 : 2;
 								},
 							},
 						},
@@ -531,8 +512,18 @@ export default {
 							rows: [
 								[
 									{
-										text: "Déploiement de capteurs de qualité de l’air",
-										fontSize: 10,
+										stack: [
+											{
+												text: "Capteurs environnementaux",
+												fontSize: 10,
+											},
+											{
+												text: "Ref: ENV-SENS-24",
+												color: "#52577A",
+												fontSize: 9,
+												margin: [0, 0, 0, 5],
+											},
+										],
 									},
 									{
 										text: "24",
@@ -567,19 +558,9 @@ export default {
 								],
 								[
 									{
-										stack: [
-											{
-												text: "Ref: CAPT-AIR-024",
-												color: "#52577A",
-												fontSize: 9,
-												margin: [0, 0, 0, 5],
-											},
-											{
-												text: "Fourniture, configuration et pose de capteurs connectés mesurant le CO₂, les particules fines, la température et l’humidité.\n\nLa prestation comprend :\n- Installation dans les espaces sélectionnés\n- Connexion au réseau sécurisé\n- Calibration et recette sur site",
-												color: "#52577A",
-												fontSize: 9,
-											},
-										],
+										text: "Fourniture et pose de capteurs CO₂, particules, température et humidité.\n\nInclus :\n- Installation sur site\n- Intégration réseau sécurisée\n- Calibration et recette",
+										color: "#52577A",
+										fontSize: 9,
 										colSpan: 7,
 									},
 									{},
@@ -598,10 +579,95 @@ export default {
 									return 0;
 								},
 								paddingTop(rowIndex) {
-									return 2;
+									return rowIndex === 0 ? 6 : 2;
 								},
 								paddingBottom(rowIndex, _node, group) {
-									return 2;
+									return rowIndex === group.rowCount - 1 ? 6 : 2;
+								},
+							},
+						},
+						{
+							keepTogether: true,
+							dontBreakRows: true,
+							rows: [
+								[
+									{
+										stack: [
+											{
+												text: "Formation cybersécurité terrain",
+												fontSize: 10,
+											},
+											{
+												text: "Ref: FORM-SEC-08",
+												color: "#52577A",
+												fontSize: 9,
+											},
+										],
+									},
+									{
+										text: "2",
+										alignment: "center",
+										color: "#222222",
+										fontSize: 9,
+									},
+									{
+										text: "Jours",
+										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
+									},
+									{
+										text: "1 200,00 €",
+										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
+									},
+									{
+										text: "20%",
+										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
+									},
+									{
+										text: "2 400,00 €",
+										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
+									},
+									{
+										text: "2 880,00 €",
+										alignment: "right",
+										color: "#222222",
+										fontSize: 9,
+									},
+								],
+								[
+									{
+										text: "Atelier pratique pour les équipes locales : détection d’incidents, bonnes pratiques d’accès et exercices de réponse.\n\nInclus :\n- Support pédagogique\n- Supports numériques\n- Compte-rendu de session",
+										color: "#52577A",
+										fontSize: 9,
+										colSpan: 7,
+									},
+									{},
+									{},
+									{},
+									{},
+									{},
+									{},
+								],
+							],
+							layout: {
+								hLineWidth() {
+									return 0;
+								},
+								vLineWidth() {
+									return 0;
+								},
+								paddingTop(rowIndex) {
+									return rowIndex === 0 ? 6 : 2;
+								},
+								paddingBottom(rowIndex, _node, group) {
+									return rowIndex === group.rowCount - 1 ? 6 : 2;
 								},
 							},
 						},
@@ -726,11 +792,11 @@ export default {
 														alignment: "left",
 													},
 													{
-														text: "10 080,00 €",
+														text: "6 270,00 €",
 														alignment: "right",
 													},
 													{
-														text: "50 040,00 €",
+														text: "31 350,00 €",
 														alignment: "right",
 													},
 												],
@@ -740,11 +806,11 @@ export default {
 														alignment: "left",
 													},
 													{
-														text: "10 080,00 €",
+														text: "1 729,28 €",
 														alignment: "right",
 													},
 													{
-														text: "50 040,00 €",
+														text: "9 570,72 €",
 														alignment: "right",
 													},
 												],
@@ -787,7 +853,6 @@ export default {
 								{
 									keepTogether: true,
 									dontBreakRows: true,
-
 									rows: [
 										[
 											{
@@ -808,10 +873,10 @@ export default {
 																groups: [
 																	{
 																		rows: [
-																			["Total HT", "10 080,00 €"],
+																			["Total HT", "32 430,00 €"],
 																			["Remise sur total HT", "-1 080,00 €"],
-																			["Total HT final", "10 080,00 €"],
-																			["Total TVA", "10 080,00 €"],
+																			["Total HT final", "31 350,00 €"],
+																			["Total TVA", "6 270,00 €"],
 																			[
 																				{
 																					text: "Total TTC",
@@ -819,7 +884,7 @@ export default {
 																					margin: [0, 5, 0, 0],
 																				},
 																				{
-																					text: "10 080,00 €",
+																					text: "37 620,00 €",
 																					color: "#52577A",
 																					margin: [0, 5, 0, 0],
 																				},
@@ -829,7 +894,6 @@ export default {
 																],
 																layout: {
 																	hLineWidth(index) {
-																		// Ligne uniquement avant « Total TTC »
 																		return index === 4 ? 1 : 0;
 																	},
 																	hLineColor(index) {
@@ -890,7 +954,7 @@ export default {
 								},
 
 								paddingBottom() {
-									return 10;
+									return 5;
 								},
 							},
 						},
@@ -923,7 +987,7 @@ export default {
 							fontSize: 8,
 						},
 						{
-							text: "Crédit Agricole",
+							text: "Banque Populaire",
 							color: "#101010",
 							fontSize: 10,
 						},
@@ -933,7 +997,7 @@ export default {
 							fontSize: 8,
 						},
 						{
-							text: "FR76 XXXX XXXX XXXX XXXX XXXX",
+							text: "FR76 3000 4000 0100 0001 2345 678",
 							color: "#101010",
 							fontSize: 10,
 						},
@@ -943,7 +1007,7 @@ export default {
 							fontSize: 8,
 						},
 						{
-							text: "ORBEFRPPXXX",
+							text: "LUMNFRPPXXX",
 							color: "#101010",
 							fontSize: 10,
 						},
@@ -964,7 +1028,7 @@ export default {
 							bold: true,
 						},
 						{
-							text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque congue nisl molestie ultricies commodo. Maecenas vel ultricies arcu. ",
+							text: "Validité du devis : 30 jours. Délai de livraison indicatif : 6 semaines après signature.",
 							color: "#222222",
 							fontSize: 8,
 						},
@@ -982,13 +1046,13 @@ export default {
 					margin: [0, 0, 0, 5],
 				},
 				{
-					text: "En cas de retard de paiement, des pénalités de retard seront exigibles à compter du jour suivant la date d'échéance figurant sur la facture. Le taux d'intérêt des pénalités de retard est égal à trois fois le taux d'intérêt légal, conformément à l'article L441-10 du Code de commerce. Une indemnité forfaitaire de 40 € sera alors appliquée pour les frais de recouvrement. Escompte pour paiement anticipé : néant",
+					text: "En cas de retard de paiement, des pénalités de retard seront exigibles à compter du jour suivant la date d'échéance figurant sur le devis. Le taux d'intérêt des pénalités de retard est égal à trois fois le taux d'intérêt légal, conformément à l'article L441-10 du Code de commerce. Une indemnité forfaitaire de 40 € sera alors appliquée pour les frais de recouvrement. Escompte pour paiement anticipé : néant",
 					color: "#52577A",
 					fontSize: 8,
 					margin: [0, 0, 0, 5],
 				},
 				{
-					text: "Capital social : non concerné · Code NAF 58.11Z · N° SIRET 32998256500031 · 329 982 565 R.C.S. Bobigny · N° de TVA FR45329982565",
+					text: "Capital social : 50 000 € · Code NAF 62.01Z · N° SIRET 81245678900024 · 812 456 789 R.C.S. Bordeaux · N° de TVA FR45812456789",
 					color: "#52577A",
 					fontSize: 8,
 					margin: [0, 0, 0, 5],
@@ -1000,7 +1064,7 @@ export default {
 		return {
 			columns: [
 				{
-					text: "Nom / Raison sociale · F-2026-018",
+					text: "Lumen Atelier SAS · D-2026-0842",
 					alignment: "left",
 				},
 				{

@@ -9,15 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Logical table body groups now accept a partial inline `layout` for all four cell paddings and internal horizontal/vertical separator widths, colors and dash styles. Unspecified callbacks inherit from `body.layout`, while outer borders, group boundaries, the header/body boundary, page-closing borders and rounded contours remain structurally owned by the table.
+- Added a `concurrent-10x3` benchmark scenario that generates 10 concurrent 3-page documents.
+- Benchmark runs now write a Markdown summary table to `benchmarks/benchmark-report.md`.
 
 ### Changed
 
-- Updated the Kolecto playground invoice with clearer service typography and a category-style multi-row product group that demonstrates group-local spacing and separator control without splitting the surrounding table outline.
+- Updated the playground quote sample with fictional seller/buyer data and aligned its embedded Factur-X XML attachment.
+- Playground sample lists are discovered from `playground/shared/samples/*.js` at runtime instead of a hard-coded name list.
 
 ### Fixed
 
-- Corrected the Kolecto group-layout example to use the public `group.rowCount` callback context instead of reading a nonexistent `group.rows` collection.
-- Kept compact Kolecto headers and monetary values on one line, preventing `Qté` from hard-wrapping and euro symbols from moving below their amounts in narrow automatic columns.
+- Corrected the quote sample group-layout example to use the public `group.rowCount` callback context instead of reading a nonexistent `group.rows` collection.
+- Kept compact quote sample headers and monetary values on one line, preventing `Qté` from hard-wrapping and euro symbols from moving below their amounts in narrow automatic columns.
 
 ### Tests
 

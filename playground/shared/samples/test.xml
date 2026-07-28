@@ -6,17 +6,17 @@
     </ram:GuidelineSpecifiedDocumentContextParameter>
   </rsm:ExchangedDocumentContext>
   <rsm:ExchangedDocument>
-    <ram:ID>2024-9</ram:ID>
+    <ram:ID>D-2026-0842</ram:ID>
     <ram:TypeCode>380</ram:TypeCode>
     <ram:IssueDateTime>
-      <udt:DateTimeString format="102">20250211</udt:DateTimeString>
+      <udt:DateTimeString format="102">20260314</udt:DateTimeString>
     </ram:IssueDateTime>
     <ram:IncludedNote>
       <ram:Content>Escompte pour paiement anticipé : néant</ram:Content>
       <ram:SubjectCode>AAB</ram:SubjectCode>
     </ram:IncludedNote>
     <ram:IncludedNote>
-      <ram:Content>817 998 412 R.C.S. Saint-nazaire</ram:Content>
+      <ram:Content>812 456 789 R.C.S. Bordeaux</ram:Content>
       <ram:SubjectCode>ABL</ram:SubjectCode>
     </ram:IncludedNote>
   </rsm:ExchangedDocument>
@@ -26,58 +26,153 @@
         <ram:LineID>1</ram:LineID>
       </ram:AssociatedDocumentLineDocument>
       <ram:SpecifiedTradeProduct>
-        <ram:Name>1</ram:Name>
+        <ram:SellerAssignedID>CLOUD-MON-12</ram:SellerAssignedID>
+        <ram:Name>Abonnement supervision cloud</ram:Name>
+        <ram:Description>Mises à jour, hotline jours ouvrés et rapport mensuel de disponibilité</ram:Description>
       </ram:SpecifiedTradeProduct>
       <ram:SpecifiedLineTradeAgreement>
         <ram:NetPriceProductTradePrice>
-          <ram:ChargeAmount>10.00</ram:ChargeAmount>
+          <ram:ChargeAmount>490.00</ram:ChargeAmount>
         </ram:NetPriceProductTradePrice>
       </ram:SpecifiedLineTradeAgreement>
       <ram:SpecifiedLineTradeDelivery>
-        <ram:BilledQuantity unitCode="EA">1.000</ram:BilledQuantity>
+        <ram:BilledQuantity unitCode="MON">36.000</ram:BilledQuantity>
       </ram:SpecifiedLineTradeDelivery>
       <ram:SpecifiedLineTradeSettlement>
         <ram:ApplicableTradeTax>
           <ram:TypeCode>VAT</ram:TypeCode>
           <ram:CategoryCode>S</ram:CategoryCode>
-          <ram:RateApplicablePercent>5.50</ram:RateApplicablePercent>
+          <ram:RateApplicablePercent>20.00</ram:RateApplicablePercent>
         </ram:ApplicableTradeTax>
         <ram:SpecifiedTradeSettlementLineMonetarySummation>
-          <ram:LineTotalAmount>10.00</ram:LineTotalAmount>
+          <ram:LineTotalAmount>17640.00</ram:LineTotalAmount>
+        </ram:SpecifiedTradeSettlementLineMonetarySummation>
+      </ram:SpecifiedLineTradeSettlement>
+    </ram:IncludedSupplyChainTradeLineItem>
+    <ram:IncludedSupplyChainTradeLineItem>
+      <ram:AssociatedDocumentLineDocument>
+        <ram:LineID>2</ram:LineID>
+      </ram:AssociatedDocumentLineDocument>
+      <ram:SpecifiedTradeProduct>
+        <ram:SellerAssignedID>AUD-WIFI-26</ram:SellerAssignedID>
+        <ram:Name>Audit Wi-Fi campus</ram:Name>
+        <ram:Description>Cartographie radio, segmentation et revue des équipements critiques</ram:Description>
+      </ram:SpecifiedTradeProduct>
+      <ram:SpecifiedLineTradeAgreement>
+        <ram:NetPriceProductTradePrice>
+          <ram:ChargeAmount>1850.00</ram:ChargeAmount>
+        </ram:NetPriceProductTradePrice>
+      </ram:SpecifiedLineTradeAgreement>
+      <ram:SpecifiedLineTradeDelivery>
+        <ram:BilledQuantity unitCode="EA">3.000</ram:BilledQuantity>
+      </ram:SpecifiedLineTradeDelivery>
+      <ram:SpecifiedLineTradeSettlement>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:CategoryCode>S</ram:CategoryCode>
+          <ram:RateApplicablePercent>20.00</ram:RateApplicablePercent>
+        </ram:ApplicableTradeTax>
+        <ram:SpecifiedTradeSettlementLineMonetarySummation>
+          <ram:LineTotalAmount>5550.00</ram:LineTotalAmount>
+        </ram:SpecifiedTradeSettlementLineMonetarySummation>
+      </ram:SpecifiedLineTradeSettlement>
+    </ram:IncludedSupplyChainTradeLineItem>
+    <ram:IncludedSupplyChainTradeLineItem>
+      <ram:AssociatedDocumentLineDocument>
+        <ram:LineID>3</ram:LineID>
+      </ram:AssociatedDocumentLineDocument>
+      <ram:SpecifiedTradeProduct>
+        <ram:SellerAssignedID>ENV-SENS-24</ram:SellerAssignedID>
+        <ram:Name>Capteurs environnementaux</ram:Name>
+        <ram:Description>Fourniture et pose de capteurs CO2, particules, température et humidité</ram:Description>
+      </ram:SpecifiedTradeProduct>
+      <ram:SpecifiedLineTradeAgreement>
+        <ram:NetPriceProductTradePrice>
+          <ram:ChargeAmount>285.00</ram:ChargeAmount>
+        </ram:NetPriceProductTradePrice>
+      </ram:SpecifiedLineTradeAgreement>
+      <ram:SpecifiedLineTradeDelivery>
+        <ram:BilledQuantity unitCode="EA">24.000</ram:BilledQuantity>
+      </ram:SpecifiedLineTradeDelivery>
+      <ram:SpecifiedLineTradeSettlement>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:CategoryCode>S</ram:CategoryCode>
+          <ram:RateApplicablePercent>20.00</ram:RateApplicablePercent>
+        </ram:ApplicableTradeTax>
+        <ram:SpecifiedTradeSettlementLineMonetarySummation>
+          <ram:LineTotalAmount>6840.00</ram:LineTotalAmount>
+        </ram:SpecifiedTradeSettlementLineMonetarySummation>
+      </ram:SpecifiedLineTradeSettlement>
+    </ram:IncludedSupplyChainTradeLineItem>
+    <ram:IncludedSupplyChainTradeLineItem>
+      <ram:AssociatedDocumentLineDocument>
+        <ram:LineID>4</ram:LineID>
+      </ram:AssociatedDocumentLineDocument>
+      <ram:SpecifiedTradeProduct>
+        <ram:SellerAssignedID>FORM-SEC-08</ram:SellerAssignedID>
+        <ram:Name>Formation cybersécurité terrain</ram:Name>
+        <ram:Description>Atelier pratique pour les équipes locales : détection d'incidents et exercices de réponse</ram:Description>
+      </ram:SpecifiedTradeProduct>
+      <ram:SpecifiedLineTradeAgreement>
+        <ram:NetPriceProductTradePrice>
+          <ram:ChargeAmount>1200.00</ram:ChargeAmount>
+        </ram:NetPriceProductTradePrice>
+      </ram:SpecifiedLineTradeAgreement>
+      <ram:SpecifiedLineTradeDelivery>
+        <ram:BilledQuantity unitCode="DAY">2.000</ram:BilledQuantity>
+      </ram:SpecifiedLineTradeDelivery>
+      <ram:SpecifiedLineTradeSettlement>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:CategoryCode>S</ram:CategoryCode>
+          <ram:RateApplicablePercent>20.00</ram:RateApplicablePercent>
+        </ram:ApplicableTradeTax>
+        <ram:SpecifiedTradeSettlementLineMonetarySummation>
+          <ram:LineTotalAmount>2400.00</ram:LineTotalAmount>
         </ram:SpecifiedTradeSettlementLineMonetarySummation>
       </ram:SpecifiedLineTradeSettlement>
     </ram:IncludedSupplyChainTradeLineItem>
     <ram:ApplicableHeaderTradeAgreement>
+      <ram:BuyerReference>BC-9173</ram:BuyerReference>
       <ram:SellerTradeParty>
-        <ram:GlobalID schemeID="0009">81799841200016</ram:GlobalID>
-        <ram:Name>KER-GLASS</ram:Name>
+        <ram:GlobalID schemeID="0009">81245678900024</ram:GlobalID>
+        <ram:Name>Lumen Atelier SAS</ram:Name>
         <ram:SpecifiedLegalOrganization>
-          <ram:ID schemeID="0002">81799841200016</ram:ID>
+          <ram:ID schemeID="0002">812456789</ram:ID>
         </ram:SpecifiedLegalOrganization>
+        <ram:DefinedTradeContact>
+          <ram:TelephoneUniversalCommunication>
+            <ram:CompleteNumber>0556123456</ram:CompleteNumber>
+          </ram:TelephoneUniversalCommunication>
+          <ram:EmailURIUniversalCommunication>
+            <ram:URIID>contact@lumen-atelier.example</ram:URIID>
+          </ram:EmailURIUniversalCommunication>
+        </ram:DefinedTradeContact>
         <ram:PostalTradeAddress>
-          <ram:PostcodeCode>44350</ram:PostcodeCode>
-          <ram:LineOne>LENIPHEN</ram:LineOne>
-          <ram:CityName>GUERANDE</ram:CityName>
+          <ram:PostcodeCode>33000</ram:PostcodeCode>
+          <ram:LineOne>14 rue des Glycines</ram:LineOne>
+          <ram:CityName>Bordeaux</ram:CityName>
           <ram:CountryID>FR</ram:CountryID>
         </ram:PostalTradeAddress>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">FR08817998412</ram:ID>
+          <ram:ID schemeID="VA">FR45812456789</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
-        <ram:GlobalID schemeID="0009">31081855400043</ram:GlobalID>
-        <ram:Name>LOUIS VUITTON</ram:Name>
+        <ram:GlobalID schemeID="0009">49120384700019</ram:GlobalID>
+        <ram:Name>Nordique Design SARL</ram:Name>
         <ram:SpecifiedLegalOrganization>
-          <ram:ID schemeID="0002">31081855400043</ram:ID>
+          <ram:ID schemeID="0002">491203847</ram:ID>
         </ram:SpecifiedLegalOrganization>
         <ram:PostalTradeAddress>
-          <ram:PostcodeCode>75008</ram:PostcodeCode>
-          <ram:LineOne>30 RUE LA BOETIE</ram:LineOne>
-          <ram:CityName>PARIS 8</ram:CityName>
+          <ram:PostcodeCode>59000</ram:PostcodeCode>
+          <ram:LineOne>8 allée du Phare</ram:LineOne>
+          <ram:CityName>Lille</ram:CityName>
           <ram:CountryID>FR</ram:CountryID>
         </ram:PostalTradeAddress>
         <ram:SpecifiedTaxRegistration>
-          <ram:ID schemeID="VA">FR09310818554</ram:ID>
+          <ram:ID schemeID="VA">FR28491203847</ram:ID>
         </ram:SpecifiedTaxRegistration>
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
@@ -86,25 +181,39 @@
       <ram:InvoiceCurrencyCode>EUR</ram:InvoiceCurrencyCode>
       <ram:SpecifiedTradeSettlementPaymentMeans>
         <ram:TypeCode>58</ram:TypeCode>
+        <ram:PayeePartyCreditorFinancialAccount>
+          <ram:IBANID>FR7630004000010000012345678</ram:IBANID>
+        </ram:PayeePartyCreditorFinancialAccount>
+        <ram:PayeeSpecifiedCreditorFinancialInstitution>
+          <ram:BICID>LUMNFRPPXXX</ram:BICID>
+        </ram:PayeeSpecifiedCreditorFinancialInstitution>
       </ram:SpecifiedTradeSettlementPaymentMeans>
       <ram:ApplicableTradeTax>
-        <ram:CalculatedAmount>0.55</ram:CalculatedAmount>
+        <ram:CalculatedAmount>6270.00</ram:CalculatedAmount>
         <ram:TypeCode>VAT</ram:TypeCode>
-        <ram:BasisAmount>10.00</ram:BasisAmount>
+        <ram:BasisAmount>31350.00</ram:BasisAmount>
         <ram:CategoryCode>S</ram:CategoryCode>
-        <ram:RateApplicablePercent>5.50</ram:RateApplicablePercent>
+        <ram:RateApplicablePercent>20.00</ram:RateApplicablePercent>
       </ram:ApplicableTradeTax>
       <ram:SpecifiedTradePaymentTerms>
         <ram:DueDateDateTime>
-          <udt:DateTimeString format="102">20250313</udt:DateTimeString>
+          <udt:DateTimeString format="102">20260414</udt:DateTimeString>
         </ram:DueDateDateTime>
       </ram:SpecifiedTradePaymentTerms>
+      <ram:SpecifiedTradeAllowanceCharge>
+        <ram:ChargeIndicator>
+          <udt:Indicator>false</udt:Indicator>
+        </ram:ChargeIndicator>
+        <ram:ActualAmount>1080.00</ram:ActualAmount>
+        <ram:Reason>Remise sur total HT</ram:Reason>
+      </ram:SpecifiedTradeAllowanceCharge>
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-        <ram:LineTotalAmount>10.00</ram:LineTotalAmount>
-        <ram:TaxBasisTotalAmount>10.00</ram:TaxBasisTotalAmount>
-        <ram:TaxTotalAmount currencyID="EUR">0.55</ram:TaxTotalAmount>
-        <ram:GrandTotalAmount>10.55</ram:GrandTotalAmount>
-        <ram:DuePayableAmount>10.55</ram:DuePayableAmount>
+        <ram:LineTotalAmount>32430.00</ram:LineTotalAmount>
+        <ram:AllowanceTotalAmount>1080.00</ram:AllowanceTotalAmount>
+        <ram:TaxBasisTotalAmount>31350.00</ram:TaxBasisTotalAmount>
+        <ram:TaxTotalAmount currencyID="EUR">6270.00</ram:TaxTotalAmount>
+        <ram:GrandTotalAmount>37620.00</ram:GrandTotalAmount>
+        <ram:DuePayableAmount>37620.00</ram:DuePayableAmount>
       </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
     </ram:ApplicableHeaderTradeSettlement>
   </rsm:SupplyChainTradeTransaction>
