@@ -2,7 +2,7 @@
 
 Modern PDF document generation for Node.js and browsers, written in TypeScript.
 
-`pdfcraft` 0.4.0 starts from the [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) codebase. It preserves the familiar document-definition model while delivering a cleaner package, first-class TypeScript declarations, explicit ESM and CommonJS exports, isolated instances, a modern browser entry, and a Vitest test suite.
+`pdfcraft` starts from the [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) codebase. It preserves the familiar document-definition model while delivering a cleaner package, first-class TypeScript declarations, explicit ESM and CommonJS exports, isolated instances, a modern browser entry, and a Vitest test suite.
 
 Numerous pull requests and issues from pdfmake have been fixed or incorporated in this package. See the [CHANGELOG.md](./CHANGELOG.md) for detailed information. 
 
@@ -244,9 +244,10 @@ Run the quick smoke profile or the complete reproducible benchmark suite:
 ```sh
 npm run benchmark:quick
 npm run benchmark
+npm run benchmark:quote
 ```
 
-The suite measures 100–1,000-page documents, large tables, media-heavy PDFs and concurrent generation. See [benchmarks/README.md](./benchmarks/README.md) for the workloads, JSON output and comparison methodology.
+The suite measures 100–1,000-page documents, large tables, media-heavy PDFs, concurrent generation and batches of 1, 10 or 100 real `quote.js` documents. See [benchmarks/README.md](./benchmarks/README.md) for the workloads, JSON output and comparison methodology.
 
 ## Playgrounds
 

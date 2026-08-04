@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Logical table body groups now accept a partial inline `layout` for all four cell paddings and internal horizontal/vertical separator widths, colors and dash styles. Unspecified callbacks inherit from `body.layout`, while outer borders, group boundaries, the header/body boundary, page-closing borders and rounded contours remain structurally owned by the table.
 - Added a `concurrent-10x3` benchmark scenario that generates 10 concurrent 3-page documents.
-- Benchmark runs now write a Markdown summary table to `benchmarks/benchmark-report.md`.
+- Benchmark runs now write a Markdown summary table to `benchmarks/REPORT.md`.
+- Added dedicated benchmarks that generate the real PDF/A-3 `quote.js` sample 1, 10 and 100 times concurrently, plus comma-separated scenario selection, a configurable Markdown report path and an `npm run benchmark:quote` command.
 
 ### Changed
 
@@ -29,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Documentation
 
 - Added a comprehensive styling guide covering PDFCraft's public typography, layout, table, media, vector and document controls, and documented partial group layouts in the README, table example, playground sample and source architecture map.
+- Added a concise French ADR draft summarizing the PDF generation POC, the verified React-to-HTML-to-Gotenberg pipeline it could replace, tested capabilities, reproducible performance results, server/browser rendering consistency, proposed server-first adoption, maintenance implications and remaining production validations.
 
 ## [0.7.3] - 2026-07-27
 

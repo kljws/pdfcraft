@@ -65,6 +65,7 @@
 		"build": "npm run typecheck:build && tsdown",
 		"benchmark": "npm run build && node benchmarks/run.mjs",
 		"benchmark:quick": "npm run build && node benchmarks/run.mjs --quick",
+		"benchmark:quote": "npm run build && node benchmarks/run.mjs --scenario=quote-concurrent-1,quote-concurrent-10,quote-concurrent-100 --report=benchmarks/QUOTE-REPORT.md",
 		"visual:generate": "npm run build && node tests/visual/generate.mjs",
 		"analyze:dependencies": "node scripts/analyze-dependency-weight.mjs",
 		"context:src": "node scripts/generate-source-context.mjs",
