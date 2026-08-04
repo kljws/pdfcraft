@@ -2,11 +2,40 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import pdfcraft from "../dist/index.mjs";
+import quoteSample from "../playground/shared/samples/quote.js";
+import { resolveDocumentResources } from "../playground/shared/editor.js";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const regularFont = path.join(packageRoot, "fonts/Roboto/Roboto-Regular.ttf");
 const mediumFont = path.join(packageRoot, "fonts/Roboto/Roboto-Medium.ttf");
+const figtreeFontDirectory = path.join(packageRoot, "fonts/Figtree");
 const sampleImage = path.join(packageRoot, "examples/images/sampleImage.jpg");
+const quoteSampleDirectory = path.join(packageRoot, "playground/shared/samples");
+const playgroundLogo = path.join(packageRoot, "playground/logo.jpg");
+
+const resolveSampleFile = (file) => {
+	if (typeof file === "string") {
+		return path.isAbsolute(file) ? file : path.resolve(quoteSampleDirectory, file);
+	}
+	if (!file || typeof file !== "object" || typeof file.src !== "string") return file;
+	return {
+		...file,
+		src: path.isAbsolute(file.src) ? file.src : path.resolve(quoteSampleDirectory, file.src),
+	};
+};
+
+const quoteDocument = resolveDocumentResources(
+	{
+		...quoteSample,
+		files: Object.fromEntries(
+			Object.entries(quoteSample.files ?? {}).map(([name, file]) => [
+				name,
+				resolveSampleFile(file),
+			]),
+		),
+	},
+	new Map([["playground/logo.jpg", playgroundLogo]]),
+);
 
 const createInstance = () =>
 	pdfcraft.createPdfCraft({
@@ -16,6 +45,16 @@ const createInstance = () =>
 				bold: mediumFont,
 				italics: regularFont,
 				bolditalics: mediumFont,
+			},
+			Figtree: {
+				normal: path.join(figtreeFontDirectory, "Figtree-Regular.ttf"),
+				bold: path.join(figtreeFontDirectory, "Figtree-SemiBold.ttf"),
+				italics: path.join(figtreeFontDirectory, "Figtree-Italic.ttf"),
+				bolditalics: path.join(figtreeFontDirectory, "Figtree-BoldItalic.ttf"),
+			},
+			FigtreeSemiBold: {
+				normal: path.join(figtreeFontDirectory, "Figtree-SemiBold.ttf"),
+				italics: path.join(figtreeFontDirectory, "Figtree-SemiBoldItalic.ttf"),
 			},
 		},
 		localAccessPolicy: (filename) => filename.startsWith(packageRoot),
@@ -94,6 +133,17 @@ const render = async (definition) => {
 	return buffer.byteLength;
 };
 
+const renderQuoteBatch = async (documentCount) => {
+	const instance = createInstance();
+	const sizes = await Promise.all(
+		Array.from({ length: documentCount }, async () => {
+			const buffer = await instance.createPdf(quoteDocument).getBuffer();
+			return buffer.byteLength;
+		}),
+	);
+	return sizes.reduce((total, size) => total + size, 0);
+};
+
 export function createScenarios(profile) {
 	const quick = profile === "quick";
 	const pageCounts = quick ? [100] : [100, 500, 1000];
@@ -103,6 +153,7 @@ export function createScenarios(profile) {
 	const svgShapes = quick ? 100 : 500;
 	const concurrentDocuments = quick ? 2 : 8;
 	const concurrentPages = quick ? 20 : 100;
+	const quoteCounts = [1, 10, 100];
 
 	return [
 		...pageCounts.map((pageCount) => ({
@@ -138,5 +189,10 @@ export function createScenarios(profile) {
 				return sizes.reduce((total, size) => total + size, 0);
 			},
 		},
+		...quoteCounts.map((documentCount) => ({
+			name: `quote-concurrent-${documentCount}`,
+			description: `${documentCount} concurrent quote${documentCount === 1 ? "" : "s"} from quote.js`,
+			run: () => renderQuoteBatch(documentCount),
+		})),
 	];
 }

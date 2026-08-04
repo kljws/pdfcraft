@@ -14,8 +14,15 @@ const argumentsMap = Object.fromEntries(
 const profile = argumentsMap.quick ? "quick" : "standard";
 const iterations = Number(argumentsMap.iterations ?? (profile === "quick" ? 1 : 3));
 const warmup = Number(argumentsMap.warmup ?? (profile === "quick" ? 0 : 1));
-const selectedScenario = typeof argumentsMap.scenario === "string" ? argumentsMap.scenario : null;
+const selectedScenarios =
+	typeof argumentsMap.scenario === "string"
+		? new Set(argumentsMap.scenario.split(",").filter(Boolean))
+		: null;
 const outputPath = typeof argumentsMap.output === "string" ? argumentsMap.output : null;
+const reportPath =
+	typeof argumentsMap.report === "string"
+		? path.resolve(argumentsMap.report)
+		: path.join(path.dirname(fileURLToPath(import.meta.url)), "REPORT.md");
 
 if (!Number.isInteger(iterations) || iterations < 1) throw new Error("iterations must be >= 1");
 if (!Number.isInteger(warmup) || warmup < 0) throw new Error("warmup must be >= 0");
@@ -23,9 +30,13 @@ if (!Number.isInteger(warmup) || warmup < 0) throw new Error("warmup must be >= 
 const benchmarkDirectory = path.dirname(fileURLToPath(import.meta.url));
 const worker = path.join(benchmarkDirectory, "worker.mjs");
 const scenarios = createScenarios(profile).filter(
-	({ name }) => selectedScenario === null || name === selectedScenario,
+	({ name }) => selectedScenarios === null || selectedScenarios.has(name),
 );
-if (scenarios.length === 0) throw new Error(`Unknown benchmark scenario: ${selectedScenario}`);
+if (selectedScenarios !== null && scenarios.length !== selectedScenarios.size) {
+	const resolvedNames = new Set(scenarios.map(({ name }) => name));
+	const unknownNames = [...selectedScenarios].filter((name) => !resolvedNames.has(name));
+	throw new Error(`Unknown benchmark scenario: ${unknownNames.join(", ")}`);
+}
 
 const percentile = (values, ratio) => {
 	const sorted = [...values].sort((left, right) => left - right);
@@ -97,7 +108,6 @@ console.log(`PDFCraft benchmark (${profile}, Node ${process.version}, ${iteratio
 console.table(rows);
 if (outputPath) console.log(`JSON report: ${path.resolve(outputPath)}`);
 
-const markdownPath = path.join(benchmarkDirectory, "REPORT.md");
 const markdownRows = rows
 	.map(
 		(row) =>
@@ -118,5 +128,5 @@ const markdown = `# PDFCraft benchmark report
 ${markdownRows}
 `;
 
-await writeFile(markdownPath, markdown);
-console.log(`Markdown report: ${markdownPath}`);
+await writeFile(reportPath, markdown);
+console.log(`Markdown report: ${reportPath}`);
