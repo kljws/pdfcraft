@@ -15,6 +15,9 @@ export default defineConfig([
 		cjsDefault: true,
 		dts: true,
 		sourcemap: false,
+		deps: {
+			neverBundle: true,
+		},
 	},
 	{
 		entry: { types: "src/types/index.ts" },
