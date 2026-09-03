@@ -301,7 +301,8 @@ export interface TableLayout {
 		| null
 		| ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => Color | null | undefined);
 	fillOpacity?:
-		number | ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => number | undefined);
+		| number
+		| ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => number | undefined);
 	defaultBorder?: boolean;
 }
 

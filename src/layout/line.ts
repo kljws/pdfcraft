@@ -94,7 +94,7 @@ class Line {
 		let inlineTrailingCut = inline.trailingCut || 0;
 		if (inline.noNewLine) {
 			for (let i = nextInlineIndex, l = nextInlines.length; i < l; i++) {
-				let nextInline = nextInlines[i];
+				const nextInline = nextInlines[i];
 				inlineWidth += nextInline.width;
 				inlineTrailingCut = nextInline.trailingCut || 0;
 				if (!nextInline.noNewLine) {

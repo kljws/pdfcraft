@@ -783,7 +783,7 @@ describe("DocMeasure", function () {
 
 	describe("measureDocument", function () {
 		it("should treat margin in styling properties with higher priority", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { "marginStyle": { margin: 10 } }, {});
+			docMeasure = new DocMeasure(sampleTestProvider, { marginStyle: { margin: 10 } }, {});
 			var node = { text: "test", style: "marginStyle", margin: [5, 5, 5, 5] };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureDocument(node);
@@ -791,11 +791,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply margins defined in the styles", function () {
-			docMeasure = new DocMeasure(
-				sampleTestProvider,
-				{ "topLevel": { margin: [123, 3, 5, 6] } },
-				{},
-			);
+			docMeasure = new DocMeasure(sampleTestProvider, { topLevel: { margin: [123, 3, 5, 6] } }, {});
 			var node = { text: "test", style: "topLevel" };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureDocument(node);
@@ -897,7 +893,7 @@ describe("DocMeasure", function () {
 		it("should apply sublevel styles not to parent", function () {
 			docMeasure = new DocMeasure(
 				sampleTestProvider,
-				{ "topLevel": { margin: [123, 3, 5, 6] }, "subLevel": { margin: 5 } },
+				{ topLevel: { margin: [123, 3, 5, 6] }, subLevel: { margin: 5 } },
 				{},
 			);
 			var node = { ul: ["one", "two", { text: "three", style: "subLevel" }], style: "topLevel" };
@@ -913,9 +909,9 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(
 				sampleTestProvider,
 				{
-					"topLevel": { margin: [123, 3, 5, 6] },
-					"subLevel": { margin: 5 },
-					"subsubLevel": { margin: 25 },
+					topLevel: { margin: [123, 3, 5, 6] },
+					subLevel: { margin: 5 },
+					subsubLevel: { margin: 25 },
 				},
 				{},
 			);
@@ -968,7 +964,7 @@ describe("DocMeasure", function () {
 		it("should combine all single margins defined in style dict ", function () {
 			docMeasure = new DocMeasure(
 				sampleTestProvider,
-				{ "style1": { marginLeft: 5 }, "style2": { marginTop: 10 } },
+				{ style1: { marginLeft: 5 }, style2: { marginTop: 10 } },
 				{},
 			);
 			var node = { text: "some text", style: ["style1", "style2"] };
@@ -978,7 +974,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should combine the single margin defined in style dict and the object itself", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { "style1": { marginLeft: 5 } }, {});
+			docMeasure = new DocMeasure(sampleTestProvider, { style1: { marginLeft: 5 } }, {});
 			var node = { text: "some text", style: ["style1"], marginRight: 15 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureDocument(node);
@@ -988,7 +984,7 @@ describe("DocMeasure", function () {
 		it("should override only left margin if marginLeft is defined", function () {
 			docMeasure = new DocMeasure(
 				sampleTestProvider,
-				{ "topLevel": { margin: [123, 3, 5, 6] }, "subLevel": { marginLeft: 5 } },
+				{ topLevel: { margin: [123, 3, 5, 6] }, subLevel: { marginLeft: 5 } },
 				{},
 			);
 			var node = { ul: ["one", "two", { text: "three", style: "subLevel" }], style: "topLevel" };

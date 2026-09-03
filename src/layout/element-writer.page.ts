@@ -178,7 +178,7 @@ class PageElementWriter {
 						pageMargins: previousMargins,
 					}
 				: null;
-		let nextPage = this.context().moveToNextPage(pageOrientation);
+		const nextPage = this.context().moveToNextPage(pageOrientation);
 
 		// moveToNextPage is called multiple times for table, because is called for each column
 		// and repeatables are inserted only in the first time. If columns are used, is needed
@@ -248,10 +248,10 @@ class PageElementWriter {
 
 	commitUnbreakableBlock(forcedX?: number, forcedY?: number): void {
 		if (--this.transactionLevel === 0) {
-			let unbreakableContext = this.context();
+			const unbreakableContext = this.context();
 			this.popContext();
 
-			let nbPages = unbreakableContext.pages.length;
+			const nbPages = unbreakableContext.pages.length;
 			if (nbPages > 0) {
 				if (forcedX !== undefined || forcedY !== undefined) {
 					const fragment: ElementFragment = {
@@ -302,7 +302,7 @@ class PageElementWriter {
 	}
 
 	currentBlockToRepeatable(): ElementFragment {
-		let unbreakableContext = this.context();
+		const unbreakableContext = this.context();
 		const rep: ElementFragment = { items: [], height: 0, insertedOnPages: [] };
 
 		unbreakableContext.pages[0].items.forEach((item: PageItem) => {
@@ -334,7 +334,7 @@ class PageElementWriter {
 	 * Handles repeatables and emits columnChanged event.
 	 */
 	moveToNextColumn(): void {
-		let nextColumn = this.context().moveToNextColumn();
+		const nextColumn = this.context().moveToNextColumn();
 
 		// Handle repeatables (like table headers) for the new column
 		this.repeatables.forEach(function (this: PageElementWriter, rep): void {
@@ -359,8 +359,8 @@ class PageElementWriter {
 	 * @returns
 	 */
 	canMoveToNextColumn(): boolean {
-		let ctx = this.context();
-		let snakingSnapshot = ctx.getSnakingSnapshot();
+		const ctx = this.context();
+		const snakingSnapshot = ctx.getSnakingSnapshot();
 
 		if (snakingSnapshot) {
 			// Check if we're inside a nested (non-snaking) column group.
@@ -368,7 +368,7 @@ class PageElementWriter {
 			// the inner row's layout (e.g. product name in col 1, price in col 2).
 			// The inner row should complete via normal page break instead.
 			for (let i = ctx.snapshots.length - 1; i >= 0; i--) {
-				let snap = ctx.snapshots[i];
+				const snap = ctx.snapshots[i];
 				if (snap.snakingColumns) {
 					break; // Reached the snaking snapshot, no inner groups found
 				}
@@ -393,16 +393,16 @@ class PageElementWriter {
 				return false;
 			}
 
-			let currentColumnWidth = ctx.availableWidth || ctx.lastColumnWidth || 0;
-			let nextColumnWidth = snakingSnapshot.columnWidths
+			const currentColumnWidth = ctx.availableWidth || ctx.lastColumnWidth || 0;
+			const nextColumnWidth = snakingSnapshot.columnWidths
 				? snakingSnapshot.columnWidths[overflowCount + 1]
 				: currentColumnWidth;
-			let nextX = ctx.x + currentColumnWidth + (snakingSnapshot.gap || 0);
-			let page = ctx.getCurrentPage();
-			let pageWidth = page.pageSize.width;
-			let rightMargin = page.pageMargins ? page.pageMargins.right : 0;
-			let parentRightMargin = ctx.marginXTopParent ? ctx.marginXTopParent[1] : 0;
-			let rightBoundary = pageWidth - rightMargin - parentRightMargin;
+			const nextX = ctx.x + currentColumnWidth + (snakingSnapshot.gap || 0);
+			const page = ctx.getCurrentPage();
+			const pageWidth = page.pageSize.width;
+			const rightMargin = page.pageMargins ? page.pageMargins.right : 0;
+			const parentRightMargin = ctx.marginXTopParent ? ctx.marginXTopParent[1] : 0;
+			const rightBoundary = pageWidth - rightMargin - parentRightMargin;
 
 			return nextX + nextColumnWidth <= rightBoundary + 1;
 		}
@@ -418,8 +418,8 @@ class PageElementWriter {
 			}
 
 			if (!position) {
-				let ctx = this.context();
-				let snakingSnapshot = ctx.getSnakingSnapshot();
+				const ctx = this.context();
+				const snakingSnapshot = ctx.getSnakingSnapshot();
 
 				if (snakingSnapshot) {
 					if (ctx.isInNestedNonSnakingGroup()) {
@@ -433,7 +433,7 @@ class PageElementWriter {
 						// Save lastColumnWidth before reset — if we're inside a nested
 						// column group (e.g. product/price row), the reset would overwrite
 						// it with the snaking column width, corrupting inner column layout.
-						let savedLastColumnWidth = ctx.lastColumnWidth;
+						const savedLastColumnWidth = ctx.lastColumnWidth;
 						ctx.resetSnakingColumnsForNewPage();
 						ctx.lastColumnWidth = savedLastColumnWidth;
 					}
@@ -441,8 +441,8 @@ class PageElementWriter {
 					position = addFct(false);
 				} else {
 					while (ctx.snapshots.length > 0 && ctx.snapshots[ctx.snapshots.length - 1].overflowed) {
-						let popped = ctx.snapshots.pop();
-						let prevSnapshot = ctx.snapshots[ctx.snapshots.length - 1];
+						const popped = ctx.snapshots.pop();
+						const prevSnapshot = ctx.snapshots[ctx.snapshots.length - 1];
 						if (prevSnapshot) {
 							ctx.x = prevSnapshot.x;
 							ctx.y = prevSnapshot.y;

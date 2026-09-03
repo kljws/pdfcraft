@@ -83,7 +83,7 @@ class PdfPrinter {
 			docDefinition.footer = convertToDynamicContent(docDefinition.footer);
 		}
 
-		let pageSize = normalizePageSize(docDefinition.pageSize, docDefinition.pageOrientation);
+		const pageSize = normalizePageSize(docDefinition.pageSize, docDefinition.pageOrientation);
 
 		const pdfOptions: PdfKitCreationOptions = {
 			size: [pageSize.width, pageSize.height],
@@ -146,7 +146,7 @@ class PdfPrinter {
 						)
 				: undefined,
 		);
-		let maxNumberPages = docDefinition.maxPagesNumber ?? -1;
+		const maxNumberPages = docDefinition.maxPagesNumber ?? -1;
 		if (isNumber(maxNumberPages) && maxNumberPages > -1) {
 			pages = pages.slice(0, maxNumberPages);
 		}

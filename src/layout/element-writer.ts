@@ -103,10 +103,10 @@ class ElementWriter {
 		index?: number,
 		allowOverflow = false,
 	): CurrentPosition | false {
-		let height = line.getHeight();
-		let context = this.context();
-		let page = context.getCurrentPage();
-		let position = this.getCurrentPositionOnPage();
+		const height = line.getHeight();
+		const context = this.context();
+		const page = context.getCurrentPage();
+		const position = this.getCurrentPositionOnPage();
 
 		if (!page || (!allowOverflow && context.availableHeight < height)) {
 			return false;
@@ -135,8 +135,8 @@ class ElementWriter {
 	}
 
 	alignLine(line: LineLike): void {
-		let width = this.context().availableWidth;
-		let lineWidth = line.getWidth();
+		const width = this.context().availableWidth;
+		const lineWidth = line.getWidth();
 
 		const alignment = line.inlines.length > 0 ? line.inlines[0].alignment : undefined;
 
@@ -151,7 +151,7 @@ class ElementWriter {
 			!line.lastLineInParagraph &&
 			line.inlines.length > 1
 		) {
-			let additionalSpacing = (width - lineWidth) / (line.inlines.length - 1);
+			const additionalSpacing = (width - lineWidth) / (line.inlines.length - 1);
 
 			for (let i = 1, l = line.inlines.length; i < l; i++) {
 				offset = i * additionalSpacing;
@@ -169,12 +169,12 @@ class ElementWriter {
 		index?: number,
 		forcePage?: number,
 	): CurrentPosition | undefined {
-		let context = this.context();
+		const context = this.context();
 		let page = context.getCurrentPage();
 		if (isNumber(forcePage)) {
 			page = context.pages[forcePage];
 		}
-		let position = this.getCurrentPositionOnPage();
+		const position = this.getCurrentPositionOnPage();
 
 		if (page) {
 			offsetVector(vector, ignoreContextX ? 0 : context.x, ignoreContextY ? 0 : context.y);
@@ -189,8 +189,8 @@ class ElementWriter {
 	}
 
 	beginClip(width: number, height: number): boolean {
-		let ctx = this.context();
-		let page = ctx.getCurrentPage();
+		const ctx = this.context();
+		const page = ctx.getCurrentPage();
 		page.items.push({
 			type: "beginClip",
 			item: { x: ctx.x, y: ctx.y, width: width, height: height },
@@ -199,8 +199,8 @@ class ElementWriter {
 	}
 
 	endClip(): boolean {
-		let ctx = this.context();
-		let page = ctx.getCurrentPage();
+		const ctx = this.context();
+		const page = ctx.getCurrentPage();
 		page.items.push({
 			type: "endClip",
 		});
@@ -208,7 +208,7 @@ class ElementWriter {
 	}
 
 	beginVerticalAlignment(verticalAlignment?: string): PageItem {
-		let page = this.context().getCurrentPage();
+		const page = this.context().getCurrentPage();
 		const item: PageItem = {
 			type: "beginVerticalAlignment",
 			item: { verticalAlignment: verticalAlignment },
@@ -218,7 +218,7 @@ class ElementWriter {
 	}
 
 	endVerticalAlignment(verticalAlignment?: string): PageItem {
-		let page = this.context().getCurrentPage();
+		const page = this.context().getCurrentPage();
 		const item: PageItem = {
 			type: "endVerticalAlignment",
 			item: { verticalAlignment: verticalAlignment },
@@ -238,8 +238,8 @@ class ElementWriter {
 		useBlockYOffset?: boolean,
 		dontUpdateContextPosition?: boolean,
 	): boolean {
-		let ctx = this.context();
-		let page = ctx.getCurrentPage();
+		const ctx = this.context();
+		const page = ctx.getCurrentPage();
 
 		if (!useBlockXOffset && block.height > ctx.availableHeight) {
 			return false;
@@ -343,7 +343,7 @@ class ElementWriter {
 		}
 
 		if (typeof contextOrWidth === "number") {
-			let width = contextOrWidth;
+			const width = contextOrWidth;
 			if (height === undefined) {
 				throw new Error("A context height is required when creating a context from a width");
 			}

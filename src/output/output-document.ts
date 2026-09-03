@@ -1,7 +1,6 @@
 export interface PdfDocumentStream {
 	end(): void;
 	setOpenActionAsPrint(): void;
-	read(size?: number): Uint8Array | null;
 	on(event: string, listener: (...args: unknown[]) => void): this;
 }
 
@@ -29,11 +28,13 @@ class OutputDocument {
 		return new Promise<Uint8Array>((resolve, reject) => {
 			const chunks: Uint8Array[] = [];
 
-			stream.on("readable", () => {
-				let chunk: Uint8Array | null;
-				while ((chunk = stream.read()) !== null) {
-					chunks.push(chunk);
+			stream.on("data", (...args: unknown[]) => {
+				const chunk = args[0];
+				if (!(chunk instanceof Uint8Array)) {
+					reject(new TypeError("PDF stream emitted a non-binary chunk"));
+					return;
 				}
+				chunks.push(chunk);
 			});
 			stream.on("error", reject);
 			stream.on("end", () => {

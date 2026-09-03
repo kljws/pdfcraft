@@ -38,7 +38,8 @@ export interface ResolvedTableLayout {
 		| null
 		| ((rowIndex: number, node: LayoutPdfNode, columnIndex: number) => Color | null | undefined);
 	fillOpacity?:
-		number | ((rowIndex: number, node: LayoutPdfNode, columnIndex: number) => number | undefined);
+		| number
+		| ((rowIndex: number, node: LayoutPdfNode, columnIndex: number) => number | undefined);
 }
 
 export interface TableProcessorState {

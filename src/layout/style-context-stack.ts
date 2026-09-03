@@ -42,7 +42,7 @@ class StyleContextStack {
 	 * @returns current stack snapshot
 	 */
 	clone(): StyleContextStack {
-		let stack = new StyleContextStack(this.styleDictionary, this.defaultStyle);
+		const stack = new StyleContextStack(this.styleDictionary, this.defaultStyle);
 
 		this.styleOverrides.forEach((item) => {
 			stack.styleOverrides.push(item);
@@ -125,8 +125,8 @@ class StyleContextStack {
 	 * @returns value returned by callback
 	 */
 	auto<T, Node extends StyleNode>(item: Node, callback: () => T): T {
-		let pushedItems = this.autopush(item);
-		let result = callback();
+		const pushedItems = this.autopush(item);
+		const result = callback();
 
 		if (pushedItems > 0) {
 			this.pop(pushedItems);
@@ -144,11 +144,11 @@ class StyleContextStack {
 	getProperty(property: string): unknown {
 		if (this.styleOverrides) {
 			for (let i = this.styleOverrides.length - 1; i >= 0; i--) {
-				let item = this.styleOverrides[i];
+				const item = this.styleOverrides[i];
 
 				if (isString(item)) {
 					// named-style-override
-					let value = this.getStylePropertyFromStyle(item, property, new Set());
+					const value = this.getStylePropertyFromStyle(item, property, new Set());
 					if (isValue(value)) {
 						return value;
 					}
@@ -230,7 +230,7 @@ class StyleContextStack {
 		destination: T = {} as T,
 	): T {
 		const values = (source ?? {}) as Record<string, unknown>;
-		for (let key in values) {
+		for (const key in values) {
 			if (key !== "text" && Object.hasOwn(values, key)) {
 				(destination as Record<string, unknown>)[key] = values[key];
 			}

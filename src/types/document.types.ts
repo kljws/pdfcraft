@@ -24,7 +24,13 @@ export type Nullable<T> = T | null;
 export type MaybePromise<T> = T | Promise<T>;
 
 export type NodeText<Node = PdfNode> =
-	string | number | boolean | Node | NodeText<Node>[] | null | undefined;
+	| string
+	| number
+	| boolean
+	| Node
+	| NodeText<Node>[]
+	| null
+	| undefined;
 
 export interface SerializedBuffer {
 	type: "Buffer";

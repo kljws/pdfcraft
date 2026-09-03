@@ -96,12 +96,12 @@ class TextInlines {
 			trailingCut: number;
 		} | null = null;
 
-		let flattenedTextArray = flattenTextArray(textArray);
+		const flattenedTextArray = flattenTextArray(textArray);
 
 		const textBreaker = new TextBreaker();
-		let brokenText = textBreaker.getBreaks(flattenedTextArray, styleContextStack);
+		const brokenText = textBreaker.getBreaks(flattenedTextArray, styleContextStack);
 
-		let measuredText = this.measure(brokenText, styleContextStack);
+		const measuredText = this.measure(brokenText, styleContextStack);
 
 		measuredText.forEach((inline) => {
 			minWidth = Math.max(minWidth, getTrimmedWidth(inline));
@@ -133,7 +133,7 @@ class TextInlines {
 
 	measure(array: BrokenInline[], styleContextStack: StyleContextStack): Inline[] {
 		if (array.length) {
-			let leadingIndent = StyleContextStack.getStyleProperty(
+			const leadingIndent = StyleContextStack.getStyleProperty(
 				array[0],
 				styleContextStack,
 				"leadingIndent",
@@ -216,12 +216,12 @@ class TextInlines {
 					inline.leadingCut = 0;
 				}
 
-				let preserveLeadingSpaces = styleContextStack.getPropertyOrDefault(
+				const preserveLeadingSpaces = styleContextStack.getPropertyOrDefault(
 					"preserveLeadingSpaces",
 					false,
 				);
 				if (!preserveLeadingSpaces) {
-					let leadingSpaces = !isMediaInline ? inline.text.match(LEADING) : null;
+					const leadingSpaces = !isMediaInline ? inline.text.match(LEADING) : null;
 					if (leadingSpaces) {
 						inline.leadingCut += this.widthOfText(leadingSpaces[0], inline);
 					}
@@ -229,12 +229,12 @@ class TextInlines {
 
 				inline.trailingCut = 0;
 
-				let preserveTrailingSpaces = styleContextStack.getPropertyOrDefault(
+				const preserveTrailingSpaces = styleContextStack.getPropertyOrDefault(
 					"preserveTrailingSpaces",
 					false,
 				);
 				if (!preserveTrailingSpaces) {
-					let trailingSpaces = !isMediaInline ? inline.text.match(TRAILING) : null;
+					const trailingSpaces = !isMediaInline ? inline.text.match(TRAILING) : null;
 					if (trailingSpaces) {
 						inline.trailingCut = this.widthOfText(trailingSpaces[0], inline);
 					}
@@ -326,8 +326,8 @@ class TextInlines {
 		angle: number,
 		styleContextStack: StyleContextStack,
 	): { width: number; height: number } {
-		let angleRad = (angle * Math.PI) / -180;
-		let size = this.sizeOfText(text, styleContextStack);
+		const angleRad = (angle * Math.PI) / -180;
+		const size = this.sizeOfText(text, styleContextStack);
 		return {
 			width: Math.abs(size.height * Math.sin(angleRad)) + Math.abs(size.width * Math.cos(angleRad)),
 			height:

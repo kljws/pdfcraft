@@ -63,7 +63,7 @@ class PdfCraftBase<Output = unknown> {
 			);
 		}
 
-		let urlResolver = new URLResolver(this.virtualfs);
+		const urlResolver = new URLResolver(this.virtualfs);
 		urlResolver.setUrlAccessPolicy(this.urlAccessPolicy);
 
 		const fonts = Object.fromEntries(
@@ -81,7 +81,7 @@ class PdfCraftBase<Output = unknown> {
 				),
 			]),
 		) as FontDescriptors;
-		let printer = new Printer(fonts, this.virtualfs, urlResolver, this.localAccessPolicy);
+		const printer = new Printer(fonts, this.virtualfs, urlResolver, this.localAccessPolicy);
 		const pdfDocumentPromise = printer.createPdfKitDocument(
 			cloneDocumentDefinition(docDefinition),
 			createOptions,

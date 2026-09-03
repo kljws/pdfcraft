@@ -32,7 +32,7 @@ const splitWords = (input: unknown, noWrap: boolean, breakAll: boolean = false):
 		return words;
 	}
 
-	let breaker = new LineBreaker(text);
+	const breaker = new LineBreaker(text);
 	let last = 0;
 	let bk;
 
@@ -61,7 +61,7 @@ const getFirstWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 
 	if (noWrap) {
 		// text was not wrapped, we need only first word
-		let tmpWords = splitWords(word.text, false);
+		const tmpWords = splitWords(word.text, false);
 		if (tmpWords[0] === undefined) {
 			return null;
 		}
@@ -83,7 +83,7 @@ const getLastWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 
 	if (noWrap) {
 		// text was not wrapped, we need only last word
-		let tmpWords = splitWords(word.text, false);
+		const tmpWords = splitWords(word.text, false);
 		if (tmpWords[tmpWords.length - 1] === undefined) {
 			return null;
 		}
@@ -103,7 +103,7 @@ class TextBreaker {
 
 		let lastWord: string | null = null;
 		for (let i = 0, l = texts.length; i < l; i++) {
-			let item = texts[i];
+			const item = texts[i];
 			const styleItem = isObject(item) ? (item as PdfNode) : {};
 			if (styleItem.image) {
 				results.push({ ...styleItem, text: "" });
@@ -117,10 +117,10 @@ class TextBreaker {
 			}
 			let style: Record<string, unknown> | null = null;
 			let words: BrokenWord[];
-			let breakAll =
+			const breakAll =
 				StyleContextStack.getStyleProperty(styleItem, styleContextStack, "wordBreak", "normal") ===
 				"break-all";
-			let noWrap = StyleContextStack.getStyleProperty(
+			const noWrap = StyleContextStack.getStyleProperty(
 				styleItem,
 				styleContextStack,
 				"noWrap",

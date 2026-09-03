@@ -124,8 +124,8 @@ class LayoutBuilderRows {
 		// heights correctly. Content processing is skipped for columns > 0 via
 		// skipForSnaking below, but the column structure must still be established.
 		for (let i = 0, l = cells.length; i < l; i++) {
-			let cell = cells[i];
-			let cellIndexBegin = i;
+			const cell = cells[i];
+			const cellIndexBegin = i;
 
 			// Page change handler
 			const storePageBreakClosure = (data: TablePageBreak) => {
@@ -144,9 +144,9 @@ class LayoutBuilderRows {
 				throw new Error(`Internal layout error: missing measured width for table column ${i}`);
 			}
 			let width = resolvedWidth._calcWidth ?? resolvedWidth._minWidth;
-			let leftOffset = columnLeftOffset(i, gaps);
+			const leftOffset = columnLeftOffset(i, gaps);
 			// Check if exists and retrieve the cell that started the rowspan in case we are in the cell just after
-			let startingSpanCell = findStartingRowSpanCell(cells, i);
+			const startingSpanCell = findStartingRowSpanCell(cells, i);
 
 			if (cell.colSpan && cell.colSpan > 1) {
 				for (let j = 1; j < cell.colSpan; j++) {
@@ -278,9 +278,9 @@ class LayoutBuilderRows {
 			updatePageBreaksData(pageBreaks, tableNode, rowIndex);
 		}
 
-		let rowHeight = this.writer.context().height;
+		const rowHeight = this.writer.context().height;
 		for (let i = 0, l = cells.length; i < l; i++) {
-			let cell = cells[i];
+			const cell = cells[i];
 			if (!cell._span && cell.verticalAlignment) {
 				const alignmentEntry = this.verticalAlignmentItemStack[verticalAlignmentCells[i]];
 				if (!alignmentEntry) {
@@ -288,7 +288,7 @@ class LayoutBuilderRows {
 						`Internal layout error: missing vertical-alignment controls for table cell ${i}`,
 					);
 				}
-				let itemBegin = alignmentEntry.begin.item;
+				const itemBegin = alignmentEntry.begin.item;
 				itemBegin.viewHeight = rowHeight;
 				itemBegin.nodeHeight = cell.__height;
 				itemBegin.cell = cell;
@@ -312,7 +312,7 @@ class LayoutBuilderRows {
 							throw new Error("Internal layout error: missing row-span ending cell");
 						}
 						if (dontBreakRows) {
-							let rowTopPageY =
+							const rowTopPageY =
 								(endingCell._startingRowSpanY ?? 0) + (endingCell._rowTopPageYPadding ?? 0);
 							return (endingCell._rowTopPageY ?? 0) - rowTopPageY + (endingCell._bottomY ?? 0);
 						} else {
@@ -330,7 +330,7 @@ class LayoutBuilderRows {
 					return this.nodeHeight ?? 0;
 				};
 
-				let itemEnd = alignmentEntry.end.item;
+				const itemEnd = alignmentEntry.end.item;
 				itemEnd.isCellContentMultiPage = itemBegin.isCellContentMultiPage;
 			}
 		}

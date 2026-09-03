@@ -224,7 +224,7 @@ class Renderer {
 		const height = "_height" in node && node._height !== undefined ? node._height : node.height;
 		const resolvedWidth = typeof width === "number" ? width : 25;
 		const resolvedHeight = typeof height === "number" ? height : 15;
-		const options = { ...(form.options ?? {}) };
+		const options = { ...form.options };
 		const formStrings: string[] = [];
 		for (const key of ["value", "defaultValue", "label", "select", "Opt"] as const) {
 			collectFormStrings(options[key], formStrings);

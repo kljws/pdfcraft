@@ -7,7 +7,7 @@ import type pdfcraftEntry from "pdfcraft/browser";
 type StreamListener = (...args: unknown[]) => void;
 
 class FakePdfStream {
-	#chunk: Uint8Array | null = new Uint8Array([1, 2, 3]);
+	#chunk = new Uint8Array([1, 2, 3]);
 	#listeners = new Map<string, StreamListener[]>();
 
 	on(event: string, listener: StreamListener): this {
@@ -23,15 +23,9 @@ class FakePdfStream {
 		}
 	}
 
-	read(): Uint8Array | null {
-		const chunk = this.#chunk;
-		this.#chunk = null;
-		return chunk;
-	}
-
 	end(): void {
 		queueMicrotask(() => {
-			this.#emit("readable");
+			this.#emit("data", this.#chunk);
 			this.#emit("end");
 		});
 	}
@@ -87,6 +81,20 @@ describe("browser package entry", function () {
 		});
 
 		const blob = await instance.createPdf({ content: ["Browser PDF"] }).getBlob();
+
+		assert.equal(blob.type, "application/pdf");
+		assert.isAbove(blob.size, 0);
+	});
+
+	it("generates a PDF with a standard font from the standalone PDFKit build", async function () {
+		const { default: pdfcraft } = await import("pdfcraft/browser");
+		const instance = pdfcraft.createPdfCraft({
+			fonts: { Helvetica: { normal: "Helvetica" } },
+		});
+
+		const blob = await instance
+			.createPdf({ content: [{ text: "Standard font", font: "Helvetica" }] })
+			.getBlob();
 
 		assert.equal(blob.type, "application/pdf");
 		assert.isAbove(blob.size, 0);

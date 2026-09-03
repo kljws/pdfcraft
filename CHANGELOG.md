@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Collected PDF output from flowing `data` events, restoring browser generation with PDFKit 0.20's minimal readable-stream implementation.
 - Resolved PDFKit's standalone browser bundle through its exported package entry, avoiding `ERR_PACKAGE_PATH_NOT_EXPORTED` with PDFKit 0.20.
 - Corrected the quote sample group-layout example to use the public `group.rowCount` callback context instead of reading a nonexistent `group.rows` collection.
 - Kept compact quote sample headers and monetary values on one line, preventing `Qté` from hard-wrapping and euro symbols from moving below their amounts in narrow automatic columns.

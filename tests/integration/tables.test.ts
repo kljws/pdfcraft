@@ -556,12 +556,10 @@ describe("Integration test: tables", function () {
 					body: {
 						groups: [
 							{
-								rows: [
-									...Array.from({ length: 24 }, (_, index) => [
-										{ text: `Row ${index + 1}`, fillColor: "#dcfce7" },
-										"Value",
-									]),
-								],
+								rows: Array.from({ length: 24 }, (_, index) => [
+									{ text: `Row ${index + 1}`, fillColor: "#dcfce7" },
+									"Value",
+								]),
 							},
 						],
 					},
@@ -599,7 +597,7 @@ describe("Integration test: tables", function () {
 					body: {
 						groups: [
 							{
-								rows: [...Array.from({ length: 30 }, (_, index) => [`Row ${index + 1}`, "Value"])],
+								rows: Array.from({ length: 30 }, (_, index) => [`Row ${index + 1}`, "Value"]),
 								dontBreakRows: true,
 							},
 						],
@@ -871,7 +869,7 @@ describe("Integration test: tables", function () {
 					header: { rows: [["Header"]] },
 					widths: [80],
 					body: {
-						groups: [{ rows: [...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])] }],
+						groups: [{ rows: Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`]) }],
 					},
 				},
 			},

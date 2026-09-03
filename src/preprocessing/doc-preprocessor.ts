@@ -631,7 +631,7 @@ class DocPreprocessor {
 		for (col = 0, cols = columnCount; col < cols; col++) {
 			for (row = 0, rows = body.length; row < rows; row++) {
 				const rowData = body[row];
-				let data = rowData[col];
+				const data = rowData[col];
 				if (data !== undefined) {
 					if (!isObject(data) || !data._span) {
 						rowData[col] = this.preprocessNode(
@@ -657,7 +657,7 @@ class DocPreprocessor {
 					node.tocItem[i] = "_default_";
 				}
 
-				let tocItemId = node.tocItem[i];
+				const tocItemId = node.tocItem[i];
 
 				if (!this.tocs[tocItemId]) {
 					this.tocs[tocItemId] = { toc: { _items: [], _pseudo: true } };
@@ -669,7 +669,7 @@ class DocPreprocessor {
 					node.id = `toc-${tocItemId}-${toc._items.length}`;
 				}
 
-				let tocItemRef = {
+				const tocItemRef = {
 					_nodeRef: this._getNodeForNodeRef(node),
 					_textNodeRef: node,
 				};

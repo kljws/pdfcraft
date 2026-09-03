@@ -268,7 +268,7 @@ class LayoutBuilder {
 
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed: boolean = false): void {
 		const applyMargins = (callback: () => void): void => {
-			let margin = node._margin;
+			const margin = node._margin;
 
 			if (node.pageBreak === "before") {
 				this.writer.moveToNextPage(node.pageOrientation);
@@ -325,25 +325,25 @@ class LayoutBuilder {
 		}
 
 		applyMargins(() => {
-			let verticalAlignment = node.verticalAlignment;
+			const verticalAlignment = node.verticalAlignment;
 			let verticalAlignmentBegin: ReturnType<PageElementWriter["beginVerticalAlignment"]> | null =
 				null;
 			if (isVerticalAlignmentAllowed && verticalAlignment) {
 				verticalAlignmentBegin = this.writer.beginVerticalAlignment(verticalAlignment);
 			}
 
-			let unbreakable = node.unbreakable;
+			const unbreakable = node.unbreakable;
 			if (unbreakable) {
 				this.writer.beginUnbreakableBlock();
 			}
 
-			let absPosition = node.absolutePosition;
+			const absPosition = node.absolutePosition;
 			if (absPosition) {
 				this.writer.context().beginDetachedBlock();
 				this.writer.context().moveTo(absPosition.x || 0, absPosition.y || 0);
 			}
 
-			let relPosition = node.relativePosition;
+			const relPosition = node.relativePosition;
 			if (relPosition) {
 				this.writer.context().beginDetachedBlock();
 				this.writer.context().moveToRelative(relPosition.x || 0, relPosition.y || 0);
@@ -415,8 +415,8 @@ class LayoutBuilder {
 	 * @param pageOrientation - Optional page orientation for the new page
 	 */
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void {
-		let ctx = this.writer.context();
-		let snakingSnapshot = ctx.getSnakingSnapshot();
+		const ctx = this.writer.context();
+		const snakingSnapshot = ctx.getSnakingSnapshot();
 		if (!snakingSnapshot) {
 			return;
 		}
@@ -434,7 +434,7 @@ class LayoutBuilder {
 		// Save lastColumnWidth before reset — if we're inside a nested
 		// column group (e.g. product/price row), the reset would overwrite
 		// it with the snaking column width, corrupting inner column layout.
-		let savedLastColumnWidth = ctx.lastColumnWidth;
+		const savedLastColumnWidth = ctx.lastColumnWidth;
 		ctx.resetSnakingColumnsForNewPage();
 		ctx.lastColumnWidth = savedLastColumnWidth;
 	}
@@ -459,7 +459,7 @@ class LayoutBuilder {
 	processSection(sectionNode: LayoutPdfNode): void {
 		const section = sectionNode as SectionNode;
 
-		let page = this.writer.context().getCurrentPage();
+		const page = this.writer.context().getCurrentPage();
 		if (!page || (page && page.items.length)) {
 			const resolved = resolveSectionPage(section, page, {
 				pageSize: this.pageSize,
@@ -484,14 +484,14 @@ class LayoutBuilder {
 		if (!columns) throw new Error("Internal layout error: expected preprocessed columns");
 		const columnCount = columns.length;
 		let availableWidth = this.writer.context().availableWidth;
-		let gaps = gapArray(columnNode._gap ?? 0);
+		const gaps = gapArray(columnNode._gap ?? 0);
 
 		if (gaps) {
 			availableWidth -= (gaps.length - 1) * (columnNode._gap ?? 0);
 		}
 
 		ColumnCalculator.buildColumnWidths(columns, availableWidth);
-		let result = this.processRow({
+		const result = this.processRow({
 			marginX: columnNode._margin ? [columnNode._margin[0], columnNode._margin[2]] : [0, 0],
 			cells: columns,
 			widths: columns,

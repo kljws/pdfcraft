@@ -9,7 +9,11 @@ import type {
 } from "./table-processor.types";
 
 export type TableVectorRole =
-	"horizontal" | "leftVertical" | "rightVertical" | "leftFill" | "rightFill";
+	| "horizontal"
+	| "leftVertical"
+	| "rightVertical"
+	| "leftFill"
+	| "rightFill";
 
 export const requireTable = (tableNode: LayoutPdfNode): PdfTable<LayoutPdfNode> => {
 	const table = tableNode.table;

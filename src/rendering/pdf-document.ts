@@ -89,9 +89,9 @@ class PDFDocument extends PDFKit {
 
 		this.fonts = {};
 		this.fontCache = {};
-		for (let font in fonts) {
+		for (const font in fonts) {
 			if (fonts.hasOwnProperty(font)) {
-				let fontDef = fonts[font];
+				const fontDef = fonts[font];
 
 				this.fonts[font] = {
 					normal: fontDef.normal,
@@ -103,7 +103,7 @@ class PDFDocument extends PDFKit {
 		}
 
 		this.patterns = {};
-		for (let pattern in patterns) {
+		for (const pattern in patterns) {
 			if (patterns.hasOwnProperty(pattern)) {
 				const patternDef = patterns[pattern] as PatternDefinition;
 				const createPattern = this.pattern.bind(this) as (
@@ -135,7 +135,7 @@ class PDFDocument extends PDFKit {
 	}
 
 	getFontFile(familyName: string, bold: boolean, italics: boolean): FontSource | null {
-		let type = this.getFontType(bold, italics);
+		const type = this.getFontType(bold, italics);
 		if (!this.fonts[familyName] || !this.fonts[familyName][type]) {
 			return null;
 		}
@@ -144,7 +144,7 @@ class PDFDocument extends PDFKit {
 	}
 
 	provideFont(familyName: string, bold: boolean, italics: boolean): EmbeddedFont {
-		let type = this.getFontType(bold, italics);
+		const type = this.getFontType(bold, italics);
 		if (this.getFontFile(familyName, bold, italics) === null) {
 			throw new Error(
 				`Font '${familyName}' in style '${type}' is not defined in the font section of the document definition.`,
@@ -215,7 +215,7 @@ class PDFDocument extends PDFKit {
 				return typeof file === "string" ? file : toArrayBuffer(file);
 			}
 
-			let index = image.indexOf("base64,");
+			const index = image.indexOf("base64,");
 			if (index < 0) {
 				return image;
 			}
@@ -229,7 +229,7 @@ class PDFDocument extends PDFKit {
 
 		let image: EmbeddedImage;
 
-		let imageSrc = realImageSrc(src);
+		const imageSrc = realImageSrc(src);
 
 		this.validateLocalFile(imageSrc);
 
@@ -311,7 +311,7 @@ class PDFDocument extends PDFKit {
 	}
 
 	setOpenActionAsPrint(): void {
-		let printActionRef = this.ref({
+		const printActionRef = this.ref({
 			Type: "Action",
 			S: "Named",
 			N: "Print",

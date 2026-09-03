@@ -8,7 +8,7 @@ const groupDecorations = (line: LineLike, pdfDocument: PDFDocument): DecorationG
 	const groups: DecorationGroup[] = [];
 	let currentGroup: DecorationGroup | null = null;
 	for (let i = 0, l = line.inlines.length; i < l; i++) {
-		let inline = line.inlines[i];
+		const inline = line.inlines[i];
 		let decoration = inline.decoration as Decoration | Decoration[] | undefined;
 		if (!decoration) {
 			currentGroup = null;
@@ -17,11 +17,11 @@ const groupDecorations = (line: LineLike, pdfDocument: PDFDocument): DecorationG
 		if (!Array.isArray(decoration)) {
 			decoration = [decoration];
 		}
-		let color = pdfDocument.resolveColor(inline.decorationColor ?? inline.color, "black");
-		let style = (inline.decorationStyle || "solid") as DecorationGroup["decorationStyle"];
-		let thickness = isNumber(inline.decorationThickness) ? inline.decorationThickness : null;
+		const color = pdfDocument.resolveColor(inline.decorationColor ?? inline.color, "black");
+		const style = (inline.decorationStyle || "solid") as DecorationGroup["decorationStyle"];
+		const thickness = isNumber(inline.decorationThickness) ? inline.decorationThickness : null;
 		for (let ii = 0, ll = decoration.length; ii < ll; ii++) {
-			let decorationItem = decoration[ii];
+			const decorationItem = decoration[ii];
 			if (
 				!currentGroup ||
 				decorationItem !== currentGroup.decoration ||
@@ -55,21 +55,21 @@ class TextDecorator {
 	}
 
 	drawBackground(line: LineLike, x: number, y: number): void {
-		let height = line.getHeight();
+		const height = line.getHeight();
 		for (let i = 0, l = line.inlines.length; i < l; i++) {
-			let inline = line.inlines[i];
+			const inline = line.inlines[i];
 
 			let color = this.pdfDocument.resolveColor(inline.background, undefined);
 			if (!color) {
 				continue;
 			}
 
-			let patternColor = this.pdfDocument.providePattern(inline.background);
+			const patternColor = this.pdfDocument.providePattern(inline.background);
 			if (patternColor !== null) {
 				color = patternColor;
 			}
 
-			let justifyShift = inline.justifyShift || 0;
+			const justifyShift = inline.justifyShift || 0;
 			this.pdfDocument
 				.fillColor(color)
 				.rect(x + inline.x - justifyShift, y, inline.width + justifyShift, height)
@@ -78,7 +78,7 @@ class TextDecorator {
 	}
 
 	drawDecorations(line: LineLike, x: number, y: number): void {
-		let groups = groupDecorations(line, this.pdfDocument);
+		const groups = groupDecorations(line, this.pdfDocument);
 		for (let i = 0, l = groups.length; i < l; i++) {
 			this._drawDecoration(groups[i], x, y);
 		}
@@ -94,21 +94,21 @@ class TextDecorator {
 		const width = () => {
 			let sum = 0;
 			for (let i = 0, l = group.inlines.length; i < l; i++) {
-				let justifyShift = group.inlines[i].justifyShift || 0;
+				const justifyShift = group.inlines[i].justifyShift || 0;
 				sum += group.inlines[i].width + justifyShift;
 			}
 			return sum;
 		};
 
-		let firstInline = group.inlines[0];
-		let biggerInline = maxInline();
-		let totalWidth = width();
-		let lineAscent = group.line.getAscenderHeight();
-		let ascent = (biggerInline.font.ascender / 1000) * biggerInline.fontSize;
-		let height = biggerInline.height;
-		let descent = height - ascent;
+		const firstInline = group.inlines[0];
+		const biggerInline = maxInline();
+		const totalWidth = width();
+		const lineAscent = group.line.getAscenderHeight();
+		const ascent = (biggerInline.font.ascender / 1000) * biggerInline.fontSize;
+		const height = biggerInline.height;
+		const descent = height - ascent;
 
-		let lw = isNumber(group.decorationThickness)
+		const lw = isNumber(group.decorationThickness)
 			? group.decorationThickness
 			: 0.5 + Math.floor(Math.max(biggerInline.fontSize - 8, 0) / 2) * 0.12;
 
@@ -136,7 +136,7 @@ class TextDecorator {
 		this.pdfDocument.save();
 
 		if (group.decorationStyle === "double") {
-			let gap = Math.max(0.5, lw, biggerInline.fontSize * 0.15);
+			const gap = Math.max(0.5, lw, biggerInline.fontSize * 0.15);
 			this.pdfDocument
 				.fillColor(group.decorationColor)
 				.rect(x + firstInline.x, y - lw / 2, totalWidth, lw / 2)
@@ -144,7 +144,7 @@ class TextDecorator {
 				.rect(x + firstInline.x, y + gap - lw / 2, totalWidth, lw / 2)
 				.fill();
 		} else if (group.decorationStyle === "dashed") {
-			let nbDashes = Math.ceil(totalWidth / (3.96 + 2.84));
+			const nbDashes = Math.ceil(totalWidth / (3.96 + 2.84));
 			let rdx = x + firstInline.x;
 			this.pdfDocument.rect(rdx, y, totalWidth, lw).clip();
 			this.pdfDocument.fillColor(group.decorationColor);
@@ -153,7 +153,7 @@ class TextDecorator {
 				rdx += 3.96 + 2.84;
 			}
 		} else if (group.decorationStyle === "dotted") {
-			let nbDots = Math.ceil(totalWidth / (lw * 3));
+			const nbDots = Math.ceil(totalWidth / (lw * 3));
 			let rx = x + firstInline.x;
 			this.pdfDocument.rect(rx, y, totalWidth, lw).clip();
 			this.pdfDocument.fillColor(group.decorationColor);
@@ -162,9 +162,9 @@ class TextDecorator {
 				rx += lw * 3;
 			}
 		} else if (group.decorationStyle === "wavy") {
-			let sh = 0.7,
+			const sh = 0.7,
 				sv = 1;
-			let nbWaves = Math.ceil(totalWidth / (sh * 2)) + 1;
+			const nbWaves = Math.ceil(totalWidth / (sh * 2)) + 1;
 			let rwx = x + firstInline.x - 1;
 			this.pdfDocument.rect(x + firstInline.x, y - sv, totalWidth, sv * 2).clip();
 			this.pdfDocument.lineWidth(lw / 3);

@@ -135,8 +135,8 @@ class RendererGraphics {
 				}
 
 				if (points.length > 1) {
-					let p1 = points[0];
-					let pn = points[points.length - 1];
+					const p1 = points[0];
+					const pn = points[points.length - 1];
 
 					if (vector.closePath || (p1.x === pn.x && p1.y === pn.y)) {
 						this.pdfDocument.closePath();
@@ -159,13 +159,13 @@ class RendererGraphics {
 			vector.color = gradient;
 		}
 
-		let patternColor = this.pdfDocument.providePattern(vector.color);
+		const patternColor = this.pdfDocument.providePattern(vector.color);
 		if (patternColor !== null) {
 			vector.color = patternColor;
 		}
 
-		let fillOpacity = isNumber(vector.fillOpacity) ? vector.fillOpacity : 1;
-		let strokeOpacity = isNumber(vector.strokeOpacity)
+		const fillOpacity = isNumber(vector.fillOpacity) ? vector.fillOpacity : 1;
+		const strokeOpacity = isNumber(vector.strokeOpacity)
 			? vector.strokeOpacity
 			: isNumber(vector.lineOpacity)
 				? vector.lineOpacity
@@ -196,7 +196,7 @@ class RendererGraphics {
 	}
 
 	renderImage(image: LayoutPdfNode): void {
-		let opacity = isNumber(image.opacity) ? image.opacity : 1;
+		const opacity = isNumber(image.opacity) ? image.opacity : 1;
 		const width = image.cover?.width ?? image._width!;
 		const height = image.cover?.height ?? image._height!;
 		const borderRadius =
@@ -315,15 +315,17 @@ class RendererGraphics {
 			height: svg._height,
 			assumePt: true,
 			useCSS: !isString(svg.svg),
-			...(svg.options ?? {}),
+			...svg.options,
 		};
 		options.fontCallback = (family: string, bold: boolean, italic: boolean) => {
-			let fontsFamily = family.split(",").map((fontName) => fontName.trim().replace(/('|")/g, ""));
-			let font = findFont(this.pdfDocument.fonts, fontsFamily, svg.font || "Roboto");
+			const fontsFamily = family
+				.split(",")
+				.map((fontName) => fontName.trim().replace(/('|")/g, ""));
+			const font = findFont(this.pdfDocument.fonts, fontsFamily, svg.font || "Roboto");
 
-			let fontFile = this.pdfDocument.getFontFile(font, bold, italic);
+			const fontFile = this.pdfDocument.getFontFile(font, bold, italic);
 			if (fontFile === null) {
-				let type = this.pdfDocument.getFontType(bold, italic);
+				const type = this.pdfDocument.getFontType(bold, italic);
 				throw new Error(
 					`Font '${font}' in style '${type}' is not defined in the font section of the document definition.`,
 				);
@@ -430,7 +432,7 @@ class RendererGraphics {
 	}
 
 	renderWatermark(page: RenderablePage): void {
-		let watermark = page.watermark;
+		const watermark = page.watermark;
 		if (!watermark) {
 			return;
 		}
@@ -444,8 +446,8 @@ class RendererGraphics {
 			origin: [this.pdfDocument.page.width / 2, this.pdfDocument.page.height / 2],
 		});
 
-		let x = this.pdfDocument.page.width / 2 - watermark._size.size.width / 2;
-		let y = this.pdfDocument.page.height / 2 - watermark._size.size.height / 2;
+		const x = this.pdfDocument.page.width / 2 - watermark._size.size.width / 2;
+		const y = this.pdfDocument.page.height / 2 - watermark._size.size.height / 2;
 
 		this.pdfDocument._font = watermark.font as EmbeddedFont;
 		this.pdfDocument.fontSize(watermark.fontSize);

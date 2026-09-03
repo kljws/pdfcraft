@@ -106,7 +106,7 @@ class DocMeasure {
 		});
 
 		function extendMargins(node: MeasuredPdfNode): MeasuredPdfNode {
-			let margin = node._margin;
+			const margin = node._margin;
 
 			if (margin) {
 				node._minWidth = (node._minWidth ?? 0) + margin[0] + margin[2];
@@ -142,7 +142,7 @@ class DocMeasure {
 
 		// Make sure style properties of the node itself are considered when building inlines.
 		// We could also just pass [node] to buildInlines, but that fails for bullet points.
-		let styleStack = this.styleStack.clone();
+		const styleStack = this.styleStack.clone();
 		styleStack.push(node);
 
 		const data = this.textInlines.buildInlines(
@@ -254,12 +254,12 @@ class DocMeasure {
 		let rows;
 
 		for (col = 0, cols = table.body[0].length; col < cols; col++) {
-			let c = table.widths[col];
+			const c = table.widths[col];
 			c._minWidth = 0;
 			c._maxWidth = 0;
 
 			for (row = 0, rows = table.body.length; row < rows; row++) {
-				let rowData = table.body[row];
+				const rowData = table.body[row];
 				let data = rowData[col];
 				if (data === undefined) {
 					throw new Error(
@@ -291,7 +291,7 @@ class DocMeasure {
 
 		extendWidthsForColumnSpans(node, colSpans);
 
-		let measures = ColumnCalculator.measureMinMax(table.widths);
+		const measures = ColumnCalculator.measureMinMax(table.widths);
 
 		node._minWidth = measures.min + node._offsets.total;
 		node._maxWidth = measures.max + node._offsets.total;
@@ -302,9 +302,11 @@ class DocMeasure {
 			return () => {
 				if (isObject(data)) {
 					data.border = _this.styleStack.getProperty("border") as
-						[boolean, boolean, boolean, boolean] | undefined;
+						| [boolean, boolean, boolean, boolean]
+						| undefined;
 					data.borderColor = _this.styleStack.getProperty("borderColor") as
-						[Color, Color, Color, Color] | undefined;
+						| [Color, Color, Color, Color]
+						| undefined;
 					data.fillColor = _this.styleStack.getProperty("fillColor") as Color | undefined;
 					const fillOpacity = _this.styleStack.getProperty("fillOpacity");
 					data.fillOpacity = typeof fillOpacity === "number" ? fillOpacity : undefined;

@@ -48,7 +48,7 @@ describe("Integration test: dynamic page margins", () => {
 				table: {
 					header: { rows: [["Header"]] },
 					body: {
-						groups: [{ rows: [...Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`])] }],
+						groups: [{ rows: Array.from({ length: 40 }, (_, index) => [`Row ${index + 1}`]) }],
 					},
 				},
 			},

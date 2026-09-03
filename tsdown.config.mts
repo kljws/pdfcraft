@@ -1,7 +1,8 @@
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "tsdown";
 
-const resolvePackage = (specifier: string) => fileURLToPath(import.meta.resolve(specifier));
+const pdfkitDirectory = dirname(fileURLToPath(import.meta.resolve("pdfkit")));
 
 export default defineConfig([
 	{
@@ -39,7 +40,7 @@ export default defineConfig([
 			onlyBundle: false,
 		},
 		alias: {
-			pdfkit: resolvePackage("pdfkit/js/pdfkit.standalone.js"),
+			pdfkit: resolve(pdfkitDirectory, "pdfkit.standalone.js"),
 		},
 	},
 ]);

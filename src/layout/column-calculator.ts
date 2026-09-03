@@ -70,7 +70,7 @@ function buildColumnWidths<Node extends object>(
 	// http://www.freesoft.org/CIE/RFC/1942/18.htm
 	// http://www.w3.org/TR/CSS2/tables.html#width-layout
 	// http://dev.w3.org/csswg/css3-tables-algorithms/Overview.src.htm
-	let minW = autoMin + starMaxMin * starColumns.length;
+	const minW = autoMin + starMaxMin * starColumns.length;
 	if (minW >= availableWidth) {
 		// Text layout can hard-wrap long tokens. Keep flexible columns inside the
 		// available page width when their measured word widths cannot all fit.
@@ -92,18 +92,18 @@ function buildColumnWidths<Node extends object>(
 			});
 		} else {
 			// Auto columns must interpolate, while reserving the minimum star widths.
-			let W = availableWidth - minW;
-			let D = autoMax - autoMin;
+			const W = availableWidth - minW;
+			const D = autoMax - autoMin;
 
 			autoColumns.forEach((col) => {
-				let d = col._maxWidth - col._minWidth;
+				const d = col._maxWidth - col._minWidth;
 				col._calcWidth = col._minWidth + (D > 0 ? (d * W) / D : 0);
 				availableWidth -= col._calcWidth;
 			});
 		}
 
 		if (starColumns.length > 0) {
-			let starSize = availableWidth / starColumns.length;
+			const starSize = availableWidth / starColumns.length;
 
 			starColumns.forEach((col) => {
 				col._calcWidth = starSize;
@@ -126,12 +126,12 @@ function isStarColumn(column: ColumnWidth): boolean {
 }
 
 function measureMinMax(columns: ColumnWidth[]): { min: number; max: number } {
-	let result = { min: 0, max: 0 };
-	let maxStar = { min: 0, max: 0 };
+	const result = { min: 0, max: 0 };
+	const maxStar = { min: 0, max: 0 };
 	let starCount = 0;
 
 	for (let i = 0, l = columns.length; i < l; i++) {
-		let c = columns[i];
+		const c = columns[i];
 
 		if (isStarColumn(c)) {
 			maxStar.min = Math.max(maxStar.min, c._minWidth);

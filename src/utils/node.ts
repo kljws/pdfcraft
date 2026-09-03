@@ -33,11 +33,11 @@ export function getNodeId(node: { id?: unknown; text?: unknown }): string | null
 	}
 
 	if (Array.isArray(node.text)) {
-		for (let n of node.text) {
+		for (const n of node.text) {
 			if (!n || typeof n !== "object") {
 				continue;
 			}
-			let nodeId = getNodeId(n);
+			const nodeId = getNodeId(n);
 			if (nodeId) {
 				return nodeId;
 			}
@@ -97,8 +97,8 @@ export function getNodeMargin(
 
 		let flattenedStyles: { margin?: PartialMargin } = {};
 		for (let index = 0; index < styleArray.length; index++) {
-			let styleName = styleArray[index];
-			let style = styleStack.styleDictionary[styleName];
+			const styleName = styleArray[index];
+			const style = styleStack.styleDictionary[styleName];
 
 			// style not found
 			if (style === undefined) {
@@ -150,8 +150,8 @@ export function getNodeMargin(
 	let margin: PartialMargin = [undefined, undefined, undefined, undefined];
 
 	if (node.style) {
-		let styleArray = Array.isArray(node.style) ? node.style : [node.style];
-		let flattenedStyleArray = flattenStyleArray(styleArray);
+		const styleArray = Array.isArray(node.style) ? node.style : [node.style];
+		const flattenedStyleArray = flattenStyleArray(styleArray);
 
 		if (flattenedStyleArray) {
 			margin = processSingleMargins(flattenedStyleArray, margin);

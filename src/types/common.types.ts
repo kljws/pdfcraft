@@ -17,7 +17,9 @@ export type ListType =
 export type Margin = number | [number, number] | [number, number, number, number];
 export type Color = string | [string, string];
 export type PdfSubset =
-	`PDF/A-1${"" | "a" | "b"}` | `PDF/A-2${"" | "a" | "b"}` | `PDF/A-3${"" | "a" | "b"}`;
+	| `PDF/A-1${"" | "a" | "b"}`
+	| `PDF/A-2${"" | "a" | "b"}`
+	| `PDF/A-3${"" | "a" | "b"}`;
 
 export interface PageSize {
 	width: number;

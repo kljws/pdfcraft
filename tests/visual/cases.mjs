@@ -361,18 +361,16 @@ const paginationBorders = {
 				body: {
 					groups: [
 						{
-							rows: [
-								...Array.from({ length: 45 }, (_, index) => [
-									`Pagination row ${index + 1}`,
-									`${(index + 1) * 10}.00`,
-									{
-										text: "no bottom/right border",
-										fontSize: 7,
-										color: colors.slate,
-										border: [false, false, false, false],
-									},
-								]),
-							],
+							rows: Array.from({ length: 45 }, (_, index) => [
+								`Pagination row ${index + 1}`,
+								`${(index + 1) * 10}.00`,
+								{
+									text: "no bottom/right border",
+									fontSize: 7,
+									color: colors.slate,
+									border: [false, false, false, false],
+								},
+							]),
 							dontBreakRows: true,
 						},
 					],

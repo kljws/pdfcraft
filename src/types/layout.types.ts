@@ -23,7 +23,10 @@ export interface PageMargins {
 }
 
 export type PageMarginDefinition =
-	number | [number, number] | [number, number, number, number] | PageMargins;
+	| number
+	| [number, number]
+	| [number, number, number, number]
+	| PageMargins;
 
 export type DynamicPageMargins = (
 	currentPage: number,

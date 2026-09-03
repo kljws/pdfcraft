@@ -146,15 +146,15 @@ export function drawHorizontalLine(
 	styleLineIndex = lineIndex,
 	borderSide: "both" | "top" | "bottom" = "both",
 ): void {
-	let lineWidth = processor.layout.hLineWidth(styleLineIndex, processor.tableNode);
+	const lineWidth = processor.layout.hLineWidth(styleLineIndex, processor.tableNode);
 	if (lineWidth) {
-		let style = processor.layout.hLineStyle(styleLineIndex, processor.tableNode);
+		const style = processor.layout.hLineStyle(styleLineIndex, processor.tableNode);
 		let dash;
 		if (style && style.dash) {
 			dash = style.dash;
 		}
 
-		let offset = lineWidth / 2;
+		const offset = lineWidth / 2;
 		let currentLine: { left: number; width: number } | null = null;
 		const body = requireTable(processor.tableNode).body;
 		const isTopRoundedEdge =
@@ -206,7 +206,7 @@ export function drawHorizontalLine(
 			cellAbove = undefined;
 			currentCell = undefined;
 			rowCellAbove = undefined;
-			let data = processor.rowSpanData[i];
+			const data = processor.rowSpanData[i];
 			let shouldDrawLine = !data.rowSpan;
 			let borderColor = null;
 
@@ -289,7 +289,7 @@ export function drawHorizontalLine(
 				}
 			}
 
-			let y = (overrideY || 0) + offset;
+			const y = (overrideY || 0) + offset;
 
 			if (shouldDrawLine) {
 				if (currentLine && currentLine.width) {
@@ -387,11 +387,11 @@ export function drawVerticalLine(
 	beforeVLineColIndex: number | null,
 	trim?: { top: number; bottom: number },
 ): void {
-	let width = processor.layout.vLineWidth(vLineColIndex, processor.tableNode);
+	const width = processor.layout.vLineWidth(vLineColIndex, processor.tableNode);
 	if (width === 0) {
 		return;
 	}
-	let style = processor.layout.vLineStyle(vLineColIndex, processor.tableNode);
+	const style = processor.layout.vLineStyle(vLineColIndex, processor.tableNode);
 	let dash;
 	if (style && style.dash) {
 		dash = style.dash;
@@ -425,7 +425,7 @@ export function drawVerticalLine(
 	}
 
 	if (borderColor == null && cellBefore && cellBefore._rowSpanCurrentOffset) {
-		let rowCellBeforeAbove = body[vLineRowIndex - cellBefore._rowSpanCurrentOffset][beforeIndex];
+		const rowCellBeforeAbove = body[vLineRowIndex - cellBefore._rowSpanCurrentOffset][beforeIndex];
 		if (rowCellBeforeAbove.borderColor) {
 			if (
 				rowCellBeforeAbove.border ? rowCellBeforeAbove.border[2] : processor.layout.defaultBorder
@@ -436,7 +436,7 @@ export function drawVerticalLine(
 	}
 
 	if (borderColor == null && currentCell && currentCell._rowSpanCurrentOffset) {
-		let rowCurrentCellAbove =
+		const rowCurrentCellAbove =
 			body[vLineRowIndex - currentCell._rowSpanCurrentOffset][vLineColIndex];
 		if (rowCurrentCellAbove.borderColor) {
 			if (

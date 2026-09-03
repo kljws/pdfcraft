@@ -18,7 +18,7 @@ class DocMeasureMedia {
 
 	measureImageWithDimensions(node: MeasuredPdfNode, dimensions: Dimensions): MeasuredPdfNode {
 		if (Array.isArray(node.fit)) {
-			let factor =
+			const factor =
 				dimensions.width / dimensions.height > node.fit[0] / node.fit[1]
 					? node.fit[0] / dimensions.width
 					: node.fit[1] / dimensions.height;
@@ -28,9 +28,9 @@ class DocMeasureMedia {
 			node._width = node._minWidth = node._maxWidth = node.cover.width;
 			node._height = node._minHeight = node._maxHeight = node.cover.height;
 		} else {
-			let nodeWidth = isNumber(node.width) ? node.width : undefined;
-			let nodeHeight = isNumber(node.height) ? node.height : undefined;
-			let ratio = dimensions.width / dimensions.height;
+			const nodeWidth = isNumber(node.width) ? node.width : undefined;
+			const nodeHeight = isNumber(node.height) ? node.height : undefined;
+			const ratio = dimensions.width / dimensions.height;
 
 			node._width =
 				node._minWidth =
@@ -104,7 +104,7 @@ class DocMeasureMedia {
 			throw new Error("Image node must reference a registered image resource");
 		}
 
-		let image = this.pdfDocument.provideImage(node.image);
+		const image = this.pdfDocument.provideImage(node.image);
 
 		let imageSize = { width: image.width, height: image.height };
 
@@ -121,7 +121,7 @@ class DocMeasureMedia {
 
 	measureSVG(node: MeasuredPdfNode): MeasuredPdfNode {
 		node.svg = this.resolveSVG(node.svg!);
-		let dimensions = this.svgMeasure.measureSVG(node.svg!);
+		const dimensions = this.svgMeasure.measureSVG(node.svg!);
 
 		if (!isNumber(dimensions.width) && !isNumber(dimensions.height)) {
 			throw new Error("SVG is missing defined width and height.");

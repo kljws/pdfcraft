@@ -132,7 +132,7 @@ class TableProcessor {
 				if (!cols) {
 					result.push({ x: this.rowSpanData[i].left, index: i });
 
-					let item = this.table.body[rowIndex][i];
+					const item = this.table.body[rowIndex][i];
 					cols = item._colSpan || item.colSpan || 0;
 				}
 				if (cols > 0) {
@@ -152,17 +152,17 @@ class TableProcessor {
 		writer.context().moveDown(this.layout.paddingBottom(rowIndex, this.tableNode));
 		writer.context().availableHeight += this.reservedAtBottom;
 
-		let endingPage = writer.context().page;
-		let endingY = writer.context().y;
-		let endingAvailableHeight = writer.context().availableHeight;
-		let endingX = writer.context().x;
-		let endingAvailableWidth = writer.context().availableWidth;
+		const endingPage = writer.context().page;
+		const endingY = writer.context().y;
+		const endingAvailableHeight = writer.context().availableHeight;
+		const endingX = writer.context().x;
+		const endingAvailableWidth = writer.context().availableWidth;
 
-		let xs = getLineXs();
+		const xs = getLineXs();
 
 		const ys: Array<{ y0: number; y1?: number; page: number }> = [];
 
-		let hasBreaks = pageBreaks && pageBreaks.length > 0;
+		const hasBreaks = pageBreaks && pageBreaks.length > 0;
 		ys.push({
 			y0: this.rowTopY,
 			page: hasBreaks ? pageBreaks[0].prevPage : endingPage,
@@ -170,7 +170,7 @@ class TableProcessor {
 
 		if (hasBreaks) {
 			for (let i = 0, l = pageBreaks.length; i < l; i++) {
-				let pageBreak = pageBreaks[i];
+				const pageBreak = pageBreaks[i];
 				ys[ys.length - 1].y1 = pageBreak.prevY;
 
 				ys.push({ y0: pageBreak.y, page: pageBreak.prevPage + 1 });
@@ -183,7 +183,7 @@ class TableProcessor {
 		if (firstSegmentEnd === undefined) {
 			throw new Error("Internal layout error: table row segment has no ending position");
 		}
-		let skipOrphanePadding = firstSegmentEnd - ys[0].y0 === this.rowPaddingTop;
+		const skipOrphanePadding = firstSegmentEnd - ys[0].y0 === this.rowPaddingTop;
 		if (skipOrphanePadding && pageBreaks.length > 0 && this.layout.hLineWhenBroken !== false) {
 			const firstBreak = pageBreaks[0];
 			this.drawHorizontalLine(
@@ -211,10 +211,10 @@ class TableProcessor {
 			this.drawHorizontalLine(0, writer, this._tableTopBorderY, false, pageTableStartedAt);
 		}
 		for (let yi = skipOrphanePadding ? 1 : 0, yl = ys.length; yi < yl; yi++) {
-			let willBreak = yi < ys.length - 1;
-			let rowBreakWithoutHeader = yi > 0 && !this.headerRows;
-			let hzLineOffset = rowBreakWithoutHeader ? 0 : this.topLineWidth;
-			let y1 = ys[yi].y0;
+			const willBreak = yi < ys.length - 1;
+			const rowBreakWithoutHeader = yi > 0 && !this.headerRows;
+			const hzLineOffset = rowBreakWithoutHeader ? 0 : this.topLineWidth;
+			const y1 = ys[yi].y0;
 			let y2 = ys[yi].y1;
 			if (y2 === undefined) {
 				throw new Error("Internal layout error: table row segment has no ending position");
@@ -283,7 +283,7 @@ class TableProcessor {
 				: writer.context().pages?.[writer.context().page];
 		if (restoredPage) writer.context().pageMargins = restoredPage.pageMargins;
 
-		let row = this.table.body[rowIndex];
+		const row = this.table.body[rowIndex];
 		for (let i = 0, l = row.length; i < l; i++) {
 			const cell = row[i];
 			const rowSpan = cell.rowSpan ?? 0;

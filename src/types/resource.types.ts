@@ -6,7 +6,9 @@ export interface HeaderCollection {
 	forEach(callback: (value: string, key: string) => void): void;
 }
 export type ResourceHeaders =
-	Record<string, string> | ReadonlyArray<readonly [string, string]> | HeaderCollection;
+	| Record<string, string>
+	| ReadonlyArray<readonly [string, string]>
+	| HeaderCollection;
 export type VfsEncoding =
 	| "ascii"
 	| "base64"

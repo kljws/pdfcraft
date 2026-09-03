@@ -150,9 +150,9 @@ describe("Printer", function () {
 			pageSize: { width: SHORT_SIDE, height: LONG_SIDE },
 			content: [
 				{
-					"stack": [
+					stack: [
 						{
-							"ul": [{ "text": "item1" }, { "text": "item2" }],
+							ul: [{ text: "item1" }, { text: "item2" }],
 						},
 					],
 				},

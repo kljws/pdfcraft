@@ -11,7 +11,7 @@ class FakeStream extends EventEmitter implements PdfDocumentStream {
 	private readonly chunks: Uint8Array[];
 	end = vi.fn(() => {
 		queueMicrotask(() => {
-			this.emit("readable");
+			for (const chunk of this.chunks) this.emit("data", chunk);
 			this.emit("end");
 		});
 	});
@@ -20,10 +20,6 @@ class FakeStream extends EventEmitter implements PdfDocumentStream {
 	constructor(chunks: Uint8Array[]) {
 		super();
 		this.chunks = [...chunks];
-	}
-
-	read(): Uint8Array | null {
-		return this.chunks.shift() ?? null;
 	}
 }
 

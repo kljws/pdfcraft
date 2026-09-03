@@ -12,7 +12,7 @@ const stripUnits = (textVal: string | null | undefined): number | undefined => {
 	if (textVal == null) {
 		return undefined;
 	}
-	let n = parseFloat(textVal);
+	const n = parseFloat(textVal);
 	if (typeof n !== "number" || isNaN(n)) {
 		return undefined;
 	}
@@ -48,7 +48,7 @@ class SVGMeasure {
 		let viewBox: string | null | undefined;
 
 		if (isString(svg)) {
-			let doc = parseSVG(svg);
+			const doc = parseSVG(svg);
 
 			width = doc.attr.width;
 			height = doc.attr.height;
@@ -69,7 +69,7 @@ class SVGMeasure {
 		let docHeight = stripUnits(height);
 
 		if ((docWidth === undefined || docHeight === undefined) && typeof viewBox === "string") {
-			let viewBoxParts = viewBox.split(/[,\s]+/);
+			const viewBoxParts = viewBox.split(/[,\s]+/);
 			if (viewBoxParts.length !== 4) {
 				throw new Error(
 					"Unexpected svg viewBox format, should have 4 entries but found: '" + viewBox + "'",
@@ -91,7 +91,7 @@ class SVGMeasure {
 
 	writeDimensions(svg: string | SVGElement, dimensions: Dimensions): string | SVGElement {
 		if (isString(svg)) {
-			let doc = parseSVG(svg);
+			const doc = parseSVG(svg);
 
 			if (typeof doc.attr.viewBox !== "string") {
 				doc.attr.viewBox = `0 0 ${stripUnits(doc.attr.width)} ${stripUnits(doc.attr.height)}`;

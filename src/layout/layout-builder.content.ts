@@ -40,7 +40,7 @@ class LayoutBuilderContent {
 			// I'm not very happy with the way list processing is implemented
 			// (both code and algorithm should be rethinked)
 			if (nextMarker && !this.host.suppressLinearNodeList) {
-				let marker = nextMarker;
+				const marker = nextMarker;
 				nextMarker = null;
 
 				if (marker.canvas) {
@@ -49,7 +49,7 @@ class LayoutBuilderContent {
 					offsetVector(vector, -marker._minWidth, 0);
 					this.writer.addVector(vector);
 				} else if (marker._inlines) {
-					let markerLine = new Line(this.pageSize.width);
+					const markerLine = new Line(this.pageSize.width);
 					markerLine.addInline(marker._inlines[0]);
 					markerLine.x = -marker._minWidth;
 					markerLine.y = line.getAscenderHeight() - markerLine.getAscenderHeight();
@@ -89,10 +89,10 @@ class LayoutBuilderContent {
 			line._node = node;
 		}
 		let currentHeight = line ? line.getHeight() : 0;
-		let maxHeight = node.maxHeight || -1;
+		const maxHeight = node.maxHeight || -1;
 
 		if (line) {
-			let nodeId = getNodeId(node);
+			const nodeId = getNodeId(node);
 			if (nodeId) {
 				line.id = nodeId;
 			}
@@ -172,7 +172,7 @@ class LayoutBuilderContent {
 				}
 			}
 
-			let positions = this.writer.addLine(line);
+			const positions = this.writer.addLine(line);
 			if (positions) {
 				line._position = positions;
 				node.positions ??= [];
@@ -205,7 +205,7 @@ class LayoutBuilderContent {
 			return null;
 		}
 
-		let line = new Line(this.writer.context().availableWidth);
+		const line = new Line(this.writer.context().availableWidth);
 		const textInlines = new TextInlines(null);
 		const inlines = textNode._inlines;
 		let consumedInlineCount = 0;
@@ -224,11 +224,11 @@ class LayoutBuilderContent {
 			const inline = inlines[consumedInlineCount];
 
 			if (!inline.noWrap && inline.text.length > 1 && inline.width > line.getAvailableWidth()) {
-				let maxChars = findMaxFitLength(inline.text, line.getAvailableWidth(), (txt: string) =>
+				const maxChars = findMaxFitLength(inline.text, line.getAvailableWidth(), (txt: string) =>
 					textInlines.widthOfText(txt, inline),
 				);
 				if (maxChars < inline.text.length) {
-					let newInline = cloneInline(inline);
+					const newInline = cloneInline(inline);
 
 					newInline.text = inline.text.substr(maxChars);
 					inline.text = inline.text.substr(0, maxChars);
@@ -255,7 +255,7 @@ class LayoutBuilderContent {
 
 	// images
 	processImage(node: LayoutPdfNode): void {
-		let position = this.writer.addImage(node);
+		const position = this.writer.addImage(node);
 		if (position) {
 			node._position = position;
 			node.positions ??= [];
@@ -265,7 +265,7 @@ class LayoutBuilderContent {
 	}
 
 	processCanvas(node: LayoutPdfNode): void {
-		let positions = this.writer.addCanvas(node);
+		const positions = this.writer.addCanvas(node);
 		if (positions) {
 			node.positions ??= [];
 			addAll(node.positions, positions);
@@ -278,7 +278,7 @@ class LayoutBuilderContent {
 	}
 
 	processSVG(node: LayoutPdfNode): void {
-		let position = this.writer.addSVG(node);
+		const position = this.writer.addSVG(node);
 		if (position) {
 			node._position = position;
 			node.positions ??= [];
@@ -288,7 +288,7 @@ class LayoutBuilderContent {
 	}
 
 	processQr(node: LayoutPdfNode): void {
-		let position = this.writer.addQr(node);
+		const position = this.writer.addQr(node);
 		if (position) {
 			node.positions ??= [];
 			node.positions.push(position);
@@ -298,7 +298,7 @@ class LayoutBuilderContent {
 	}
 
 	processAttachment(node: LayoutPdfNode): void {
-		let position = this.writer.addAttachment(node);
+		const position = this.writer.addAttachment(node);
 		if (position) {
 			node._position = position;
 			node.positions ??= [];

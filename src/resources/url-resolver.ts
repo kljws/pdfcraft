@@ -62,7 +62,7 @@ async function fetchUrl(
 
 		// redirect url
 		if (response.status >= 300 && response.status < 400) {
-			let location = response.headers.get("location");
+			const location = response.headers.get("location");
 			if (!location) {
 				throw new Error("Redirect response missing Location header");
 			}
