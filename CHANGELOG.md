@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added shared Oxlint and Oxfmt configurations, an Oxc safe-fix command, and workspace settings that format and apply Oxc fixes on save.
 - Logical table body groups now accept a partial inline `layout` for all four cell paddings and internal horizontal/vertical separator widths, colors and dash styles. Unspecified callbacks inherit from `body.layout`, while outer borders, group boundaries, the header/body boundary, page-closing borders and rounded contours remain structurally owned by the table.
 - Added a `concurrent-10x3` benchmark scenario that generates 10 concurrent 3-page documents.
 - Benchmark runs now write a Markdown summary table to `benchmarks/REPORT.md`.
@@ -15,16 +16,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Updated PDFKit from 0.19.1 to 0.20.2. Node.js uses PDFKit's native ESM build, while the browser bundle continues to use its standalone build with registered standard-font metrics.
 - Updated the playground quote sample with fictional seller/buyer data and aligned its embedded Factur-X XML attachment.
 - Playground sample lists are discovered from `playground/shared/samples/*.js` at runtime instead of a hard-coded name list.
 
 ### Fixed
 
+- Resolved PDFKit's standalone browser bundle through its exported package entry, avoiding `ERR_PACKAGE_PATH_NOT_EXPORTED` with PDFKit 0.20.
 - Corrected the quote sample group-layout example to use the public `group.rowCount` callback context instead of reading a nonexistent `group.rows` collection.
 - Kept compact quote sample headers and monetary values on one line, preventing `Qté` from hard-wrapping and euro symbols from moving below their amounts in narrow automatic columns.
 
 ### Tests
 
+- Added browser regression coverage for PDFKit 0.20 standard fonts through the standalone build.
 - Added public type, preprocessing and rendering regressions for row-group layout validation, local callback indexes, inherited behavior, left/right/top/bottom padding, internal separator suppression and protected structural borders.
 
 ### Documentation

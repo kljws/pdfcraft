@@ -68,6 +68,7 @@
 		"context:src": "node scripts/generate-source-context.mjs",
 		"check:size": "node scripts/check-package-size.mjs",
 		"lint": "oxlint \"./src/**/*.ts\" \"./tests/**/*.{ts,cts,mjs}\" \"./benchmarks/**/*.mjs\" \"./examples/**/*.js\" \"./playground/**/*.{js,jsx}\" \"./*.config.mts\"",
+		"lint:fix": "oxlint --fix \"./src/**/*.ts\" \"./tests/**/*.{ts,cts,mjs}\" \"./benchmarks/**/*.mjs\" \"./examples/**/*.js\" \"./playground/**/*.{js,jsx}\" \"./*.config.mts\"",
 		"format": "oxfmt .",
 		"format:check": "oxfmt --check .",
 		"test:types": "tsc -p tests/types/tsconfig.node.json && tsc -p tests/types/tsconfig.browser.json",

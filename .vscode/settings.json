@@ -1,8 +1,7 @@
 {
 	"editor.formatOnSave": true,
 	"editor.codeActionsOnSave": {
-		"source.fixAll": true,
-		"source.organizeImports": true
+		"source.fixAll.oxc": "always"
 	},
 	"javascript.format.enable": false,
 	"typescript.format.enable": false,
