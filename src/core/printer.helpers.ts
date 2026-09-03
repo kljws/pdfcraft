@@ -64,10 +64,12 @@ export function createMetadata(
 		Creator: "PDFCraft",
 	};
 
-	for (let [key, value] of Object.entries(docDefinition.info ?? {})) {
+	for (const [originalKey, value] of Object.entries(docDefinition.info ?? {})) {
 		if (!value) continue;
-		const standardKey = key.charAt(0).toUpperCase() + key.slice(1);
-		key = standardProperties.has(standardKey) ? standardKey : key.replace(/\s+/g, "");
+		const standardKey = originalKey.charAt(0).toUpperCase() + originalKey.slice(1);
+		const key = standardProperties.has(standardKey)
+			? standardKey
+			: originalKey.replace(/\s+/g, "");
 		info[key] = value;
 	}
 	return info;
