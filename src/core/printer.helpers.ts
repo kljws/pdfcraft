@@ -67,9 +67,7 @@ export function createMetadata(
 	for (const [originalKey, value] of Object.entries(docDefinition.info ?? {})) {
 		if (!value) continue;
 		const standardKey = originalKey.charAt(0).toUpperCase() + originalKey.slice(1);
-		const key = standardProperties.has(standardKey)
-			? standardKey
-			: originalKey.replace(/\s+/g, "");
+		const key = standardProperties.has(standardKey) ? standardKey : originalKey.replace(/\s+/g, "");
 		info[key] = value;
 	}
 	return info;
