@@ -1,6 +1,4 @@
-/*eslint no-unused-vars: ["error", {"args": "none"}]*/
-/*eslint no-redeclare: "off"*/
-/*eslint no-throw-literal: "off"*/
+/* oxlint-disable no-unused-vars, no-redeclare, no-throw-literal */
 
 "use strict";
 /* qr.js -- QR code generator in Javascript (revision 2011-01-19)

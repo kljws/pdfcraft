@@ -1,4 +1,4 @@
-/*eslint no-unused-vars: ["error", {"args": "none"}]*/
+/* oxlint-disable no-unused-vars */
 
 import type { Dictionary } from "../types";
 import type { PdfNode, TableLayout } from "../types/internal";
