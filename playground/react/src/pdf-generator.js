@@ -1,4 +1,6 @@
-import pdfcraft from "pdfcraft/browser";
+import pdfcraft from "@pdfcraft/browser";
+import { qrExtension } from "@pdfcraft/qr";
+import { svgExtension } from "@pdfcraft/svg";
 import { Roboto, Figtree } from "./fonts";
 import sampleImage from "../../../examples/images/sampleImage.jpg?url";
 import playgroundLogo from "../../logo.jpg?url";
@@ -6,6 +8,8 @@ import testXml from "../../shared/samples/test.xml?raw";
 import { parseDocumentDefinition, resolveDocumentResources } from "../../shared/editor";
 
 const resolveAsset = (asset) => new URL(asset, window.location.href).href;
+
+pdfcraft.addExtensions(qrExtension, svgExtension);
 
 pdfcraft.addFonts({
 	Roboto: {

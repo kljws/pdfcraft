@@ -1,69 +1,21 @@
 {
-	"name": "pdfcraft",
-	"version": "0.7.3",
-	"description": "Modern PDF document generation for Node.js and browsers, written in TypeScript",
+	"name": "pdfcraft-workspace",
+	"version": "8.0.0",
+	"private": true,
 	"type": "module",
-	"sideEffects": false,
-	"packageManager": "npm@12.0.1",
-	"author": "kljws",
-	"license": "MIT",
-	"homepage": "https://github.com/kljws/pdfcraft#readme",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/kljws/pdfcraft.git"
-	},
-	"bugs": {
-		"url": "https://github.com/kljws/pdfcraft/issues"
-	},
-	"keywords": [
-		"pdf",
-		"javascript",
-		"printing",
-		"layout"
-	],
-	"main": "dist/index.cjs",
-	"module": "dist/index.mjs",
-	"types": "dist/index.d.mts",
+	"packageManager": "pnpm@11.21.0",
 	"engines": {
 		"node": ">=22"
 	},
-	"files": [
-		"dist",
-		"LICENSE",
-		"README.md"
-	],
-	"dependencies": {
-		"linebreak": "^1.1.0",
-		"svg-to-pdfkit": "0.1.8",
-		"xmldoc": "^3.0.0"
-	},
-	"devDependencies": {
-		"@types/node": "^26.1.1",
-		"@types/svg-to-pdfkit": "0.1.4",
-		"@vitejs/plugin-react": "^6.0.3",
-		"@vitest/browser-playwright": "^5.0.0",
-		"@vitest/coverage-v8": "^5.0.0",
-		"oxfmt": "^0.66.0",
-		"oxlint": "^1.81.0",
-		"pdfjs-dist": "^6.1.200",
-		"pdfkit": "^0.20.2",
-		"playwright": "^1.61.1",
-		"react": "^19.2.7",
-		"react-dom": "^19.2.7",
-		"tsdown": "^0.22.9",
-		"typescript": "^7.0.2",
-		"vite": "^8.1.5",
-		"vitest": "^5.0.0"
-	},
 	"scripts": {
-		"test": "npm run build && npm run test:types && npm run test:consumer && npm run test:unit && npm run test:integration && npm run test:browser && npm run lint && npm run format:check",
+		"test": "pnpm run build && pnpm run test:types && pnpm run test:consumer && pnpm run test:unit && pnpm run test:integration && pnpm run test:browser && pnpm run lint && pnpm run format:check",
 		"typecheck": "tsc --noEmit",
-		"typecheck:build": "tsc --noEmit -p tsconfig.build.json",
-		"build": "npm run typecheck:build && tsdown",
-		"benchmark": "npm run build && node benchmarks/run.mjs",
-		"benchmark:quick": "npm run build && node benchmarks/run.mjs --quick",
-		"benchmark:quote": "npm run build && node benchmarks/run.mjs --scenario=quote-concurrent-1,quote-concurrent-10,quote-concurrent-100 --report=benchmarks/QUOTE-REPORT.md",
-		"visual:generate": "npm run build && node tests/visual/generate.mjs",
+		"typecheck:build": "pnpm --recursive --filter './packages/*' run typecheck",
+		"build": "pnpm --recursive --filter './packages/*' run build",
+		"benchmark": "pnpm run build && node benchmarks/run.mjs",
+		"benchmark:quick": "pnpm run build && node benchmarks/run.mjs --quick",
+		"benchmark:quote": "pnpm run build && node benchmarks/run.mjs --scenario=quote-concurrent-1,quote-concurrent-10,quote-concurrent-100 --report=benchmarks/QUOTE-REPORT.md",
+		"visual:generate": "pnpm run build && node tests/visual/generate.mjs",
 		"analyze:dependencies": "node scripts/analyze-dependency-weight.mjs",
 		"context:src": "node scripts/generate-source-context.mjs",
 		"check:size": "node scripts/check-package-size.mjs",
@@ -71,37 +23,36 @@
 		"lint:fix": "oxlint --fix .",
 		"format": "oxfmt .",
 		"format:check": "oxfmt --check .",
-		"test:types": "tsc -p tests/types/tsconfig.node.json && tsc -p tests/types/tsconfig.browser.json",
+		"test:types": "tsc -p packages/core/tests/types/tsconfig.json && tsc -p packages/browser/tests/types/tsconfig.json && tsc -p packages/qr/tests/types/tsconfig.json && tsc -p packages/svg/tests/types/tsconfig.json",
 		"test:consumer": "vitest run tests/consumer",
-		"test:unit": "vitest run src",
-		"test:integration": "vitest run tests/integration",
-		"test:coverage": "vitest run src tests/integration --coverage",
+		"test:unit": "vitest run packages/*/src",
+		"test:integration": "vitest run packages/*/tests/integration",
+		"test:coverage": "vitest run packages/*/src packages/*/tests/integration --coverage",
 		"test:browser": "vitest run --config vitest-browser.config.mts",
 		"test:watch": "vitest",
-		"prepack": "npm run build && npm run test:types && npm run test:consumer && npm run check:size",
-		"playground": "npm run playground:react",
-		"playground:server": "npm run build && node playground/server/server.js",
-		"playground:react": "npm run build && vite --config playground/react/vite.config.js"
+		"playground": "pnpm run playground:react",
+		"playground:server": "pnpm run build && node playground/server/server.js",
+		"playground:react": "pnpm run build && vite --config playground/react/vite.config.js"
 	},
-	"exports": {
-		".": {
-			"import": {
-				"types": "./dist/index.d.mts",
-				"default": "./dist/index.mjs"
-			},
-			"require": {
-				"types": "./dist/index.d.cts",
-				"default": "./dist/index.cjs"
-			},
-			"default": "./dist/index.mjs"
-		},
-		"./browser": {
-			"types": "./dist/browser.d.ts",
-			"default": "./dist/browser.js"
-		},
-		"./types": {
-			"types": "./dist/types.d.ts"
-		},
-		"./package.json": "./package.json"
+	"devDependencies": {
+		"@pdfcraft/browser": "workspace:*",
+		"@pdfcraft/core": "workspace:*",
+		"@pdfcraft/qr": "workspace:*",
+		"@pdfcraft/svg": "workspace:*",
+		"@types/node": "^26.1.1",
+		"@vitejs/plugin-react": "^6.0.3",
+		"@vitest/browser-playwright": "^5.0.0",
+		"@vitest/coverage-v8": "^5.0.0",
+		"oxfmt": "^0.66.0",
+		"oxlint": "^1.81.0",
+		"pdfjs-dist": "^6.1.200",
+		"playwright": "^1.61.1",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
+		"tsdown": "^0.22.9",
+		"typescript": "^7.0.2",
+		"vite": "^8.1.5",
+		"vitest": "^5.0.0",
+		"xmldoc": "^3.0.0"
 	}
 }

@@ -1,0 +1,8 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"types": ["node", "pdfkit"]
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["src/**/__tests__/**"]
+}

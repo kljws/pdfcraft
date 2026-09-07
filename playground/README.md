@@ -6,7 +6,7 @@ Roboto font files.
 ## Server
 
 ```sh
-npm run playground:server
+pnpm playground:server
 ```
 
 Open <http://localhost:1234>. The editor posts the document definition to `/pdf`,
@@ -15,8 +15,8 @@ where Node.js generates the preview.
 ## React browser
 
 ```sh
-npm run playground:react
+pnpm playground:react
 ```
 
-Open <http://localhost:1235>. React imports `pdfcraft/browser`; PDF generation
+Open <http://localhost:1235>. React imports `@pdfcraft/browser`; PDF generation
 runs entirely in the browser.

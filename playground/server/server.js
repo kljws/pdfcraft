@@ -2,7 +2,9 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import pdfcraft from "pdfcraft";
+import pdfcraft from "@pdfcraft/core";
+import { qrExtension } from "@pdfcraft/qr";
+import { svgExtension } from "@pdfcraft/svg";
 import {
 	createSampleSource,
 	parseDocumentDefinition,
@@ -20,6 +22,8 @@ const port = Number(process.env.PORT) || 1234;
 const requestLimit = 2 * 1024 * 1024;
 const sampleEventResponses = new Set();
 const sampleChangeTimers = new Map();
+
+pdfcraft.addExtensions(qrExtension, svgExtension);
 
 pdfcraft.addFonts({
 	Roboto: {

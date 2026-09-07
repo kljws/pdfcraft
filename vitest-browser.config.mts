@@ -5,7 +5,7 @@ import { testConfig } from "./vitest.config.mts";
 export default defineConfig({
 	test: {
 		...testConfig,
-		include: ["tests/browser/**/*.test.ts"],
+		include: ["packages/browser/tests/**/*.test.ts"],
 		browser: {
 			enabled: true,
 			headless: true,

@@ -2,7 +2,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import pdfcraft from "../../dist/index.mjs";
+import pdfcraft from "../../packages/core/dist/index.mjs";
+import { qrExtension } from "../../packages/qr/dist/index.js";
+import { svgExtension } from "../../packages/svg/dist/index.js";
 import { visualCases } from "./cases.mjs";
 
 const visualDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -19,6 +21,7 @@ const isWithinPackage = (filename) => {
 };
 
 const instance = pdfcraft.createPdfCraft({
+	extensions: [qrExtension, svgExtension],
 	fonts: {
 		Roboto: {
 			normal: path.join(fontDirectory, "Roboto-Regular.ttf"),

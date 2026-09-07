@@ -1,4 +1,4 @@
-import pdfcraft from "../dist/index.mjs"; // during development; use "pdfcraft" when installed
+import pdfcraft from "../packages/core/dist/index.mjs"; // during development; use "@pdfcraft/core" when installed
 import { configureExample } from "./setup.js";
 
 configureExample(pdfcraft);

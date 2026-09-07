@@ -8,7 +8,8 @@ This document is the architectural map of PDFCraft. It is intended to give a mai
 - identify the public contracts, implementation files and tests that must change together;
 - avoid reintroducing behavior already fixed and documented in `CHANGELOG.md`.
 
-Its file-by-file scope is deliberately limited to `src/` and `tests/`. Other repository files and directories are not catalogued here.
+Its file-by-file scope is deliberately limited to package source/tests and root cross-package tests.
+Other repository files and directories are not catalogued here.
 
 ## Product boundaries
 
@@ -16,8 +17,8 @@ PDFCraft is a TypeScript document-definition-to-PDF engine based historically on
 
 Supported runtime targets:
 
-- Node.js 22 and newer through `pdfcraft`;
-- modern browsers through the ESM-only `pdfcraft/browser` export;
+- Node.js 22 and newer through `@pdfcraft/core`;
+- modern browsers through the ESM-only `@pdfcraft/browser` export;
 - PDF generation from structured document definitions, not HTML, Markdown or existing PDF templates.
 
 Important non-goals unless a new public feature is explicitly approved:
@@ -44,7 +45,7 @@ DocumentDefinition
   ├─ DocPreprocessor
   │    normalize shorthand nodes and validate document structure
   │
-  ├─ DocMeasure + TextInlines + SVGMeasure + ColumnCalculator
+  ├─ DocMeasure + TextInlines + optional content extensions + ColumnCalculator
   │    resolve styles, fonts, intrinsic sizes and table column constraints
   │
   ├─ LayoutBuilder + DocumentContext + ElementWriter + TableProcessor
@@ -69,7 +70,7 @@ The current engine performs layout before rendering. All positioned pages are th
 6. Node-only APIs must not leak into the browser bundle. Browser UI methods must stay outside the layout/rendering core.
 7. External URL and local-file access must pass their configured policies.
 8. Public type changes require Node and browser type-contract tests.
-9. Unit tests stay under the nearest `src/**/__tests__/` directory. Cross-module, output and browser behavior belongs under `tests/`.
+9. Unit tests stay beside package source under `src/**/__tests__/`. Package integration and public type tests stay under that package's `tests/`; root `tests/` is reserved for cross-package validation and manual visual cases.
 10. Every release-relevant change must be recorded in `CHANGELOG.md` with the upstream issue or PR link when applicable.
 
 ## Dependency direction
@@ -96,272 +97,277 @@ Circular ownership between layout, measurement and rendering is a warning sign. 
 
 ## Public entry points
 
-### `pdfcraft`
+### `@pdfcraft/core`
 
-The Node.js entry is `src/index.ts`. It creates `OutputDocumentServer`, exposes filesystem writing and accepts local font/file paths subject to `LocalAccessPolicy`.
+The Node.js entry is `packages/core/src/index.ts`. It creates `OutputDocumentServer`, exposes filesystem writing and accepts local font/file paths subject to `LocalAccessPolicy`.
 
-### `pdfcraft/browser`
+### `@pdfcraft/browser`
 
-The browser entry is `src/browser/index.ts`. It bundles the PDFKit standalone build and exposes blobs, downloads, opening and printing. The layout engine itself does not require the DOM; only browser output convenience methods do.
+The browser entry is `packages/browser/src/index.ts`. It bundles the PDFKit standalone build and exposes blobs, downloads, opening and printing. The layout engine itself does not require the DOM; only browser output convenience methods do.
 
-### `pdfcraft/types`
+### `@pdfcraft/core/types`
 
-The type-only entry is `src/types/index.ts`. It must remain runtime-neutral and must not import executable Node or browser code.
+The type-only entry is `packages/core/src/types/index.ts`. It must remain runtime-neutral and must not import executable Node or browser code.
 
-## `src/`: production source
+## `packages/core/src/`: production source
 
 ### Entry points
 
 | File | Responsibility |
 | --- | --- |
-| `src/index.ts` | Node entry. Specializes `PdfCraftBase` with `OutputDocumentServer` and exports the default instance plus factory/class access. |
-| `src/browser/index.ts` | Browser entry. Adds VFS/font-container helpers and specializes output as `OutputDocumentBrowser`. |
+| `packages/core/src/index.ts` | Node entry. Specializes `PdfCraftBase` with `OutputDocumentServer` and exports the default instance plus factory/class access. |
+| `packages/browser/src/index.ts` | Browser entry. Adds VFS/font-container helpers and specializes output as `OutputDocumentBrowser`. |
 
-### `src/core/`: orchestration
+### `packages/core/src/core/`: orchestration
 
 | File | Responsibility |
 | --- | --- |
-| `src/core/pdfcraft.ts` | Public instance state and `createPdf()` lifecycle: validates arguments, merges instance/document options, clones definitions, configures resource policies and creates a printer. Start here for API lifecycle, instance isolation and option precedence. |
-| `src/core/printer.ts` | Central generation coordinator: resolves resources, normalizes document/PDFKit options, creates `PDFDocument`, invokes layout, limits pages and invokes the renderer. Start here for whole-document behavior and memory/streaming questions. |
-| `src/core/printer.helpers.ts` | Pure helpers for resolved images/SVGs/attachments, metadata, embedded files and infinite-page height calculation. |
-| `src/core/printer.resources.ts` | Walks font/image/SVG/attachment resources, converts URL references into VFS keys and waits for URL resolution. |
-| `src/core/printer.types.ts` | Internal printer definition, resource and PDFKit option contracts. These are not the public document-definition types. |
+| `packages/core/src/core/pdfcraft.ts` | Public instance state and `createPdf()` lifecycle: validates arguments, merges instance/document options, clones definitions, configures resource policies and creates a printer. Start here for API lifecycle, instance isolation and option precedence. |
+| `packages/core/src/core/printer.ts` | Central generation coordinator: resolves resources, normalizes document/PDFKit options, creates `PDFDocument`, invokes layout, limits pages and invokes the renderer. Start here for whole-document behavior and memory/streaming questions. |
+| `packages/core/src/core/printer.helpers.ts` | Pure helpers for resolved images/attachments, metadata, embedded files and infinite-page height calculation. |
+| `packages/core/src/core/printer.resources.ts` | Walks built-in resources, delegates optional resources to registered extensions, converts URL references into VFS keys and waits for URL resolution. |
+| `packages/core/src/core/printer.types.ts` | Internal printer definition, resource and PDFKit option contracts. These are not the public document-definition types. |
 
 Tests:
 
 | File | Focus |
 | --- | --- |
-| `src/core/__tests__/pdfcraft.test.ts` | Instance isolation, cloning, option precedence, policies and public creation behavior. |
-| `src/core/__tests__/printer.test.ts` | Printer orchestration, options and document creation. |
-| `src/core/__tests__/printer.helpers.test.ts` | Metadata/resources/helper calculations. |
-| `src/core/__tests__/printer.resources.test.ts` | URL, binary and attachment resolution routing. |
+| `packages/core/src/core/__tests__/pdfcraft.test.ts` | Instance isolation, cloning, option precedence, policies and public creation behavior. |
+| `packages/core/src/core/__tests__/printer.test.ts` | Printer orchestration, options and document creation. |
+| `packages/core/src/core/__tests__/printer.helpers.test.ts` | Metadata/resources/helper calculations. |
+| `packages/core/src/core/__tests__/printer.resources.test.ts` | URL, binary and attachment resolution routing. |
 
-### `src/configuration/`: page and built-in layout configuration
-
-| File | Responsibility |
-| --- | --- |
-| `src/configuration/page-size.constants.ts` | Canonical named PDF page dimensions. |
-| `src/configuration/page-size.ts` | Resolves named/custom page sizes, orientation and static/dynamic margins. |
-| `src/configuration/table-layouts.ts` | Built-in table layouts and the default resolved layout callbacks. |
-| `src/configuration/__tests__/table-layouts.test.ts` | Built-in layout callback and default-border behavior. |
-
-### `src/resources/`: external and virtual resources
+### `packages/core/src/configuration/`: page and built-in layout configuration
 
 | File | Responsibility |
 | --- | --- |
-| `src/resources/virtual-file-system.ts` | Runtime-neutral in-memory byte store used for fonts, images, SVGs and attachments. |
-| `src/resources/url-resolver.ts` | Fetches HTTP(S) resources once, enforces URL policy before/after redirects and stores results in the VFS. |
-| `src/resources/__tests__/virtual-file-system.test.ts` | VFS encoding, byte-copy and path-normalization behavior. |
-| `src/resources/__tests__/url-resolver.test.ts` | Fetch caching, redirects, failures and access-policy enforcement. |
+| `packages/core/src/configuration/page-size.constants.ts` | Canonical named PDF page dimensions. |
+| `packages/core/src/configuration/page-size.ts` | Resolves named/custom page sizes, orientation and static/dynamic margins. |
+| `packages/core/src/configuration/table-layouts.ts` | Built-in table layouts and the default resolved layout callbacks. |
+| `packages/core/src/configuration/__tests__/table-layouts.test.ts` | Built-in layout callback and default-border behavior. |
 
-### `src/preprocessing/`: structural normalization
-
-| File | Responsibility |
-| --- | --- |
-| `src/preprocessing/doc-preprocessor.ts` | Converts shorthand values into nodes, normalizes text/lists/tables/TOCs/sections, validates dimensions and group-layout capabilities, and expands compact or explicit span rows into a strict rectangular table grid. Route malformed-definition issues here first. |
-| `src/preprocessing/__tests__/doc-preprocessor.test.ts` | Supported shorthand, invalid structures and dimensions, rectangular table-grid constraints, section constraints, spans and preprocessing errors. |
-
-### `src/measurement/`: intrinsic sizing
+### `packages/core/src/resources/`: external and virtual resources
 
 | File | Responsibility |
 | --- | --- |
-| `src/measurement/doc-measure.ts` | Main measurement dispatcher and style-stack owner. Produces measured nodes for every content type. |
-| `src/measurement/doc-measure.containers.ts` | Measures stacks, columns, lists, TOCs and other container structures. |
-| `src/measurement/doc-measure.media.ts` | Measures images, SVGs, QR codes, canvas vectors, attachments and AcroForms. |
-| `src/measurement/doc-measure.table.ts` | Resolves header/body layouts and partial row-group overrides, reserves maximum horizontal padding/border geometry, and computes offsets, min/max widths and `colSpan`/`rowSpan` measurement effects. Route column-width and span-sizing issues here. |
-| `src/measurement/list-markers.ts` | Builds unordered markers and formats ordered alphabetic/Roman counters. |
-| `src/measurement/svg-measure.ts` | Parses SVG dimensions/viewBox and computes intrinsic/scaled sizes. |
-| `src/measurement/__tests__/doc-measure.test.ts` | General node, style, media, list, column and table measurement behavior. |
-| `src/measurement/__tests__/svg-measure.test.ts` | SVG dimension/viewBox and invalid-SVG measurement cases. |
+| `packages/core/src/resources/virtual-file-system.ts` | Runtime-neutral in-memory byte store used for fonts, images, attachments and extension resources. |
+| `packages/core/src/resources/url-resolver.ts` | Fetches HTTP(S) resources once, enforces URL policy before/after redirects and stores results in the VFS. |
+| `packages/core/src/resources/__tests__/virtual-file-system.test.ts` | VFS encoding, byte-copy and path-normalization behavior. |
+| `packages/core/src/resources/__tests__/url-resolver.test.ts` | Fetch caching, redirects, failures and access-policy enforcement. |
 
-### `src/text/`: line breaking and inline shaping
+### `packages/core/src/preprocessing/`: structural normalization
 
 | File | Responsibility |
 | --- | --- |
-| `src/text/text-breaker.ts` | Uses Unicode line breaking, whitespace rules and explicit break-all behavior to split text into words/fragments. |
-| `src/text/text-inlines.ts` | Flattens nested text, resolves fonts/styles, measures inlines, hard-wraps long tokens and builds line-ready inline data. |
-| `src/text/text-decorator.ts` | Groups and renders text backgrounds, underline, overline and line-through geometry. |
-| `src/text/text.types.ts` | Private contracts shared by breaker, inline measurement and decoration. |
-| `src/text/__tests__/text-breaker.test.ts` | Unicode breaks, whitespace and word-boundary behavior. |
-| `src/text/__tests__/text-inlines.test.ts` | Inline flattening, font/style resolution, hard wrapping, images and measurements. |
-| `src/text/__tests__/text-decorator.test.ts` | Decoration grouping and vector geometry. |
+| `packages/core/src/preprocessing/doc-preprocessor.ts` | Converts shorthand values into nodes, normalizes text/lists/tables/TOCs/sections, validates dimensions and group-layout capabilities, and expands compact or explicit span rows into a strict rectangular table grid. Route malformed-definition issues here first. |
+| `packages/core/src/preprocessing/__tests__/doc-preprocessor.test.ts` | Supported shorthand, invalid structures and dimensions, rectangular table-grid constraints, section constraints, spans and preprocessing errors. |
 
-### `src/document/`: mutable pagination state
+### `packages/core/src/measurement/`: intrinsic sizing
 
 | File | Responsibility |
 | --- | --- |
-| `src/document/document-context.ts` | Owns pages, current coordinates, available space, margins, columns, transactions and page creation state. It is the central mutable state used by writers. |
-| `src/document/document-context.geometry.ts` | Page size/orientation resolution and bottom-most coordinate helpers. |
-| `src/document/document-context.helpers.ts` | Page creation/position helpers and nested-snaking detection. |
-| `src/document/document-context.columns.ts` | Standard column-group lifecycle, ending cells and bottom reconciliation. |
-| `src/document/document-context.snaking.ts` | Snaking-column snapshots, transitions and page resets. |
-| `src/document/document-context.types.ts` | Context snapshots, page positions, column-ending and event contracts. |
-| `src/document/__tests__/document-context.test.ts` | Geometry, pages, standard/snaking columns, snapshots and transitions. |
+| `packages/core/src/measurement/doc-measure.ts` | Main measurement dispatcher and style-stack owner. Produces measured nodes for every content type. |
+| `packages/core/src/measurement/doc-measure.containers.ts` | Measures stacks, columns, lists, TOCs and other container structures. |
+| `packages/core/src/measurement/doc-measure.media.ts` | Applies shared box sizing to images and extension content. |
+| `packages/core/src/measurement/doc-measure.table.ts` | Resolves header/body layouts and partial row-group overrides, reserves maximum horizontal padding/border geometry, and computes offsets, min/max widths and `colSpan`/`rowSpan` measurement effects. Route column-width and span-sizing issues here. |
+| `packages/core/src/measurement/list-markers.ts` | Builds unordered markers and formats ordered alphabetic/Roman counters. |
+| `packages/core/src/measurement/__tests__/doc-measure.test.ts` | General node, style, media, extension, list, column and table measurement behavior. |
 
-### `src/layout/`: pagination and positioned page items
+### `packages/core/src/text/`: line breaking and inline shaping
+
+| File | Responsibility |
+| --- | --- |
+| `packages/core/src/text/text-breaker.ts` | Uses Unicode line breaking, whitespace rules and explicit break-all behavior to split text into words/fragments. |
+| `packages/core/src/text/text-inlines.ts` | Flattens nested text, resolves fonts/styles, measures inlines, hard-wraps long tokens and builds line-ready inline data. |
+| `packages/core/src/text/text-decorator.ts` | Groups and renders text backgrounds, underline, overline and line-through geometry. |
+| `packages/core/src/text/text.types.ts` | Private contracts shared by breaker, inline measurement and decoration. |
+| `packages/core/src/text/__tests__/text-breaker.test.ts` | Unicode breaks, whitespace and word-boundary behavior. |
+| `packages/core/src/text/__tests__/text-inlines.test.ts` | Inline flattening, font/style resolution, hard wrapping, images and measurements. |
+| `packages/core/src/text/__tests__/text-decorator.test.ts` | Decoration grouping and vector geometry. |
+
+### `packages/core/src/document/`: mutable pagination state
+
+| File | Responsibility |
+| --- | --- |
+| `packages/core/src/document/document-context.ts` | Owns pages, current coordinates, available space, margins, columns, transactions and page creation state. It is the central mutable state used by writers. |
+| `packages/core/src/document/document-context.geometry.ts` | Page size/orientation resolution and bottom-most coordinate helpers. |
+| `packages/core/src/document/document-context.helpers.ts` | Page creation/position helpers and nested-snaking detection. |
+| `packages/core/src/document/document-context.columns.ts` | Standard column-group lifecycle, ending cells and bottom reconciliation. |
+| `packages/core/src/document/document-context.snaking.ts` | Snaking-column snapshots, transitions and page resets. |
+| `packages/core/src/document/document-context.types.ts` | Context snapshots, page positions, column-ending and event contracts. |
+| `packages/core/src/document/__tests__/document-context.test.ts` | Geometry, pages, standard/snaking columns, snapshots and transitions. |
+
+### `packages/core/src/layout/`: pagination and positioned page items
 
 #### Main builder
 
 | File | Responsibility |
 | --- | --- |
-| `src/layout/layout-builder.ts` | Runs preprocessing/measurement/layout passes, owns the writer, dispatches node processing and returns all `PdfPage` objects. Handles bounded relayout for page-count-dependent margins/backgrounds and `pageBreakBefore`. |
-| `src/layout/layout-builder.content.ts` | Processes measured node kinds, node positions, TOCs and page references. |
-| `src/layout/layout-builder.rows.ts` | Lays out table-row cells, reconciles cell heights/page breaks and vertical alignment, and reports explicit internal-state errors if measured grid data is missing. |
-| `src/layout/layout-builder.table-processing.ts` | Coordinates `TableProcessor` per table row, validates dynamic height callback results and guards measured offsets before table-level layout. |
-| `src/layout/layout-builder.table.ts` | Table page-break metadata and row-span break reconciliation utilities. |
-| `src/layout/layout-builder.repeatables.ts` | Backgrounds, headers, footers and their page-count-aware dynamic callbacks. |
-| `src/layout/layout-builder.page-breaks.ts` | Builds `pageBreakBefore` node metadata, evaluates callbacks and resets positions for relayout. |
-| `src/layout/layout-builder.sections.ts` | Resolves section-level page size/orientation/margins/header/footer/background inheritance. |
-| `src/layout/layout-builder.watermark.ts` | Measures and creates text/image watermark render data. |
-| `src/layout/layout-builder.helpers.ts` | Shared inline cloning, page-span height and maximum-fit helpers. |
-| `src/layout/layout-builder.types.ts` | Layout-pass, page-break and repeatable callback contracts. |
+| `packages/core/src/layout/layout-builder.ts` | Runs preprocessing/measurement/layout passes, owns the writer, dispatches node processing and returns all `PdfPage` objects. Handles bounded relayout for page-count-dependent margins/backgrounds and `pageBreakBefore`. |
+| `packages/core/src/layout/layout-builder.content.ts` | Processes measured node kinds, node positions, TOCs and page references. |
+| `packages/core/src/layout/layout-builder.rows.ts` | Lays out table-row cells, reconciles cell heights/page breaks and vertical alignment, and reports explicit internal-state errors if measured grid data is missing. |
+| `packages/core/src/layout/layout-builder.table-processing.ts` | Coordinates `TableProcessor` per table row, validates dynamic height callback results and guards measured offsets before table-level layout. |
+| `packages/core/src/layout/layout-builder.table.ts` | Table page-break metadata and row-span break reconciliation utilities. |
+| `packages/core/src/layout/layout-builder.repeatables.ts` | Backgrounds, headers, footers and their page-count-aware dynamic callbacks. |
+| `packages/core/src/layout/layout-builder.page-breaks.ts` | Builds `pageBreakBefore` node metadata, evaluates callbacks and resets positions for relayout. |
+| `packages/core/src/layout/layout-builder.sections.ts` | Resolves section-level page size/orientation/margins/header/footer/background inheritance. |
+| `packages/core/src/layout/layout-builder.watermark.ts` | Measures and creates text/image watermark render data. |
+| `packages/core/src/layout/layout-builder.helpers.ts` | Shared inline cloning, page-span height and maximum-fit helpers. |
+| `packages/core/src/layout/layout-builder.types.ts` | Layout-pass, page-break and repeatable callback contracts. |
 
 #### Writers and lines
 
 | File | Responsibility |
 | --- | --- |
-| `src/layout/element-writer.ts` | Base positioned-item writer, events, transactions/fragments, node page-number updates and internal vector-insertion tracking that survives fragment cloning. |
-| `src/layout/element-writer.page.ts` | Page-aware writer: automatic page changes, repeatable blocks, unbreakable transactions and column transitions. |
-| `src/layout/element-writer.media.ts` | Places images, SVGs, canvases, QR codes and attachments with overflow/page-fit rules. |
-| `src/layout/element-writer.form.ts` | Places block and inline AcroForm controls. |
-| `src/layout/element-writer.helpers.ts` | Alignment, fragment height and page-item insertion helpers. |
-| `src/layout/line.ts` | Mutable laid-out text line: inline insertion, width, ascender/height and alignment. |
-| `src/layout/page-item-geometry.ts` | Computes vector/page-item lower bounds for layout calculations. |
-| `src/layout/node.decorators.ts` | Adds layout lifecycle callbacks/metadata to nodes without inheritance. |
-| `src/layout/style-context-stack.ts` | Resolves inherited/default/named/local style properties with explicit stack ownership. |
+| `packages/core/src/layout/element-writer.ts` | Base positioned-item writer, events, transactions/fragments, node page-number updates and internal vector-insertion tracking that survives fragment cloning. |
+| `packages/core/src/layout/element-writer.page.ts` | Page-aware writer: automatic page changes, repeatable blocks, unbreakable transactions and column transitions. |
+| `packages/core/src/layout/element-writer.media.ts` | Places images, generic extension boxes, canvases and attachments with overflow/page-fit rules. |
+| `packages/core/src/layout/element-writer.form.ts` | Places block and inline AcroForm controls. |
+| `packages/core/src/layout/element-writer.helpers.ts` | Alignment, fragment height and page-item insertion helpers. |
+| `packages/core/src/layout/line.ts` | Mutable laid-out text line: inline insertion, width, ascender/height and alignment. |
+| `packages/core/src/layout/page-item-geometry.ts` | Computes vector/page-item lower bounds for layout calculations. |
+| `packages/core/src/layout/node.decorators.ts` | Adds layout lifecycle callbacks/metadata to nodes without inheritance. |
+| `packages/core/src/layout/style-context-stack.ts` | Resolves inherited/default/named/local style properties with explicit stack ownership. |
 
 #### Tables
 
 | File | Responsibility |
 | --- | --- |
-| `src/layout/column-calculator.ts` | Allocates fixed, percentage, auto and star column widths under min/max and available-width constraints. |
-| `src/layout/table-processor.ts` | Per-table state and row lifecycle coordinator; owns the isolated page-vector registry, closes table/repeatable transactions and delegates border/row rendering. |
-| `src/layout/table-processor.lifecycle.ts` | Initializes table widths, the per-pass vector registry, header/dont-break transactions and the applicable header/body/group padding and border reservations for each row. |
-| `src/layout/table-processor.rows.ts` | Draws row-segment vertical borders and fills across one or more pages, registering only rectangular outer fills that may need later corner rounding. |
-| `src/layout/table-processor.borders.ts` | Draws horizontal/vertical table lines, applies layout styles/colors, resolves per-cell border precedence and closes rounded page fragments through structurally owned vector references. Route border-pagination defects here. |
-| `src/layout/table-processor.helpers.ts` | Creates row-span geometry, propagates borders, detects explicit cell page breaks, computes table width and attaches page-aware table-vector tracking. |
-| `src/layout/table-processor.constants.ts` | Accepted explicit page-break values used by tables. |
-| `src/layout/table-processor.types.ts` | Resolved layout, row-span, processor collaborator and per-page table-vector registry contracts. |
+| `packages/core/src/layout/column-calculator.ts` | Allocates fixed, percentage, auto and star column widths under min/max and available-width constraints. |
+| `packages/core/src/layout/table-processor.ts` | Per-table state and row lifecycle coordinator; owns the isolated page-vector registry, closes table/repeatable transactions and delegates border/row rendering. |
+| `packages/core/src/layout/table-processor.lifecycle.ts` | Initializes table widths, the per-pass vector registry, header/dont-break transactions and the applicable header/body/group padding and border reservations for each row. |
+| `packages/core/src/layout/table-processor.rows.ts` | Draws row-segment vertical borders and fills across one or more pages, registering only rectangular outer fills that may need later corner rounding. |
+| `packages/core/src/layout/table-processor.borders.ts` | Draws horizontal/vertical table lines, applies layout styles/colors, resolves per-cell border precedence and closes rounded page fragments through structurally owned vector references. Route border-pagination defects here. |
+| `packages/core/src/layout/table-processor.helpers.ts` | Creates row-span geometry, propagates borders, detects explicit cell page breaks, computes table width and attaches page-aware table-vector tracking. |
+| `packages/core/src/layout/table-processor.constants.ts` | Accepted explicit page-break values used by tables. |
+| `packages/core/src/layout/table-processor.types.ts` | Resolved layout, row-span, processor collaborator and per-page table-vector registry contracts. |
 
 #### Layout unit tests
 
 | File | Focus |
 | --- | --- |
-| `src/layout/__tests__/layout-builder.test.ts` | General pagination, sizing, alignment and positioned output. |
-| `src/layout/__tests__/layout-builder.sections.test.ts` | Section inheritance and page configuration. |
-| `src/layout/__tests__/layout-builder.watermark.test.ts` | Watermark sizing and font behavior. |
-| `src/layout/__tests__/element-writer.test.ts` | Base writing, fragments, events and page-number metadata. |
-| `src/layout/__tests__/element-writer.page.test.ts` | Page breaks, repeatables, unbreakable blocks and columns. |
-| `src/layout/__tests__/column-calculator.test.ts` | Fixed/auto/star/percentage width allocation and overflow constraints. |
-| `src/layout/__tests__/table-processor.test.ts` | Table lifecycle, headers, row spans and border callbacks. |
-| `src/layout/__tests__/table-processor.rows.test.ts` | Row-segment border/fill geometry. |
-| `src/layout/__tests__/line.test.ts` | Inline insertion, widths and alignment. |
-| `src/layout/__tests__/style-context-stack.test.ts` | Style inheritance, overrides and cyclic style protection. |
+| `packages/core/src/layout/__tests__/layout-builder.test.ts` | General pagination, sizing, alignment and positioned output. |
+| `packages/core/src/layout/__tests__/layout-builder.sections.test.ts` | Section inheritance and page configuration. |
+| `packages/core/src/layout/__tests__/layout-builder.watermark.test.ts` | Watermark sizing and font behavior. |
+| `packages/core/src/layout/__tests__/element-writer.test.ts` | Base writing, fragments, events and page-number metadata. |
+| `packages/core/src/layout/__tests__/element-writer.page.test.ts` | Page breaks, repeatables, unbreakable blocks and columns. |
+| `packages/core/src/layout/__tests__/column-calculator.test.ts` | Fixed/auto/star/percentage width allocation and overflow constraints. |
+| `packages/core/src/layout/__tests__/table-processor.test.ts` | Table lifecycle, headers, row spans and border callbacks. |
+| `packages/core/src/layout/__tests__/table-processor.rows.test.ts` | Row-segment border/fill geometry. |
+| `packages/core/src/layout/__tests__/line.test.ts` | Inline insertion, widths and alignment. |
+| `packages/core/src/layout/__tests__/style-context-stack.test.ts` | Style inheritance, overrides and cyclic style protection. |
 
-### `src/rendering/`: PDFKit translation
-
-| File | Responsibility |
-| --- | --- |
-| `src/rendering/pdf-document.ts` | PDFKit subclass providing font, image, SVG, attachment, VFS, resource-policy and color integration. Route low-level PDFKit/resource embedding defects here. |
-| `src/rendering/renderer.ts` | Iterates positioned pages/items, creates PDF pages, renders text/forms/outlines/watermarks and reports rendering progress. |
-| `src/rendering/renderer.graphics.ts` | Renders vectors, clipping, gradients/patterns, images including rounded clipping/inset borders, SVG, QR, attachments and graphical links. |
-| `src/rendering/renderer.helpers.ts` | Font lookup and text baseline offset helpers. |
-| `src/rendering/renderer.types.ts` | Private renderable-page, font, resource, form and PDFKit option contracts. |
-| `src/rendering/__tests__/pdf-document.test.ts` | Font/image/resource caches, policy checks and PDFDocument helpers. |
-| `src/rendering/__tests__/renderer.test.ts` | Renderer lifecycle and shared graphic state. |
-| `src/rendering/__tests__/renderer.lines.test.ts` | Text, inline images, links, destinations, forms and outlines. |
-| `src/rendering/__tests__/renderer.graphics.test.ts` | Vectors, clipping, paths, gradients, patterns, media, links and attachments. |
-
-### `src/output/`: runtime-specific consumption
+### `packages/core/src/rendering/`: PDFKit translation
 
 | File | Responsibility |
 | --- | --- |
-| `src/output/output-document.ts` | Shared output wrapper and PDF stream contract; currently collects all chunks when a buffer-like result is requested. |
-| `src/output/output-document.server.ts` | Node buffer/base64/data URL and filesystem writing adapter. |
-| `src/output/output-document.browser.ts` | Browser buffer/base64/data URL/blob/download/open/print adapter. DOM use is intentionally confined here. |
-| `src/output/__tests__/output-document.server.test.ts` | Node output conversion and file-writing behavior. |
+| `packages/core/src/rendering/pdf-document.ts` | PDFKit subclass providing font, image, attachment, VFS, resource-policy and color integration. Route low-level PDFKit/resource embedding defects here. |
+| `packages/core/src/rendering/renderer.ts` | Iterates positioned pages/items, creates PDF pages, renders text/forms/outlines/watermarks and reports rendering progress. |
+| `packages/core/src/rendering/renderer.graphics.ts` | Renders vectors, clipping, gradients/patterns, images including rounded clipping/inset borders, attachments, graphical links and generic extension items. |
+| `packages/core/src/rendering/renderer.helpers.ts` | Font lookup and text baseline offset helpers. |
+| `packages/core/src/rendering/renderer.types.ts` | Private renderable-page, font, resource, form and PDFKit option contracts. |
+| `packages/core/src/rendering/__tests__/pdf-document.test.ts` | Font/image/resource caches, policy checks and PDFDocument helpers. |
+| `packages/core/src/rendering/__tests__/renderer.test.ts` | Renderer lifecycle and shared graphic state. |
+| `packages/core/src/rendering/__tests__/renderer.lines.test.ts` | Text, inline images, links, destinations, forms and outlines. |
+| `packages/core/src/rendering/__tests__/renderer.graphics.test.ts` | Vectors, clipping, paths, gradients, patterns, media, links and attachments. |
 
-### `src/types/`: public and internal contracts
-
-| File | Responsibility |
-| --- | --- |
-| `src/types/index.ts` | Public type barrel for `pdfcraft/types`. |
-| `src/types/common.types.ts` | Shared primitives such as color, margin, alignment, page break and dictionary. |
-| `src/types/configuration.types.ts` | Instance and per-document creation options. |
-| `src/types/content.types.ts` | Public content nodes, styles, tables (including partial logical-group layout callbacks), media, forms, sections and dynamic content callbacks. |
-| `src/types/document-definition.types.ts` | Top-level document definition, metadata, permissions, patterns, resources and page callbacks. |
-| `src/types/output-document.types.ts` | Public Node/browser output capabilities and runtime-neutral browser object shapes. |
-| `src/types/resource.types.ts` | Fonts, VFS, URL/local policies, headers and resource references. |
-| `src/types/layout.types.ts` | Page dimensions, margins, positioned items and geometry contracts. |
-| `src/types/table.types.ts` | Generic table, width, offset and resolved layout contracts. |
-| `src/types/text.types.ts` | Generic measured font/inline/line/list-marker contracts. |
-| `src/types/rendering.types.ts` | Page items, vectors, callbacks and rendering resource containers. |
-| `src/types/document.types.ts` | Generic node lifecycle from public to preprocessed/measured/layout nodes and their internal metadata. |
-| `src/types/internal.ts` | Internal type barrel used by implementation modules; never treat it as a stable public API. |
-| `src/types/vendor.d.ts` | Missing/augmented declarations for bundled third-party modules. |
-| `src/types/__tests__/document-node-types.test.ts` | Compile/runtime assertions for node-stage type relationships. |
-
-### `src/utils/`: shared low-level helpers
+### `packages/core/src/output/`: runtime-specific consumption
 
 | File | Responsibility |
 | --- | --- |
-| `src/utils/bytes.ts` | Runtime-neutral base64/byte/string/ArrayBuffer conversion. |
-| `src/utils/clone-document-definition.ts` | Cycle-safe cloning that preserves non-plain objects and binary references while duplicating document occurrences. |
-| `src/utils/event-emitter.ts` | Typed synchronous event emitter used by context/writer composition. |
-| `src/utils/node.ts` | Node IDs, safe diagnostics and resolved margin extraction. |
-| `src/utils/tools.ts` | Object packing, vector offsets and static-to-dynamic content conversion. |
-| `src/utils/variable-type.ts` | Shared runtime type predicates. |
-| `src/utils/__tests__/clone-document-definition.test.ts` | Cycles, shared references, functions, dates and binary clone behavior. |
-| `src/utils/__tests__/event-emitter.test.ts` | Listener registration/removal/emission. |
-| `src/utils/__tests__/node.test.ts` | Diagnostics, IDs and margin resolution. |
-| `src/utils/__tests__/variable-type.test.ts` | Runtime predicate behavior. |
+| `packages/core/src/output/output-document.ts` | Shared output wrapper and PDF stream contract; currently collects all chunks when a buffer-like result is requested. |
+| `packages/core/src/output/output-document.server.ts` | Node buffer/base64/data URL and filesystem writing adapter. |
+| `packages/browser/src/output-document.browser.ts` | Browser buffer/base64/data URL/blob/download/open/print adapter. DOM use is intentionally confined here. |
+| `packages/core/src/output/__tests__/output-document.server.test.ts` | Node output conversion and file-writing behavior. |
 
-### `src/vendor/`: embedded algorithms
+### `packages/core/src/types/`: public and internal contracts
 
 | File | Responsibility |
 | --- | --- |
-| `src/vendor/qr/qr-encoder.ts` | Embedded QR encoding implementation. Keep modifications isolated and regression-tested because it replaces an external runtime dependency. |
+| `packages/core/src/types/index.ts` | Public type barrel for `@pdfcraft/core/types`. |
+| `packages/core/src/types/common.types.ts` | Shared primitives such as color, margin, alignment, page break and dictionary. |
+| `packages/core/src/types/configuration.types.ts` | Instance and per-document creation options. |
+| `packages/core/src/types/content.types.ts` | Public content nodes, styles, tables (including partial logical-group layout callbacks), media, forms, sections and dynamic content callbacks. |
+| `packages/core/src/types/document-definition.types.ts` | Top-level document definition, metadata, permissions, patterns, resources and page callbacks. |
+| `packages/core/src/types/output-document.types.ts` | Public Node/browser output capabilities and runtime-neutral browser object shapes. |
+| `packages/core/src/types/resource.types.ts` | Fonts, VFS, URL/local policies, headers and resource references. |
+| `packages/core/src/types/layout.types.ts` | Page dimensions, margins, positioned items and geometry contracts. |
+| `packages/core/src/types/table.types.ts` | Generic table, width, offset and resolved layout contracts. |
+| `packages/core/src/types/text.types.ts` | Generic measured font/inline/line/list-marker contracts. |
+| `packages/core/src/types/rendering.types.ts` | Page items, vectors, callbacks and rendering resource containers. |
+| `packages/core/src/types/document.types.ts` | Generic node lifecycle from public to preprocessed/measured/layout nodes and their internal metadata. |
+| `packages/core/src/types/internal.ts` | Internal type barrel used by implementation modules; never treat it as a stable public API. |
+| `packages/core/src/types/vendor.d.ts` | Missing/augmented declarations for bundled third-party modules. |
+| `packages/core/src/types/__tests__/document-node-types.test.ts` | Compile/runtime assertions for node-stage type relationships. |
 
-## `tests/`: cross-module validation
+### `packages/core/src/utils/`: shared low-level helpers
 
-### Integration tests
+| File | Responsibility |
+| --- | --- |
+| `packages/core/src/utils/bytes.ts` | Runtime-neutral base64/byte/string/ArrayBuffer conversion. |
+| `packages/core/src/utils/clone-document-definition.ts` | Cycle-safe cloning that preserves non-plain objects and binary references while duplicating document occurrences. |
+| `packages/core/src/utils/event-emitter.ts` | Typed synchronous event emitter used by context/writer composition. |
+| `packages/core/src/utils/node.ts` | Node IDs, safe diagnostics and resolved margin extraction. |
+| `packages/core/src/utils/canvas-path-bounds.ts` | Computes canvas path-vector bounds for measurement and automatic page geometry. |
+| `packages/core/src/utils/tools.ts` | Object packing, vector offsets and static-to-dynamic content conversion. |
+| `packages/core/src/utils/variable-type.ts` | Shared runtime type predicates. |
+| `packages/core/src/utils/__tests__/clone-document-definition.test.ts` | Cycles, shared references, functions, dates and binary clone behavior. |
+| `packages/core/src/utils/__tests__/event-emitter.test.ts` | Listener registration/removal/emission. |
+| `packages/core/src/utils/__tests__/node.test.ts` | Diagnostics, IDs and margin resolution. |
+| `packages/core/src/utils/__tests__/variable-type.test.ts` | Runtime predicate behavior. |
+
+### Optional extension packages
+
+| File | Responsibility |
+| --- | --- |
+| `packages/qr/src/vendor/qr-encoder.ts` | Embedded QR encoding implementation converted to built-in canvas vectors by `@pdfcraft/qr`. |
+| `packages/svg/src/svg-measure.ts` | SVG resource ownership, parsing, dimension writing and PDFKit rendering implemented by `@pdfcraft/svg`. |
+
+Core owns only a feature-neutral extension lifecycle: detection, resource resolution, measurement,
+box layout and optional rendering. QR/SVG node types and behavior exist only in their packages.
+Consumers register optional implementations through `createPdfCraft({ extensions })` or
+`addExtensions()`.
+
+## Package and workspace validation
+
+### Core integration tests
 
 | File | Focus |
 | --- | --- |
-| `tests/integration/integration-test.helpers.ts` | Shared font setup, page rendering and geometric assertions. |
-| `tests/integration/basics.test.ts` | Basic document creation and common content. |
-| `tests/integration/alignment.test.ts` | Horizontal/vertical/table alignment behavior. |
-| `tests/integration/columns.test.ts` | Standard and nested column pagination. |
-| `tests/integration/snaking-columns.test.ts` | Snaking column order, transitions and tables. |
-| `tests/integration/tables.test.ts` | Table widths, spans, heights, fills, borders, pagination, headers, partial group-layout inheritance and upstream regressions. |
-| `tests/integration/lists.test.ts` | Ordered/unordered/nested lists and multi-page markers. |
-| `tests/integration/images.test.ts` | Raster sizing, caching, URL/VFS/binary inputs and placement. |
-| `tests/integration/svgs.test.ts` | SVG resources, sizing, data URLs and placement. |
-| `tests/integration/background.test.ts` | Background layers and page-count callbacks. |
-| `tests/integration/dynamic-page-margins.test.ts` | Dynamic margin convergence and page-local geometry. |
-| `tests/integration/page-break-before.test.ts` | Callback node lists, positions, convergence and loop prevention. |
-| `tests/integration/sections.test.ts` | Section page setup and repeatable inheritance. |
-| `tests/integration/shared-references.test.ts` | Reused nodes/rows and isolation after cloning. |
-| `tests/integration/acroforms.test.ts` | Form creation, font strings and PDF structure. |
-| `tests/integration/encrypted-links.test.ts` | External/internal links in encrypted PDFs. |
-| `tests/integration/jpeg-stream.test.ts` | JPEG XObject creation and PDF.js decoding. |
+| `packages/core/tests/integration/integration-test.helpers.ts` | Shared font setup, page rendering and geometric assertions. |
+| `packages/core/tests/integration/basics.test.ts` | Basic document creation and common content. |
+| `packages/core/tests/integration/alignment.test.ts` | Horizontal/vertical/table alignment behavior. |
+| `packages/core/tests/integration/columns.test.ts` | Standard and nested column pagination. |
+| `packages/core/tests/integration/snaking-columns.test.ts` | Snaking column order, transitions and tables. |
+| `packages/core/tests/integration/tables.test.ts` | Table widths, spans, heights, fills, borders, pagination, headers, partial group-layout inheritance and upstream regressions. |
+| `packages/core/tests/integration/lists.test.ts` | Ordered/unordered/nested lists and multi-page markers. |
+| `packages/core/tests/integration/images.test.ts` | Raster sizing, caching, URL/VFS/binary inputs and placement. |
+| `packages/core/tests/integration/background.test.ts` | Background layers and page-count callbacks. |
+| `packages/core/tests/integration/dynamic-page-margins.test.ts` | Dynamic margin convergence and page-local geometry. |
+| `packages/core/tests/integration/page-break-before.test.ts` | Callback node lists, positions, convergence and loop prevention. |
+| `packages/core/tests/integration/sections.test.ts` | Section page setup and repeatable inheritance. |
+| `packages/core/tests/integration/shared-references.test.ts` | Reused nodes/rows and isolation after cloning. |
+| `packages/core/tests/integration/acroforms.test.ts` | Form creation, font strings and PDF structure. |
+| `packages/core/tests/integration/encrypted-links.test.ts` | External/internal links in encrypted PDFs. |
+| `packages/core/tests/integration/jpeg-stream.test.ts` | JPEG XObject creation and PDF.js decoding. |
 
-### Browser and consumer tests
+### Browser, extension and consumer tests
 
 | File | Focus |
 | --- | --- |
-| `tests/browser/browser-entry.test.ts` | Real browser import, browser-loaded fonts, Blob/download/open/print and interactive form preview. |
+| `packages/browser/tests/browser-entry.test.ts` | Real browser import, browser-loaded fonts, Blob/download/open/print and interactive form preview. |
+| `packages/svg/tests/integration/svg.test.ts` | SVG resources, sizing, data URLs and placement through core. |
 | `tests/consumer/package-exports.test.ts` | Installed-package export map and Node ESM/CJS consumption. |
 
 ### Public type tests
 
 | File | Focus |
 | --- | --- |
-| `tests/types/package.ts` | Node ESM public API/type contract. |
-| `tests/types/package.cjs.cts` | Node CommonJS public API/type contract. |
-| `tests/types/browser.ts` | Browser public API/type contract. |
-| `tests/types/tsconfig.node.json` | Isolated Node type-test compiler settings. |
-| `tests/types/tsconfig.browser.json` | Isolated browser type-test compiler settings. |
+| `packages/core/tests/types/package.ts` | Node ESM public API/type contract. |
+| `packages/core/tests/types/package.cjs.cts` | Node CommonJS public API/type contract. |
+| `packages/browser/tests/types/package.ts` | Browser public API/type contract and optional-extension compatibility. |
+| `packages/qr/tests/types/package.ts` | QR node augmentation contract. |
+| `packages/svg/tests/types/package.ts` | SVG node/resource augmentation contract without ambient DOM types. |
 
 ### Manual visual regression
 
@@ -376,7 +382,7 @@ Tests:
 | Symptom or proposal | First files to inspect | Primary regression location |
 | --- | --- | --- |
 | Invalid/misleading document-structure error | `preprocessing/doc-preprocessor.ts`, public content types | colocated preprocessor tests |
-| Public TypeScript API mismatch | `src/types/*`, runtime validator/consumer | `tests/types/*`, consumer tests |
+| Public TypeScript API mismatch | package public types, runtime validator/consumer | owning package's `tests/types/*`, root consumer tests |
 | Wrong font/style/text width or wrapping | `text/*`, `measurement/doc-measure.ts`, style stack | colocated text/measurement tests, integration basics |
 | Auto/star/percentage/colSpan width | `doc-measure.table.ts`, `column-calculator.ts` | column-calculator unit + tables integration |
 | Table row height/page break/header/rowSpan | `layout-builder.rows.ts`, `layout-builder.table*.ts`, `table-processor*.ts` | tables integration + visual case when geometric |
@@ -480,25 +486,25 @@ An AI should answer an issue review with:
 Use the smallest relevant command while iterating, then the complete applicable set before handoff.
 
 ```sh
-npm run typecheck
-npm run test:unit
-npm run test:integration
-npm run test:browser
-npm run test:types
-npm run test:consumer
-npm run lint
-npm run format:check
-npm run build
-npm run check:size
+pnpm typecheck
+pnpm test:unit
+pnpm test:integration
+pnpm test:browser
+pnpm test:types
+pnpm test:consumer
+pnpm lint
+pnpm format:check
+pnpm build
+pnpm check:size
 ```
 
 Additional workflows:
 
 ```sh
-npm run benchmark:quick
-npm run benchmark
-npm run visual:generate
-npm run analyze:dependencies
+pnpm benchmark:quick
+pnpm benchmark
+pnpm visual:generate
+pnpm analyze:dependencies
 ```
 
-`npm test` runs the main build, contracts, unit, integration, browser, lint and formatting sequence. Browser tests require permission to open a temporary local listening port in restricted environments.
+`pnpm test` runs the main build, contracts, unit, integration, browser, lint and formatting sequence. Browser tests require permission to open a temporary local listening port in restricted environments.

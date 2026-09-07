@@ -3,14 +3,14 @@
 Generate the PDFs from the package root:
 
 ```sh
-npm run visual:generate
+pnpm visual:generate
 ```
 
 The files are written to `private/pdfs/visual/`, which is ignored by Git. A different
 directory can be selected without editing the script:
 
 ```sh
-npm run visual:generate -- --output=/tmp/pdfcraft-visual
+pnpm visual:generate -- --output=/tmp/pdfcraft-visual
 ```
 
 Open the seven PDFs in Preview, Acrobat or a browser. The red dashed rectangle

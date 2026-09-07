@@ -2,7 +2,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
-const sourceDirectory = path.resolve("src");
+const sourceDirectories = [path.resolve("packages/core/src"), path.resolve("packages/browser/src")];
 const outputArgument = process.argv.find((argument) => argument.startsWith("--output="));
 const outputFile = path.resolve(outputArgument?.slice("--output=".length) || "SOURCE_CONTEXT.md");
 const testDirectories = new Set(["__test__", "__tests__", "test", "tests"]);
@@ -46,7 +46,9 @@ const getFence = (contents) => {
 	return "`".repeat(longestRun + 1);
 };
 
-const files = await collectSourceFiles(sourceDirectory);
+const files = (
+	await Promise.all(sourceDirectories.map((directory) => collectSourceFiles(directory)))
+).flat();
 const sections = await Promise.all(
 	files.map(async (filename) => {
 		const contents = await readFile(filename, "utf8");
@@ -60,7 +62,7 @@ const sections = await Promise.all(
 const document = [
 	"# PDFCraft source context",
 	"",
-	"Generated production sources from `src/`. Test directories and test/spec files are excluded.",
+	"Generated production sources from `packages/*/src/`. Test directories and test/spec files are excluded.",
 	"",
 	...sections.flatMap((section) => [section, ""]),
 ].join("\n");

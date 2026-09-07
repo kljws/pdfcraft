@@ -1,0 +1,53 @@
+{
+	"name": "@pdfcraft/browser",
+	"version": "8.0.0",
+	"description": "PDFCraft browser package",
+	"type": "module",
+	"sideEffects": false,
+	"author": "kljws",
+	"license": "MIT",
+	"homepage": "https://github.com/kljws/pdfcraft#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kljws/pdfcraft.git",
+		"directory": "packages/browser"
+	},
+	"bugs": {
+		"url": "https://github.com/kljws/pdfcraft/issues"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"pdf",
+		"javascript",
+		"browser",
+		"printing"
+	],
+	"main": "dist/index.js",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist",
+		"LICENSE",
+		"README.md"
+	],
+	"scripts": {
+		"typecheck": "tsc --noEmit -p tsconfig.build.json",
+		"build": "pnpm run typecheck && tsdown",
+		"prepack": "pnpm run build"
+	},
+	"devDependencies": {
+		"@pdfcraft/core": "workspace:^",
+		"pdfkit": "^0.20.2",
+		"tsdown": "^0.22.9",
+		"typescript": "^7.0.2"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	}
+}

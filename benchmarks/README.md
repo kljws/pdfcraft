@@ -15,9 +15,9 @@ The quick profile uses smaller workloads and one iteration. It verifies the runn
 ## Commands
 
 ```sh
-npm run benchmark
-npm run benchmark:quick
-npm run benchmark:quote
+pnpm benchmark
+pnpm benchmark:quick
+pnpm benchmark:quote
 ```
 
 The standard profile performs one warmup and three measured iterations per scenario. Override these values or select one workload when investigating a change:

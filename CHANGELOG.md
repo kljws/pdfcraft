@@ -6,22 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [8.0.0] - 2026-09-05
+
 ### Added
 
+- Converted the repository to a pnpm workspace with separately publishable `@pdfcraft/core` and self-contained `@pdfcraft/browser` packages.
+- Added separately publishable `@pdfcraft/qr` and `@pdfcraft/svg` extensions, registered through `createPdfCraft({ extensions })` or `addExtensions()`.
+- Added a feature-neutral content extension lifecycle for resource resolution, measurement, box layout and optional rendering.
 - Added shared Oxlint and Oxfmt configurations, an Oxc safe-fix command, and workspace settings that format and apply Oxc fixes on save.
 - Logical table body groups now accept a partial inline `layout` for all four cell paddings and internal horizontal/vertical separator widths, colors and dash styles. Unspecified callbacks inherit from `body.layout`, while outer borders, group boundaries, the header/body boundary, page-closing borders and rounded contours remain structurally owned by the table.
 - Added a `concurrent-10x3` benchmark scenario that generates 10 concurrent 3-page documents.
 - Benchmark runs now write a Markdown summary table to `benchmarks/REPORT.md`.
-- Added dedicated benchmarks that generate the real PDF/A-3 `quote.js` sample 1, 10 and 100 times concurrently, plus comma-separated scenario selection, a configurable Markdown report path and an `npm run benchmark:quote` command.
+- Added dedicated benchmarks that generate the real PDF/A-3 `quote.js` sample 1, 10 and 100 times concurrently, plus comma-separated scenario selection, a configurable Markdown report path and a `pnpm benchmark:quote` command.
 
 ### Changed
 
+- Moved core integration/type tests, browser runtime/type tests and extension type/integration tests into their owning workspace packages; root tests now contain only cross-package and manual visual validation.
+- Removed all QR/SVG node types, resource contracts and implementation knowledge from `@pdfcraft/core`; importing each optional package now augments public document types, while registering it supplies runtime behavior.
+- Removed the legacy `pdfcraft`, `pdfcraft/browser` and `pdfcraft/types` package entry points. Version 8 consumers must use the scoped packages.
+- Renamed the canvas path measurement utility from `svg-path-bounds.ts` to `canvas-path-bounds.ts` to reflect its actual ownership outside the SVG feature.
+- Replaced the former `pdfcraft`, `pdfcraft/browser` and `pdfcraft/types` imports with `@pdfcraft/core`, `@pdfcraft/browser` and `@pdfcraft/core/types`.
 - Updated PDFKit from 0.19.1 to 0.20.2. Node.js uses PDFKit's native ESM build, while the browser bundle continues to use its standalone build with registered standard-font metrics.
 - Updated the playground quote sample with fictional seller/buyer data and aligned its embedded Factur-X XML attachment.
 - Playground sample lists are discovered from `playground/shared/samples/*.js` at runtime instead of a hard-coded name list.
 
 ### Fixed
 
+- Made browser-package type checking resolve the built `@pdfcraft/core` adapter instead of following workspace source paths without core ambient vendor declarations.
+- Declared PDFKit as a runtime dependency of `@pdfcraft/core`, matching the externalized Node.js build.
 - Externalized npm dependencies from Node.js builds, restoring the published-package size budget after the tsdown upgrade.
 - Collected PDF output from flowing `data` events, restoring browser generation with PDFKit 0.20's minimal readable-stream implementation.
 - Resolved PDFKit's standalone browser bundle through its exported package entry, avoiding `ERR_PACKAGE_PATH_NOT_EXPORTED` with PDFKit 0.20.

@@ -10,7 +10,7 @@
 		"no-unused-vars": ["error", { "args": "none" }],
 		"prefer-const": "warn"
 	},
-	"ignorePatterns": ["dist/**", "node_modules/**", "src/vendor/**"],
+	"ignorePatterns": ["dist/**", "node_modules/**"],
 	"overrides": [
 		{
 			"files": ["**/*.{ts,cts,mts,tsx}"],
@@ -23,7 +23,7 @@
 			}
 		},
 		{
-			"files": ["tests/types/**/*.{ts,cts}"],
+			"files": ["packages/*/tests/types/**/*.{ts,cts}"],
 			"rules": {
 				"typescript/no-unused-vars": "off"
 			}

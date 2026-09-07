@@ -8,9 +8,12 @@
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
 		"paths": {
-			"pdfcraft": ["./src/index.ts"],
-			"pdfcraft/browser": ["./src/browser/index.ts"],
-			"pdfcraft/types": ["./src/types/index.ts"]
+			"@pdfcraft/browser": ["./packages/browser/src/index.ts"],
+			"@pdfcraft/core": ["./packages/core/src/index.ts"],
+			"@pdfcraft/core/adapter": ["./packages/core/src/adapter.ts"],
+			"@pdfcraft/core/types": ["./packages/core/src/types/index.ts"],
+			"@pdfcraft/qr": ["./packages/qr/src/index.ts"],
+			"@pdfcraft/svg": ["./packages/svg/src/index.ts"]
 		},
 		"noEmit": true,
 		"noFallthroughCasesInSwitch": true,
@@ -25,11 +28,5 @@
 		"verbatimModuleSyntax": true,
 		"isolatedModules": true
 	},
-	"include": [
-		"src/**/*.ts",
-		"tests/browser/**/*.ts",
-		"tests/consumer/**/*.ts",
-		"tests/integration/**/*.ts",
-		"*.config.mts"
-	]
+	"include": ["packages/**/*.ts", "tests/consumer/**/*.ts", "*.config.mts"]
 }

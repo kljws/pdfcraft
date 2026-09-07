@@ -1,7 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import pdfcraft from "../dist/index.mjs";
+import pdfcraft from "../packages/core/dist/index.mjs";
+import { qrExtension } from "../packages/qr/dist/index.js";
+import { svgExtension } from "../packages/svg/dist/index.js";
 import quoteSample from "../playground/shared/samples/quote.js";
 import { resolveDocumentResources } from "../playground/shared/editor.js";
 
@@ -39,6 +41,7 @@ const quoteDocument = resolveDocumentResources(
 
 const createInstance = () =>
 	pdfcraft.createPdfCraft({
+		extensions: [qrExtension, svgExtension],
 		fonts: {
 			Roboto: {
 				normal: regularFont,

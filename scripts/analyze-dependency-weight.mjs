@@ -1,14 +1,22 @@
 import { readdir, readFile, stat } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { brotliCompressSync, gzipSync } from "node:zlib";
 import { Rolldown } from "tsdown";
 
 const packageRoot = new URL("../", import.meta.url);
+const coreRequire = createRequire(new URL("../packages/core/package.json", import.meta.url));
+const browserRequire = createRequire(new URL("../packages/browser/package.json", import.meta.url));
+const svgRequire = createRequire(new URL("../packages/svg/package.json", import.meta.url));
 const dependencyNames = ["pdfkit", "fontkit", "svg-to-pdfkit"];
-const pdfkitStandalone = fileURLToPath(
-	new URL("node_modules/pdfkit/js/pdfkit.standalone.js", packageRoot),
-);
+const pdfkitRequire = createRequire(coreRequire.resolve("pdfkit"));
+const dependencyDirectories = {
+	pdfkit: dirname(dirname(coreRequire.resolve("pdfkit"))),
+	fontkit: dirname(dirname(pdfkitRequire.resolve("fontkit"))),
+	"svg-to-pdfkit": dirname(svgRequire.resolve("svg-to-pdfkit")),
+};
+const pdfkitStandalone = join(dirname(browserRequire.resolve("pdfkit")), "pdfkit.standalone.js");
 
 const sizeOfTree = async (directory) => {
 	let bytes = 0;
@@ -67,7 +75,7 @@ const formatShare = (bytes, total) => `${((bytes / total) * 100).toFixed(1)}%`;
 
 const installed = [];
 for (const dependency of dependencyNames) {
-	const directory = fileURLToPath(new URL(`node_modules/${dependency}/`, packageRoot));
+	const directory = dependencyDirectories[dependency];
 	const packageJson = JSON.parse(await readFile(join(directory, "package.json"), "utf8"));
 	const size = await sizeOfTree(directory);
 	installed.push({
@@ -78,27 +86,21 @@ for (const dependency of dependencyNames) {
 	});
 }
 
-const browserInput = fileURLToPath(new URL("src/browser/index.ts", packageRoot));
+const browserInput = fileURLToPath(new URL("packages/browser/src/index.ts", packageRoot));
+const qrInput = fileURLToPath(new URL("packages/qr/src/index.ts", packageRoot));
+const svgInput = fileURLToPath(new URL("packages/svg/src/index.ts", packageRoot));
 const browserAlias = { pdfkit: pdfkitStandalone };
-const [full, withoutSvg, withoutPdfkit, withoutBoth] = await Promise.all([
+const [full, withoutPdfkit, qrBundle, svgBundle] = await Promise.all([
 	bundle({ input: browserInput, alias: browserAlias }),
-	bundle({ input: browserInput, alias: browserAlias, external: ["svg-to-pdfkit"] }),
 	bundle({ input: browserInput, alias: browserAlias, external: ["pdfkit"] }),
-	bundle({
-		input: browserInput,
-		alias: browserAlias,
-		external: ["pdfkit", "svg-to-pdfkit"],
-	}),
+	bundle({ input: qrInput }),
+	bundle({ input: svgInput }),
 ]);
 
 const pdfkitContribution = subtract(full, withoutPdfkit);
-const svgContribution = subtract(full, withoutSvg);
-const projectContribution = withoutBoth;
+const projectContribution = withoutPdfkit;
 
-const fontkitInput = join(
-	dirname(fileURLToPath(import.meta.resolve("fontkit"))),
-	"browser-module.mjs",
-);
+const fontkitInput = join(dirname(pdfkitRequire.resolve("fontkit")), "browser-module.mjs");
 const fontkitReference = await bundle({ input: fontkitInput });
 
 console.log("\nInstalled package directories (dependencies are not double-counted):");
@@ -107,7 +109,7 @@ console.table(installed);
 console.log("Browser bundle (minified, ES2020):");
 console.table([
 	{
-		component: "full pdfcraft/browser",
+		component: "full @pdfcraft/browser",
 		raw: formatBytes(full.raw),
 		gzip: formatBytes(full.gzip),
 		brotli: formatBytes(full.brotli),
@@ -119,16 +121,22 @@ console.table([
 		brotli: `${formatBytes(pdfkitContribution.brotli)} (${formatShare(pdfkitContribution.brotli, full.brotli)})`,
 	},
 	{
-		component: "svg-to-pdfkit marginal contribution",
-		raw: `${formatBytes(svgContribution.raw)} (${formatShare(svgContribution.raw, full.raw)})`,
-		gzip: `${formatBytes(svgContribution.gzip)} (${formatShare(svgContribution.gzip, full.gzip)})`,
-		brotli: `${formatBytes(svgContribution.brotli)} (${formatShare(svgContribution.brotli, full.brotli)})`,
-	},
-	{
-		component: "pdfcraft without PDFKit or SVG adapter",
+		component: "@pdfcraft/browser without PDFKit",
 		raw: `${formatBytes(projectContribution.raw)} (${formatShare(projectContribution.raw, full.raw)})`,
 		gzip: `${formatBytes(projectContribution.gzip)} (${formatShare(projectContribution.gzip, full.gzip)})`,
 		brotli: `${formatBytes(projectContribution.brotli)} (${formatShare(projectContribution.brotli, full.brotli)})`,
+	},
+	{
+		component: "optional @pdfcraft/qr",
+		raw: formatBytes(qrBundle.raw),
+		gzip: formatBytes(qrBundle.gzip),
+		brotli: formatBytes(qrBundle.brotli),
+	},
+	{
+		component: "optional @pdfcraft/svg",
+		raw: formatBytes(svgBundle.raw),
+		gzip: formatBytes(svgBundle.gzip),
+		brotli: formatBytes(svgBundle.brotli),
 	},
 ]);
 

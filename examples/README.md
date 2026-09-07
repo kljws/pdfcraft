@@ -3,7 +3,7 @@
 Build PDFCraft, then run an example from the package root:
 
 ```sh
-npm run build
+pnpm build
 node examples/basics.js
 node examples/recent-features.js
 ```

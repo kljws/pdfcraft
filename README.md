@@ -2,7 +2,7 @@
 
 Modern PDF document generation for Node.js and browsers, written in TypeScript.
 
-`pdfcraft` starts from the [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) codebase. It preserves the familiar document-definition model while delivering a cleaner package, first-class TypeScript declarations, explicit ESM and CommonJS exports, isolated instances, a modern browser entry, and a Vitest test suite.
+PDFCraft starts from the [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) codebase. It preserves the familiar document-definition model while delivering separate Node.js and browser packages, first-class TypeScript declarations, explicit ESM and CommonJS exports, isolated instances, and a Vitest test suite.
 
 Numerous pull requests and issues from pdfmake have been fixed or incorporated in this package. See the [CHANGELOG.md](./CHANGELOG.md) for detailed information. 
 
@@ -15,7 +15,7 @@ Numerous pull requests and issues from pdfmake have been fixed or incorporated i
 - Promise-based document output methods
 - Structured tables with declarative headers and inheritable body/group layouts
 - Rounded tables, images and decorated stack blocks
-- Columns, lists, SVG, vectors, sections, attachments and AcroForm fields
+- Columns, lists, optional QR/SVG extensions, vectors, sections, attachments and AcroForm fields
 - Headers, footers, backgrounds, page breaks and page metadata
 - Table of contents, outlines and bookmarks
 - Configurable local-file and URL access policies
@@ -32,19 +32,33 @@ Fonts are not bundled with the npm package. Applications must provide their own 
 ## Installation
 
 ```sh
-npm install --allow-git=all git+https://github.com/kljws/pdfcraft.git#v0.7.3
+pnpm add @pdfcraft/core
 ```
 
-The tag pins the installed source to an exact release. npm runs the repository's `prepack` script
-to build the package before installation. npm 12 requires `--allow-git=all` to opt in to Git
-dependencies explicitly.
+For browser applications, install `@pdfcraft/browser` instead. It is self-contained and also exports the public TypeScript contracts.
+
+QR and SVG support are optional, separately installed extensions:
+
+```sh
+pnpm add @pdfcraft/qr @pdfcraft/svg
+```
+
+```ts
+import { qrExtension } from "@pdfcraft/qr";
+import { svgExtension } from "@pdfcraft/svg";
+
+pdfcraft.addExtensions(qrExtension, svgExtension);
+```
+
+The same extensions work with `@pdfcraft/core` and `@pdfcraft/browser`. Documents without QR or
+SVG content do not need these packages; core contains no QR/SVG node types or implementations.
 
 ## Node.js
 
 ### Default instance
 
 ```ts
-import pdfcraft from "pdfcraft";
+import pdfcraft from "@pdfcraft/core";
 
 pdfcraft.addFonts({
 	Roboto: {
@@ -57,7 +71,7 @@ pdfcraft.addFonts({
 
 const documentDefinition = {
 	content: [
-		{ text: "Hello from pdfcraft", style: "title" },
+		{ text: "Hello from PDFCraft", style: "title" },
 		"This PDF was generated from a TypeScript application.",
 	],
 	styles: {
@@ -78,7 +92,7 @@ await pdf.write("document.pdf");
 Use `createPdfCraft()` when separate parts of an application require different fonts or access policies.
 
 ```ts
-import pdfcraft from "pdfcraft";
+import pdfcraft from "@pdfcraft/core";
 
 const reports = pdfcraft.createPdfCraft({
 	fonts: {
@@ -105,7 +119,7 @@ The default export remains available for compatibility. Every instance exposes t
 ### CommonJS
 
 ```js
-const pdfcraft = require("pdfcraft");
+const pdfcraft = require("@pdfcraft/core");
 ```
 
 ## Browser
@@ -113,7 +127,7 @@ const pdfcraft = require("pdfcraft");
 The browser entry is ESM-only and intended for modern bundlers.
 
 ```ts
-import pdfcraft from "pdfcraft/browser";
+import pdfcraft from "@pdfcraft/browser";
 
 pdfcraft.addFonts({
 	Roboto: {
@@ -138,7 +152,7 @@ Font files and images can be supplied through URLs or the browser virtual file s
 Public contracts are available from the package and from the dedicated types export.
 
 ```ts
-import type { DocumentDefinition } from "pdfcraft/types";
+import type { DocumentDefinition } from "@pdfcraft/core/types";
 
 const documentDefinition: DocumentDefinition = {
 	content: ["Typed document definition"],
@@ -228,23 +242,23 @@ URL policies are checked around redirects where the runtime permits it.
 ## Development
 
 ```sh
-npm install
-npm run build
-npm test
+pnpm install
+pnpm build
+pnpm test
 ```
 
 Useful validation commands include TypeScript checks, ESLint, Prettier, Node tests, browser tests and package verification. See `package.json` for the exact scripts available in the current repository.
 
-Unit tests are colocated as `src/**/__tests__/*.test.ts`. Integration, browser, consumer and public type-contract tests remain under `tests/`.
+Unit tests are colocated under `packages/*/src/**/__tests__/*.test.ts`. Integration, browser, consumer and public type-contract tests remain under `tests/`.
 
 ### Performance benchmarks
 
 Run the quick smoke profile or the complete reproducible benchmark suite:
 
 ```sh
-npm run benchmark:quick
-npm run benchmark
-npm run benchmark:quote
+pnpm benchmark:quick
+pnpm benchmark
+pnpm benchmark:quote
 ```
 
 The suite measures 100–1,000-page documents, large tables, media-heavy PDFs, concurrent generation and batches of 1, 10 or 100 real `quote.js` documents. See [benchmarks/README.md](./benchmarks/README.md) for the workloads, JSON output and comparison methodology.
@@ -260,12 +274,11 @@ Both provide a live editor, shared examples and a PDF.js canvas preview.
 
 ## Package architecture
 
-The package is built from one TypeScript source tree:
+The repository is a pnpm workspace with separate packages:
 
-- `pdfcraft` - Node.js ESM entry;
-- `pdfcraft` through `require()` - generated CommonJS compatibility output;
-- `pdfcraft/browser` - modern browser ESM entry;
-- `pdfcraft/types` - public TypeScript contracts.
+- `@pdfcraft/core` - Node.js ESM and CommonJS package;
+- `@pdfcraft/browser` - modern browser ESM package;
+- `@pdfcraft/core/types` - public TypeScript contracts.
 
 The Node.js bundles and declarations are produced with `tsdown`. Browser-specific output is kept separate from the core document-generation code.
 

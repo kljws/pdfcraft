@@ -2,7 +2,7 @@
 
 This guide documents the styling and layout controls exposed by PDFCraft's TypeScript API. It has been reviewed against the latest supplied production sources.
 
-> Revision note: the public styling types are unchanged in this source update. The layout engine now handles oversized text lines and QR codes on an empty page more safely, avoiding repeated page-break attempts.
+> QR and SVG nodes require the optional `@pdfcraft/qr` and `@pdfcraft/svg` packages. Importing each package adds its public node types; registering its extension adds runtime behavior.
 
 ## Table of contents
 
@@ -39,7 +39,7 @@ PDFCraft provides three complementary styling levels:
 3. Properties placed directly on a content node override inherited values.
 
 ```ts
-import type { DocumentDefinition } from "pdfcraft";
+import type { DocumentDefinition } from "@pdfcraft/core/types";
 
 const doc: DocumentDefinition = {
   defaultStyle: {
@@ -116,8 +116,8 @@ styles: {
 ## Complete example
 
 ```ts
-import pdfcraft from "pdfcraft";
-import type { DocumentDefinition } from "pdfcraft";
+import pdfcraft from "@pdfcraft/core";
+import type { DocumentDefinition } from "@pdfcraft/core/types";
 
 const docDefinition: DocumentDefinition = {
   pageSize: "A4",
@@ -835,7 +835,7 @@ heights: rowIndex => rowIndex === 0 ? 30 : "auto"
 Each callback receives the indexes and the resolved table node needed to make contextual decisions.
 
 ```ts
-import type { TableLayout, TableLayoutNode } from "pdfcraft";
+import type { TableLayout, TableLayoutNode } from "@pdfcraft/core/types";
 
 const zebraLayout: TableLayout = {
   hLineWidth: (index: number, node: TableLayoutNode): number =>
@@ -1035,6 +1035,8 @@ const doc = {
 
 ## SVG
 
+Requires `@pdfcraft/svg` and `pdfcraft.addExtensions(svgExtension)`.
+
 ```ts
 {
   svg: `<svg viewBox="0 0 100 100">...</svg>`,
@@ -1057,6 +1059,8 @@ SVG resources may also be registered in the document-level `svgs` dictionary.
 ---
 
 ## QR codes
+
+Requires `@pdfcraft/qr` and `pdfcraft.addExtensions(qrExtension)`.
 
 ```ts
 {
@@ -1575,7 +1579,7 @@ const styles = {
 ### Card helper
 
 ```ts
-import type { Content, StackNode } from "pdfcraft";
+import type { Content, StackNode } from "@pdfcraft/core/types";
 
 function card(content: Content[], title?: string): StackNode {
   return {
