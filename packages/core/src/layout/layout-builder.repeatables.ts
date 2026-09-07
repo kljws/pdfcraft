@@ -112,14 +112,13 @@ class LayoutBuilderRepeatables {
 			const processed = this.docPreprocessor.preprocessBlock(node);
 			const measured = this.docMeasure.measureBlock(processed);
 			this.processRepeatableNode(measured as LayoutPdfNode);
-			const marginName = customPropertyName === "header" ? "top" : "bottom";
 			const repeatableName = customPropertyName === "header" ? "Header" : "Footer";
 			const measuredHeight = this.writer.commitUnbreakableBlock(
 				sizes.x,
 				sizes.y,
 				autoHeight
 					? `${repeatableName} content on page ${pageIndex + 1} cannot span multiple pages.`
-					: `${repeatableName} content on page ${pageIndex + 1} exceeds the ${sizes.height}pt ${marginName} page margin; increase pageMargins.${marginName} or reduce the ${customPropertyName} content.`,
+					: undefined,
 			);
 			measuredHeights[pageIndex] = measuredHeight;
 			if (
