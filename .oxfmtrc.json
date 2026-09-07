@@ -13,5 +13,5 @@
 	"insertFinalNewline": true,
 	"sortImports": false,
 	"sortPackageJson": false,
-	"ignorePatterns": ["dist/**", "node_modules/**", "*.md"]
+	"ignorePatterns": ["dist/**", "node_modules/**", "packages/svg/src/vendor/**", "*.md"]
 }

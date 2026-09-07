@@ -7,7 +7,7 @@ const budgets = {
 	browserPackageBytes: 1_900_000,
 	corePackageBytes: 1_500_000,
 	qrPackageBytes: 250_000,
-	svgPackageBytes: 100_000,
+	svgPackageBytes: 400_000,
 };
 
 const browserPackage = new URL("../packages/browser/", import.meta.url);

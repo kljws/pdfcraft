@@ -10,7 +10,7 @@
 		"no-unused-vars": ["error", { "args": "none" }],
 		"prefer-const": "warn"
 	},
-	"ignorePatterns": ["dist/**", "node_modules/**"],
+	"ignorePatterns": ["dist/**", "node_modules/**", "packages/svg/src/vendor/**"],
 	"overrides": [
 		{
 			"files": ["**/*.{ts,cts,mts,tsx}"],

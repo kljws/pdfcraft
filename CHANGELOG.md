@@ -9,12 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Embedded the MIT-licensed SVG-to-PDFKit 0.1.8 renderer and local option declarations inside `@pdfcraft/svg`, removing the `svg-to-pdfkit` and `@types/svg-to-pdfkit` dependencies while preserving renderer behavior.
-- Split `@pdfcraft/svg` internals into dedicated public types, measurement, resource resolution, PDFKit rendering and extension-composition modules while keeping its public API and embedded renderer unchanged.
+- Split `@pdfcraft/svg` internals into dedicated public types, measurement, resource resolution, PDFKit rendering and extension-composition modules while keeping its public API and renderer behavior unchanged.
+- Split the embedded SVG renderer into isolated per-render state, PDFKit bridging, XML, CSS, geometry, path, text-metric and SVG-element-family modules without introducing module-level mutable document state.
 
 ### Fixed
 
 - Made GitHub Actions build workspace packages before coverage, kept core unit tests independent from QR/SVG implementations, and added package dry-run validation for all four published packages.
 - Measure footers per page and automatically expand the bottom page margin when needed, repaginating body and table content through bounded layout passes instead of truncating or overlapping the footer. The configured bottom margin remains the minimum.
+- Restored SVG path parsing after renderer modularization by resolving `StringParser` from the per-render context.
+
+### Tests
+
+- Added real PDF rendering regressions for SVG shapes, paths, transforms, nested containers, symbols, raster images, gradients, patterns, clipping, masks, markers, text paths and concurrent render isolation.
 
 ## [8.0.0] - 2026-09-05
 

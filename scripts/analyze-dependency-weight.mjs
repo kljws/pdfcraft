@@ -8,13 +8,11 @@ import { Rolldown } from "tsdown";
 const packageRoot = new URL("../", import.meta.url);
 const coreRequire = createRequire(new URL("../packages/core/package.json", import.meta.url));
 const browserRequire = createRequire(new URL("../packages/browser/package.json", import.meta.url));
-const svgRequire = createRequire(new URL("../packages/svg/package.json", import.meta.url));
-const dependencyNames = ["pdfkit", "fontkit", "svg-to-pdfkit"];
+const dependencyNames = ["pdfkit", "fontkit"];
 const pdfkitRequire = createRequire(coreRequire.resolve("pdfkit"));
 const dependencyDirectories = {
 	pdfkit: dirname(dirname(coreRequire.resolve("pdfkit"))),
 	fontkit: dirname(dirname(pdfkitRequire.resolve("fontkit"))),
-	"svg-to-pdfkit": dirname(svgRequire.resolve("svg-to-pdfkit")),
 };
 const pdfkitStandalone = join(dirname(browserRequire.resolve("pdfkit")), "pdfkit.standalone.js");
 
@@ -154,5 +152,5 @@ console.log(
 	"Note: the production browser build aliases PDFKit to pdfkit.standalone.js, where Fontkit is already flattened into PDFKit. Its exact marginal bytes cannot be separated from that artifact; the reference row measures Fontkit independently instead.",
 );
 console.log(
-	"Node builds keep production dependencies external, so these dependencies add no bytes to dist/index.mjs or dist/index.cjs; their cost there is installation and runtime loading.",
+	"Node builds keep npm production dependencies external. Vendored QR and SVG implementations are included in their optional package bundles.",
 );
