@@ -326,10 +326,10 @@ Tests:
 | `packages/svg/src/measurement/svg-measure.ts` | SVG parsing, intrinsic dimension measurement and rendered-dimension writing. |
 | `packages/svg/src/resources/svg-resources.ts` | Named resource, VFS, byte-array and SVG data-URL resolution. |
 | `packages/svg/src/renderer/render-svg.ts` | PDFCraft-to-SVG renderer adapter and font resolution. |
-| `packages/svg/src/vendor/svg-to-pdfkit.cjs` | Embedded SVG-to-PDFKit 0.1.8 option normalization and render orchestration. |
-| `packages/svg/src/vendor/svg-to-pdfkit.d.cts` | Local declaration for the embedded CommonJS renderer. |
-| `packages/svg/src/vendor/renderer/context.cjs` | Per-render state and deterministic renderer-module installation. |
-| `packages/svg/src/vendor/renderer/pdfkit/bridge.cjs` | Low-level PDFKit groups, masks, patterns, text, colors and link annotations. |
+| `packages/svg/src/vendor/svg-to-pdfkit.ts` | Typed SVG-to-PDFKit 0.1.8 option normalization and render orchestration. |
+| `packages/svg/src/vendor/renderer/runtime.types.ts` | Shared per-render state and module-installer contracts. |
+| `packages/svg/src/vendor/renderer/context.ts` | Per-render state and deterministic renderer-module installation. |
+| `packages/svg/src/vendor/renderer/pdfkit/bridge.ts` | Low-level PDFKit groups, masks, patterns, text, colors and link annotations. |
 | `packages/svg/src/vendor/renderer/parsing`, `xml`, `css`, `geometry`, `text` | Token parsing, XML parsing, CSS/color resolution, matrix/path geometry and font metrics. |
 | `packages/svg/src/vendor/renderer/elements` | Base, container, shape, paint and text SVG element implementations. |
 

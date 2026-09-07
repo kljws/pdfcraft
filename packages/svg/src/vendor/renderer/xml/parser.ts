@@ -1,4 +1,5 @@
-module.exports = function installXmlParser(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installXmlParser = (runtime) => {
     function parseXml(xml) {
       let SvgNode = function(tag, type, value, error) {
         this.error = error;

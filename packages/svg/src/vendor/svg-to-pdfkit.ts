@@ -1,6 +1,14 @@
-const createSvgRenderContext = require("./renderer/context.cjs");
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; public signature remains typed.
+import { createSvgRenderContext } from "./renderer/context";
+import type { SvgToPdfOptions } from "../types";
 
-var SVGtoPDF = function(doc, svg, x, y, options) {
+const svgToPdf = function(
+	doc: object,
+	svg: unknown,
+	x?: number,
+	y?: number,
+	options?: SvgToPdfOptions,
+): void {
     "use strict";
 
     const NamedColors = {aliceblue: [240,248,255], antiquewhite: [250,235,215], aqua: [0,255,255], aquamarine: [127,255,212], azure: [240,255,255], beige: [245,245,220], bisque: [255,228,196], black: [0,0,0], blanchedalmond: [255,235,205], blue: [0,0,255], blueviolet: [138,43,226], brown: [165,42,42], burlywood: [222,184,135], cadetblue: [95,158,160], chartreuse: [127,255,0],
@@ -199,4 +207,4 @@ var SVGtoPDF = function(doc, svg, x, y, options) {
     }
 };
 
-module.exports = SVGtoPDF;
+export default svgToPdf;

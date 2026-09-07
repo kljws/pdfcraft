@@ -1,4 +1,5 @@
-module.exports = function installElementFactory(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installElementFactory = (runtime) => {
     function createSVGElement(obj, inherits) {
       switch (obj.nodeName) {
         case 'use': return new runtime.SvgElemUse(obj, inherits);

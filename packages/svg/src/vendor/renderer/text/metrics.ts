@@ -1,4 +1,5 @@
-module.exports = function installTextMetrics(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installTextMetrics = (runtime) => {
     function combineArrays(array1, array2) {
       return array1.concat(array2.slice(array1.length));
     }

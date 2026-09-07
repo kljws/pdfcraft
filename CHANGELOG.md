@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Embedded the MIT-licensed SVG-to-PDFKit 0.1.8 renderer and local option declarations inside `@pdfcraft/svg`, removing the `svg-to-pdfkit` and `@types/svg-to-pdfkit` dependencies while preserving renderer behavior.
 - Split `@pdfcraft/svg` internals into dedicated public types, measurement, resource resolution, PDFKit rendering and extension-composition modules while keeping its public API and renderer behavior unchanged.
 - Split the embedded SVG renderer into isolated per-render state, PDFKit bridging, XML, CSS, geometry, path, text-metric and SVG-element-family modules without introducing module-level mutable document state.
+- Migrated the embedded SVG renderer from CommonJS JavaScript modules to ESM TypeScript modules, replacing the ambient CommonJS declaration with typed renderer inputs, state and installer contracts.
 
 ### Fixed
 

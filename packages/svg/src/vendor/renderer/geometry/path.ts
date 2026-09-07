@@ -1,4 +1,5 @@
-module.exports = function installPath(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installPath = (runtime) => {
     var BezierSegment = function(p1x, p1y, c1x, c1y, c2x, c2y, p2x, p2y) {
       let divisions = 6 * runtime.precision;
       let equationX = [p1x, -3 * p1x + 3 * c1x, 3 * p1x - 6 * c1x + 3 * c2x, -p1x + 3 * c1x - 3 * c2x + p2x];

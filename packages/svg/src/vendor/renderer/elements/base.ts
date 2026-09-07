@@ -1,4 +1,5 @@
-module.exports = function installBaseElements(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installBaseElements = (runtime) => {
     var SvgElem = function(obj, inherits) {
       let styleCache = Object.create(null);
       let childrenCache = null;

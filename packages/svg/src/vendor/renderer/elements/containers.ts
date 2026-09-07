@@ -1,4 +1,5 @@
-module.exports = function installContainerElements(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installContainerElements = (runtime) => {
     var SvgElemUse = function(obj, inherits) {
       runtime.SvgElemContainer.call(this, obj, inherits);
       let x = this.getLength('x', this.getVWidth(), 0),

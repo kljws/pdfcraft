@@ -1,4 +1,5 @@
-module.exports = function installColors(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installColors = (runtime) => {
     function parseColor(raw) {
       let temp, result;
       raw = (raw || '').trim();

@@ -1,4 +1,5 @@
-module.exports = function installStylesheet(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installStylesheet = (runtime) => {
     function parseStyleAttr(v) {
       let result = Object.create(null);
       v = (v || '').trim().split(/;/);

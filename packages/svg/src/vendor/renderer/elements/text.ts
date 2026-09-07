@@ -1,4 +1,5 @@
-module.exports = function installTextElements(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installTextElements = (runtime) => {
     var SvgElemTextContainer = function(obj, inherits) {
       runtime.SvgElemStylable.call(this, obj, inherits);
       this.allowedChildren = ['tspan', '#text', '#cdata-section', 'a'];

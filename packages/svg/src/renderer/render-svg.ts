@@ -1,5 +1,6 @@
-import SVGtoPDF from "../vendor/svg-to-pdfkit.cjs";
+import svgToPdf from "../vendor/svg-to-pdfkit";
 import type { ExtensionRenderContext } from "@pdfcraft/core/types";
+import type { SvgToPdfOptions } from "../types";
 
 export const renderSvg = ({ document, node, resolveFont }: ExtensionRenderContext): void => {
 	const options = {
@@ -11,12 +12,5 @@ export const renderSvg = ({ document, node, resolveFont }: ExtensionRenderContex
 		fontCallback: (family: string, bold: boolean, italic: boolean) =>
 			resolveFont(family, bold, italic, typeof node.font === "string" ? node.font : "Roboto"),
 	};
-	const render = SVGtoPDF as unknown as (
-		document: object,
-		source: unknown,
-		x: number,
-		y: number,
-		options: Record<string, unknown>,
-	) => void;
-	render(document, node.svg, node.x as number, node.y as number, options);
+	svgToPdf(document, node.svg, node.x as number, node.y as number, options as SvgToPdfOptions);
 };

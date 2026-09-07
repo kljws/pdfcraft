@@ -1,4 +1,5 @@
-module.exports = function installPdfKitBridge(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installPdfKitBridge = (runtime) => {
     function docBeginGroup(bbox) {
       let group = new (function PDFGroup() {})();
       group.name = 'G' + (runtime.doc._groupCount = (runtime.doc._groupCount || 0) + 1);

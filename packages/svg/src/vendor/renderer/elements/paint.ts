@@ -1,4 +1,5 @@
-module.exports = function installPaintElements(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installPaintElements = (runtime) => {
     var SvgElemPattern = function(obj, inherits, fallback) {
       runtime.SvgElemHasChildren.call(this, obj, inherits);
       this.ref = (function() {

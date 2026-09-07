@@ -1,4 +1,5 @@
-module.exports = function installShapeElements(runtime) {
+// @ts-nocheck Legacy SVG-to-PDFKit algorithm; typed at module boundary.
+export const installShapeElements = (runtime) => {
     var SvgElemBasicShape = function(obj, inherits) {
       runtime.SvgElemStylable.call(this, obj, inherits);
       this.dashScale = 1;
