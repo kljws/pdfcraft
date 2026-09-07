@@ -510,8 +510,7 @@ class LayoutBuilder {
 			const resolved = resolveSectionPage(section, page, {
 				pageSize: this.pageSize,
 				pageMargins: this.pageMargins,
-				inheritedPageMargins:
-					this.writer.context().basePageMargins[this.writer.context().page],
+				inheritedPageMargins: this.writer.context().basePageMargins[this.writer.context().page],
 			});
 
 			this.writer.addPage(
