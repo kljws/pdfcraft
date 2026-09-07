@@ -6,6 +6,8 @@ export interface LayoutResult {
 	linearNodeList: LayoutPdfNode[];
 	pageMarginFunctionUsed?: boolean;
 	dynamicBackgroundUsesPageCount?: boolean;
+	basePageMargins: PageMargins[];
+	footerHeights: Array<number | undefined>;
 }
 
 export interface PageBreakNodeInfo extends Record<string, unknown> {

@@ -1964,6 +1964,77 @@ describe("LayoutBuilder", function () {
 			assert.ok(measuredWatermark.fontSize < 100);
 			assert.ok(measuredWatermark._size.rotatedSize.height <= pages[0].pageSize.height + 1);
 		});
+
+		it("expands the bottom margin and repaginates table rows for a tall footer", function () {
+			footer = vi.fn(() => ({ text: "Footer\n".repeat(10) }));
+
+			const pages = builder.layoutDocument(
+				{
+					table: {
+						widths: "auto",
+						heights: 25,
+						body: {
+							groups: [
+								{
+									dontBreakRows: true,
+									rows: Array.from({ length: 27 }, (_, index) => [`Product ${index + 1}`]),
+								},
+							],
+							layout: emptyTableLayout,
+						},
+					},
+				},
+				pdfDocument,
+				styleDictionary,
+				defaultStyle,
+				undefined,
+				undefined,
+				footer,
+				watermark,
+				pageBreakBeforeFunction,
+			);
+
+			assert.equal(pages.length, 2);
+			for (const page of pages) {
+				assert.equal(page.pageMargins.left, 40);
+				assert.equal(page.pageMargins.right, 40);
+				assert.equal(page.pageMargins.top, 40);
+				assert.ok(page.pageMargins.bottom > 40);
+				const footerTop = page.pageSize.height - page.pageMargins.bottom;
+				const footerLines = page.items.filter(
+					(item) =>
+						item.type === "line" && item.item.inlines.some((inline) => inline.text === "Footer"),
+				);
+				const productLines = page.items.filter(
+					(item) =>
+						item.type === "line" &&
+						item.item.inlines.some((inline) => inline.text.startsWith("Product ")),
+				);
+				assert.ok(footerLines.length > 0);
+				assert.ok(footerLines.every((line) => line.item.y >= footerTop));
+				assert.ok(productLines.every((line) => line.item.y + line.item.getHeight() <= footerTop));
+			}
+		});
+
+		it("rejects a footer too tall to leave usable page content area", function () {
+			footer = vi.fn(() => ({ text: "Footer\n".repeat(100) }));
+
+			assert.throws(
+				() =>
+					builder.layoutDocument(
+						["Text"],
+						pdfDocument,
+						styleDictionary,
+						defaultStyle,
+						undefined,
+						undefined,
+						footer,
+						watermark,
+						pageBreakBeforeFunction,
+					),
+				/Footer content on page 1 is too tall to leave usable page content area\./,
+			);
+		});
 	});
 
 	describe("dynamic background", function () {

@@ -236,7 +236,11 @@ class PageElementWriter {
 		}
 	}
 
-	commitUnbreakableBlock(forcedX?: number, forcedY?: number): void {
+	commitUnbreakableBlock(
+		forcedX?: number,
+		forcedY?: number,
+		detachedOverflowMessage?: string,
+	): number | undefined {
 		if (--this.transactionLevel === 0) {
 			const unbreakableContext = this.context();
 			this.popContext();
@@ -244,8 +248,19 @@ class PageElementWriter {
 			const nbPages = unbreakableContext.pages.length;
 			if (nbPages > 0) {
 				if (forcedX !== undefined || forcedY !== undefined) {
+					const firstPage = unbreakableContext.pages[0];
+					const firstPageContentHeight = getFragmentHeight(
+						firstPage.items,
+						nbPages === 1 ? unbreakableContext.y : firstPage.pageSize.height,
+					);
+					if (
+						detachedOverflowMessage &&
+						(nbPages > 1 || firstPageContentHeight > firstPage.pageSize.height)
+					) {
+						throw new Error(detachedOverflowMessage);
+					}
 					const fragment: ElementFragment = {
-						items: unbreakableContext.pages[0].items,
+						items: firstPage.items,
 						height: 0,
 						xOffset: forcedX,
 						yOffset: forcedY,
@@ -264,7 +279,7 @@ class PageElementWriter {
 					}
 
 					this.writer.addFragment(fragment, true, true, true);
-					return;
+					return fragment.height;
 				}
 
 				for (let pageIndex = 0; pageIndex < nbPages; pageIndex++) {

@@ -159,6 +159,14 @@ const documentDefinition: DocumentDefinition = {
 };
 ```
 
+## Dynamic footers
+
+The configured bottom page margin is a minimum. When a footer needs more height, PDFCraft expands
+that page's bottom margin and repeats layout so body and table content move to the next page before
+reaching the footer. Different pages may reserve different footer heights.
+
+A footer that is too tall to leave any usable body area is rejected with an explicit error.
+
 ## Structured tables and decorated blocks
 
 Tables separate repeated headers from logical body groups. A group can contain several physical

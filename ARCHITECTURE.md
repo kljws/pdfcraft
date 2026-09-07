@@ -189,7 +189,7 @@ Tests:
 
 | File | Responsibility |
 | --- | --- |
-| `packages/core/src/document/document-context.ts` | Owns pages, current coordinates, available space, margins, columns, transactions and page creation state. It is the central mutable state used by writers. |
+| `packages/core/src/document/document-context.ts` | Owns pages, current coordinates, available space, base/effective margins, footer bottom-margin overrides, columns, transactions and page creation state. It is the central mutable state used by writers. |
 | `packages/core/src/document/document-context.geometry.ts` | Page size/orientation resolution and bottom-most coordinate helpers. |
 | `packages/core/src/document/document-context.helpers.ts` | Page creation/position helpers and nested-snaking detection. |
 | `packages/core/src/document/document-context.columns.ts` | Standard column-group lifecycle, ending cells and bottom reconciliation. |
@@ -203,12 +203,12 @@ Tests:
 
 | File | Responsibility |
 | --- | --- |
-| `packages/core/src/layout/layout-builder.ts` | Runs preprocessing/measurement/layout passes, owns the writer, dispatches node processing and returns all `PdfPage` objects. Handles bounded relayout for page-count-dependent margins/backgrounds and `pageBreakBefore`. |
+| `packages/core/src/layout/layout-builder.ts` | Runs preprocessing/measurement/layout passes, owns the writer, dispatches node processing and returns all `PdfPage` objects. Handles bounded relayout for page-count-dependent margins/backgrounds, measured footer margins and `pageBreakBefore`. |
 | `packages/core/src/layout/layout-builder.content.ts` | Processes measured node kinds, node positions, TOCs and page references. |
 | `packages/core/src/layout/layout-builder.rows.ts` | Lays out table-row cells, reconciles cell heights/page breaks and vertical alignment, and reports explicit internal-state errors if measured grid data is missing. |
 | `packages/core/src/layout/layout-builder.table-processing.ts` | Coordinates `TableProcessor` per table row, validates dynamic height callback results and guards measured offsets before table-level layout. |
 | `packages/core/src/layout/layout-builder.table.ts` | Table page-break metadata and row-span break reconciliation utilities. |
-| `packages/core/src/layout/layout-builder.repeatables.ts` | Backgrounds, headers, footers and their page-count-aware dynamic callbacks. |
+| `packages/core/src/layout/layout-builder.repeatables.ts` | Backgrounds, headers, footers, their page-count-aware dynamic callbacks and per-page footer-height measurement used to expand bottom margins before final pagination. |
 | `packages/core/src/layout/layout-builder.page-breaks.ts` | Builds `pageBreakBefore` node metadata, evaluates callbacks and resets positions for relayout. |
 | `packages/core/src/layout/layout-builder.sections.ts` | Resolves section-level page size/orientation/margins/header/footer/background inheritance. |
 | `packages/core/src/layout/layout-builder.watermark.ts` | Measures and creates text/image watermark render data. |

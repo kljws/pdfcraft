@@ -18,6 +18,7 @@ export type SectionNode = Omit<LayoutPdfNode, "background" | "pageOrientation"> 
 interface SectionDefaults {
 	pageSize: PageSizeDefinition;
 	pageMargins: PageMarginSource;
+	inheritedPageMargins?: PageMarginDefinition;
 }
 
 export function resolveSectionPage(
@@ -40,7 +41,7 @@ export function resolveSectionPage(
 			: section.pageOrientation;
 	const pageMargins =
 		section.pageMargins === "inherit"
-			? (currentPage?.pageMargins ?? defaults.pageMargins)
+			? (defaults.inheritedPageMargins ?? currentPage?.pageMargins ?? defaults.pageMargins)
 			: section.pageMargins;
 
 	const inheritedProperties = currentPage?.customProperties ?? {};

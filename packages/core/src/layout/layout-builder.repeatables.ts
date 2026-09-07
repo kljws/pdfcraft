@@ -87,8 +87,10 @@ class LayoutBuilderRepeatables {
 		nodeGetter: unknown,
 		sizeFunction: RepeatableSizeFunction,
 		customPropertyName: string,
-	): void {
+		autoHeight = false,
+	): Array<number | undefined> {
 		const pages = this.writer.context().pages;
+		const measuredHeights: Array<number | undefined> = [];
 		for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
 			this.writer.context().page = pageIndex;
 			const customProperties = pages[pageIndex].customProperties;
@@ -106,15 +108,35 @@ class LayoutBuilderRepeatables {
 			if (!node) continue;
 
 			const sizes = sizeFunction(pages[pageIndex].pageSize, pages[pageIndex].pageMargins);
-			this.writer.beginUnbreakableBlock(sizes.width, sizes.height);
+			this.writer.beginUnbreakableBlock(sizes.width, autoHeight ? Infinity : sizes.height);
 			const processed = this.docPreprocessor.preprocessBlock(node);
 			const measured = this.docMeasure.measureBlock(processed);
 			this.processRepeatableNode(measured as LayoutPdfNode);
-			this.writer.commitUnbreakableBlock(sizes.x, sizes.y);
+			const marginName = customPropertyName === "header" ? "top" : "bottom";
+			const repeatableName = customPropertyName === "header" ? "Header" : "Footer";
+			const measuredHeight = this.writer.commitUnbreakableBlock(
+				sizes.x,
+				sizes.y,
+				autoHeight
+					? `${repeatableName} content on page ${pageIndex + 1} cannot span multiple pages.`
+					: `${repeatableName} content on page ${pageIndex + 1} exceeds the ${sizes.height}pt ${marginName} page margin; increase pageMargins.${marginName} or reduce the ${customPropertyName} content.`,
+			);
+			measuredHeights[pageIndex] = measuredHeight;
+			if (
+				autoHeight &&
+				measuredHeight !== undefined &&
+				Number.isFinite(pages[pageIndex].pageSize.height) &&
+				measuredHeight >= pages[pageIndex].pageSize.height - pages[pageIndex].pageMargins.top
+			) {
+				throw new Error(
+					`${repeatableName} content on page ${pageIndex + 1} is too tall to leave usable page content area.`,
+				);
+			}
 		}
+		return measuredHeights;
 	}
 
-	addHeadersAndFooters(header: unknown, footer: unknown): void {
+	addHeadersAndFooters(header: unknown, footer: unknown): Array<number | undefined> {
 		this.addDynamicRepeatable(
 			header,
 			(pageSize, pageMargins) => ({
@@ -125,7 +147,7 @@ class LayoutBuilderRepeatables {
 			}),
 			"header",
 		);
-		this.addDynamicRepeatable(
+		return this.addDynamicRepeatable(
 			footer,
 			(pageSize, pageMargins) => ({
 				x: 0,
@@ -134,6 +156,7 @@ class LayoutBuilderRepeatables {
 				height: pageMargins.bottom,
 			}),
 			"footer",
+			true,
 		);
 	}
 

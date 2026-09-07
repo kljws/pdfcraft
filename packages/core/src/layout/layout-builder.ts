@@ -142,6 +142,7 @@ class LayoutBuilder {
 
 		const maxLayoutPasses = 10;
 		let assumedPageCount = 0;
+		let bottomMarginOverrides: number[] = [];
 		let layoutPass = 1;
 		const pageCountHistory = [assumedPageCount];
 		let warnedAboutCycle = false;
@@ -155,9 +156,15 @@ class LayoutBuilder {
 			footer,
 			watermark,
 			assumedPageCount,
+			bottomMarginOverrides,
 		);
 		while (layoutPass < maxLayoutPasses) {
 			const nextPageCount = result.pages.length;
+			const nextBottomMarginOverrides = getFooterBottomMargins(result);
+			const footerMarginsNeedAnotherPass = !equalMargins(
+				bottomMarginOverrides,
+				nextBottomMarginOverrides,
+			);
 			const marginsNeedAnotherPass =
 				Boolean(result.pageMarginFunctionUsed) && assumedPageCount !== nextPageCount;
 			const backgroundNeedsAnotherPass =
@@ -169,19 +176,29 @@ class LayoutBuilder {
 				this.extensions,
 			);
 
-			if (!marginsNeedAnotherPass && !backgroundNeedsAnotherPass && !pageBreakNeedsAnotherPass)
+			if (
+				!footerMarginsNeedAnotherPass &&
+				!marginsNeedAnotherPass &&
+				!backgroundNeedsAnotherPass &&
+				!pageBreakNeedsAnotherPass
+			)
 				break;
 
-			if (marginsNeedAnotherPass || backgroundNeedsAnotherPass) {
-				if (!warnedAboutCycle && pageCountHistory.includes(nextPageCount)) {
+			if (footerMarginsNeedAnotherPass || marginsNeedAnotherPass || backgroundNeedsAnotherPass) {
+				if (
+					(marginsNeedAnotherPass || backgroundNeedsAnotherPass) &&
+					!warnedAboutCycle &&
+					pageCountHistory.includes(nextPageCount)
+				) {
 					console.warn(
-						"Non-convergent dynamic pageMargins detected; layout stopped after a bounded number of passes.",
+						"Non-convergent dynamic layout detected; layout stopped after a bounded number of passes.",
 					);
 					warnedAboutCycle = true;
 				}
 				assumedPageCount = nextPageCount;
 				pageCountHistory.push(nextPageCount);
 			}
+			bottomMarginOverrides = nextBottomMarginOverrides;
 
 			resetNodePositions(result);
 			result = this.tryLayoutDocument(
@@ -194,11 +211,33 @@ class LayoutBuilder {
 				footer,
 				watermark,
 				assumedPageCount,
+				bottomMarginOverrides,
 			);
 			layoutPass++;
 		}
+		if (!equalMargins(bottomMarginOverrides, getFooterBottomMargins(result))) {
+			throw new Error("Footer height did not converge after 10 layout passes");
+		}
 
 		return result.pages;
+
+		function getFooterBottomMargins(layoutResult: LayoutResult): number[] {
+			const needsExpandedMargin = layoutResult.footerHeights.some(
+				(height, pageIndex) =>
+					height !== undefined && height > layoutResult.basePageMargins[pageIndex].bottom,
+			);
+			if (!needsExpandedMargin) return [];
+			return layoutResult.basePageMargins.map((margins, pageIndex) =>
+				Math.max(margins.bottom, layoutResult.footerHeights[pageIndex] ?? 0),
+			);
+		}
+
+		function equalMargins(current: readonly number[], next: readonly number[]): boolean {
+			return (
+				current.length === next.length &&
+				current.every((margin, pageIndex) => Math.abs(margin - next[pageIndex]) < 0.001)
+			);
+		}
 	}
 
 	tryLayoutDocument(
@@ -211,6 +250,7 @@ class LayoutBuilder {
 		footer: unknown,
 		watermark: unknown,
 		pageCount = 0,
+		bottomMarginOverrides: readonly number[] = [],
 	): LayoutResult {
 		const isNecessaryAddFirstPage = (document: LayoutPdfNode): boolean => {
 			if (document.stack && document.stack.length > 0 && document.stack[0].section) {
@@ -231,6 +271,7 @@ class LayoutBuilder {
 		const documentContext = new DocumentContext();
 		documentContext.pageMarginSource = this.pageMargins;
 		documentContext.pageCount = pageCount;
+		documentContext.bottomMarginOverrides = bottomMarginOverrides;
 		this.writer = new PageElementWriter(documentContext);
 		let dynamicBackgroundUsesPageCount = false;
 
@@ -260,7 +301,7 @@ class LayoutBuilder {
 				};
 			}
 		}
-		this.repeatables.addHeadersAndFooters(header, footer);
+		const footerHeights = this.repeatables.addHeadersAndFooters(header, footer);
 		this.repeatables.addWatermark(watermark, pdfDocument, defaultStyle);
 
 		return {
@@ -268,6 +309,8 @@ class LayoutBuilder {
 			linearNodeList: this.linearNodeList,
 			pageMarginFunctionUsed: this.writer.context().pageMarginFunctionUsed,
 			dynamicBackgroundUsesPageCount,
+			basePageMargins: this.writer.context().basePageMargins,
+			footerHeights,
 		};
 	}
 
@@ -467,6 +510,8 @@ class LayoutBuilder {
 			const resolved = resolveSectionPage(section, page, {
 				pageSize: this.pageSize,
 				pageMargins: this.pageMargins,
+				inheritedPageMargins:
+					this.writer.context().basePageMargins[this.writer.context().page],
 			});
 
 			this.writer.addPage(

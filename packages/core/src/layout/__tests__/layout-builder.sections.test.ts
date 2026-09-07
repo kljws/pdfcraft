@@ -59,4 +59,22 @@ describe("resolveSectionPage", () => {
 		expect(result.pageSize).toBe("A4");
 		expect(result.pageMargins).toEqual(defaults.pageMargins);
 	});
+
+	it("inherits base margins instead of a footer-expanded bottom margin", () => {
+		const page = {
+			items: [],
+			pageSize: { width: 300, height: 500, orientation: "portrait" },
+			pageMargins: { left: 10, top: 20, right: 30, bottom: 90 },
+			customProperties: {},
+		} as PdfPage;
+		const baseMargins = { left: 10, top: 20, right: 30, bottom: 40 };
+
+		const result = resolveSectionPage(
+			{ section: { text: "Next section" }, pageMargins: "inherit" } as SectionNode,
+			page,
+			{ ...defaults, inheritedPageMargins: baseMargins },
+		);
+
+		expect(result.pageMargins).toEqual(baseMargins);
+	});
 });

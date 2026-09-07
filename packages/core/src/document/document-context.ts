@@ -35,6 +35,8 @@ class DocumentContext {
 	pageMarginSource: PageMarginSource = this.pageMargins;
 	pageCount = 0;
 	pageMarginFunctionUsed = false;
+	basePageMargins: PageMargins[] = [];
+	bottomMarginOverrides: readonly number[] = [];
 	x = 0;
 	y = 0;
 	availableWidth = 0;
@@ -296,6 +298,14 @@ class DocumentContext {
 			);
 		} else {
 			evaluatedMargins = normalizePageMargin(this.pageMarginSource);
+		}
+		this.basePageMargins.push(evaluatedMargins);
+		const bottomMarginOverride = this.bottomMarginOverrides[this.pages.length];
+		if (bottomMarginOverride !== undefined) {
+			evaluatedMargins = {
+				...evaluatedMargins,
+				bottom: Math.max(evaluatedMargins.bottom, bottomMarginOverride),
+			};
 		}
 		this.pageMargins = evaluatedMargins;
 		this.x = evaluatedMargins.left;

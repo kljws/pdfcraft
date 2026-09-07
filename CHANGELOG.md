@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - Made GitHub Actions build workspace packages before coverage, kept core unit tests independent from QR/SVG implementations, and added package dry-run validation for all four published packages.
+- Measure footers per page and automatically expand the bottom page margin when needed, repaginating body and table content through bounded layout passes instead of truncating or overlapping the footer. The configured bottom margin remains the minimum.
 
 ## [8.0.0] - 2026-09-05
 
