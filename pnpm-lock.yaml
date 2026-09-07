@@ -117,9 +117,6 @@ importers:
 
   packages/svg:
     dependencies:
-      svg-to-pdfkit:
-        specifier: 0.1.8
-        version: 0.1.8
       xmldoc:
         specifier: ^3.0.0
         version: 3.0.0
@@ -127,9 +124,6 @@ importers:
       '@pdfcraft/core':
         specifier: workspace:^
         version: link:../core
-      '@types/svg-to-pdfkit':
-        specifier: 0.1.4
-        version: 0.1.4
       tsdown:
         specifier: ^0.22.9
         version: 0.22.14(typescript@7.0.2)
@@ -625,9 +619,6 @@ packages:
 
   '@types/pdfkit@0.17.6':
     resolution: {integrity: sha512-tIwzxk2uWKp0Cq9JIluQXJid77lYhF52EsIOwhsMF4iWLA6YneoBR1xVKYYdAysHuepUB0OX4tdwMiUDdGKmig==}
-
-  '@types/svg-to-pdfkit@0.1.4':
-    resolution: {integrity: sha512-l6rxgkz9ZYfTwOxdpln+xa7+Qlj5/h+FFP8r/G/Jyqg7LlgxH1mQrXADIN45orH9JBXzoUuWz0FusYHJLPKrbw==}
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     resolution: {integrity: sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==}
@@ -1296,9 +1287,6 @@ packages:
   std-env@4.2.0:
     resolution: {integrity: sha512-oCUKSupKTHX53EyjDtuZQ64pjLJ6yYCtpmEw0goYxtjG9KpbRe8KAsl2tBUGU9DyMcJ0RwJ8GqJAFzMXcXW1Rw==}
 
-  svg-to-pdfkit@0.1.8:
-    resolution: {integrity: sha512-QItiGZBy5TstGy+q8mjQTMGRlDDOARXLxH+sgVm1n/LYeo0zFcQlcCh8m4zi8QxctrxB9Kue/lStc/RD5iLadQ==}
-
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
 
@@ -1775,10 +1763,6 @@ snapshots:
   '@types/pdfkit@0.17.6':
     dependencies:
       '@types/node': 26.4.1
-
-  '@types/svg-to-pdfkit@0.1.4':
-    dependencies:
-      '@types/pdfkit': 0.17.6
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -2305,10 +2289,6 @@ snapshots:
   stackback@0.0.2: {}
 
   std-env@4.2.0: {}
-
-  svg-to-pdfkit@0.1.8:
-    dependencies:
-      pdfkit: 0.20.2
 
   tiny-inflate@1.0.3: {}
 

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Embedded the MIT-licensed SVG-to-PDFKit 0.1.8 renderer and local option declarations inside `@pdfcraft/svg`, removing the `svg-to-pdfkit` and `@types/svg-to-pdfkit` dependencies while preserving renderer behavior.
+
 ### Fixed
 
 - Made GitHub Actions build workspace packages before coverage, kept core unit tests independent from QR/SVG implementations, and added package dry-run validation for all four published packages.

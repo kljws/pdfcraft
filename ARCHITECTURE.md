@@ -322,6 +322,8 @@ Tests:
 | --- | --- |
 | `packages/qr/src/vendor/qr-encoder.ts` | Embedded QR encoding implementation converted to built-in canvas vectors by `@pdfcraft/qr`. |
 | `packages/svg/src/svg-measure.ts` | SVG resource ownership, parsing, dimension writing and PDFKit rendering implemented by `@pdfcraft/svg`. |
+| `packages/svg/src/vendor/svg-to-pdfkit.cjs` | Embedded SVG-to-PDFKit 0.1.8 renderer; kept byte-for-byte compatible with upstream. |
+| `packages/svg/src/vendor/svg-to-pdfkit.d.cts` | Local declaration for the embedded CommonJS renderer. |
 
 Core owns only a feature-neutral extension lifecycle: detection, resource resolution, measurement,
 box layout and optional rendering. QR/SVG node types and behavior exist only in their packages.
@@ -441,7 +443,7 @@ Check `CHANGELOG.md`, current public types, tests and visual cases. Add the upst
 
 ### E. Out of scope or viewer/dependency-specific
 
-Confirm whether the failure belongs to PDFKit, Fontkit, SVG-to-PDFKit, PDF.js or a particular viewer. Do not add unstable geometry workarounds without cross-viewer evidence.
+Confirm whether the failure belongs to PDFKit, Fontkit, the vendored SVG-to-PDFKit renderer, PDF.js or a particular viewer. Do not add unstable geometry workarounds without cross-viewer evidence.
 
 ## Global features that constrain refactors
 

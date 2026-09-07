@@ -32,12 +32,10 @@
 		"prepack": "pnpm run build"
 	},
 	"dependencies": {
-		"svg-to-pdfkit": "0.1.8",
 		"xmldoc": "^3.0.0"
 	},
 	"devDependencies": {
 		"@pdfcraft/core": "workspace:^",
-		"@types/svg-to-pdfkit": "0.1.4",
 		"tsdown": "^0.22.9",
 		"typescript": "^7.0.2"
 	},

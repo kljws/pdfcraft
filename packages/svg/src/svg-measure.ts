@@ -1,5 +1,5 @@
 import { XmlDocument } from "xmldoc";
-import SVGtoPDF from "svg-to-pdfkit";
+import SVGtoPDF from "./vendor/svg-to-pdfkit.cjs";
 import type {
 	ContentBase,
 	Dictionary,
@@ -19,6 +19,32 @@ export interface SvgElement {
 	setAttribute(name: string, value: string): void;
 }
 
+export type SvgToPdfColor = [[number, number, number], number];
+
+export interface SvgToPdfFontOptions {
+	fauxItalic: boolean;
+	fauxBold: boolean;
+}
+
+export interface SvgToPdfOptions {
+	width?: number;
+	height?: number;
+	preserveAspectRatio?: string;
+	useCSS?: boolean;
+	fontCallback?: (
+		family: string,
+		bold: boolean,
+		italic: boolean,
+		fontOptions: SvgToPdfFontOptions,
+	) => string;
+	imageCallback?: (link: string) => string;
+	documentCallback?: (file: string) => SvgElement | string | Array<SvgElement | string>;
+	colorCallback?: (color: SvgToPdfColor) => SvgToPdfColor;
+	warningCallback?: (warning: string) => void;
+	assumePt?: boolean;
+	precision?: number;
+}
+
 export interface SvgNode extends ContentBase {
 	svg: string | SvgElement;
 	width?: number;
@@ -28,7 +54,7 @@ export interface SvgNode extends ContentBase {
 	maxWidth?: number;
 	minHeight?: number;
 	maxHeight?: number;
-	options?: Record<string, unknown>;
+	options?: SvgToPdfOptions;
 }
 
 declare global {
