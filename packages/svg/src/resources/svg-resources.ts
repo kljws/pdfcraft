@@ -6,10 +6,7 @@ import type {
 
 const decodeBytes = (value: Uint8Array): string => new TextDecoder().decode(value);
 
-export const resolveSvgSource = (
-	source: unknown,
-	context: ExtensionMeasureContext,
-): unknown => {
+export const resolveSvgSource = (source: unknown, context: ExtensionMeasureContext): unknown => {
 	if (typeof source !== "string") return source;
 	const resources = context.documentDefinition.svgs;
 	let resolved =
