@@ -55,6 +55,7 @@ jobs:
           node-version: 22.x
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       - run: pnpm test:coverage
 
   browser:
@@ -87,3 +88,5 @@ jobs:
       - run: pnpm check:size
       - run: pnpm --filter @pdfcraft/core pack --dry-run
       - run: pnpm --filter @pdfcraft/browser pack --dry-run
+      - run: pnpm --filter @pdfcraft/qr pack --dry-run
+      - run: pnpm --filter @pdfcraft/svg pack --dry-run

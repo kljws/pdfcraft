@@ -1,5 +1,5 @@
 import { assert, describe, it } from "vitest";
-import { SVGMeasure, svgExtension } from "@pdfcraft/svg";
+import { SVGMeasure, svgExtension } from "../../src/index.ts";
 import IntegrationTestHelper from "../../../core/tests/integration/integration-test.helpers.ts";
 import pdfcraft from "../../../core/src/index.ts";
 

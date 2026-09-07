@@ -1,6 +1,4 @@
 import { assert, beforeEach, describe, it } from "vitest";
-import { qrExtension } from "@pdfcraft/qr";
-import { svgExtension } from "@pdfcraft/svg";
 import BaseDocPreprocessor from "../../preprocessing/doc-preprocessor.ts";
 import BaseDocMeasure from "../doc-measure.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
@@ -73,7 +71,7 @@ class DocMeasure extends BaseDocMeasure {
 		pdfDocument: unknown,
 		styleDictionary: Dictionary<Style> = {},
 		defaultStyle: Style = {},
-		extensions: PdfCraftExtensions = [qrExtension, svgExtension],
+		extensions: PdfCraftExtensions = [],
 		tableLayouts: Dictionary<Partial<TableLayout>> = {},
 	) {
 		super(pdfDocument as PDFDocument, styleDictionary, defaultStyle, extensions, tableLayouts);

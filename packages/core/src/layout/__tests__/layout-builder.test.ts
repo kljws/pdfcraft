@@ -1,6 +1,4 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
-import { qrExtension } from "@pdfcraft/qr";
-import { svgExtension } from "@pdfcraft/svg";
 import BaseLayoutBuilder from "../layout-builder.ts";
 import StyleContextStack from "../style-context-stack.ts";
 import ColumnCalculator from "../column-calculator.ts";
@@ -34,6 +32,16 @@ type VerticalAlignmentFixture = PageControlItem & {
 	getNodeHeight(): number;
 };
 
+const boxExtension: PdfCraftExtension = {
+	name: "box",
+	pageBreakKeys: ["box"],
+	test: (node) => typeof node.box === "string",
+	measure: (node, context) => {
+		node.canvas = [{ type: "rect", x: 0, y: 0, w: 80, h: 80 }];
+		context.measureBox({ width: 80, height: 80 });
+	},
+};
+
 class LayoutBuilder extends BaseLayoutBuilder {
 	declare pages: RichPage[];
 	declare context: Array<Record<string, number>>;
@@ -42,9 +50,8 @@ class LayoutBuilder extends BaseLayoutBuilder {
 	constructor(
 		pageSize: PageSize,
 		pageMargins: PageMargins,
-		extension: PdfCraftExtension = svgExtension,
 	) {
-		super(pageSize, pageMargins, [qrExtension, extension]);
+		super(pageSize, pageMargins, [boxExtension]);
 	}
 
 	override layoutDocument(
@@ -1502,7 +1509,7 @@ describe("LayoutBuilder", function () {
 			assert.equal(pages.length, 1);
 		});
 
-		it("should use the absolutePosition attribute without pagebreak in qr", function () {
+		it("should use the absolutePosition attribute without pagebreak in an extension", function () {
 			var builderAP = new LayoutBuilder(
 				{ width: 841.89, height: 555.28, orientation: "portrait" },
 				{ left: 40, right: 40, top: 40, bottom: 40 },
@@ -1512,11 +1519,11 @@ describe("LayoutBuilder", function () {
 			builderAP.styleStack = new StyleContextStack();
 			var desc = [
 				{
-					qr: "pdfmake",
+					box: "first",
 					absolutePosition: { x: 250, y: 500 },
 				},
 				{
-					qr: "pdfmake",
+					box: "second",
 					absolutePosition: { x: 450, y: 520 },
 				},
 			];
@@ -1754,9 +1761,9 @@ describe("LayoutBuilder", function () {
 				tableNode.table.body.push([stack1, stack2]);
 			}
 
-			new DocMeasure(sampleTestProvider as unknown as PDFDocument, {}, {}, [
-				qrExtension,
-			]).measureDocument(tableNode as unknown as PdfNode);
+			new DocMeasure(sampleTestProvider as unknown as PDFDocument, {}, {}).measureDocument(
+				tableNode as unknown as PdfNode,
+			);
 			ColumnCalculator.buildColumnWidths(tableNode.table.widths as unknown as ColumnWidth[], 320);
 
 			return tableNode as TableFixture;
@@ -1766,7 +1773,7 @@ describe("LayoutBuilder", function () {
 			var pageSize: PageSize = { width: 400, height: 800, orientation: "portrait" };
 			var pageMargins = { left: 40, top: 40, bottom: 40, right: 40 };
 
-			builder2 = new LayoutBuilder(pageSize, pageMargins, svgExtension);
+			builder2 = new LayoutBuilder(pageSize, pageMargins);
 			var ctx = new DocumentContext();
 			ctx.addPage(pageSize, pageMargins);
 			builder2.writer = new PageElementWriter(ctx);
@@ -2322,7 +2329,7 @@ describe("LayoutBuilder", function () {
 					image:
 						"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wgARCAABAAEDAREAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACP/EABQBAQAAAAAAAAAAAAAAAAAAAAX/2gAMAwEAAhADEAAAATY4f//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAQUCf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMBAT8Bf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIBAT8Bf//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEABj8Cf//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAT8hf//aAAwDAQACAAMAAAAQn//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMBAT8Qf//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIBAT8Qf//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAT8Qf//Z",
 				},
-				{ id: "qr", qr: "http://www.thoughtworks.com/join" },
+				{ id: "box", box: "extension content" },
 				{ id: "canvas", canvas: [{ type: "rect", x: 0, y: 0, w: 10, h: 10 }] },
 				{ id: "columns", columns: [{ text: "column item", id: "column-item" }] },
 			];
@@ -2372,10 +2379,10 @@ describe("LayoutBuilder", function () {
 			var imageIndex = olIndex + 2;
 			validateCalled(imageIndex, "image", "image");
 
-			var qrIndex = imageIndex + 1;
-			validateCalled(qrIndex, "qr", "qr");
+			var boxIndex = imageIndex + 1;
+			validateCalled(boxIndex, "box", "box");
 
-			var canvasIndex = qrIndex + 1;
+			var canvasIndex = boxIndex + 1;
 			validateCalled(canvasIndex, "canvas", "canvas");
 
 			var columnIndex = canvasIndex + 1;
