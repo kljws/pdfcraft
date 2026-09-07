@@ -47,10 +47,7 @@ class LayoutBuilder extends BaseLayoutBuilder {
 	declare context: Array<Record<string, number>>;
 	declare styleStack: StyleContextStack;
 
-	constructor(
-		pageSize: PageSize,
-		pageMargins: PageMargins,
-	) {
+	constructor(pageSize: PageSize, pageMargins: PageMargins) {
 		super(pageSize, pageMargins, [boxExtension]);
 	}
 
