@@ -321,7 +321,11 @@ Tests:
 | File | Responsibility |
 | --- | --- |
 | `packages/qr/src/vendor/qr-encoder.ts` | Embedded QR encoding implementation converted to built-in canvas vectors by `@pdfcraft/qr`. |
-| `packages/svg/src/svg-measure.ts` | SVG resource ownership, parsing, dimension writing and PDFKit rendering implemented by `@pdfcraft/svg`. |
+| `packages/svg/src/types.ts` | Public SVG node, renderer option and document-resource types. |
+| `packages/svg/src/extension/svg-extension.ts` | Extension lifecycle composition and SVG measurement orchestration. |
+| `packages/svg/src/measurement/svg-measure.ts` | SVG parsing, intrinsic dimension measurement and rendered-dimension writing. |
+| `packages/svg/src/resources/svg-resources.ts` | Named resource, VFS, byte-array and SVG data-URL resolution. |
+| `packages/svg/src/renderer/render-svg.ts` | PDFCraft-to-SVG renderer adapter and font resolution. |
 | `packages/svg/src/vendor/svg-to-pdfkit.cjs` | Embedded SVG-to-PDFKit 0.1.8 renderer; kept byte-for-byte compatible with upstream. |
 | `packages/svg/src/vendor/svg-to-pdfkit.d.cts` | Local declaration for the embedded CommonJS renderer. |
 

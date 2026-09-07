@@ -1,6 +1,7 @@
 import { assert, describe, expect, it, vi } from "vitest";
 import type { ExtensionMeasureContext } from "@pdfcraft/core/types";
-import { svgExtension, SVGMeasure } from "../svg-measure.ts";
+import { svgExtension } from "../extension/svg-extension.ts";
+import { SVGMeasure } from "../measurement/svg-measure.ts";
 
 // NOTE: more tests for SVGMeasure in integration/svgs.js
 

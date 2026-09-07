@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Embedded the MIT-licensed SVG-to-PDFKit 0.1.8 renderer and local option declarations inside `@pdfcraft/svg`, removing the `svg-to-pdfkit` and `@types/svg-to-pdfkit` dependencies while preserving renderer behavior.
+- Split `@pdfcraft/svg` internals into dedicated public types, measurement, resource resolution, PDFKit rendering and extension-composition modules while keeping its public API and embedded renderer unchanged.
 
 ### Fixed
 

@@ -3,7 +3,7 @@ import { SVGMeasure, svgExtension } from "../../src/index.ts";
 import IntegrationTestHelper from "../../../core/tests/integration/integration-test.helpers.ts";
 import pdfcraft from "../../../core/src/index.ts";
 
-// NOTE: more tests for SVGMeasure in ../svg-measure.js
+// NOTE: more tests for SVGMeasure in src/__tests__/svg-measure.test.ts
 
 describe("Integration Test: svg's", function () {
 	var testHelper = new IntegrationTestHelper([svgExtension]);
