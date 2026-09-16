@@ -1,6 +1,12 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
 import { createLayoutBuilder, emptyTableLayout, sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
+import type { PageControlItem, PdfPage } from "../../../types/internal.ts";
+
+type VerticalAlignmentFixture = PageControlItem & {
+	isCellContentMultiPage: boolean;
+	getNodeHeight(): number;
+};
 
 describe("LayoutBuilder", function () {
 	let builder: LayoutBuilder;
@@ -249,6 +255,84 @@ describe("LayoutBuilder", function () {
 			assert.equal(pages[0].items[0].item.x, 40);
 			assert(pages[0].items[4].item.x > 40);
 			assert.equal(pages[1].items[0].item.x, 40);
+		});
+		it("calculates a positive vertical-alignment height when cell content spans pages", function () {
+			const pages = builder.layoutDocument(
+				[
+					{
+						table: {
+							widths: [150, 150],
+							body: {
+								groups: [
+									{
+										rows: [
+											[
+												{
+													text: Array.from({ length: 400 }, (_, index) => `line ${index}`).join(
+														" ",
+													),
+													verticalAlignment: "middle",
+												},
+												{ text: "short", verticalAlignment: "bottom" },
+											],
+										],
+									},
+								],
+								layout: emptyTableLayout,
+							},
+						},
+					},
+				],
+				sampleTestProvider,
+			);
+			const pageItems = (pages as unknown as PdfPage[]).flatMap((page) => page.items);
+			const begin = pageItems.find((item) => item.type === "beginVerticalAlignment");
+			if (!begin?.item) throw new Error("Expected a vertical-alignment marker");
+			const alignment = begin.item as VerticalAlignmentFixture;
+
+			assert.ok(pages.length > 1);
+			assert.equal(alignment.isCellContentMultiPage, true);
+			assert.ok(Number.isFinite(alignment.getNodeHeight()));
+			assert.ok(alignment.getNodeHeight() > 0);
+		});
+
+		it("should use the relativePosition attribute to position in relativePosition coordinates in a table cell", function () {
+			var desc = [
+				{
+					table: {
+						widths: [200, 200],
+						body: {
+							groups: [
+								{
+									rows: [
+										[
+											{
+												text: "text 1",
+												style: {
+													alignment: "center",
+												},
+												relativePosition: { x: 10, y: 200 },
+											},
+											{
+												text: "text 2",
+												relativePosition: { x: 0, y: 0 },
+											},
+										],
+									],
+								},
+							],
+							layout: emptyTableLayout,
+						},
+					},
+				},
+			];
+
+			var pages = builder.layoutDocument(desc, sampleTestProvider, {});
+
+			assert.equal(pages[0].items[0].item.x, 114);
+			assert.equal(pages[0].items[0].item.y, 240);
+			assert.equal(pages[0].items[1].item.x, 240);
+			assert.equal(pages[0].items[1].item.y, 40);
 		});
 	});
 });
