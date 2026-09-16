@@ -12,12 +12,8 @@ export interface ElementFragment {
 	items: PageItem[];
 }
 
-interface FragmentWriter {
-	context(): DocumentContext;
-}
-
 export function replayFragment(
-	writer: FragmentWriter,
+	writer: { context(): DocumentContext },
 	block: ElementFragment,
 	useBlockXOffset: boolean | undefined,
 	useBlockYOffset: boolean | undefined,

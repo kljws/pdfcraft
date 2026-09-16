@@ -144,11 +144,11 @@ Tests:
 | --- | --- |
 | `packages/core/src/composition/built-in-feature-registry.ts` | Maps built-in feature names to concrete matchers and binds ordered stage processors; concrete feature knowledge stays in composition. |
 | `packages/core/src/composition/built-in-element-placement.ts` | Adapts image, canvas, extension, attachment and AcroForm placement features to the feature-neutral element-writer port. |
-| `packages/core/src/composition/built-in-document-features.ts` | Wires background, header/footer and watermark features to preprocessing, measurement, page writing and font-aware watermark measurement without exposing those concrete collaborators to features. |
-| `packages/core/src/composition/built-in-document-pipeline.ts` | Creates document preprocessing/measurement services, runs each concrete layout pass with page writer and repeatables, and connects generic bounded relayout to `pageBreakBefore` plus registered-extension metadata. |
-| `packages/core/src/composition/built-in-layout.ts` | Owns complete built-in layout dispatch, including primary/trailing order, extension fallback, unknown-node errors and feature-specific decoration/reset hooks; creates stack/section/columns contexts, owns shared row-layout composition and decides initial-page ownership. `LayoutBuilder` retains only compatibility façades for recursive/row dispatch and subclass overrides. |
-| `packages/core/src/composition/built-in-measurement.ts` | Creates shared image/text measurers, ordered handlers and concrete feature contexts; owns style-scoped node measurement, margin extension, extension fallback and unknown-node errors while preserving the `DocMeasure` façade. |
-| `packages/core/src/composition/built-in-preprocessing.ts` | Owns shorthand normalization, ordered preprocessing handlers, concrete feature contexts, extension fallback and TOC registration while preserving the `DocPreprocessor` façade and subclass overrides. |
+| `packages/core/src/composition/built-in-document-features.ts` | Wires background, header/footer and watermark features to preprocessing, measurement, page writing and font-aware watermark measurement without exposing those concrete collaborators to features; its composed result remains module-private. |
+| `packages/core/src/composition/built-in-document-pipeline.ts` | Creates document preprocessing/measurement services, runs each concrete layout pass with page writer and repeatables, and connects generic bounded relayout to `pageBreakBefore` plus registered-extension metadata. Pipeline input/host/result contracts remain internal. |
+| `packages/core/src/composition/built-in-layout.ts` | Owns complete built-in layout dispatch, including primary/trailing order, extension fallback, unknown-node errors and feature-specific decoration/reset hooks; invokes stack/section/columns handlers directly, owns shared table/columns row-layout composition and decides initial-page ownership. |
+| `packages/core/src/composition/built-in-measurement.ts` | Creates shared image/text measurers and ordered direct feature handlers; owns style-scoped node measurement, margin extension, extension fallback and unknown-node errors without exporting its internal host/result contracts. |
+| `packages/core/src/composition/built-in-preprocessing.ts` | Owns shorthand normalization, ordered preprocessing handlers, direct feature calls and contexts, extension fallback and TOC registration without exporting its internal host/result contracts. |
 | `packages/core/src/composition/built-in-printer-resources.ts` | Connects attachment and registered-extension resource resolution to the feature-neutral printer resource workflow. |
 | `packages/core/src/composition/built-in-rendering.ts` | Connects text, image, attachment, extension, AcroForm and watermark renderers to feature-neutral rendering façades. |
 
@@ -188,10 +188,12 @@ They may depend on engine contracts and shared services, but must not import ano
 | `packages/core/src/features/canvas/layout-canvas.ts` | Records positions and node ownership for emitted vectors. |
 | `packages/core/src/features/canvas/place-canvas.ts` | Applies canvas page-fit, alignment, vector insertion and cursor movement rules. |
 | `packages/core/src/features/canvas/decorate-canvas.ts` | Captures and resets mutable vector coordinates across layout passes. |
+| `packages/core/src/features/canvas/__tests__/` | Canvas intrinsic measurement behavior. |
 | `packages/core/src/features/columns/columns.feature.ts` | Typed columns boundary composing detection, preprocessing, measurement and layout. |
 | `packages/core/src/features/columns/preprocess-columns.ts` | Validates the columns array and recursively preprocesses every column. |
 | `packages/core/src/features/columns/measure-columns.ts` | Measures children, resolves inherited column gaps and calculates aggregate min/max widths. |
 | `packages/core/src/features/columns/layout-columns.ts` | Allocates column widths and delegates shared row layout through a narrow injected port. |
+| `packages/core/src/features/columns/__tests__/` | Column child measurement and aggregate min/max widths. |
 | `packages/core/src/features/extension/extension.feature.ts` | Feature-neutral adapter boundary composing every lifecycle stage supplied by registered external extensions. |
 | `packages/core/src/features/extension/extension-registry.ts` | Finds a registered extension by node predicate or measured extension name. |
 | `packages/core/src/features/extension/resolve-extension-resources.ts` | Delegates document resource resolution to registered extensions. |
@@ -206,11 +208,13 @@ They may depend on engine contracts and shared services, but must not import ano
 | `packages/core/src/features/image/layout-image.ts` | Records positioned image metadata through the page writer. |
 | `packages/core/src/features/image/place-image.ts` | Applies image page-fit, alignment and cursor movement rules. |
 | `packages/core/src/features/image/render-image.ts` | Renders image clipping, cover behavior, borders and link annotations through PDFKit. |
+| `packages/core/src/features/image/__tests__/` | Image resource registration, intrinsic sizing and inline-image integration. |
 | `packages/core/src/features/list/list.feature.ts` | Typed ordered/unordered-list boundary composing detection, preprocessing, measurement and layout. Lists emit shared text-line or vector primitives and need no feature renderer. |
 | `packages/core/src/features/list/preprocess-list.ts` | Validates list arrays and recursively preprocesses their items through an injected engine callback. |
 | `packages/core/src/features/list/measure-list.ts` | Measures children, marker gaps, counters and list widths through injected child/text measurement capabilities. |
 | `packages/core/src/features/list/list-markers.ts` | Builds unordered vectors and formats decimal, alphabetic and Roman ordered markers. |
 | `packages/core/src/features/list/layout-list.ts` | Applies list indentation, attaches each marker to its first emitted line and aggregates child positions. |
+| `packages/core/src/features/list/__tests__/` | Ordered/unordered marker, child measurement and aggregate width behavior. |
 | `packages/core/src/features/repeatables/background.feature.ts` | Resolves static or dynamic page backgrounds, preserves callback-arity semantics and lays content out as a detached full-page block. |
 | `packages/core/src/features/repeatables/background.types.ts` | Narrow background callback and document-layout context contracts. |
 | `packages/core/src/features/repeatables/header-footer.feature.ts` | Lays out per-page static or dynamic headers and footers, including detached overflow validation and measured footer heights. |
@@ -231,6 +235,7 @@ They may depend on engine contracts and shared services, but must not import ano
 | `packages/core/src/features/stack/preprocess-decorated-stack.ts` | Validates block decorations and lowers a decorated stack to the existing one-cell rounded-table representation. |
 | `packages/core/src/features/stack/measure-stack.ts` | Measures children and resolves aggregate stack min/max widths. |
 | `packages/core/src/features/stack/layout-stack.ts` | Processes children vertically, aggregates positions and applies paragraph gaps with page breaks. |
+| `packages/core/src/features/stack/__tests__/` | Stack child measurement and aggregate min/max widths. |
 | `packages/core/src/features/table/table.feature.ts` | Typed table-feature boundary composing detection, preprocessing, intrinsic measurement and paginated layout. Table output remains shared vector/page-item data, so no dedicated PDFKit renderer is required. |
 | `packages/core/src/features/table/preprocess-table.ts` | Validates table definitions, normalizes header/body groups and recursively preprocesses rectangular cell content. |
 | `packages/core/src/features/table/table-body.ts` | Expands compact `colSpan`/`rowSpan` input into the strict rectangular internal table grid. |
@@ -246,7 +251,7 @@ They may depend on engine contracts and shared services, but must not import ano
 | `packages/core/src/features/table/table-processor.helpers.ts` | Provides span geometry, border propagation, explicit-break detection and table-vector tracking. |
 | `packages/core/src/features/table/table-processor.constants.ts` | Defines explicit page-break values accepted inside table cells. |
 | `packages/core/src/features/table/table-processor.types.ts` | Defines resolved-layout, span, processor and per-page vector-registry contracts. |
-| `packages/core/src/features/table/__tests__/` | Table lifecycle, headers, spans, borders and row-segment fill geometry. |
+| `packages/core/src/features/table/__tests__/` | Table measurement, row layout/page-break collection, lifecycle, headers, spans, borders and row-segment fill geometry. |
 | `packages/core/src/features/toc/toc.feature.ts` | Typed table-of-contents boundary composing TOC detection, item registration, preprocessing, measurement and layout. |
 | `packages/core/src/features/toc/preprocess-toc.ts` | Registers text nodes as TOC items, reconciles declarations placed before or after their items and preprocesses optional titles. |
 | `packages/core/src/features/toc/measure-toc.ts` | Sorts TOC items, builds the internal two-column page-reference table and measures it through an injected engine callback. |
@@ -300,15 +305,15 @@ They may depend on engine contracts and shared services, but must not import ano
 
 | File | Responsibility |
 | --- | --- |
-| `packages/core/src/preprocessing/doc-preprocessor.ts` | Owns per-document preprocessing/reference state, recursive entry points and compatibility façades. Normalization, dispatch and concrete feature contexts are supplied by preprocessing composition. |
+| `packages/core/src/preprocessing/doc-preprocessor.ts` | Owns per-document preprocessing/reference state and generic recursive entry points. Normalization, dispatch and concrete feature contexts are supplied by preprocessing composition. |
 | `packages/core/src/preprocessing/__tests__/doc-preprocessor.test.ts` | Supported shorthand, invalid structures and dimensions, rectangular table-grid constraints, section constraints, spans and preprocessing errors. |
 
 ### `packages/core/src/measurement/`: intrinsic sizing
 
 | File | Responsibility |
 | --- | --- |
-| `packages/core/src/measurement/doc-measure.ts` | Owns shared style/document state and retains stable recursive plus feature-specific measurement façades. Node lifecycle and concrete dispatch are supplied by measurement composition. |
-| `packages/core/src/measurement/__tests__/doc-measure.test.ts` | General node, style, media, extension, list, column and table measurement behavior. |
+| `packages/core/src/measurement/doc-measure.ts` | Owns shared style/document state and generic document, block and node measurement entry points. Node lifecycle and concrete dispatch are supplied by measurement composition. |
+| `packages/core/src/measurement/__tests__/doc-measure.test.ts` | Generic measurement dispatch and style/margin lifecycle behavior; feature algorithms are tested in their owning feature directories. |
 
 ### `packages/core/src/document/`: mutable pagination state
 
@@ -328,16 +333,16 @@ They may depend on engine contracts and shared services, but must not import ano
 
 | File | Responsibility |
 | --- | --- |
-| `packages/core/src/layout/layout-builder.ts` | Holds mutable per-document layout state and retains compatibility façades used by recursive dispatch and subclasses. Processor creation, concrete passes and feature contexts are owned by composition; convergence and generic node lifecycle live in the engine layer. |
+| `packages/core/src/layout/layout-builder.ts` | Holds mutable per-document layout state, document orchestration façades and the real recursive `processNode`/snaking-page-break entry points. `layoutDocument` remains the package pipeline façade; concrete feature handlers and shared row layout are owned by composition. |
 | `packages/core/src/layout/node.decorators.ts` | Captures/restores common node coordinates and delegates feature-specific decoration/reset through neutral hooks. |
 
 #### Writers and lines
 
 | File | Responsibility |
 | --- | --- |
-| `packages/core/src/layout/element-writer.ts` | Feature-neutral positioned-item writer and stable façade for primitive placement, context management and vector-insertion tracking; feature page items arrive through an injected placement adapter. |
+| `packages/core/src/layout/element-writer.ts` | Feature-neutral positioned-item writer for lines, vectors, vertical-alignment controls, fragments and context management; image, canvas, extension, attachment and AcroForm page items arrive through an injected placement adapter. |
 | `packages/core/src/layout/element-writer.fragments.ts` | Replays cloned fragment items into the active page, updating coordinates, node page numbers, background ordering and vector-insertion ownership. |
-| `packages/core/src/layout/element-writer.page.ts` | Page-aware writer: automatic page changes, repeatable blocks, unbreakable transactions and column transitions. |
+| `packages/core/src/layout/element-writer.page.ts` | Page-aware writer: fit/retry policy for feature placement ports, automatic page changes, repeatable blocks, unbreakable transactions and column transitions. |
 | `packages/core/src/layout/page-item-geometry.ts` | Calculates positioned-item bottoms, automatic page height and node height across one or more laid-out pages. |
 | `packages/core/src/layout/element-writer.helpers.ts` | Shared box alignment, fragment height and page-item insertion helpers. |
 | `packages/core/src/layout/vector-insertion.ts` | Attaches insertion listeners to vectors and notifies their structural owners after direct or cloned-fragment insertion. |

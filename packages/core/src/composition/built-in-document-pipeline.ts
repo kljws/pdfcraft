@@ -22,18 +22,13 @@ import type {
 } from "../types/internal";
 import { createBuiltInDocumentFeatures } from "./built-in-document-features";
 
-export interface BuiltInDocumentPipelineContext {
+interface BuiltInDocumentPipelineContext {
 	extensions: PdfCraftExtensions;
 	pageBreakBefore?: PageBreakBefore;
 	runPass(pageCount: number, bottomMarginOverrides: readonly number[]): DocumentLayoutPassResult;
 }
 
-export interface BuiltInDocumentProcessors {
-	preprocessor: DocPreprocessor;
-	measure: DocMeasure;
-}
-
-export interface BuiltInDocumentPassHost {
+interface BuiltInDocumentPassHost {
 	readonly pageSize: PageSize;
 	readonly pageMargins: PageMarginSource;
 	docPreprocessor: DocPreprocessor;
@@ -44,7 +39,7 @@ export interface BuiltInDocumentPassHost {
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
 }
 
-export interface BuiltInDocumentPassInput {
+interface BuiltInDocumentPassInput {
 	docStructure: unknown;
 	pdfDocument: PDFDocument;
 	defaultStyle: Style;
@@ -63,7 +58,7 @@ export function createBuiltInDocumentProcessors(
 	defaultStyle: Style,
 	extensions: PdfCraftExtensions,
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
-): BuiltInDocumentProcessors {
+) {
 	return {
 		preprocessor: new DocPreprocessor(extensions),
 		measure: new DocMeasure(pdfDocument, styleDictionary, defaultStyle, extensions, tableLayouts),

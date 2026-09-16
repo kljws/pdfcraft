@@ -1,11 +1,11 @@
 .vitest-attachments/
-dist/
-node_modules/
-private/
 .cursor/
 .DS_Store
 .idea
 .env
+dist/
+node_modules/
+private/
 AGENTS.md
 SOURCE_CONTEXT.md
 scripts/

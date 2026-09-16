@@ -17,23 +17,11 @@ interface DocumentFeatureCompositionHost {
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
 }
 
-export interface BuiltInDocumentFeatures {
-	background: {
-		layout(background: unknown): boolean;
-	};
-	headerFooter: {
-		layout(header: unknown, footer: unknown): Array<number | undefined>;
-	};
-	watermark: {
-		layout(watermark: unknown): void;
-	};
-}
-
 export function createBuiltInDocumentFeatures(
 	host: DocumentFeatureCompositionHost,
 	pdfDocument: PDFDocument,
 	defaultStyle: Style,
-): BuiltInDocumentFeatures {
+) {
 	const layoutRepeatableNode = (node: LayoutPdfNode): void => {
 		const previous = host.suppressLinearNodeList;
 		host.suppressLinearNodeList = true;

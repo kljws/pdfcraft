@@ -14,7 +14,6 @@ import { type ElementFragment, replayFragment } from "./element-writer.fragments
 import { notifyVectorInsertion } from "./vector-insertion";
 
 type VectorPageItem = Extract<PageItem, { type: "vector" }>;
-export { trackVectorInsertion } from "./vector-insertion";
 
 export interface ElementWriterEvents {
 	lineAdded: [line: LineLike];
@@ -22,7 +21,7 @@ export interface ElementWriterEvents {
 	columnChanged: [change: { prevY: number; y: number }];
 }
 
-export interface ElementPlacementWriter {
+interface ElementPlacementWriter {
 	context(): DocumentContext;
 	getCurrentPositionOnPage(): CurrentPosition;
 	addVector(
@@ -67,8 +66,8 @@ export interface ElementPlacementAdapter {
  * their positions based on the context
  */
 class ElementWriter {
-	_context: DocumentContext;
-	contextStack: DocumentContext[];
+	private _context: DocumentContext;
+	readonly contextStack: DocumentContext[];
 	private readonly onLineAdded?: (line: LineLike) => void;
 	private readonly placement?: ElementPlacementAdapter;
 
@@ -151,7 +150,7 @@ class ElementWriter {
 		return position;
 	}
 
-	alignLine(line: LineLike): void {
+	private alignLine(line: LineLike): void {
 		const width = this.context().availableWidth;
 		const lineWidth = line.getWidth();
 
@@ -203,25 +202,6 @@ class ElementWriter {
 			notifyVectorInsertion(vector, isNumber(forcePage) ? forcePage : context.page, page, pageItem);
 			return position;
 		}
-	}
-
-	beginClip(width: number, height: number): boolean {
-		const ctx = this.context();
-		const page = ctx.getCurrentPage();
-		page.items.push({
-			type: "beginClip",
-			item: { x: ctx.x, y: ctx.y, width: width, height: height },
-		});
-		return true;
-	}
-
-	endClip(): boolean {
-		const ctx = this.context();
-		const page = ctx.getCurrentPage();
-		page.items.push({
-			type: "endClip",
-		});
-		return true;
 	}
 
 	beginVerticalAlignment(verticalAlignment?: string): PageItem {

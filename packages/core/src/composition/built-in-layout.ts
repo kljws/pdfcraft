@@ -8,11 +8,8 @@ import { listFeature } from "../features/list/list.feature";
 import { sectionFeature } from "../features/section/section.feature";
 import { stackFeature } from "../features/stack/stack.feature";
 import { tableFeature } from "../features/table/table.feature";
-import TableRowLayout, {
-	type ProcessRowOptions,
-	type ProcessRowResult,
-	type TableRowLayoutHost,
-} from "../features/table/layout-row";
+import TableRowLayout, { type TableRowLayoutHost } from "../features/table/layout-row";
+import type { TableLayoutHost } from "../features/table/layout-table";
 import { textFeature } from "../features/text/text.feature";
 import { tocFeature } from "../features/toc/toc.feature";
 import {
@@ -47,36 +44,50 @@ interface BuiltInLayoutHost extends TableRowLayoutHost {
 	readonly pageMargins: PageMarginSource;
 	readonly pageSize: PageSize;
 	readonly suppressLinearNodeList: boolean;
-	processRow(options: ProcessRowOptions): ProcessRowResult;
-	processVerticalContainer(node: LayoutPdfNode): void;
-	processSection(node: LayoutPdfNode): void;
-	processColumns(node: LayoutPdfNode): void;
-	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
-}
-
-interface BuiltInLayoutCallbacks {
-	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
-}
-
-export interface BuiltInLayout {
-	requiresFirstPage(document: LayoutPdfNode): boolean;
-	decorateNode(node: LayoutPdfNode): void;
-	layoutNode(node: LayoutPdfNode): void;
-	layoutVerticalContainer(node: LayoutPdfNode): void;
-	layoutSection(node: LayoutPdfNode): void;
-	layoutColumns(node: LayoutPdfNode): void;
-	processRow(options: ProcessRowOptions): ProcessRowResult;
 }
 
 export function createBuiltInLayout(
 	host: BuiltInLayoutHost,
-	callbacks: BuiltInLayoutCallbacks,
-): BuiltInLayout {
+	callbacks: {
+		moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
+	},
+) {
 	const rows = new TableRowLayout(host);
+	const tableHost: TableLayoutHost = {
+		get writer() {
+			return host.writer;
+		},
+		get nestedLevel() {
+			return host.nestedLevel;
+		},
+		set nestedLevel(value) {
+			host.nestedLevel = value;
+		},
+		processRow: (options) => rows.processRow(options),
+		snakingAwarePageBreak: () => host.snakingAwarePageBreak(),
+	};
 	const processors: BuiltInFeatureProcessors<LayoutPdfNode, undefined, void> = {
-		stack: (node) => host.processVerticalContainer(node),
-		section: (node) => host.processSection(node),
-		columns: (node) => host.processColumns(node),
+		stack: (node) =>
+			stackFeature.layout(node, {
+				processNode: (item) => host.processNode(item),
+				moveDownWithPageBreak: callbacks.moveDownWithPageBreak,
+			}),
+		section: (node) =>
+			sectionFeature.layout(node, {
+				writer: host.writer,
+				defaultPageSize: host.pageSize,
+				defaultPageMargins: host.pageMargins,
+				processNode: (item) => host.processNode(item),
+			}),
+		columns: (node) =>
+			columnsFeature.layout(node, {
+				writer: host.writer,
+				enterNestedLevel: () => {
+					host.nestedLevel++;
+				},
+				leaveNestedLevel: () => --host.nestedLevel,
+				processRow: (options) => rows.processRow(options),
+			}),
 		list: (node) =>
 			listFeature.layout(node, {
 				writer: host.writer,
@@ -85,7 +96,7 @@ export function createBuiltInLayout(
 				isLinearNodeListSuppressed: () => host.suppressLinearNodeList,
 				processNode: (item) => host.processNode(item),
 			}),
-		table: (node) => tableFeature.layout(node, host),
+		table: (node) => tableFeature.layout(node, tableHost),
 		text: (node) =>
 			textFeature.layout(node, {
 				writer: host.writer,
@@ -112,12 +123,12 @@ export function createBuiltInLayout(
 	};
 
 	return {
-		requiresFirstPage: (document) => {
+		requiresFirstPage: (document: LayoutPdfNode): boolean => {
 			if (document.stack?.length && sectionFeature.matches(document.stack[0])) return false;
 			return !sectionFeature.matches(document);
 		},
-		decorateNode: (node) => decorateLayoutNode(node, nodeDecorationHooks),
-		layoutNode: (node) => {
+		decorateNode: (node: LayoutPdfNode): void => decorateLayoutNode(node, nodeDecorationHooks),
+		layoutNode: (node: LayoutPdfNode): void => {
 			if (dispatchNodeStage(node, undefined, primaryHandlers).handled) return;
 
 			if (node._extension) {
@@ -128,27 +139,5 @@ export function createBuiltInLayout(
 			if (dispatchNodeStage(node, undefined, trailingHandlers).handled) return;
 			if (!node._span) throw new Error(`Unrecognized document structure: ${stringifyNode(node)}`);
 		},
-		layoutVerticalContainer: (node) =>
-			stackFeature.layout(node, {
-				processNode: (item) => host.processNode(item),
-				moveDownWithPageBreak: callbacks.moveDownWithPageBreak,
-			}),
-		layoutSection: (node) =>
-			sectionFeature.layout(node, {
-				writer: host.writer,
-				defaultPageSize: host.pageSize,
-				defaultPageMargins: host.pageMargins,
-				processNode: (item) => host.processNode(item),
-			}),
-		layoutColumns: (node) =>
-			columnsFeature.layout(node, {
-				writer: host.writer,
-				enterNestedLevel: () => {
-					host.nestedLevel++;
-				},
-				leaveNestedLevel: () => --host.nestedLevel,
-				processRow: (options) => host.processRow(options),
-			}),
-		processRow: (options) => rows.processRow(options),
 	};
 }

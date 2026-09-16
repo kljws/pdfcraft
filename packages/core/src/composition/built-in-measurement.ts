@@ -4,9 +4,7 @@ import { canvasFeature } from "../features/canvas/canvas.feature";
 import { columnsFeature } from "../features/columns/columns.feature";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
-import type ImageMeasurer from "../features/image/image-measurer";
 import { listFeature } from "../features/list/list.feature";
-import type { ListMeasureContext } from "../features/list/measure-list";
 import { sectionFeature } from "../features/section/section.feature";
 import { stackFeature } from "../features/stack/stack.feature";
 import { tableFeature } from "../features/table/table.feature";
@@ -28,61 +26,61 @@ interface BuiltInMeasurementHost {
 	readonly extensions: PdfCraftExtensions;
 	readonly tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
 	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
-	measureAcroForm(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureVerticalContainer(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureColumns(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureList(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureSection(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureLeaf(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureToc(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureTable(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureCanvas(node: MeasuredPdfNode): MeasuredPdfNode;
 }
 
-export interface BuiltInMeasurement {
-	readonly media: ImageMeasurer;
-	readonly textInlines: TextInlines;
-	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
-	measureAcroForm(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureVerticalContainer(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureColumns(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureList(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureUnorderedList(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureOrderedList(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureSection(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureLeaf(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureToc(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureTable(node: MeasuredPdfNode): MeasuredPdfNode;
-	measureCanvas(node: MeasuredPdfNode): MeasuredPdfNode;
-}
-
-export function createBuiltInMeasurement(host: BuiltInMeasurementHost): BuiltInMeasurement {
+export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
 	const media = imageFeature.createMeasurer(host.pdfDocument, host.styleStack);
 	const textInlines = new TextInlines(
 		host.pdfDocument,
 		(node) => imageFeature.measure(node, media),
 		(inline) => acroFormFeature.measureInline(inline),
 	);
-	const listContext = (): ListMeasureContext => ({
-		styles: host.styleStack,
-		measureChild: (node) => host.measureNode(node),
-		measureGap: () => host.textInlines.sizeOfText("9. ", host.styleStack),
-		buildMarkerInlines: (text, color, styles) =>
-			host.textInlines.buildInlines({ text, color }, styles).items,
-	});
 	const handlers: NodeStageHandler<MeasuredPdfNode, undefined, MeasuredPdfNode>[] = [
 		...createBuiltInFeatureHandlers<MeasuredPdfNode, undefined, MeasuredPdfNode>({
-			section: (node) => host.measureSection(node),
-			columns: (node) => host.measureColumns(node),
-			stack: (node) => host.measureVerticalContainer(node),
-			list: (node) => host.measureList(node),
-			table: (node) => host.measureTable(node),
-			text: (node) => host.measureLeaf(node),
-			toc: (node) => host.measureToc(node),
+			section: (node) =>
+				sectionFeature.measure(node, {
+					measureNode: (item) => host.measureNode(item),
+				}),
+			columns: (node) =>
+				columnsFeature.measure(node, {
+					styles: host.styleStack,
+					measureChild: (column) => host.measureNode(column),
+				}),
+			stack: (node) =>
+				stackFeature.measure(node, {
+					measureChild: (item) => host.measureNode(item),
+				}),
+			list: (node) =>
+				listFeature.measure(node, {
+					styles: host.styleStack,
+					measureChild: (item) => host.measureNode(item),
+					measureGap: () => host.textInlines.sizeOfText("9. ", host.styleStack),
+					buildMarkerInlines: (text, color, styles) =>
+						host.textInlines.buildInlines({ text, color }, styles).items,
+				}),
+			table: (node) =>
+				tableFeature.measure(node, {
+					styles: host.styleStack,
+					tableLayouts: host.tableLayouts,
+					measureNode: (cell) => host.measureNode(cell),
+				}),
+			text: (node) =>
+				textFeature.measure(node, {
+					inlines: host.textInlines,
+					styles: host.styleStack,
+				}),
+			toc: (node) =>
+				tocFeature.measure(node, {
+					measureNode: (item) => host.measureNode(item),
+				}),
 			image: (node) => imageFeature.measure(node, media),
-			canvas: (node) => host.measureCanvas(node),
+			canvas: (node) => canvasFeature.measure(node, host.styleStack),
 			attachment: (node) => attachmentFeature.measure(node, undefined),
-			acroform: (node) => host.measureAcroForm(node),
+			acroform: (node) =>
+				acroFormFeature.measure(node, {
+					document: host.pdfDocument,
+					styles: host.styleStack,
+				}),
 		}),
 		{
 			matches: () => true,
@@ -96,9 +94,8 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost): BuiltInM
 	];
 
 	return {
-		media,
 		textInlines,
-		measureNode: (node) => {
+		measureNode: (node: PreprocessedPdfNode): MeasuredPdfNode => {
 			const measuredNode = node as MeasuredPdfNode;
 			return host.styleStack.auto(measuredNode, () => {
 				measuredNode._margin = getNodeMargin(measuredNode, host.styleStack);
@@ -119,42 +116,5 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost): BuiltInM
 				return result.value;
 			});
 		},
-		measureAcroForm: (node) =>
-			acroFormFeature.measure(node, {
-				document: host.pdfDocument,
-				styles: host.styleStack,
-			}),
-		measureVerticalContainer: (node) =>
-			stackFeature.measure(node, {
-				measureChild: (item) => host.measureNode(item),
-			}),
-		measureColumns: (node) =>
-			columnsFeature.measure(node, {
-				styles: host.styleStack,
-				measureChild: (column) => host.measureNode(column),
-			}),
-		measureList: (node) => listFeature.measure(node, listContext()),
-		measureUnorderedList: (node) => listFeature.measureUnordered(node, listContext()),
-		measureOrderedList: (node) => listFeature.measureOrdered(node, listContext()),
-		measureSection: (node) =>
-			sectionFeature.measure(node, {
-				measureNode: (item) => host.measureNode(item),
-			}),
-		measureLeaf: (node) =>
-			textFeature.measure(node, {
-				inlines: host.textInlines,
-				styles: host.styleStack,
-			}),
-		measureToc: (node) =>
-			tocFeature.measure(node, {
-				measureNode: (item) => host.measureNode(item),
-			}),
-		measureTable: (node) =>
-			tableFeature.measure(node, {
-				styles: host.styleStack,
-				tableLayouts: host.tableLayouts,
-				measureNode: (cell) => host.measureNode(cell),
-			}),
-		measureCanvas: (node) => canvasFeature.measure(node, host.styleStack),
 	};
 }

@@ -1,10 +1,6 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
 import BaseLayoutBuilder from "../layout-builder.ts";
 import StyleContextStack from "../../services/styles/style-context-stack.ts";
-import ColumnCalculator from "../column-calculator.ts";
-import PageElementWriter from "../element-writer.page.ts";
-import DocumentContext from "../../document/document-context.ts";
-import DocMeasure from "../../measurement/doc-measure.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
 import type { Dictionary, PdfCraftExtension, Style } from "../../types/index.ts";
 import type { PageBreakBefore } from "../../engine/page-break-before.types.ts";
@@ -16,7 +12,6 @@ import type {
 	PdfNode,
 	PdfPage,
 	TableLayout,
-	ColumnWidth,
 	Vector,
 } from "../../types/internal.ts";
 
@@ -73,10 +68,6 @@ class LayoutBuilder extends BaseLayoutBuilder {
 			watermark,
 			pageBreakBefore as PageBreakBefore | undefined,
 		) as unknown as RichPage[];
-	}
-
-	override processRow(options: unknown): ReturnType<BaseLayoutBuilder["processRow"]> {
-		return super.processRow(options as Parameters<BaseLayoutBuilder["processRow"]>[0]);
 	}
 }
 
@@ -1708,187 +1699,6 @@ describe("LayoutBuilder", function () {
 			assert.equal(pages[0].items[1].item.inlines.length, 2);
 			assert.equal(pages[0].items[1].item.inlines[0].text, "Second ");
 			assert.equal(pages[0].items[1].item.inlines[1].text, "line.");
-		});
-	});
-
-	describe("processRow", function () {
-		var builder2: LayoutBuilder;
-		interface RowCellFixture {
-			stack: Array<{ text: string; pageBreak?: "after" }>;
-		}
-		interface TableFixture {
-			table: {
-				headerRows: number;
-				widths: number[];
-				body: RowCellFixture[][];
-			};
-			_offsets: { offsets: number[] };
-		}
-
-		function createTable(
-			headerRows: number,
-			otherRows: number,
-			singleRowLines = 1,
-			pageBreakAfter?: number,
-			secondColumnPageBreakAfter?: number,
-		): TableFixture {
-			var tableNode = {
-				table: {
-					headerRows,
-					widths: [100, 100],
-					body: [] as RowCellFixture[][],
-				},
-			} as Omit<TableFixture, "_offsets">;
-
-			var rows = headerRows + otherRows;
-			while (rows--) {
-				var stack1: RowCellFixture = { stack: [{ text: "a" }] };
-				var stack2: RowCellFixture = { stack: [{ text: "a" }] };
-				for (var x = 0; x < singleRowLines; x++) {
-					stack1.stack.push({ text: "a" });
-					stack2.stack.push({ text: "b" });
-				}
-				if (pageBreakAfter) {
-					stack1.stack[pageBreakAfter - 1].pageBreak = "after";
-				}
-				if (secondColumnPageBreakAfter) {
-					stack2.stack[secondColumnPageBreakAfter - 1].pageBreak = "after";
-				}
-
-				tableNode.table.body.push([stack1, stack2]);
-			}
-
-			new DocMeasure(sampleTestProvider as unknown as PDFDocument, {}, {}).measureDocument(
-				tableNode as unknown as PdfNode,
-			);
-			ColumnCalculator.buildColumnWidths(tableNode.table.widths as unknown as ColumnWidth[], 320);
-
-			return tableNode as TableFixture;
-		}
-
-		beforeEach(function () {
-			var pageSize: PageSize = { width: 400, height: 800, orientation: "portrait" };
-			var pageMargins = { left: 40, top: 40, bottom: 40, right: 40 };
-
-			builder2 = new LayoutBuilder(pageSize, pageMargins);
-			var ctx = new DocumentContext();
-			ctx.addPage(pageSize, pageMargins);
-			builder2.writer = new PageElementWriter(ctx);
-			builder2.linearNodeList = [];
-		});
-
-		it("should return an empty array if no page breaks occur", function () {
-			var doc = createTable(1, 0);
-
-			var result = builder2.processRow({
-				cells: doc.table.body[0],
-				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
-				tableBody: doc.table.body,
-				rowIndex: 0,
-			});
-
-			assert(result.pageBreaks instanceof Array);
-			assert.equal(result.pageBreaks.length, 0);
-		});
-
-		it("on page break should return an entry with ending/starting positions", function () {
-			var doc = createTable(0, 1, 10, 5, 5);
-			var result = builder2.processRow({
-				cells: doc.table.body[0],
-				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
-				tableBody: doc.table.body,
-				rowIndex: 0,
-			});
-			assert(result.pageBreaks instanceof Array);
-			assert.equal(result.pageBreaks.length, 1);
-			assert.equal(result.pageBreaks[0].prevPage, 0);
-			assert.equal(result.pageBreaks[0].prevY, 40 + 12 * 6);
-		});
-
-		it("on page break should return an entry with ending/starting positions 2", function () {
-			var doc = createTable(0, 1, 10, 5);
-			var result = builder2.processRow({
-				cells: doc.table.body[0],
-				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
-				tableBody: doc.table.body,
-				rowIndex: 0,
-			});
-
-			assert(result.pageBreaks instanceof Array);
-			assert.equal(result.pageBreaks.length, 1);
-			assert.equal(result.pageBreaks[0].prevPage, 0);
-
-			assert.equal(result.pageBreaks[0].prevY, 40 + 12 * 5);
-		});
-
-		it("on multi-pass page break (columns or table columns) should treat bottom-most page-break as the ending position ", function () {
-			var doc = createTable(0, 1, 10, 5, 7);
-			var result = builder2.processRow({
-				cells: doc.table.body[0],
-				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
-				tableBody: doc.table.body,
-				rowIndex: 0,
-			});
-
-			assert.equal(result.pageBreaks[0].prevY, 40 + 12 * 7);
-		});
-
-		it("on multiple page breaks (more than 2 pages), should return all entries with ending/starting positions", function () {
-			var doc = createTable(0, 1, 100, 90, 90);
-			var result = builder2.processRow({
-				cells: doc.table.body[0],
-				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
-				tableBody: doc.table.body,
-				rowIndex: 0,
-			});
-
-			assert(result.pageBreaks instanceof Array);
-			assert.equal(result.pageBreaks.length, 2);
-			assert.equal(result.pageBreaks[0].prevPage, 0);
-			assert.equal(result.pageBreaks[0].prevY, 40 + 60 * 12);
-			assert.equal(result.pageBreaks[1].prevPage, 1);
-			assert.equal(result.pageBreaks[1].prevY, 40 + (90 - 60) * 12);
-		});
-
-		it("on multiple page breaks (more than 2 pages), should return all entries with ending/starting positions 2", function () {
-			var doc = createTable(0, 1, 100, 90, 90);
-			var result = builder2.processRow({
-				cells: doc.table.body[0],
-				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
-				tableBody: doc.table.body,
-				rowIndex: 0,
-			});
-
-			assert(result.pageBreaks instanceof Array);
-			assert.equal(result.pageBreaks.length, 2);
-			assert.equal(result.pageBreaks[0].prevPage, 0);
-			assert.equal(result.pageBreaks[0].prevY, 40 + 60 * 12);
-			assert.equal(result.pageBreaks[1].prevPage, 1);
-			assert.equal(result.pageBreaks[1].prevY, 40 + 30 * 12);
-		});
-
-		it("on multiple and multi-pass page breaks should calculate bottom-most endings for every page", function () {
-			var doc = createTable(0, 1, 100, 90, 92);
-			var result = builder2.processRow({
-				cells: doc.table.body[0],
-				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
-				tableBody: doc.table.body,
-				rowIndex: 0,
-			});
-
-			assert(result.pageBreaks instanceof Array);
-			assert.equal(result.pageBreaks.length, 2);
-			assert.equal(result.pageBreaks[0].prevPage, 0);
-			assert.equal(result.pageBreaks[0].prevY, 40 + 60 * 12);
-			assert.equal(result.pageBreaks[1].prevPage, 1);
-			assert.equal(result.pageBreaks[1].prevY, 40 + (92 - 60) * 12);
 		});
 	});
 

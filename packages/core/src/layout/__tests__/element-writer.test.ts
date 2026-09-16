@@ -1,6 +1,7 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import type DocumentContext from "../../document/document-context.ts";
-import ElementWriter, { trackVectorInsertion } from "../element-writer.ts";
+import ElementWriter from "../element-writer.ts";
+import { trackVectorInsertion } from "../vector-insertion.ts";
 import type { CurrentPosition, LineLike, PageItem, PdfPage, Vector } from "../../types/internal.ts";
 
 interface TestPage {

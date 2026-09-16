@@ -18,51 +18,11 @@ import { stringifyNode } from "../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../utils/variable-type";
 import { createBuiltInFeatureHandlers } from "./built-in-feature-registry";
 
-export interface BuiltInPreprocessingHost {
+interface BuiltInPreprocessingHost {
 	parentNode: PreprocessedPdfNode | null;
 	tocs: Record<string, PreprocessedPdfNode>;
 	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
-	preprocessAcroForm(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessSection(node: PreprocessedPdfNode, isSectionAllowed?: boolean): PreprocessedPdfNode;
-	preprocessColumns(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessVerticalContainer(
-		node: PreprocessedPdfNode,
-		isSectionAllowed: boolean,
-	): PreprocessedPdfNode;
-	preprocessDecoratedVerticalContainer(
-		node: PreprocessedPdfNode,
-		isSectionAllowed: boolean,
-	): PreprocessedPdfNode;
-	preprocessList(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessTable(node: PreprocessedPdfNode, isSectionAllowed?: boolean): PreprocessedPdfNode;
-	preprocessText(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessToc(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	registerTocItem(node: PreprocessedPdfNode): void;
 	preprocessReferences(node: PreprocessedPdfNode): void;
-}
-
-export interface BuiltInPreprocessing {
-	normalizeNode(input: unknown): PreprocessedPdfNode;
-	processNode(
-		node: PreprocessedPdfNode,
-		isSectionAllowed: boolean,
-	): PreprocessedPdfNode | undefined;
-	preprocessAcroForm(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessSection(node: PreprocessedPdfNode, isSectionAllowed: boolean): PreprocessedPdfNode;
-	preprocessColumns(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessVerticalContainer(
-		node: PreprocessedPdfNode,
-		isSectionAllowed: boolean,
-	): PreprocessedPdfNode;
-	preprocessDecoratedVerticalContainer(
-		node: PreprocessedPdfNode,
-		isSectionAllowed: boolean,
-	): PreprocessedPdfNode;
-	preprocessList(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessTable(node: PreprocessedPdfNode, isSectionAllowed: boolean): PreprocessedPdfNode;
-	preprocessText(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	preprocessToc(node: PreprocessedPdfNode): PreprocessedPdfNode;
-	registerTocItem(node: PreprocessedPdfNode): void;
 }
 
 const hasBlockDecoration = (node: PreprocessedPdfNode): boolean => {
@@ -104,27 +64,66 @@ const normalizeNode = (input: unknown): PreprocessedPdfNode => {
 export function createBuiltInPreprocessing(
 	host: BuiltInPreprocessingHost,
 	extensions: PdfCraftExtensions = [],
-): BuiltInPreprocessing {
+) {
+	const preprocessTable = (
+		node: PreprocessedPdfNode,
+		isSectionAllowed = false,
+	): PreprocessedPdfNode =>
+		tableFeature.preprocess(node, {
+			allowSections: isSectionAllowed,
+			preprocessNode: (item, allowSections) => host.preprocessNode(item, allowSections),
+		});
+	const registerTocItem = (node: PreprocessedPdfNode): void =>
+		tocFeature.registerItem(node, {
+			parentNode: host.parentNode,
+			tocs: host.tocs,
+		});
+	const preprocessText = (node: PreprocessedPdfNode): PreprocessedPdfNode =>
+		textFeature.preprocess(node, {
+			get parentNode() {
+				return host.parentNode;
+			},
+			set parentNode(parentNode: PreprocessedPdfNode | null) {
+				host.parentNode = parentNode;
+			},
+			registerTocItem,
+			preprocessReferences: (item) => host.preprocessReferences(item),
+			preprocessNode: (item) => host.preprocessNode(item),
+		});
 	const handlers: NodeStageHandler<PreprocessedPdfNode, boolean, PreprocessedPdfNode>[] = [
 		...createBuiltInFeatureHandlers<PreprocessedPdfNode, boolean, PreprocessedPdfNode>({
-			section: (node, allowSections) => host.preprocessSection(node, allowSections),
-			columns: (node) => host.preprocessColumns(node),
+			section: (node, allowSections) =>
+				sectionFeature.preprocess(node, {
+					allowSections,
+					preprocessNode: (item) => host.preprocessNode(item),
+				}),
+			columns: (node) => columnsFeature.preprocess(node, host),
 			stack: (node, allowSections) =>
 				hasBlockDecoration(node)
-					? host.preprocessDecoratedVerticalContainer(node, allowSections)
-					: host.preprocessVerticalContainer(node, allowSections),
-			list: (node) => host.preprocessList(node),
-			table: (node) => host.preprocessTable(node),
-			text: (node) => host.preprocessText(node),
-			toc: (node) => host.preprocessToc(node),
+					? stackFeature.preprocessDecorated(node, {
+							allowSections,
+							preprocessTable,
+						})
+					: stackFeature.preprocess(node, {
+							allowSections,
+							preprocessNode: (item, allow) => host.preprocessNode(item, allow),
+						}),
+			list: (node) => listFeature.preprocess(node, host),
+			table: (node) => preprocessTable(node),
+			text: preprocessText,
+			toc: (node) =>
+				tocFeature.preprocess(node, {
+					tocs: host.tocs,
+					preprocessNode: (item) => host.preprocessNode(item),
+				}),
 			image: (node) => imageFeature.preprocess(node, undefined),
 			canvas: (node) => canvasFeature.preprocess(node, undefined),
 			attachment: (node) => attachmentFeature.preprocess(node, undefined),
-			acroform: (node) => host.preprocessAcroForm(node),
+			acroform: (node) => acroFormFeature.preprocess(node, undefined),
 		}),
 		{
 			matches: (node) => textFeature.matchesReference(node),
-			process: (node) => host.preprocessText(node),
+			process: preprocessText,
 		},
 		{
 			matches: (node) => extensionFeature.matches(node, extensions),
@@ -134,44 +133,9 @@ export function createBuiltInPreprocessing(
 
 	return {
 		normalizeNode,
-		processNode: (node, isSectionAllowed) => {
+		processNode: (node: PreprocessedPdfNode, isSectionAllowed: boolean) => {
 			const result = dispatchNodeStage(node, isSectionAllowed, handlers);
 			return result.handled ? result.value : undefined;
 		},
-		preprocessAcroForm: (node) => acroFormFeature.preprocess(node, undefined),
-		preprocessSection: (node, isSectionAllowed) =>
-			sectionFeature.preprocess(node, {
-				allowSections: isSectionAllowed,
-				preprocessNode: (item) => host.preprocessNode(item),
-			}),
-		preprocessColumns: (node) => columnsFeature.preprocess(node, host),
-		preprocessVerticalContainer: (node, isSectionAllowed) =>
-			stackFeature.preprocess(node, {
-				allowSections: isSectionAllowed,
-				preprocessNode: (item, allowSections) => host.preprocessNode(item, allowSections),
-			}),
-		preprocessDecoratedVerticalContainer: (node, isSectionAllowed) =>
-			stackFeature.preprocessDecorated(node, {
-				allowSections: isSectionAllowed,
-				preprocessTable: (tableNode, allowSections) =>
-					host.preprocessTable(tableNode, allowSections),
-			}),
-		preprocessList: (node) => listFeature.preprocess(node, host),
-		preprocessTable: (node, isSectionAllowed) =>
-			tableFeature.preprocess(node, {
-				allowSections: isSectionAllowed,
-				preprocessNode: (item, allowSections) => host.preprocessNode(item, allowSections),
-			}),
-		preprocessText: (node) => textFeature.preprocess(node, host),
-		preprocessToc: (node) =>
-			tocFeature.preprocess(node, {
-				tocs: host.tocs,
-				preprocessNode: (item) => host.preprocessNode(item),
-			}),
-		registerTocItem: (node) =>
-			tocFeature.registerItem(node, {
-				parentNode: host.parentNode,
-				tocs: host.tocs,
-			}),
 	};
 }

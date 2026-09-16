@@ -22,7 +22,7 @@ import {
 	runBuiltInDocumentPass,
 	runBuiltInDocumentPipeline,
 } from "../composition/built-in-document-pipeline";
-import { createBuiltInLayout, type BuiltInLayout } from "../composition/built-in-layout";
+import { createBuiltInLayout } from "../composition/built-in-layout";
 import type { DocumentLayoutPassResult } from "../engine/document-layout-pipeline";
 import { moveDownWithPageBreak, moveToNextSnakingColumnOrPage } from "../engine/layout-pagination";
 type TableLayoutSource = Partial<TableLayout> | PublicTableLayout;
@@ -43,7 +43,7 @@ class LayoutBuilder {
 	linearNodeList: LayoutPdfNode[] = [];
 	suppressLinearNodeList = false;
 	writer!: PageElementWriter;
-	private readonly layout: BuiltInLayout;
+	private readonly layout: ReturnType<typeof createBuiltInLayout>;
 
 	/**
 	 * @param pageSize - an object defining page width and height
@@ -69,12 +69,6 @@ class LayoutBuilder {
 			this.tableLayouts,
 			tableLayouts as Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
 		);
-	}
-
-	processRow(
-		options: Parameters<BuiltInLayout["processRow"]>[0],
-	): ReturnType<BuiltInLayout["processRow"]> {
-		return this.layout.processRow(options);
 	}
 
 	private moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void {
@@ -186,21 +180,6 @@ class LayoutBuilder {
 	 */
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void {
 		moveToNextSnakingColumnOrPage(this.writer, pageOrientation);
-	}
-
-	// vertical container
-	processVerticalContainer(node: LayoutPdfNode): void {
-		this.layout.layoutVerticalContainer(node);
-	}
-
-	// section
-	processSection(sectionNode: LayoutPdfNode): void {
-		this.layout.layoutSection(sectionNode);
-	}
-
-	// columns
-	processColumns(columnNode: LayoutPdfNode): void {
-		this.layout.layoutColumns(columnNode);
 	}
 }
 

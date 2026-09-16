@@ -120,14 +120,6 @@ class PageElementWriter {
 		return this.writer.addVector(...parameters);
 	}
 
-	beginClip(width: number, height: number): boolean {
-		return this.writer.beginClip(width, height);
-	}
-
-	endClip(): boolean {
-		return this.writer.endClip();
-	}
-
 	beginVerticalAlignment(verticalAlignment?: string): PageItem {
 		return this.writer.beginVerticalAlignment(verticalAlignment);
 	}
@@ -150,18 +142,6 @@ class PageElementWriter {
 				dontUpdateContextPosition,
 			),
 		);
-	}
-
-	pushContext(contextOrWidth?: DocumentContext | number, height?: number): void {
-		this.writer.pushContext(contextOrWidth, height);
-	}
-
-	popContext(): void {
-		this.writer.popContext();
-	}
-
-	getCurrentPositionOnPage(): CurrentPosition {
-		return this.writer.getCurrentPositionOnPage();
 	}
 
 	moveToNextPage(pageOrientation?: PageOrientation): void {
@@ -239,7 +219,7 @@ class PageElementWriter {
 	beginUnbreakableBlock(width?: number, height?: number): void {
 		if (this.transactionLevel++ === 0) {
 			this.originalX = this.context().x;
-			this.pushContext(width, height);
+			this.writer.pushContext(width, height);
 		}
 	}
 
@@ -250,7 +230,7 @@ class PageElementWriter {
 	): number | undefined {
 		if (--this.transactionLevel === 0) {
 			const unbreakableContext = this.context();
-			this.popContext();
+			this.writer.popContext();
 
 			const nbPages = unbreakableContext.pages.length;
 			if (nbPages > 0) {
