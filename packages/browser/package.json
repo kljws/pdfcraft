@@ -1,6 +1,6 @@
 {
 	"name": "@pdfcraft/browser",
-	"version": "8.0.0",
+	"version": "0.8.0",
 	"description": "PDFCraft browser package",
 	"type": "module",
 	"sideEffects": false,

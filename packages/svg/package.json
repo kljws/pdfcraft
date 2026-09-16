@@ -1,6 +1,6 @@
 {
 	"name": "@pdfcraft/svg",
-	"version": "8.0.0",
+	"version": "0.1.0",
 	"description": "SVG extension for PDFCraft",
 	"type": "module",
 	"sideEffects": false,

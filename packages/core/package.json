@@ -1,6 +1,6 @@
 {
 	"name": "@pdfcraft/core",
-	"version": "8.0.0",
+	"version": "0.8.0",
 	"description": "PDFCraft document-definition and PDF generation core for Node.js",
 	"type": "module",
 	"sideEffects": false,

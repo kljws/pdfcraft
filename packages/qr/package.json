@@ -1,6 +1,6 @@
 {
 	"name": "@pdfcraft/qr",
-	"version": "8.0.0",
+	"version": "0.1.0",
 	"description": "QR code extension for PDFCraft",
 	"type": "module",
 	"sideEffects": false,

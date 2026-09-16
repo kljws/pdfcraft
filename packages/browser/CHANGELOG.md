@@ -4,7 +4,18 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.8.0] - 2026-09-05
+
+### Added
+
+- Converted the repository to a pnpm workspace with separately publishable `@pdfcraft/core` and self-contained `@pdfcraft/browser` packages.
+- Added separately publishable `@pdfcraft/qr` and `@pdfcraft/svg` extensions, registered through `createPdfCraft({ extensions })` or `addExtensions()`.
+- Added a feature-neutral content extension lifecycle for resource resolution, measurement, box layout and optional rendering.
+- Added shared Oxlint and Oxfmt configurations, an Oxc safe-fix command, and workspace settings that format and apply Oxc fixes on save.
+- Logical table body groups now accept a partial inline `layout` for all four cell paddings and internal horizontal/vertical separator widths, colors and dash styles. Unspecified callbacks inherit from `body.layout`, while outer borders, group boundaries, the header/body boundary, page-closing borders and rounded contours remain structurally owned by the table.
+- Added a `concurrent-10x3` benchmark scenario that generates 10 concurrent 3-page documents.
+- Benchmark runs now write a Markdown summary table to `benchmarks/REPORT.md`.
+- Added dedicated benchmarks that generate the real PDF/A-3 `quote.js` sample 1, 10 and 100 times concurrently, plus comma-separated scenario selection, a configurable Markdown report path and a `pnpm benchmark:quote` command.
 
 ### Changed
 
@@ -41,34 +52,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Split `@pdfcraft/svg` internals into dedicated public types, measurement, resource resolution, PDFKit rendering and extension-composition modules while keeping its public API and renderer behavior unchanged.
 - Split the embedded SVG renderer into isolated per-render state, PDFKit bridging, XML, CSS, geometry, path, text-metric and SVG-element-family modules without introducing module-level mutable document state.
 - Migrated the embedded SVG renderer from CommonJS JavaScript modules to ESM TypeScript modules, replacing the ambient CommonJS declaration with typed renderer inputs, state and installer contracts.
-
-### Fixed
-
-- Made GitHub Actions build workspace packages before coverage, kept core unit tests independent from QR/SVG implementations, and added package dry-run validation for all four published packages.
-- Measure footers per page and automatically expand the bottom page margin when needed, repaginating body and table content through bounded layout passes instead of truncating or overlapping the footer. The configured bottom margin remains the minimum.
-- Restored SVG path parsing after renderer modularization by resolving `StringParser` from the per-render context.
-
-### Tests
-
-- Colocated text, columns, stack, list, table, canvas and image measurement tests with their owning features, leaving `DocMeasure` tests focused on generic orchestration and style lifecycle behavior.
-- Colocated shared table/columns row-layout regressions with the table feature instead of testing them through a `LayoutBuilder.processRow` façade.
-- Added real PDF rendering regressions for SVG shapes, paths, transforms, nested containers, symbols, raster images, gradients, patterns, clipping, masks, markers, text paths and concurrent render isolation.
-
-## [8.0.0] - 2026-09-05
-
-### Added
-
-- Converted the repository to a pnpm workspace with separately publishable `@pdfcraft/core` and self-contained `@pdfcraft/browser` packages.
-- Added separately publishable `@pdfcraft/qr` and `@pdfcraft/svg` extensions, registered through `createPdfCraft({ extensions })` or `addExtensions()`.
-- Added a feature-neutral content extension lifecycle for resource resolution, measurement, box layout and optional rendering.
-- Added shared Oxlint and Oxfmt configurations, an Oxc safe-fix command, and workspace settings that format and apply Oxc fixes on save.
-- Logical table body groups now accept a partial inline `layout` for all four cell paddings and internal horizontal/vertical separator widths, colors and dash styles. Unspecified callbacks inherit from `body.layout`, while outer borders, group boundaries, the header/body boundary, page-closing borders and rounded contours remain structurally owned by the table.
-- Added a `concurrent-10x3` benchmark scenario that generates 10 concurrent 3-page documents.
-- Benchmark runs now write a Markdown summary table to `benchmarks/REPORT.md`.
-- Added dedicated benchmarks that generate the real PDF/A-3 `quote.js` sample 1, 10 and 100 times concurrently, plus comma-separated scenario selection, a configurable Markdown report path and a `pnpm benchmark:quote` command.
-
-### Changed
-
 - Moved core integration/type tests, browser runtime/type tests and extension type/integration tests into their owning workspace packages; root tests now contain only cross-package and manual visual validation.
 - Removed all QR/SVG node types, resource contracts and implementation knowledge from `@pdfcraft/core`; importing each optional package now augments public document types, while registering it supplies runtime behavior.
 - Removed the legacy `pdfcraft`, `pdfcraft/browser` and `pdfcraft/types` package entry points. Version 8 consumers must use the scoped packages.
@@ -80,6 +63,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Made GitHub Actions build workspace packages before coverage, kept core unit tests independent from QR/SVG implementations, and added package dry-run validation for all four published packages.
+- Measure footers per page and automatically expand the bottom page margin when needed, repaginating body and table content through bounded layout passes instead of truncating or overlapping the footer. The configured bottom margin remains the minimum.
+- Restored SVG path parsing after renderer modularization by resolving `StringParser` from the per-render context.
 - Made browser-package type checking resolve the built `@pdfcraft/core` adapter instead of following workspace source paths without core ambient vendor declarations.
 - Declared PDFKit as a runtime dependency of `@pdfcraft/core`, matching the externalized Node.js build.
 - Externalized npm dependencies from Node.js builds, restoring the published-package size budget after the tsdown upgrade.
@@ -90,6 +76,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Tests
 
+- Colocated text, columns, stack, list, table, canvas and image measurement tests with their owning features, leaving `DocMeasure` tests focused on generic orchestration and style lifecycle behavior.
+- Colocated shared table/columns row-layout regressions with the table feature instead of testing them through a `LayoutBuilder.processRow` façade.
+- Added real PDF rendering regressions for SVG shapes, paths, transforms, nested containers, symbols, raster images, gradients, patterns, clipping, masks, markers, text paths and concurrent render isolation.
 - Added browser regression coverage for PDFKit 0.20 standard fonts through the standalone build.
 - Added public type, preprocessing and rendering regressions for row-group layout validation, local callback indexes, inherited behavior, left/right/top/bottom padding, internal separator suppression and protected structural borders.
 
