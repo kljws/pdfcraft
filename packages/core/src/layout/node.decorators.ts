@@ -1,29 +1,19 @@
-import type { LayoutPdfNode, Vector } from "../types/internal";
+import type { LayoutPdfNode } from "../types/internal";
 
-export function decorateNode(node: LayoutPdfNode): void {
+export interface NodeDecorationHooks {
+	decorateFeature(node: LayoutPdfNode): void;
+	resetFeature(node: LayoutPdfNode): void;
+}
+
+export function decorateNode(node: LayoutPdfNode, hooks: NodeDecorationHooks): void {
 	const x = node.x;
 	const y = node.y;
 	node.positions = [];
-
-	if (Array.isArray(node.canvas)) {
-		node.canvas.forEach((vector: Vector) => {
-			const vectorPosition = {
-				x: vector.x,
-				y: vector.y,
-				x1: vector.x1,
-				y1: vector.y1,
-				x2: vector.x2,
-				y2: vector.y2,
-			};
-			vector.resetXY = () => Object.assign(vector, vectorPosition);
-		});
-	}
+	hooks.decorateFeature(node);
 
 	node.resetXY = () => {
 		node.x = x;
 		node.y = y;
-		if (Array.isArray(node.canvas)) {
-			node.canvas.forEach((vector: Vector) => vector.resetXY?.());
-		}
+		hooks.resetFeature(node);
 	};
 }

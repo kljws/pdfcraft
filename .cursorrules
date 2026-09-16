@@ -1,25 +1,9 @@
 # Git commit messages
 
-When generating Git commit messages:
+- Format: `type(scope): concise description` (Conventional Commits, English, < 120 chars).
+- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `chore`, `perf`, `style`, `revert`.
+- Scope is the targeted package (`core`, `browser`, etc.).
+- Description: imperative, lowercase, no period, no body. Name the file-level change, not vague words (`update`, `changes`, `improvements`, `misc`).
+- Add a `CHANGELOG.md` entry for new or modified files unless the change is trivial. Do not duplicate existing entries.
 
-- Use Conventional Commits.
-- Write in English.
-- Use exactly this format: `type: concise description`
-- Allowed types: `feat`, `fix`, `docs`, `refactor`, `test`, `build`, `ci`, `chore`, `perf`, `style`, `revert`.
-- Use the imperative mood.
-- Use lowercase after the colon.
-- Do not add a period.
-- Do not include a body or bullet points.
-- Keep the entire message under 72 characters.
-- Describe the primary change only.
-- Avoid vague words such as `update`, `changes`, `improvements` or `misc`.
-- Ensure the commit includes a relevant entry in `CHANGELOG.md` for every new or modified file, unless the change is trivial.
-- Do not add duplicate or already-committed changelog entries.
-
-Examples:
-
-- `feat: add typed browser entry`
-- `fix: prevent duplicate font registration`
-- `refactor: isolate pdfcraft instances`
-- `docs: clarify font configuration`
-- `test: cover concurrent pdf generation`
+Examples: `feat(core): add typed document builder`, `fix(browser): prevent duplicate font registration`

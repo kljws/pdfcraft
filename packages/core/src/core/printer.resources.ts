@@ -1,25 +1,17 @@
 import type URLResolver from "../resources/url-resolver";
-import type { ExtensionResourceReference, FontDescriptors, PdfCraftExtensions } from "../types";
+import type { FontDescriptors, PdfCraftExtensions } from "../types";
 import type {
 	ExtendedResource,
 	PrinterDocumentDefinition,
 	PrinterResourceReference,
 } from "./printer.types";
+import { resolveBuiltInPrinterResources } from "../composition/built-in-printer-resources";
+import { isResourceReference } from "../services/resources/resource-reference";
 
 function getExtendedUrl(url: PrinterResourceReference): ExtendedResource {
 	return typeof url === "object"
 		? { url: url.url, headers: url.headers ?? {} }
 		: { url, headers: {} };
-}
-
-function isResourceReference(resource: unknown): resource is PrinterResourceReference {
-	return (
-		typeof resource === "string" ||
-		(resource !== null &&
-			typeof resource === "object" &&
-			"url" in resource &&
-			typeof resource.url === "string")
-	);
 }
 
 function resolveFontSource(
@@ -58,26 +50,7 @@ export async function resolvePrinterUrls(
 		}
 	}
 
-	for (const extension of extensions) {
-		extension.resolveResources?.(
-			docDefinition as unknown as Record<string, unknown>,
-			(resource: ExtensionResourceReference) => resolve(resource as PrinterResourceReference),
-		);
-	}
-
-	if (docDefinition.attachments) {
-		for (const [name, attachment] of Object.entries(docDefinition.attachments)) {
-			if (isResourceReference(attachment)) {
-				docDefinition.attachments[name] = { src: resolve(attachment) };
-			} else if (
-				typeof attachment === "object" &&
-				"src" in attachment &&
-				isResourceReference(attachment.src)
-			) {
-				attachment.src = resolve(attachment.src);
-			}
-		}
-	}
+	resolveBuiltInPrinterResources(docDefinition, extensions, resolve);
 
 	if (docDefinition.files) {
 		for (const file of Object.values(docDefinition.files)) {

@@ -1,5 +1,5 @@
 import { isNumber, isString } from "./variable-type";
-import type StyleContextStack from "../layout/style-context-stack";
+import type StyleContextStack from "../services/styles/style-context-stack";
 import type { NodeStyleValue } from "../types/internal";
 
 type PartialMargin = [

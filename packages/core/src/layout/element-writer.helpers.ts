@@ -1,5 +1,4 @@
-import { offsetVector } from "../utils/tools";
-import type { LayoutPdfNode, PageItem, PdfPage, Vector } from "../types/internal";
+import type { LayoutPdfNode, PageItem, PdfPage } from "../types/internal";
 import { getPageItemBottom } from "./page-item-geometry";
 
 export function getAlignmentOffset(
@@ -20,13 +19,6 @@ export function alignImage(image: LayoutPdfNode, availableWidth: number): void {
 	const offset = getAlignmentOffset(image._alignment, availableWidth, image._minWidth ?? 0);
 	if (offset) {
 		image.x = (image.x || 0) + offset;
-	}
-}
-
-export function alignCanvas(node: LayoutPdfNode, availableWidth: number): void {
-	const offset = getAlignmentOffset(node._alignment, availableWidth, node._minWidth ?? 0);
-	if (offset) {
-		node.canvas?.forEach((vector: Vector) => offsetVector(vector, offset, 0));
 	}
 }
 

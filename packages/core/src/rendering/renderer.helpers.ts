@@ -1,5 +1,4 @@
 import type { FontDescriptors } from "../types";
-import type { Inline } from "../types/internal";
 
 export function findFont(
 	fonts: FontDescriptors,
@@ -15,14 +14,4 @@ export function findFont(
 	}
 
 	return defaultFont;
-}
-
-export function offsetText(y: number, inline: Inline): number {
-	if (inline.sup) {
-		return y - inline.fontSize * 0.75;
-	}
-	if (inline.sub) {
-		return y + inline.fontSize * 0.35;
-	}
-	return y;
 }

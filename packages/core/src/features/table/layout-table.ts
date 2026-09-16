@@ -1,0 +1,190 @@
+import type PageElementWriter from "../../layout/element-writer.page";
+import type { ProcessRowOptions, ProcessRowResult } from "./layout-row";
+import type { ColumnWidth, LayoutPdfNode, PdfTable } from "../../types/internal";
+import TableProcessor from "./table-processor";
+import {
+	findSameRowPageBreakByRowSpanData,
+	getPageBreakListBySpan,
+	type TablePageBreak,
+} from "./table-pagination";
+
+export interface TableLayoutHost {
+	writer: PageElementWriter;
+	nestedLevel: number;
+	processRow(options: ProcessRowOptions): ProcessRowResult;
+	snakingAwarePageBreak(): void;
+}
+
+function getRowHeight(
+	heights: PdfTable<LayoutPdfNode>["heights"],
+	rowIndex: number,
+): number | undefined {
+	const height =
+		typeof heights === "function"
+			? heights(rowIndex)
+			: Array.isArray(heights)
+				? heights[rowIndex]
+				: heights;
+	if (height === undefined || height === "auto") return undefined;
+	if (typeof height !== "number" || !Number.isFinite(height) || height < 0) {
+		throw new Error(
+			`Invalid table height at row ${rowIndex}: expected a finite non-negative number or 'auto'`,
+		);
+	}
+	return height;
+}
+
+function getRowColumnGeometry(
+	tableNode: LayoutPdfNode,
+	processor: TableProcessor,
+): { widths: ColumnWidth[]; offsets: number[] } {
+	const table = tableNode.table;
+	if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
+	const widths: ColumnWidth[] = [];
+	const offsets: number[] = [];
+	for (let columnIndex = 0; columnIndex < table.widths.length; columnIndex++) {
+		const leftBorder = processor.layout.vLineWidth(columnIndex, tableNode);
+		const leftPadding = processor.layout.paddingLeft(columnIndex, tableNode);
+		const rightPadding = processor.layout.paddingRight(columnIndex, tableNode);
+		const slotStart = processor.rowSpanData[columnIndex]?.left;
+		const slotEnd = processor.rowSpanData[columnIndex + 1]?.left;
+		if (slotStart === undefined || slotEnd === undefined) {
+			throw new Error(`Internal layout error: missing table boundary for column ${columnIndex}`);
+		}
+		const contentWidth = Math.max(0, slotEnd - slotStart - leftBorder - leftPadding - rightPadding);
+		widths.push({ ...table.widths[columnIndex], _calcWidth: contentWidth });
+		offsets.push(
+			columnIndex === 0
+				? processor.tableOffset + leftBorder + leftPadding
+				: processor.layout.paddingRight(columnIndex - 1, tableNode) + leftBorder + leftPadding,
+		);
+	}
+	return { widths, offsets };
+}
+
+export function layoutTable(tableNode: LayoutPdfNode, host: TableLayoutHost): void {
+	const table = tableNode.table;
+	if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
+	host.nestedLevel++;
+	const processor = new TableProcessor(tableNode);
+	processor.beginTable(host.writer);
+
+	let lastRowHeight = 0;
+	for (let rowIndex = 0; rowIndex < table.body.length; rowIndex++) {
+		processor.selectLayout(rowIndex);
+		const rowGroup = processor.rowGroupsByRow[rowIndex];
+		const rowDontBreakRows = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
+		const rowHeight = getRowHeight(table.heights, rowIndex);
+		if (rowIndex > 0 && host.writer.context().inSnakingColumns()) {
+			const minimumRowHeight =
+				lastRowHeight ||
+				processor.rowPaddingTop +
+					14 +
+					processor.rowPaddingBottom +
+					processor.bottomLineWidth +
+					processor.topLineWidth;
+			if (host.writer.context().availableHeight < minimumRowHeight) {
+				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
+					processor.drawHorizontalLine(
+						rowIndex,
+						host.writer,
+						host.writer.context().y - processor.bottomLineWidth,
+						false,
+						undefined,
+						table.body.length,
+						"bottom",
+					);
+				}
+				host.snakingAwarePageBreak();
+				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
+					processor.drawHorizontalLine(rowIndex, host.writer, undefined, true, undefined, 0, "top");
+				}
+			}
+		}
+
+		const isUnbreakableRow = rowDontBreakRows || rowIndex <= processor.rowsWithoutPageBreak - 1;
+		if (!isUnbreakableRow && rowHeight !== undefined) {
+			const context = host.writer.context();
+			const page = context.getCurrentPage();
+			const rowOverhead =
+				processor.layout.paddingTop(rowIndex, tableNode) +
+				processor.layout.paddingBottom(rowIndex, tableNode) +
+				processor.layout.hLineWidth(rowIndex + 1, tableNode) +
+				(rowIndex === 0 ? processor.layout.hLineWidth(0, tableNode) : 0);
+			const requiredHeight = rowHeight + rowOverhead;
+			const fullPageHeight = page.pageSize.height - page.pageMargins.top - page.pageMargins.bottom;
+			if (requiredHeight > context.availableHeight && requiredHeight <= fullPageHeight) {
+				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
+					processor.drawHorizontalLine(
+						rowIndex,
+						host.writer,
+						context.y - processor.bottomLineWidth,
+						false,
+						undefined,
+						table.body.length,
+						"bottom",
+					);
+				}
+				context.moveDown(context.availableHeight);
+				if (context.inSnakingColumns()) {
+					host.snakingAwarePageBreak();
+				} else {
+					host.writer.moveToNextPage();
+				}
+				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
+					processor.drawHorizontalLine(rowIndex, host.writer, undefined, true, undefined, 0, "top");
+				}
+			}
+		}
+
+		const rowYBefore = host.writer.context().y;
+		if (rowDontBreakRows) {
+			for (const cell of table.body[rowIndex]) {
+				if (cell.rowSpan && cell.rowSpan > 1) {
+					cell._startingRowSpanY = host.writer.context().y;
+					cell._startingRowSpanPage = host.writer.context().page;
+				}
+			}
+		}
+
+		processor.beginRow(rowIndex, host.writer);
+		const pageBeforeProcessing = host.writer.context().page;
+		const rowGeometry = getRowColumnGeometry(tableNode, processor);
+		const result = host.processRow({
+			marginX: tableNode._margin ? [tableNode._margin[0], tableNode._margin[2]] : [0, 0],
+			dontBreakRows: rowDontBreakRows,
+			rowsWithoutPageBreak: processor.rowsWithoutPageBreak,
+			cells: table.body[rowIndex],
+			widths: rowGeometry.widths,
+			gaps: rowGeometry.offsets,
+			tableBody: table.body,
+			tableNode,
+			rowIndex,
+			height: rowHeight,
+		});
+
+		tableNode.positions ??= [];
+		tableNode.positions.push(...result.positions);
+		if (result.pageBreaks.length === 0) {
+			const breaksBySpan = tableNode._breaksBySpan as TablePageBreak[] | undefined;
+			const breakData = findSameRowPageBreakByRowSpanData(
+				breaksBySpan,
+				pageBeforeProcessing,
+				rowIndex,
+			);
+			if (breakData) {
+				const finalBreak = getPageBreakListBySpan(tableNode, breakData.prevPage, rowIndex);
+				if (finalBreak) result.pageBreaks.push(finalBreak);
+			}
+		}
+
+		processor.endRow(rowIndex, host.writer, result.pageBreaks);
+		if (host.writer.context().page === pageBeforeProcessing) {
+			lastRowHeight = host.writer.context().y - rowYBefore;
+		}
+	}
+
+	processor.endTable(host.writer);
+	host.nestedLevel--;
+	if (host.nestedLevel === 0) host.writer.context().resetMarginXTopParent();
+}

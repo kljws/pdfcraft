@@ -22,18 +22,7 @@ import type {
 	FileAnnotationOptions,
 } from "./renderer.types";
 import type { PdfPage } from "../types/internal";
-
-const typeName = (bold: boolean, italics: boolean): FontStyle => {
-	let type: FontStyle = "normal";
-	if (bold && italics) {
-		type = "bolditalics";
-	} else if (bold) {
-		type = "bold";
-	} else if (italics) {
-		type = "italics";
-	}
-	return type;
-};
+import FontProvider from "../services/typography/font-provider";
 
 const escapeXmpText = (value: unknown): string =>
 	String(value)
@@ -52,6 +41,7 @@ interface PdfKitMetadataPrototype {
 }
 
 class PDFDocument extends PDFKit {
+	private readonly fontProvider: FontProvider;
 	declare fonts: FontDescriptors;
 	declare fontCache: Dictionary<Partial<Record<FontStyle, EmbeddedFont>>>;
 	declare patterns: Dictionary<PDFKit.PDFTilingPattern>;
@@ -87,20 +77,9 @@ class PDFDocument extends PDFKit {
 	) {
 		super({ ...options, font: options.font ?? undefined });
 
-		this.fonts = {};
-		this.fontCache = {};
-		for (const font in fonts) {
-			if (fonts.hasOwnProperty(font)) {
-				const fontDef = fonts[font];
-
-				this.fonts[font] = {
-					normal: fontDef.normal,
-					bold: fontDef.bold,
-					italics: fontDef.italics,
-					bolditalics: fontDef.bolditalics,
-				};
-			}
-		}
+		this.fontProvider = new FontProvider(this, fonts, virtualfs);
+		this.fonts = this.fontProvider.fonts;
+		this.fontCache = this.fontProvider.cache;
 
 		this.patterns = {};
 		for (const pattern in patterns) {
@@ -131,50 +110,15 @@ class PDFDocument extends PDFKit {
 	}
 
 	getFontType(bold: boolean, italics: boolean): FontStyle {
-		return typeName(bold, italics);
+		return this.fontProvider.getFontType(bold, italics);
 	}
 
 	getFontFile(familyName: string, bold: boolean, italics: boolean): FontSource | null {
-		const type = this.getFontType(bold, italics);
-		if (!this.fonts[familyName] || !this.fonts[familyName][type]) {
-			return null;
-		}
-
-		return this.fonts[familyName][type];
+		return this.fontProvider.getFontFile(familyName, bold, italics);
 	}
 
 	provideFont(familyName: string, bold: boolean, italics: boolean): EmbeddedFont {
-		const type = this.getFontType(bold, italics);
-		if (this.getFontFile(familyName, bold, italics) === null) {
-			throw new Error(
-				`Font '${familyName}' in style '${type}' is not defined in the font section of the document definition.`,
-			);
-		}
-
-		this.fontCache[familyName] = this.fontCache[familyName] || {};
-
-		if (!this.fontCache[familyName][type]) {
-			const source = this.fonts[familyName][type]!;
-			const def: [FontFile, string?] = Array.isArray(source)
-				? [source[0] as FontFile, source[1]]
-				: [source as FontFile];
-
-			if (this.virtualfs && isString(def[0]) && this.virtualfs.existsSync(def[0])) {
-				const file = this.virtualfs.readFileSync(def[0]);
-				def[0] = file;
-			} else {
-				this.validateLocalFile(def[0]);
-			}
-
-			if (def[1] !== undefined) {
-				this.font(normalizeFileSource(def[0]), def[1]);
-			} else {
-				this.font(normalizeFileSource(def[0]));
-			}
-			this.fontCache[familyName][type] = this._font;
-		}
-
-		return this.fontCache[familyName][type]!;
+		return this.fontProvider.provideFont(familyName, bold, italics);
 	}
 
 	override endMetadata(): void {
@@ -351,10 +295,6 @@ class PDFDocument extends PDFKit {
 			throw new Error(`Access to local file denied by resource access policy: ${path}`);
 		}
 	}
-}
-
-function normalizeFileSource(source: FontFile): PDFKit.Mixins.PDFFontSource {
-	return source instanceof Uint8Array ? toArrayBuffer(source) : source;
 }
 
 export default PDFDocument;

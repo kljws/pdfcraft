@@ -1,4 +1,5 @@
 import { normalizePageMargin } from "../configuration/page-size";
+import type { PagePosition } from "../document/document-context.types";
 import type { PageItem, PageMargins, PdfPage, Vector } from "../types/internal";
 import { getCanvasPathBounds } from "../utils/canvas-path-bounds";
 
@@ -42,4 +43,25 @@ export function calculatePageHeight(page: PdfPage, margins: PageMargins): number
 	const fixedMargins = normalizePageMargin(margins || 40);
 	const height = Math.max(fixedMargins.top, ...page.items.map(getPageItemBottom));
 	return height + fixedMargins.bottom;
+}
+
+export function getPageSpanHeight(
+	start: PagePosition,
+	end: PagePosition,
+	pages: PdfPage[],
+): number {
+	const startPageIndex = start.pageNumber - 1;
+	const endPageIndex = end.pageNumber - 1;
+	if (startPageIndex === endPageIndex) return Math.max(0, end.top - start.top);
+	if (startPageIndex < 0 || endPageIndex >= pages.length || endPageIndex < startPageIndex) return 0;
+
+	const firstPage = pages[startPageIndex];
+	let height = firstPage.pageSize.height - firstPage.pageMargins.bottom - start.top;
+	for (let pageIndex = startPageIndex + 1; pageIndex < endPageIndex; pageIndex++) {
+		const page = pages[pageIndex];
+		height += page.pageSize.height - page.pageMargins.top - page.pageMargins.bottom;
+	}
+	const lastPage = pages[endPageIndex];
+	height += end.top - lastPage.pageMargins.top;
+	return Math.max(0, height);
 }

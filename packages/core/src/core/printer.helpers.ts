@@ -1,5 +1,4 @@
 import type PDFDocument from "../rendering/pdf-document";
-import type { AttachmentDefinition as ResolvedAttachmentDefinition } from "../rendering/renderer.types";
 import type { Dictionary } from "../types";
 import type { PrinterDocumentDefinition } from "./printer.types";
 
@@ -10,26 +9,6 @@ export function getResolvedImages(images: PrinterDocumentDefinition["images"]): 
 			throw new Error(`Image '${name}' contains an unresolved URL`);
 		}
 		result[name] = image;
-	}
-	return result;
-}
-
-export function getResolvedAttachments(
-	attachments: PrinterDocumentDefinition["attachments"],
-): Dictionary<ResolvedAttachmentDefinition> {
-	const result: Dictionary<ResolvedAttachmentDefinition> = {};
-	for (const [name, attachment] of Object.entries(attachments ?? {})) {
-		if (typeof attachment === "string") {
-			result[name] = { src: attachment };
-			continue;
-		}
-		if (
-			!("src" in attachment) ||
-			(typeof attachment.src === "object" && !(attachment.src instanceof Uint8Array))
-		) {
-			throw new Error(`Attachment '${name}' contains an unresolved URL`);
-		}
-		result[name] = { ...attachment, src: attachment.src };
 	}
 	return result;
 }

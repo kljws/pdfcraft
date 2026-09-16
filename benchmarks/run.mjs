@@ -1,6 +1,4 @@
 import { execFileSync } from "node:child_process";
-import { writeFile } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createScenarios } from "./scenarios.mjs";
@@ -18,12 +16,6 @@ const selectedScenarios =
 	typeof argumentsMap.scenario === "string"
 		? new Set(argumentsMap.scenario.split(",").filter(Boolean))
 		: null;
-const outputPath = typeof argumentsMap.output === "string" ? argumentsMap.output : null;
-const reportPath =
-	typeof argumentsMap.report === "string"
-		? path.resolve(argumentsMap.report)
-		: path.join(path.dirname(fileURLToPath(import.meta.url)), "REPORT.md");
-
 if (!Number.isInteger(iterations) || iterations < 1) throw new Error("iterations must be >= 1");
 if (!Number.isInteger(warmup) || warmup < 0) throw new Error("warmup must be >= 0");
 
@@ -72,27 +64,6 @@ for (const scenario of scenarios) {
 	});
 }
 
-const report = {
-	schemaVersion: 1,
-	createdAt: new Date().toISOString(),
-	profile,
-	iterations,
-	warmup,
-	runtime: {
-		node: process.version,
-		platform: process.platform,
-		architecture: process.arch,
-		cpus: os.cpus().length,
-		cpuModel: os.cpus()[0]?.model ?? "unknown",
-		totalMemoryBytes: os.totalmem(),
-	},
-	results,
-};
-
-if (outputPath) {
-	await writeFile(path.resolve(outputPath), `${JSON.stringify(report, null, 2)}\n`);
-}
-
 const megabytes = (bytes) => (bytes / 1024 / 1024).toFixed(1);
 const rows = results.map(({ name, description, summary }) => ({
 	scenario: name,
@@ -106,27 +77,3 @@ const rows = results.map(({ name, description, summary }) => ({
 
 console.log(`PDFCraft benchmark (${profile}, Node ${process.version}, ${iterations} iteration(s))`);
 console.table(rows);
-if (outputPath) console.log(`JSON report: ${path.resolve(outputPath)}`);
-
-const markdownRows = rows
-	.map(
-		(row) =>
-			`| ${row.scenario} | ${row.workload} | ${row.medianMs} | ${row.p95Ms} | ${row.peakRssMiB} | ${row.peakHeapMiB} | ${row.outputMiB} |`,
-	)
-	.join("\n");
-const markdown = `# PDFCraft benchmark report
-
-- Profile: \`${profile}\`
-- Node: \`${process.version}\`
-- Iterations: ${iterations}
-- Warmup: ${warmup}
-- Created: ${report.createdAt}
-- Runtime: ${report.runtime.cpuModel} · ${report.runtime.cpus} CPUs · ${report.runtime.platform}/${report.runtime.architecture}
-
-| Scenario | Workload | Median ms | P95 ms | RSS MiB | Heap MiB | Output MiB |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-${markdownRows}
-`;
-
-await writeFile(reportPath, markdown);
-console.log(`Markdown report: ${reportPath}`);

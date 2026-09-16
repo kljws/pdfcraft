@@ -8,3 +8,4 @@ private/
 .env
 AGENTS.md
 SOURCE_CONTEXT.md
+scripts/

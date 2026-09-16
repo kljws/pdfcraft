@@ -1,0 +1,22 @@
+import {
+	getResolvedAttachments,
+	resolveAttachmentReferences,
+} from "../features/attachment/attachment-resources";
+import { extensionFeature } from "../features/extension/extension.feature";
+import type { PrinterDocumentDefinition, PrinterResourceReference } from "../core/printer.types";
+import type { PdfCraftExtensions } from "../types";
+
+export function resolveBuiltInPrinterResources(
+	document: PrinterDocumentDefinition,
+	extensions: PdfCraftExtensions,
+	resolve: (resource: PrinterResourceReference) => string,
+): void {
+	extensionFeature.resolveResources(
+		document as unknown as Record<string, unknown>,
+		extensions,
+		(resource) => resolve(resource as PrinterResourceReference),
+	);
+	resolveAttachmentReferences(document, resolve);
+}
+
+export const getBuiltInResolvedAttachments = getResolvedAttachments;

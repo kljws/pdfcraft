@@ -18,13 +18,9 @@ import type {
 	PrinterDocumentDefinition,
 	PrinterOptions,
 } from "./printer.types";
-import {
-	createMetadata,
-	embedFiles,
-	getResolvedAttachments,
-	getResolvedImages,
-} from "./printer.helpers";
+import { createMetadata, embedFiles, getResolvedImages } from "./printer.helpers";
 import { resolvePrinterUrls } from "./printer.resources";
+import { getBuiltInResolvedAttachments } from "../composition/built-in-printer-resources";
 
 class PdfPrinter {
 	readonly fontDescriptors: FontDescriptors;
@@ -113,7 +109,7 @@ class PdfPrinter {
 			this.fontDescriptors,
 			getResolvedImages(docDefinition.images),
 			docDefinition.patterns,
-			getResolvedAttachments(docDefinition.attachments),
+			getBuiltInResolvedAttachments(docDefinition.attachments),
 			pdfOptions,
 			this.virtualfs,
 			this.localAccessPolicy,

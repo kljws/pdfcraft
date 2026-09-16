@@ -1,13 +1,13 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
 import BaseLayoutBuilder from "../layout-builder.ts";
-import StyleContextStack from "../style-context-stack.ts";
+import StyleContextStack from "../../services/styles/style-context-stack.ts";
 import ColumnCalculator from "../column-calculator.ts";
 import PageElementWriter from "../element-writer.page.ts";
 import DocumentContext from "../../document/document-context.ts";
 import DocMeasure from "../../measurement/doc-measure.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
 import type { Dictionary, PdfCraftExtension, Style } from "../../types/index.ts";
-import type { PageBreakBefore } from "../layout-builder.types.ts";
+import type { PageBreakBefore } from "../../engine/page-break-before.types.ts";
 import type {
 	LineLike,
 	PageControlItem,

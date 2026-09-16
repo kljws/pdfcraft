@@ -24,14 +24,13 @@ The standard profile performs one warmup and three measured iterations per scena
 
 ```sh
 node benchmarks/run.mjs --iterations=5 --warmup=1 --scenario=pages-1000
-node benchmarks/run.mjs --quick --output=/tmp/pdfcraft-benchmark.json
 node benchmarks/run.mjs --scenario=quote-concurrent-1,quote-concurrent-10
 ```
 
-`--scenario` accepts one name or a comma-separated list. `--report` can write the Markdown table to a dedicated path instead of replacing `benchmarks/REPORT.md`. The quote command uses `benchmarks/QUOTE-REPORT.md`.
+`--scenario` accepts one name or a comma-separated list. Results are printed only to the console; benchmark commands do not create report files.
 
 Concurrent scenarios use `Promise.all()` inside one process. They measure multiple in-flight generations and shared-process memory pressure, not parallel execution across worker threads or CPU cores.
 
 Use the same Node.js version, machine, power mode and background workload when comparing results. Compare the median duration and peak-memory deltas; absolute numbers from different machines are not directly comparable.
 
-Peak memory is sampled every 5 ms and reported as the increase over the process baseline. The JSON report includes every raw sample and runtime metadata for later comparison.
+Peak memory is sampled every 5 ms and reported as the increase over the process baseline.

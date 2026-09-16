@@ -1,18 +1,10 @@
-import DocMeasure from "../measurement/doc-measure";
-import DocPreprocessor from "../preprocessing/doc-preprocessor";
-import DocumentContext from "../document/document-context";
-import PageElementWriter from "./element-writer.page";
-import ColumnCalculator from "./column-calculator";
-import { stringifyNode } from "../utils/node";
+import type DocMeasure from "../measurement/doc-measure";
+import type DocPreprocessor from "../preprocessing/doc-preprocessor";
+import type PageElementWriter from "./element-writer.page";
 import { pack } from "../utils/tools";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../types/internal";
-import { decorateNode } from "./node.decorators";
-import { addAll, getPageSpanHeight } from "./layout-builder.helpers";
-import { addPageBreaksIfNecessary, resetNodePositions } from "./layout-builder.page-breaks";
-import LayoutBuilderContent from "./layout-builder.content";
-import LayoutBuilderRepeatables from "./layout-builder.repeatables";
-import LayoutBuilderRows from "./layout-builder.rows";
+import type { LayoutPdfNode, MeasuredPdfNode } from "../types/internal";
 import type PDFDocument from "../rendering/pdf-document";
+import type { PageBreakBefore } from "../engine/page-break-before.types";
 import type {
 	Dictionary,
 	PageOrientation,
@@ -21,10 +13,18 @@ import type {
 	TableLayout as PublicTableLayout,
 } from "../types";
 import type { PageMarginSource, PageSize, PdfPage, TableLayout } from "../types/internal";
-import type { VerticalAlignmentStackEntry } from "./layout-builder.rows";
-import type { LayoutResult, PageBreakBefore } from "./layout-builder.types";
-import { resolveSectionPage, type SectionNode } from "./layout-builder.sections";
-import { calculatePageHeight } from "./page-item-geometry";
+import {
+	layoutNodeWithLifecycle,
+	type VerticalAlignmentStackEntry,
+} from "../engine/layout-node-lifecycle";
+import {
+	createBuiltInDocumentProcessors,
+	runBuiltInDocumentPass,
+	runBuiltInDocumentPipeline,
+} from "../composition/built-in-document-pipeline";
+import { createBuiltInLayout, type BuiltInLayout } from "../composition/built-in-layout";
+import type { DocumentLayoutPassResult } from "../engine/document-layout-pipeline";
+import { moveDownWithPageBreak, moveToNextSnakingColumnOrPage } from "../engine/layout-pagination";
 type TableLayoutSource = Partial<TableLayout> | PublicTableLayout;
 
 /**
@@ -43,9 +43,7 @@ class LayoutBuilder {
 	linearNodeList: LayoutPdfNode[] = [];
 	suppressLinearNodeList = false;
 	writer!: PageElementWriter;
-	private readonly rows: LayoutBuilderRows;
-	private readonly content: LayoutBuilderContent;
-	private readonly repeatables: LayoutBuilderRepeatables;
+	private readonly layout: BuiltInLayout;
 
 	/**
 	 * @param pageSize - an object defining page width and height
@@ -60,9 +58,10 @@ class LayoutBuilder {
 		this.pageSize = pageSize;
 		this.pageMargins = pageMargins;
 		this.extensions = extensions;
-		this.rows = new LayoutBuilderRows(this);
-		this.content = new LayoutBuilderContent(this);
-		this.repeatables = new LayoutBuilderRepeatables(this);
+		this.layout = createBuiltInLayout(this, {
+			moveDownWithPageBreak: (height, orientation) =>
+				this.moveDownWithPageBreak(height, orientation),
+		});
 	}
 
 	registerTableLayouts(tableLayouts: Dictionary<TableLayoutSource>): void {
@@ -73,36 +72,16 @@ class LayoutBuilder {
 	}
 
 	processRow(
-		options: Parameters<LayoutBuilderRows["processRow"]>[0],
-	): ReturnType<LayoutBuilderRows["processRow"]> {
-		return this.rows.processRow(options);
+		options: Parameters<BuiltInLayout["processRow"]>[0],
+	): ReturnType<BuiltInLayout["processRow"]> {
+		return this.layout.processRow(options);
 	}
 
 	private moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void {
-		let remainingHeight = Math.max(0, height);
-
-		while (remainingHeight > this.writer.context().availableHeight) {
-			const availableHeight = this.writer.context().availableHeight;
-			if (availableHeight > 0) {
-				this.writer.context().moveDown(availableHeight);
-				remainingHeight -= availableHeight;
-			}
-
-			if (
-				this.writer.context().inSnakingColumns() &&
-				!this.writer.context().isInNestedNonSnakingGroup()
-			) {
-				this.snakingAwarePageBreak(pageOrientation);
-			} else {
-				this.writer.moveToNextPage(pageOrientation);
-			}
-
-			if (availableHeight <= 0 && this.writer.context().availableHeight <= 0) {
-				throw new Error("Cannot apply vertical spacing on a page with no available height");
-			}
-		}
-
-		this.writer.context().moveDown(remainingHeight);
+		moveDownWithPageBreak(height, pageOrientation, {
+			writer: this.writer,
+			moveAcrossSnakingPage: (orientation) => this.snakingAwarePageBreak(orientation),
+		});
 	}
 
 	/**
@@ -131,113 +110,33 @@ class LayoutBuilder {
 		watermark: unknown,
 		pageBreakBeforeFct?: PageBreakBefore,
 	): PdfPage[] {
-		this.docPreprocessor = new DocPreprocessor(this.extensions);
-		this.docMeasure = new DocMeasure(
+		const processors = createBuiltInDocumentProcessors(
 			pdfDocument,
 			styleDictionary,
 			defaultStyle,
 			this.extensions,
 			this.tableLayouts,
 		);
+		this.docPreprocessor = processors.preprocessor;
+		this.docMeasure = processors.measure;
 
-		const maxLayoutPasses = 10;
-		let assumedPageCount = 0;
-		let bottomMarginOverrides: number[] = [];
-		let layoutPass = 1;
-		const pageCountHistory = [assumedPageCount];
-		let warnedAboutCycle = false;
-		let result = this.tryLayoutDocument(
-			docStructure,
-			pdfDocument,
-			styleDictionary,
-			defaultStyle,
-			background,
-			header,
-			footer,
-			watermark,
-			assumedPageCount,
-			bottomMarginOverrides,
-		);
-		while (layoutPass < maxLayoutPasses) {
-			const nextPageCount = result.pages.length;
-			const nextBottomMarginOverrides = getFooterBottomMargins(result);
-			const footerMarginsNeedAnotherPass = !equalMargins(
-				bottomMarginOverrides,
-				nextBottomMarginOverrides,
-			);
-			const marginsNeedAnotherPass =
-				Boolean(result.pageMarginFunctionUsed) && assumedPageCount !== nextPageCount;
-			const backgroundNeedsAnotherPass =
-				Boolean(result.dynamicBackgroundUsesPageCount) && assumedPageCount !== nextPageCount;
-			const pageBreakNeedsAnotherPass = addPageBreaksIfNecessary(
-				result.linearNodeList,
-				result.pages,
-				pageBreakBeforeFct,
-				this.extensions,
-			);
-
-			if (
-				!footerMarginsNeedAnotherPass &&
-				!marginsNeedAnotherPass &&
-				!backgroundNeedsAnotherPass &&
-				!pageBreakNeedsAnotherPass
-			)
-				break;
-
-			if (footerMarginsNeedAnotherPass || marginsNeedAnotherPass || backgroundNeedsAnotherPass) {
-				if (
-					(marginsNeedAnotherPass || backgroundNeedsAnotherPass) &&
-					!warnedAboutCycle &&
-					pageCountHistory.includes(nextPageCount)
-				) {
-					console.warn(
-						"Non-convergent dynamic layout detected; layout stopped after a bounded number of passes.",
-					);
-					warnedAboutCycle = true;
-				}
-				assumedPageCount = nextPageCount;
-				pageCountHistory.push(nextPageCount);
-			}
-			bottomMarginOverrides = nextBottomMarginOverrides;
-
-			resetNodePositions(result);
-			result = this.tryLayoutDocument(
-				docStructure,
-				pdfDocument,
-				styleDictionary,
-				defaultStyle,
-				background,
-				header,
-				footer,
-				watermark,
-				assumedPageCount,
-				bottomMarginOverrides,
-			);
-			layoutPass++;
-		}
-		if (!equalMargins(bottomMarginOverrides, getFooterBottomMargins(result))) {
-			throw new Error("Footer height did not converge after 10 layout passes");
-		}
-
-		return result.pages;
-
-		function getFooterBottomMargins(layoutResult: LayoutResult): number[] {
-			const needsExpandedMargin = layoutResult.footerHeights.some(
-				(height, pageIndex) =>
-					height !== undefined && height > layoutResult.basePageMargins[pageIndex].bottom,
-			);
-			if (!needsExpandedMargin) return [];
-			return layoutResult.basePageMargins.map((margins, pageIndex) =>
-				Math.max(margins.bottom, layoutResult.footerHeights[pageIndex] ?? 0),
-			);
-		}
-
-		function equalMargins(current: readonly number[], next: readonly number[]): boolean {
-			return (
-				current.length === next.length &&
-				current.every((margin, pageIndex) => Math.abs(margin - next[pageIndex]) < 0.001)
-			);
-		}
+		return runBuiltInDocumentPipeline({
+			extensions: this.extensions,
+			pageBreakBefore: pageBreakBeforeFct,
+			runPass: (pageCount, bottomMarginOverrides) =>
+				this.tryLayoutDocument(
+					docStructure,
+					pdfDocument,
+					styleDictionary,
+					defaultStyle,
+					background,
+					header,
+					footer,
+					watermark,
+					pageCount,
+					bottomMarginOverrides,
+				),
+		});
 	}
 
 	tryLayoutDocument(
@@ -251,207 +150,32 @@ class LayoutBuilder {
 		watermark: unknown,
 		pageCount = 0,
 		bottomMarginOverrides: readonly number[] = [],
-	): LayoutResult {
-		const isNecessaryAddFirstPage = (document: LayoutPdfNode): boolean => {
-			if (document.stack && document.stack.length > 0 && document.stack[0].section) {
-				return false;
-			} else if (document.section) {
-				return false;
-			}
-
-			return true;
-		};
-
-		this.linearNodeList = [];
-		const processedDocument: PreprocessedPdfNode =
-			this.docPreprocessor.preprocessDocument(docStructure);
-		const measuredDocument: MeasuredPdfNode = this.docMeasure.measureDocument(processedDocument);
-		const layoutDocument = measuredDocument as LayoutPdfNode;
-
-		const documentContext = new DocumentContext();
-		documentContext.pageMarginSource = this.pageMargins;
-		documentContext.pageCount = pageCount;
-		documentContext.bottomMarginOverrides = bottomMarginOverrides;
-		this.writer = new PageElementWriter(documentContext);
-		let dynamicBackgroundUsesPageCount = false;
-
-		// Backgrounds are created as each page is added, so they receive this pass's
-		// estimated pageCount. Headers, footers and watermarks are added after content
-		// layout below and therefore observe the pass's actual pages array.
-		this.writer.context().addListener("pageAdded", (page: PdfPage) => {
-			let backgroundGetter = background;
-			if (page.customProperties["background"] || page.customProperties["background"] === null) {
-				backgroundGetter = page.customProperties["background"];
-			}
-
-			dynamicBackgroundUsesPageCount =
-				this.repeatables.addBackground(backgroundGetter) || dynamicBackgroundUsesPageCount;
+	): DocumentLayoutPassResult {
+		return runBuiltInDocumentPass(this, {
+			docStructure,
+			pdfDocument,
+			defaultStyle,
+			background,
+			header,
+			footer,
+			watermark,
+			pageCount,
+			bottomMarginOverrides,
+			requiresFirstPage: (document) => this.layout.requiresFirstPage(document),
 		});
-
-		if (isNecessaryAddFirstPage(layoutDocument)) {
-			this.writer.addPage(this.pageSize, null, this.pageMargins);
-		}
-
-		this.processNode(layoutDocument);
-		for (const page of this.writer.context().pages) {
-			if (page.pageSize.height === Infinity) {
-				page.pageSize = {
-					...page.pageSize,
-					height: calculatePageHeight(page, page.pageMargins),
-				};
-			}
-		}
-		const footerHeights = this.repeatables.addHeadersAndFooters(header, footer);
-		this.repeatables.addWatermark(watermark, pdfDocument, defaultStyle);
-
-		return {
-			pages: this.writer.context().pages,
-			linearNodeList: this.linearNodeList,
-			pageMarginFunctionUsed: this.writer.context().pageMarginFunctionUsed,
-			dynamicBackgroundUsesPageCount,
-			basePageMargins: this.writer.context().basePageMargins,
-			footerHeights,
-		};
 	}
 
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed: boolean = false): void {
-		const applyMargins = (callback: () => void): void => {
-			const margin = node._margin;
-
-			if (node.pageBreak === "before") {
-				this.writer.moveToNextPage(node.pageOrientation);
-			} else if (node.pageBreak === "beforeOdd") {
-				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 !== 1) {
-					this.writer.moveToNextPage(node.pageOrientation);
-				}
-			} else if (node.pageBreak === "beforeEven") {
-				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 !== 0) {
-					this.writer.moveToNextPage(node.pageOrientation);
-				}
-			}
-
-			const isDetachedBlock = node.relativePosition || node.absolutePosition;
-
-			// Detached nodes have no margins, their position is only determined by 'x' and 'y'
-			if (margin && !isDetachedBlock) {
-				this.moveDownWithPageBreak(margin[1], node.pageOrientation);
-				// Apply lateral margins
-				this.writer.context().addMargin(margin[0], margin[2]);
-			}
-			callback();
-
-			// Detached nodes have no margins, their position is only determined by 'x' and 'y'
-			if (margin && !isDetachedBlock) {
-				// Lateral margins only apply to the node itself, not to a page reached by its bottom margin.
-				this.writer.context().addMargin(-margin[0], -margin[2]);
-				this.moveDownWithPageBreak(margin[3], node.pageOrientation);
-			}
-
-			if (node.pageBreak === "after") {
-				this.writer.moveToNextPage(node.pageOrientation);
-			} else if (node.pageBreak === "afterOdd") {
-				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 !== 1) {
-					this.writer.moveToNextPage(node.pageOrientation);
-				}
-			} else if (node.pageBreak === "afterEven") {
-				this.writer.moveToNextPage(node.pageOrientation);
-				if ((this.writer.context().page + 1) % 2 !== 0) {
-					this.writer.moveToNextPage(node.pageOrientation);
-				}
-			}
-		};
-
-		if (!this.suppressLinearNodeList) this.linearNodeList.push(node);
-		decorateNode(node);
-
-		let startPosition: ReturnType<DocumentContext["getCurrentPosition"]> | undefined;
-		if (this.writer.context().getCurrentPage()) {
-			startPosition = this.writer.context().getCurrentPosition();
-		}
-
-		applyMargins(() => {
-			const verticalAlignment = node.verticalAlignment;
-			let verticalAlignmentBegin: ReturnType<PageElementWriter["beginVerticalAlignment"]> | null =
-				null;
-			if (isVerticalAlignmentAllowed && verticalAlignment) {
-				verticalAlignmentBegin = this.writer.beginVerticalAlignment(verticalAlignment);
-			}
-
-			const unbreakable = node.unbreakable;
-			if (unbreakable) {
-				this.writer.beginUnbreakableBlock();
-			}
-
-			const absPosition = node.absolutePosition;
-			if (absPosition) {
-				this.writer.context().beginDetachedBlock();
-				this.writer.context().moveTo(absPosition.x || 0, absPosition.y || 0);
-			}
-
-			const relPosition = node.relativePosition;
-			if (relPosition) {
-				this.writer.context().beginDetachedBlock();
-				this.writer.context().moveToRelative(relPosition.x || 0, relPosition.y || 0);
-			}
-
-			if (node.stack) {
-				this.processVerticalContainer(node);
-			} else if (node.section) {
-				this.processSection(node);
-			} else if (node.columns) {
-				this.processColumns(node);
-			} else if (node.ul) {
-				this.content.processList(false, node);
-			} else if (node.ol) {
-				this.content.processList(true, node);
-			} else if (node.table) {
-				this.rows.processTable(node);
-			} else if (node.text !== undefined) {
-				this.content.processLeaf(node);
-			} else if (node.toc) {
-				this.content.processToc(node);
-			} else if (node.image) {
-				this.content.processImage(node);
-			} else if (node.canvas) {
-				this.content.processCanvas(node);
-			} else if (node._extension) {
-				this.content.processExtension(node);
-			} else if (node.attachment) {
-				this.content.processAttachment(node);
-			} else if (node.acroform) {
-				this.content.processAcroForm(node);
-			} else if (!node._span) {
-				throw new Error(`Unrecognized document structure: ${stringifyNode(node)}`);
-			}
-
-			if (absPosition || relPosition) {
-				this.writer.context().endDetachedBlock();
-			}
-
-			if (unbreakable) {
-				this.writer.commitUnbreakableBlock();
-			}
-
-			if (isVerticalAlignmentAllowed && verticalAlignment && verticalAlignmentBegin) {
-				this.verticalAlignmentItemStack.push({
-					begin: verticalAlignmentBegin as VerticalAlignmentStackEntry["begin"],
-					end: this.writer.endVerticalAlignment(
-						verticalAlignment,
-					) as VerticalAlignmentStackEntry["end"],
-				});
-			}
+		layoutNodeWithLifecycle(node, isVerticalAlignmentAllowed, {
+			writer: this.writer,
+			linearNodeList: this.linearNodeList,
+			suppressLinearNodeList: this.suppressLinearNodeList,
+			verticalAlignmentItemStack: this.verticalAlignmentItemStack,
+			decorateNode: (target) => this.layout.decorateNode(target),
+			moveDownWithPageBreak: (height, orientation) =>
+				this.moveDownWithPageBreak(height, orientation),
+			layoutContent: (contentNode) => this.layout.layoutNode(contentNode),
 		});
-
-		if (startPosition) {
-			node.__height = getPageSpanHeight(
-				startPosition,
-				this.writer.context().getCurrentPosition(),
-				this.writer.context().pages,
-			);
-		}
 	}
 
 	/**
@@ -461,110 +185,22 @@ class LayoutBuilder {
 	 * @param pageOrientation - Optional page orientation for the new page
 	 */
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void {
-		const ctx = this.writer.context();
-		const snakingSnapshot = ctx.getSnakingSnapshot();
-		if (!snakingSnapshot) {
-			return;
-		}
-
-		// Try flowing to next column first
-		if (this.writer.canMoveToNextColumn()) {
-			this.writer.moveToNextColumn();
-			return;
-		}
-
-		// No more columns available, move to new page
-		this.writer.moveToNextPage(pageOrientation);
-
-		// Reset snaking column state for the new page
-		// Save lastColumnWidth before reset — if we're inside a nested
-		// column group (e.g. product/price row), the reset would overwrite
-		// it with the snaking column width, corrupting inner column layout.
-		const savedLastColumnWidth = ctx.lastColumnWidth;
-		ctx.resetSnakingColumnsForNewPage();
-		ctx.lastColumnWidth = savedLastColumnWidth;
+		moveToNextSnakingColumnOrPage(this.writer, pageOrientation);
 	}
 
 	// vertical container
 	processVerticalContainer(node: LayoutPdfNode): void {
-		const stack = node.stack;
-		if (!stack) throw new Error("Internal layout error: expected a preprocessed stack node");
-		node.positions ??= [];
-		const positions = node.positions;
-		stack.forEach((item: LayoutPdfNode, index: number) => {
-			this.processNode(item);
-			addAll(positions, item.positions ?? []);
-
-			if (item.text !== undefined && index < stack.length - 1) {
-				this.moveDownWithPageBreak(item._paragraphGap ?? 0, item.pageOrientation);
-			}
-		}, this);
+		this.layout.layoutVerticalContainer(node);
 	}
 
 	// section
 	processSection(sectionNode: LayoutPdfNode): void {
-		const section = sectionNode as SectionNode;
-
-		const page = this.writer.context().getCurrentPage();
-		if (!page || (page && page.items.length)) {
-			const resolved = resolveSectionPage(section, page, {
-				pageSize: this.pageSize,
-				pageMargins: this.pageMargins,
-				inheritedPageMargins: this.writer.context().basePageMargins[this.writer.context().page],
-			});
-
-			this.writer.addPage(
-				resolved.pageSize,
-				resolved.pageOrientation,
-				resolved.pageMargins,
-				resolved.customProperties,
-			);
-		}
-
-		this.processNode(section.section);
+		this.layout.layoutSection(sectionNode);
 	}
 
 	// columns
 	processColumns(columnNode: LayoutPdfNode): void {
-		this.nestedLevel++;
-		const columns = columnNode.columns;
-		if (!columns) throw new Error("Internal layout error: expected preprocessed columns");
-		const columnCount = columns.length;
-		let availableWidth = this.writer.context().availableWidth;
-		const gaps = gapArray(columnNode._gap ?? 0);
-
-		if (gaps) {
-			availableWidth -= (gaps.length - 1) * (columnNode._gap ?? 0);
-		}
-
-		ColumnCalculator.buildColumnWidths(columns, availableWidth);
-		const result = this.processRow({
-			marginX: columnNode._margin ? [columnNode._margin[0], columnNode._margin[2]] : [0, 0],
-			cells: columns,
-			widths: columns,
-			gaps,
-			snakingColumns: columnNode.snakingColumns,
-		});
-		columnNode.positions ??= [];
-		addAll(columnNode.positions, result.positions);
-		this.nestedLevel--;
-		if (this.nestedLevel === 0) {
-			this.writer.context().resetMarginXTopParent();
-		}
-		function gapArray(gap: number): number[] | null {
-			if (!gap) {
-				return null;
-			}
-
-			const gaps: number[] = [];
-			gaps.push(0);
-
-			for (let i = columnCount - 1; i > 0; i--) {
-				gaps.push(gap);
-			}
-
-			return gaps;
-		}
+		this.layout.layoutColumns(columnNode);
 	}
 }
 

@@ -69,6 +69,23 @@ export interface PdfPage {
 	height?: number;
 }
 
+export interface WatermarkSize {
+	size: { width: number; height: number };
+	rotatedSize: { width: number; height: number };
+}
+
+export interface MeasuredWatermark {
+	text: string;
+	fontSize: number;
+	color: Color;
+	opacity: number;
+	bold: boolean;
+	italics: boolean;
+	angle: number;
+	font: unknown;
+	_size: WatermarkSize;
+}
+
 export interface FontContainer {
 	vfs: Record<string, string | { data: string; encoding?: VfsEncoding }>;
 	fonts: FontDescriptors;

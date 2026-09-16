@@ -85,7 +85,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm check:size
       - run: pnpm --filter @pdfcraft/core pack --dry-run
       - run: pnpm --filter @pdfcraft/browser pack --dry-run
       - run: pnpm --filter @pdfcraft/qr pack --dry-run

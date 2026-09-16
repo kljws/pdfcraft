@@ -1,5 +1,5 @@
 import { isNumber } from "../utils/variable-type";
-import { pack, offsetVector } from "../utils/tools";
+import { offsetVector } from "../utils/tools";
 import DocumentContext from "../document/document-context";
 import type {
 	CurrentPosition,
@@ -7,43 +7,59 @@ import type {
 	LineLike,
 	PageBreak,
 	PageItem,
-	PdfPage,
-	Position,
 	Vector,
 } from "../types/internal";
-import { addPageItem, alignCanvas, alignImage, getAlignmentOffset } from "./element-writer.helpers";
-import { addAttachment, addCanvas, addExtension, addImage } from "./element-writer.media";
-import { addAcroForm } from "./element-writer.form";
+import { addPageItem, getAlignmentOffset } from "./element-writer.helpers";
+import { type ElementFragment, replayFragment } from "./element-writer.fragments";
+import { notifyVectorInsertion } from "./vector-insertion";
 
 type VectorPageItem = Extract<PageItem, { type: "vector" }>;
-type VectorInsertionListener = (pageIndex: number, page: PdfPage, pageItem: VectorPageItem) => void;
-
-const vectorInsertionListener = Symbol("vectorInsertionListener");
-type TrackedVector = Vector & {
-	[vectorInsertionListener]?: VectorInsertionListener;
-};
-
-export const trackVectorInsertion = (vector: Vector, listener: VectorInsertionListener): void => {
-	Object.defineProperty(vector, vectorInsertionListener, {
-		value: listener,
-		enumerable: true,
-		configurable: true,
-	});
-};
-
-const notifyVectorInsertion = (
-	vector: Vector,
-	pageIndex: number,
-	page: PdfPage,
-	pageItem: VectorPageItem,
-): void => {
-	(vector as TrackedVector)[vectorInsertionListener]?.(pageIndex, page, pageItem);
-};
+export { trackVectorInsertion } from "./vector-insertion";
 
 export interface ElementWriterEvents {
 	lineAdded: [line: LineLike];
 	pageChanged: [change: PageBreak];
 	columnChanged: [change: { prevY: number; y: number }];
+}
+
+export interface ElementPlacementWriter {
+	context(): DocumentContext;
+	getCurrentPositionOnPage(): CurrentPosition;
+	addVector(
+		vector: Vector,
+		ignoreContextX?: boolean,
+		ignoreContextY?: boolean,
+		index?: number,
+		forcePage?: number,
+	): CurrentPosition | undefined;
+}
+
+export interface ElementPlacementAdapter {
+	placeImage(
+		writer: ElementPlacementWriter,
+		node: LayoutPdfNode,
+		index?: number,
+	): CurrentPosition | false;
+	placeCanvas(
+		writer: ElementPlacementWriter,
+		node: LayoutPdfNode,
+		index?: number,
+	): false | Array<CurrentPosition | undefined>;
+	placeExtension(
+		writer: ElementPlacementWriter,
+		node: LayoutPdfNode,
+		index?: number,
+	): CurrentPosition | false;
+	placeAttachment(
+		writer: ElementPlacementWriter,
+		node: LayoutPdfNode,
+		index?: number,
+	): CurrentPosition | false;
+	placeAcroForm(
+		writer: ElementPlacementWriter,
+		node: LayoutPdfNode,
+		index?: number,
+	): CurrentPosition | false;
 }
 
 /**
@@ -54,10 +70,16 @@ class ElementWriter {
 	_context: DocumentContext;
 	contextStack: DocumentContext[];
 	private readonly onLineAdded?: (line: LineLike) => void;
+	private readonly placement?: ElementPlacementAdapter;
 
-	constructor(context: DocumentContext, onLineAdded?: (line: LineLike) => void) {
+	constructor(
+		context: DocumentContext,
+		onLineAdded?: (line: LineLike) => void,
+		placement?: ElementPlacementAdapter,
+	) {
 		this._context = context;
 		this.onLineAdded = onLineAdded;
+		this.placement = placement;
 		this.contextStack = [];
 	}
 
@@ -66,31 +88,30 @@ class ElementWriter {
 	}
 
 	addImage(image: LayoutPdfNode, index?: number): CurrentPosition | false {
-		return addImage(this, image, index);
+		return this.getPlacement().placeImage(this, image, index);
 	}
 
 	addCanvas(node: LayoutPdfNode, index?: number): false | Array<CurrentPosition | undefined> {
-		return addCanvas(this, node, index);
+		return this.getPlacement().placeCanvas(this, node, index);
 	}
 
 	addExtension(node: LayoutPdfNode, index?: number): CurrentPosition | false {
-		return addExtension(this, node, index);
+		return this.getPlacement().placeExtension(this, node, index);
 	}
 
 	addAttachment(attachment: LayoutPdfNode, index?: number): CurrentPosition | false {
-		return addAttachment(this, attachment, index);
+		return this.getPlacement().placeAttachment(this, attachment, index);
 	}
 
 	addAcroForm(node: LayoutPdfNode, index?: number): CurrentPosition | false {
-		return addAcroForm(this, node, index);
+		return this.getPlacement().placeAcroForm(this, node, index);
 	}
 
-	alignImage(image: LayoutPdfNode): void {
-		alignImage(image, this.context().availableWidth);
-	}
-
-	alignCanvas(node: LayoutPdfNode): void {
-		alignCanvas(node, this.context().availableWidth);
+	private getPlacement(): ElementPlacementAdapter {
+		if (!this.placement) {
+			throw new Error("Element placement adapter is required for feature page items");
+		}
+		return this.placement;
 	}
 
 	addLine(
@@ -224,99 +245,12 @@ class ElementWriter {
 	}
 
 	addFragment(
-		block: {
-			height: number;
-			xOffset?: number;
-			yOffset?: number;
-			items: PageItem[];
-		},
+		block: ElementFragment,
 		useBlockXOffset?: boolean,
 		useBlockYOffset?: boolean,
 		dontUpdateContextPosition?: boolean,
 	): boolean {
-		const ctx = this.context();
-		const page = ctx.getCurrentPage();
-
-		if (!useBlockXOffset && block.height > ctx.availableHeight) {
-			return false;
-		}
-
-		block.items.forEach((item) => {
-			switch (item.type) {
-				case "line":
-					var l = (item.item as LineLike).clone();
-
-					updateNodePageNumbers(l, ctx.page + 1);
-					l.x = (l.x || 0) + (useBlockXOffset ? block.xOffset || 0 : ctx.x);
-					l.y = (l.y || 0) + (useBlockYOffset ? block.yOffset || 0 : ctx.y);
-
-					page.items.push({
-						type: "line",
-						item: l,
-					});
-					break;
-
-				case "vector": {
-					const v = pack(item.item as Vector) as Vector & {
-						_isFillColorFromUnbreakable?: boolean;
-					};
-					updateNodePageNumbers(v, ctx.page + 1);
-
-					offsetVector(
-						v,
-						useBlockXOffset ? block.xOffset || 0 : ctx.x,
-						useBlockYOffset ? block.yOffset || 0 : ctx.y,
-					);
-					const pageItem: VectorPageItem = {
-						type: "vector",
-						item: v,
-					};
-					if (v._isFillColorFromUnbreakable) {
-						// If the item is a fillColor from an unbreakable block
-						// We have to add it at the beginning of the items body array of the page
-						delete v._isFillColorFromUnbreakable;
-						const endOfBackgroundItemsIndex = ctx.backgroundLength[ctx.page];
-						page.items.splice(endOfBackgroundItemsIndex, 0, pageItem);
-					} else {
-						page.items.push(pageItem);
-					}
-					notifyVectorInsertion(v, ctx.page, page, pageItem);
-					break;
-				}
-
-				case "image":
-				case "extension":
-				case "attachment":
-				case "acroform": {
-					const image = pack(item.item) as LayoutPdfNode;
-					updateNodePageNumbers(image, ctx.page + 1);
-
-					image.x = (image.x || 0) + (useBlockXOffset ? block.xOffset || 0 : ctx.x);
-					image.y = (image.y || 0) + (useBlockYOffset ? block.yOffset || 0 : ctx.y);
-
-					page.items.push({ type: item.type, item: image });
-					break;
-				}
-				case "beginClip":
-				case "beginVerticalAlignment":
-				case "endVerticalAlignment": {
-					const control = { ...item.item };
-					control.x = (control.x || 0) + (useBlockXOffset ? block.xOffset || 0 : ctx.x);
-					control.y = (control.y || 0) + (useBlockYOffset ? block.yOffset || 0 : ctx.y);
-					page.items.push({ type: item.type, item: control });
-					break;
-				}
-				case "endClip":
-					page.items.push(item);
-					break;
-			}
-		});
-
-		if (!dontUpdateContextPosition) {
-			ctx.moveDown(block.height);
-		}
-
-		return true;
+		return replayFragment(this, block, useBlockXOffset, useBlockYOffset, dontUpdateContextPosition);
 	}
 
 	/**
@@ -365,22 +299,6 @@ class ElementWriter {
 
 	getCurrentPositionOnPage(): CurrentPosition {
 		return (this.contextStack[0] || this.context()).getCurrentPosition();
-	}
-}
-
-function updateNodePageNumbers(
-	item: { _node?: LayoutPdfNode; _position?: Position },
-	pageNumber: number,
-): void {
-	if (item._position) {
-		item._position.pageNumber = pageNumber;
-		return;
-	}
-
-	// Compatibility for fragments created outside LayoutBuilder, where only a
-	// single position was historically associated with the rendered item.
-	if (item._node?.positions?.length === 1) {
-		item._node.positions[0].pageNumber = pageNumber;
 	}
 }
 

@@ -1,7 +1,7 @@
 import PDFDocument from "../../src/rendering/pdf-document.ts";
 import sizes from "../../src/configuration/page-size.constants.ts";
 import LayoutBuilder from "../../src/layout/layout-builder.ts";
-import type { PageBreakBefore } from "../../src/layout/layout-builder.types.ts";
+import type { PageBreakBefore } from "../../src/engine/page-break-before.types.ts";
 import type {
 	Dictionary,
 	FontDescriptors,

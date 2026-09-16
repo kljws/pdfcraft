@@ -1,4 +1,8 @@
-import ElementWriter, { type ElementWriterEvents } from "./element-writer";
+import { createBuiltInElementPlacement } from "../composition/built-in-element-placement";
+import ElementWriter, {
+	type ElementPlacementAdapter,
+	type ElementWriterEvents,
+} from "./element-writer";
 import { normalizePageSize, normalizePageMargin } from "../configuration/page-size";
 import type { PageOrientation } from "../types";
 import type DocumentContext from "../document/document-context";
@@ -37,8 +41,11 @@ class PageElementWriter {
 	repeatables: ElementFragment[];
 	originalX = 0;
 
-	constructor(context: DocumentContext) {
-		this.writer = new ElementWriter(context, (line) => this.emit("lineAdded", line));
+	constructor(
+		context: DocumentContext,
+		placement: ElementPlacementAdapter = createBuiltInElementPlacement(),
+	) {
+		this.writer = new ElementWriter(context, (line) => this.emit("lineAdded", line), placement);
 		this.transactionLevel = 0;
 		this.repeatables = [];
 	}

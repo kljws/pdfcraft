@@ -5,18 +5,9 @@ import type {
 	PatternDefinition,
 	VirtualFileSystem,
 } from "../types";
-import type { MeasuredWatermark } from "../layout/layout-builder.types";
-import type { PdfFont, PdfPage, Position } from "../types/internal";
+import type { AttachmentSource, MeasuredWatermark, PdfPage } from "../types/internal";
 
-export type FontStyle = "normal" | "bold" | "italics" | "bolditalics";
-export type FontFile = string | Uint8Array | ArrayBuffer;
-
-export interface EmbeddedFont extends PdfFont {
-	encode?(text: string, features?: unknown): unknown;
-	font: {
-		postscriptName: string;
-	};
-}
+export type { EmbeddedFont, FontFile, FontStyle } from "../services/typography/font.types";
 
 export interface EmbeddedImage {
 	width: number;
@@ -28,7 +19,7 @@ export interface EmbeddedImage {
 export type { PatternDefinition } from "../types";
 
 export interface AttachmentDefinition extends PDFKit.Mixins.PDFAttachmentOptions {
-	src: FontFile;
+	src: AttachmentSource["src"];
 }
 
 export type PdfDocumentOptions = Omit<PDFKit.PDFDocumentOptions, "font"> & {
@@ -41,10 +32,6 @@ export interface PdfDocumentResources {
 	patterns?: Dictionary<PatternDefinition>;
 	attachments?: Dictionary<AttachmentDefinition>;
 	virtualFileSystem?: VirtualFileSystem | null;
-}
-
-export interface PageNodeReference {
-	positions?: Position[];
 }
 
 export interface RenderablePage extends PdfPage {
@@ -75,11 +62,6 @@ export interface FileAnnotationOptions {
 			BBox: [number, number, number, number];
 		};
 	};
-}
-
-export interface RendererTextOptions extends PDFKit.Mixins.TextOptions {
-	textWidth: number;
-	wordCount: number;
 }
 
 export type ResolvedColor = PDFKit.Mixins.ColorValue;

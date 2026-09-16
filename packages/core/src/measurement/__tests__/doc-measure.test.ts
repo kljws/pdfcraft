@@ -2,7 +2,7 @@ import { assert, beforeEach, describe, it } from "vitest";
 import BaseDocPreprocessor from "../../preprocessing/doc-preprocessor.ts";
 import BaseDocMeasure from "../doc-measure.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
-import type TextInlines from "../../text/text-inlines.ts";
+import type TextInlines from "../../features/text/text-inlines.ts";
 import type { Dictionary, PdfCraftExtensions, Style } from "../../types/index.ts";
 import type {
 	ColumnNode,
@@ -81,20 +81,20 @@ class DocMeasure extends BaseDocMeasure {
 		return measured(super.measureLeaf(node as MeasuredPdfNode));
 	}
 
-	measureColumns(node: unknown): MeasuredFixture {
-		return measured(this.containers.measureColumns(node as MeasuredPdfNode));
+	override measureColumns(node: unknown): MeasuredFixture {
+		return measured(super.measureColumns(node as MeasuredPdfNode));
 	}
 
-	measureVerticalContainer(node: unknown): MeasuredFixture {
-		return measured(this.containers.measureVerticalContainer(node as MeasuredPdfNode));
+	override measureVerticalContainer(node: unknown): MeasuredFixture {
+		return measured(super.measureVerticalContainer(node as MeasuredPdfNode));
 	}
 
-	measureUnorderedList(node: unknown): MeasuredFixture {
-		return measured(this.containers.measureUnorderedList(node as MeasuredPdfNode));
+	override measureUnorderedList(node: unknown): MeasuredFixture {
+		return measured(super.measureUnorderedList(node as MeasuredPdfNode));
 	}
 
-	measureOrderedList(node: unknown): MeasuredFixture {
-		return measured(this.containers.measureOrderedList(node as MeasuredPdfNode));
+	override measureOrderedList(node: unknown): MeasuredFixture {
+		return measured(super.measureOrderedList(node as MeasuredPdfNode));
 	}
 
 	override measureTable(node: unknown): MeasuredFixture {
