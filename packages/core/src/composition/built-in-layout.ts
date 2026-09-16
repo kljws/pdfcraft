@@ -1,9 +1,11 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import { attachmentFeature } from "../features/attachment/attachment.feature";
+import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
 import { canvasFeature } from "../features/canvas/canvas.feature";
 import { columnsFeature } from "../features/columns/columns.feature";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
+import type { LayoutImageNode } from "../features/image/image.types";
 import { listFeature } from "../features/list/list.feature";
 import { sectionFeature } from "../features/section/section.feature";
 import { stackFeature } from "../features/stack/stack.feature";
@@ -11,6 +13,7 @@ import { tableFeature } from "../features/table/table.feature";
 import TableRowLayout, { type TableRowLayoutHost } from "../features/table/layout-row";
 import type { TableLayoutHost } from "../features/table/layout-table";
 import { textFeature } from "../features/text/text.feature";
+import type { LayoutTextNode } from "../features/text/text.types";
 import { tocFeature } from "../features/toc/toc.feature";
 import {
 	createBuiltInFeatureHandlers,
@@ -98,7 +101,7 @@ export function createBuiltInLayout(
 			}),
 		table: (node) => tableFeature.layout(node, tableHost),
 		text: (node) =>
-			textFeature.layout(node, {
+			textFeature.layout(node as LayoutTextNode, {
 				writer: host.writer,
 				snakingAwarePageBreak: (orientation) => host.snakingAwarePageBreak(orientation),
 			}),
@@ -106,9 +109,10 @@ export function createBuiltInLayout(
 			tocFeature.layout(node, {
 				processNode: (item) => host.processNode(item),
 			}),
-		image: (node) => imageFeature.layout(node, { writer: host.writer }),
+		image: (node) => imageFeature.layout(node as LayoutImageNode, { writer: host.writer }),
 		canvas: (node) => canvasFeature.layout(node, { writer: host.writer }),
-		attachment: (node) => attachmentFeature.layout(node, { writer: host.writer }),
+		attachment: (node) =>
+			attachmentFeature.layout(node as LayoutAttachmentNode, { writer: host.writer }),
 		acroform: (node) => acroFormFeature.layout(node, { writer: host.writer }),
 	};
 	const primaryHandlers = createBuiltInFeatureHandlers(processors, PRIMARY_LAYOUT_FEATURES);
@@ -124,8 +128,8 @@ export function createBuiltInLayout(
 
 	return {
 		requiresFirstPage: (document: LayoutPdfNode): boolean => {
-			if (document.stack?.length && sectionFeature.matches(document.stack[0])) return false;
-			return !sectionFeature.matches(document);
+			if (document.stack?.[0]?._kind === "section") return false;
+			return document._kind !== "section";
 		},
 		decorateNode: (node: LayoutPdfNode): void => decorateLayoutNode(node, nodeDecorationHooks),
 		layoutNode: (node: LayoutPdfNode): void => {

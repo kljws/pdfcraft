@@ -1,6 +1,7 @@
 import type DocumentContext from "../../document/document-context";
 import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
-import type { CurrentPosition, LayoutPdfNode } from "../../types/internal";
+import type { CurrentPosition } from "../../types/internal";
+import type { LayoutImageNode } from "./image.types";
 
 export interface ImageWriter {
 	context(): DocumentContext;
@@ -9,7 +10,7 @@ export interface ImageWriter {
 
 export function placeImage(
 	writer: ImageWriter,
-	image: LayoutPdfNode,
+	image: LayoutImageNode,
 	index?: number,
 ): CurrentPosition | false {
 	const height = image._height ?? 0;

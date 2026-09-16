@@ -3,8 +3,10 @@ import BaseDocPreprocessor from "../../../preprocessing/doc-preprocessor.ts";
 import BaseDocMeasure from "../../../measurement/doc-measure.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
 import StyleContextStack from "../../../services/styles/style-context-stack.ts";
-import type { MeasuredPdfNode, PreprocessedPdfNode } from "../../../types/internal.ts";
+import type { PreprocessedPdfNode } from "../../../types/internal.ts";
 import ImageMeasurer from "../image-measurer.ts";
+import type { MeasuredImageNode } from "../image.types.ts";
+import type { MeasuredTextNode } from "../../text/text.types.ts";
 
 describe("Image measurement", function () {
 	it("measures registered images embedded in text", function () {
@@ -25,8 +27,8 @@ describe("Image measurement", function () {
 		const node = { text: ["before ", { image: "logo", width: 20 }, " after"] };
 		new BaseDocPreprocessor().preprocessDocument(node);
 
-		const result = measure.measureDocument(node as PreprocessedPdfNode);
-		const image = result._inlines!.find((inline) => inline.image !== undefined)!;
+		const result = measure.measureDocument(node as PreprocessedPdfNode) as MeasuredTextNode;
+		const image = result.metrics.inlines.find((inline) => inline.image !== undefined)!;
 
 		assert.equal(image.image, "logo");
 		assert.equal(image.width, 20);
@@ -40,7 +42,7 @@ describe("Image measurement", function () {
 			new StyleContextStack(),
 		);
 		const source = new Uint8Array([1, 2, 3]);
-		const imageNode = { image: source } as MeasuredPdfNode;
+		const imageNode = { image: source } as MeasuredImageNode;
 
 		measurer.convertIfInlineImage(imageNode);
 
@@ -56,8 +58,8 @@ describe("Image measurement", function () {
 		);
 		const bytes = new Uint8Array([1, 2, 3]);
 		const dataUrl = "data:image/png;base64,AQID";
-		const byteNodes = [{ image: bytes }, { image: bytes }] as MeasuredPdfNode[];
-		const dataUrlNodes = [{ image: dataUrl }, { image: dataUrl }] as MeasuredPdfNode[];
+		const byteNodes = [{ image: bytes }, { image: bytes }] as MeasuredImageNode[];
+		const dataUrlNodes = [{ image: dataUrl }, { image: dataUrl }] as MeasuredImageNode[];
 
 		for (const node of [...byteNodes, ...dataUrlNodes]) measurer.convertIfInlineImage(node);
 
@@ -73,7 +75,7 @@ describe("Image measurement", function () {
 			new StyleContextStack(),
 		);
 		const result = measurer.measureImageWithDimensions(
-			{ image: "...", width: "auto" } as MeasuredPdfNode,
+			{ image: "...", width: "auto" } as MeasuredImageNode,
 			{ width: 42, height: 42 },
 		);
 
@@ -87,7 +89,7 @@ describe("Image measurement", function () {
 			new StyleContextStack(),
 		);
 		const result = measurer.measureImageWithDimensions(
-			{ image: "...", width: "30%" } as MeasuredPdfNode,
+			{ image: "...", width: "30%" } as MeasuredImageNode,
 			{ width: 120, height: 60 },
 		);
 
@@ -103,7 +105,7 @@ describe("Image measurement", function () {
 			new StyleContextStack(),
 		);
 		const result = measurer.measureImageWithDimensions(
-			{ image: "...", height: "auto" } as MeasuredPdfNode,
+			{ image: "...", height: "auto" } as MeasuredImageNode,
 			{ width: 42, height: 42 },
 		);
 
@@ -117,7 +119,7 @@ describe("Image measurement", function () {
 			{ images } as unknown as PDFDocument,
 			new StyleContextStack(),
 		);
-		const node = { image: "data:image/png;base64,AQID" } as MeasuredPdfNode;
+		const node = { image: "data:image/png;base64,AQID" } as MeasuredImageNode;
 
 		measurer.convertIfInlineImage(node);
 

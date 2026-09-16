@@ -16,7 +16,10 @@ import type { PdfCraftExtensions } from "../types";
 import type { NodeText, PreprocessedPdfNode, RawPdfNode } from "../types/internal";
 import { stringifyNode } from "../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../utils/variable-type";
-import { createBuiltInFeatureHandlers } from "./built-in-feature-registry";
+import {
+	createBuiltInFeatureHandlers,
+	getBuiltInFeatureKind,
+} from "./built-in-feature-registry";
 
 interface BuiltInPreprocessingHost {
 	parentNode: PreprocessedPdfNode | null;
@@ -122,10 +125,12 @@ export function createBuiltInPreprocessing(
 			acroform: (node) => acroFormFeature.preprocess(node, undefined),
 		}),
 		{
+			kind: "text",
 			matches: (node) => textFeature.matchesReference(node),
 			process: preprocessText,
 		},
 		{
+			kind: "extension",
 			matches: (node) => extensionFeature.matches(node, extensions),
 			process: (node) => node,
 		},
@@ -135,6 +140,9 @@ export function createBuiltInPreprocessing(
 		normalizeNode,
 		processNode: (node: PreprocessedPdfNode, isSectionAllowed: boolean) => {
 			const result = dispatchNodeStage(node, isSectionAllowed, handlers);
+			if (result.handled && result.value) {
+				result.value._kind = getBuiltInFeatureKind(result.value) ?? result.kind;
+			}
 			return result.handled ? result.value : undefined;
 		},
 	};

@@ -67,14 +67,23 @@ const FEATURE_MATCHERS: Record<BuiltInFeatureName, (node: PreprocessedPdfNode) =
 	acroform: (node) => acroFormFeature.matches(node),
 };
 
+export function getBuiltInFeatureKind(
+	node: PreprocessedPdfNode,
+): BuiltInFeatureName | undefined {
+	return DEFAULT_FEATURE_ORDER.find((name) => FEATURE_MATCHERS[name](node));
+}
+
 export function createBuiltInFeatureHandlers<Node extends PreprocessedPdfNode, Context, Result>(
 	processors: BuiltInFeatureProcessors<Node, Context, Result>,
 	order: readonly BuiltInFeatureName[] = DEFAULT_FEATURE_ORDER,
 ): NodeStageHandler<Node, Context, Result>[] {
 	const handler = (
+		kind: BuiltInFeatureName,
 		matches: (node: Node) => boolean,
 		process: (node: Node, context: Context) => Result,
-	): NodeStageHandler<Node, Context, Result> => ({ matches, process });
+	): NodeStageHandler<Node, Context, Result> => ({ kind, matches, process });
 
-	return order.map((name) => handler((node) => FEATURE_MATCHERS[name](node), processors[name]));
+	return order.map((name) =>
+		handler(name, (node) => FEATURE_MATCHERS[name](node), processors[name]),
+	);
 }

@@ -233,6 +233,7 @@ export interface PdfNode {
 }
 
 export interface PreprocessedNodeState<Node = PdfNode> {
+	_kind?: string;
 	_nodeRef?: Node;
 	_textNodeRef?: Node;
 	_tocItemRef?: Node;

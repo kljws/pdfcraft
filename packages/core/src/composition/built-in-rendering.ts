@@ -1,7 +1,9 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import { attachmentFeature } from "../features/attachment/attachment.feature";
+import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
+import type { LayoutImageNode } from "../features/image/image.types";
 import { watermarkFeature } from "../features/repeatables/watermark.feature";
 import { textFeature } from "../features/text/text.feature";
 import type PDFDocument from "../rendering/pdf-document";
@@ -33,9 +35,10 @@ export function createBuiltInGraphicsRendering(
 ): BuiltInGraphicsRendering {
 	return {
 		renderImage: (node, resetVectorState) =>
-			imageFeature.render(node, { document, resetVectorState }),
+			imageFeature.render(node as LayoutImageNode, { document, resetVectorState }),
 		renderExtension: (node) => extensionFeature.render(node, { document, extensions }),
-		renderAttachment: (node) => attachmentFeature.render(node, { document }),
+		renderAttachment: (node) =>
+			attachmentFeature.render(node as LayoutAttachmentNode, { document }),
 		renderWatermark: (page) => watermarkFeature.render(document, page),
 	};
 }

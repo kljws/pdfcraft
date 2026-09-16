@@ -4,13 +4,14 @@ import type { LayoutPdfNode } from "../../types/internal";
 import { isObject } from "../../utils/variable-type";
 import { getNodeId } from "../../utils/node";
 import { buildTextLine } from "./build-text-line";
+import type { LayoutTextNode } from "./text.types";
 
 export interface TextLayoutContext {
 	writer: PageElementWriter;
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
 }
 
-export function layoutText(node: LayoutPdfNode, context: TextLayoutContext): void {
+export function layoutText(node: LayoutTextNode, context: TextLayoutContext): void {
 	const nextLine = () => buildTextLine(node, context.writer.context().availableWidth);
 	let line = nextLine();
 	if (line) line._node = node;
@@ -65,8 +66,7 @@ export function layoutText(node: LayoutPdfNode, context: TextLayoutContext): voi
 			) {
 				context.snakingAwarePageBreak(node.pageOrientation);
 				if (line.inlines.length > 0) {
-					node._inlines ??= [];
-					node._inlines.unshift(...line.inlines);
+					node.metrics.inlines.unshift(...line.inlines);
 				}
 				line = nextLine();
 				continue;

@@ -1,6 +1,7 @@
 import type DocumentContext from "../../document/document-context";
 import { addPageItem } from "../../layout/element-writer.helpers";
-import type { CurrentPosition, LayoutPdfNode } from "../../types/internal";
+import type { CurrentPosition } from "../../types/internal";
+import type { LayoutAttachmentNode } from "./attachment.types";
 
 export interface AttachmentWriter {
 	context(): DocumentContext;
@@ -9,7 +10,7 @@ export interface AttachmentWriter {
 
 export function placeAttachment(
 	writer: AttachmentWriter,
-	attachment: LayoutPdfNode,
+	attachment: LayoutAttachmentNode,
 	index?: number,
 ): CurrentPosition | false {
 	const height = attachment._height ?? 0;

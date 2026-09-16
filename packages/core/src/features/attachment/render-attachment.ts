@@ -1,13 +1,13 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import type { FileAnnotationOptions } from "../../rendering/renderer.types";
-import type { LayoutPdfNode } from "../../types/internal";
+import type { LayoutAttachmentNode } from "./attachment.types";
 
 export interface AttachmentRenderContext {
 	document: PDFDocument;
 }
 
 export function renderAttachment(
-	attachment: LayoutPdfNode,
+	attachment: LayoutAttachmentNode,
 	context: AttachmentRenderContext,
 ): void {
 	const file = context.document.provideAttachment(attachment.attachment!);

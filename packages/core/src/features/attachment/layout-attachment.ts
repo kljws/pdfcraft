@@ -1,11 +1,11 @@
 import type PageElementWriter from "../../layout/element-writer.page";
-import type { LayoutPdfNode } from "../../types/internal";
+import type { LayoutAttachmentNode } from "./attachment.types";
 
 export interface AttachmentLayoutContext {
 	writer: Pick<PageElementWriter, "addAttachment">;
 }
 
-export function layoutAttachment(node: LayoutPdfNode, context: AttachmentLayoutContext): void {
+export function layoutAttachment(node: LayoutAttachmentNode, context: AttachmentLayoutContext): void {
 	const position = context.writer.addAttachment(node);
 	if (position) {
 		node._position = position;

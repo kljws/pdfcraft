@@ -2,7 +2,8 @@ import type StyleContextStack from "../../services/styles/style-context-stack";
 import type PDFDocument from "../../rendering/pdf-document";
 import { measureBox } from "../../services/measurement/measure-box";
 import type { Color } from "../../types";
-import type { Dimensions, MeasuredPdfNode } from "../../types/internal";
+import type { Dimensions } from "../../types/internal";
+import type { MeasuredImageNode } from "./image.types";
 
 class ImageMeasurer {
 	private autoImageIndex = 1;
@@ -13,11 +14,11 @@ class ImageMeasurer {
 		private readonly styleStack: StyleContextStack,
 	) {}
 
-	measureImageWithDimensions(node: MeasuredPdfNode, dimensions: Dimensions): MeasuredPdfNode {
-		return measureBox(node, dimensions, this.styleStack);
+	measureImageWithDimensions(node: MeasuredImageNode, dimensions: Dimensions): MeasuredImageNode {
+		return measureBox(node, dimensions, this.styleStack) as MeasuredImageNode;
 	}
 
-	convertIfInlineImage(node: MeasuredPdfNode): void {
+	convertIfInlineImage(node: MeasuredImageNode): void {
 		if (node.image instanceof Uint8Array) {
 			const source = node.image;
 			const label = this.getInlineImageLabel(source);
@@ -45,7 +46,7 @@ class ImageMeasurer {
 		return label;
 	}
 
-	measureImage(node: MeasuredPdfNode): MeasuredPdfNode {
+	measureImage(node: MeasuredImageNode): MeasuredImageNode {
 		this.convertIfInlineImage(node);
 		if (typeof node.image !== "string") {
 			throw new Error("Image node must reference a registered image resource");

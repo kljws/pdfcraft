@@ -1,6 +1,7 @@
 import Line from "../../layout/line";
-import type { Inline, LayoutPdfNode } from "../../types/internal";
+import type { Inline } from "../../types/internal";
 import TextInlines from "./text-inlines";
+import type { LayoutTextNode } from "./text.types";
 
 const cloneInline = (inline: Inline): Inline =>
 	Object.assign(Object.create(Object.getPrototypeOf(inline)) as Inline, inline);
@@ -28,12 +29,12 @@ const findMaxFitLength = (
 	return bestFit;
 };
 
-export function buildTextLine(textNode: LayoutPdfNode, availableWidth: number): Line | null {
-	if (!textNode._inlines || textNode._inlines.length === 0) return null;
+export function buildTextLine(textNode: LayoutTextNode, availableWidth: number): Line | null {
+	if (textNode.metrics.inlines.length === 0) return null;
 
 	const line = new Line(availableWidth);
 	const textInlines = new TextInlines(null);
-	const inlines = textNode._inlines;
+	const inlines = textNode.metrics.inlines;
 	let consumedInlineCount = 0;
 	let forceContinue = false;
 

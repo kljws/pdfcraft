@@ -1,6 +1,7 @@
 import type { NodeText, PreprocessedPdfNode, RawPdfNode } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../../utils/variable-type";
+import type { PreprocessedTextNode } from "./text.types";
 
 export interface TextPreprocessContext {
 	parentNode: PreprocessedPdfNode | null;
@@ -40,7 +41,7 @@ export function asRawText(value: unknown): NodeText<RawPdfNode> {
 export function preprocessText(
 	node: PreprocessedPdfNode,
 	context: TextPreprocessContext,
-): PreprocessedPdfNode {
+): PreprocessedTextNode {
 	context.registerTocItem(node);
 	context.preprocessReferences(node);
 
@@ -55,5 +56,6 @@ export function preprocessText(
 		if (ownsParent) context.parentNode = null;
 	}
 
-	return node;
+	node._kind = "text";
+	return node as PreprocessedTextNode;
 }

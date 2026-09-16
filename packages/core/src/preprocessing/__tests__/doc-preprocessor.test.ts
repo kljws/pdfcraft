@@ -11,6 +11,32 @@ type PreprocessedFixture = PdfNode & {
 describe("DocPreprocessor", function () {
 	const docPreprocessor = new DocPreprocessor();
 
+	describe("internal kind", function () {
+		it("tags nodes after public-shape dispatch", function () {
+			assert.equal(docPreprocessor.preprocessNode({ text: "Invoice" })._kind, "text");
+			assert.equal(docPreprocessor.preprocessNode({ image: "logo" })._kind, "image");
+			assert.equal(
+				docPreprocessor.preprocessNode({ attachment: "invoice.xml" })._kind,
+				"attachment",
+			);
+			assert.equal(
+				docPreprocessor.preprocessNode({
+					table: { body: { groups: [{ rows: [["Cell"]] }] } },
+				})._kind,
+				"table",
+			);
+		});
+
+		it("tags the normalized feature when preprocessing changes the node shape", function () {
+			const result = docPreprocessor.preprocessNode({
+				stack: ["Decorated"],
+				borderWidth: 1,
+			});
+
+			assert.equal(result._kind, "table");
+		});
+	});
+
 	describe("AcroForms", function () {
 		it("accepts valid fields and rejects incomplete definitions", function () {
 			assert.doesNotThrow(() =>

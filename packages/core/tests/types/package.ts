@@ -1,7 +1,24 @@
 import pdfcraft from "@pdfcraft/core";
-import type { DocumentDefinition, Options, OutputDocumentServer } from "@pdfcraft/core/types";
+import type {
+	DocumentDefinition,
+	Options,
+	OutputDocumentServer,
+	TableCell,
+} from "@pdfcraft/core/types";
 
 const options: Options = {};
+
+const imageTableCell = {
+	image: "photo",
+	fit: [40, 40],
+	colSpan: 2,
+	verticalAlignment: "middle",
+} satisfies TableCell;
+
+const columnsTableCell = {
+	columns: ["Label", { text: "Value", bold: true }],
+	fillColor: "#f8fafc",
+} satisfies TableCell;
 
 const instance = pdfcraft.createPdfCraft({
 	...options,
@@ -78,7 +95,11 @@ const definition: DocumentDefinition = {
 								paddingBottom: (rowIndex, _node, group) =>
 									rowIndex === group.rowCount - 1 ? 8 : 2,
 							},
-							rows: [["Centered table", "Value"], [{ text: "Description", colSpan: 2 }]],
+							rows: [
+								["Centered table", "Value"],
+								[{ text: "Description", colSpan: 2 }],
+								[imageTableCell, columnsTableCell],
+							],
 						},
 					],
 					layout: {

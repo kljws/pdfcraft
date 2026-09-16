@@ -1,13 +1,13 @@
 import type PDFDocument from "../../rendering/pdf-document";
-import type { LayoutPdfNode } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
+import type { LayoutImageNode } from "./image.types";
 
 export interface ImageRenderContext {
 	document: PDFDocument;
 	resetVectorState(): void;
 }
 
-export function renderImage(image: LayoutPdfNode, context: ImageRenderContext): void {
+export function renderImage(image: LayoutImageNode, context: ImageRenderContext): void {
 	const document = context.document;
 	const opacity = isNumber(image.opacity) ? image.opacity : 1;
 	const width = image.cover?.width ?? image._width!;

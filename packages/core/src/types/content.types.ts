@@ -162,9 +162,7 @@ export interface ListNode extends ContentBase {
 	separator?: string | [string, string];
 }
 
-export interface TableCell extends ContentBase {
-	text?: Text;
-	stack?: Content[];
+export interface TableChrome {
 	colSpan?: number;
 	rowSpan?: number;
 	border?: [boolean, boolean, boolean, boolean];
@@ -173,6 +171,8 @@ export interface TableCell extends ContentBase {
 	fillOpacity?: number;
 	verticalAlignment?: "top" | "middle" | "bottom";
 }
+
+export type TableCell = Content & TableChrome;
 
 export type TableCellDefinition = Content | TableCell;
 

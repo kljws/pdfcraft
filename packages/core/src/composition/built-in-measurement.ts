@@ -1,14 +1,17 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import { attachmentFeature } from "../features/attachment/attachment.feature";
+import type { MeasuredAttachmentNode } from "../features/attachment/attachment.types";
 import { canvasFeature } from "../features/canvas/canvas.feature";
 import { columnsFeature } from "../features/columns/columns.feature";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
+import type { MeasuredImageNode } from "../features/image/image.types";
 import { listFeature } from "../features/list/list.feature";
 import { sectionFeature } from "../features/section/section.feature";
 import { stackFeature } from "../features/stack/stack.feature";
 import { tableFeature } from "../features/table/table.feature";
 import { textFeature } from "../features/text/text.feature";
+import type { TextMeasureNode } from "../features/text/text.types";
 import TextInlines from "../features/text/text-inlines";
 import { tocFeature } from "../features/toc/toc.feature";
 import { createBuiltInFeatureHandlers } from "./built-in-feature-registry";
@@ -32,7 +35,7 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
 	const media = imageFeature.createMeasurer(host.pdfDocument, host.styleStack);
 	const textInlines = new TextInlines(
 		host.pdfDocument,
-		(node) => imageFeature.measure(node, media),
+		(node) => imageFeature.measure(node as MeasuredImageNode, media),
 		(inline) => acroFormFeature.measureInline(inline),
 	);
 	const handlers: NodeStageHandler<MeasuredPdfNode, undefined, MeasuredPdfNode>[] = [
@@ -65,7 +68,7 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
 					measureNode: (cell) => host.measureNode(cell),
 				}),
 			text: (node) =>
-				textFeature.measure(node, {
+				textFeature.measure(node as TextMeasureNode, {
 					inlines: host.textInlines,
 					styles: host.styleStack,
 				}),
@@ -73,9 +76,10 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
 				tocFeature.measure(node, {
 					measureNode: (item) => host.measureNode(item),
 				}),
-			image: (node) => imageFeature.measure(node, media),
+			image: (node) => imageFeature.measure(node as MeasuredImageNode, media),
 			canvas: (node) => canvasFeature.measure(node, host.styleStack),
-			attachment: (node) => attachmentFeature.measure(node, undefined),
+			attachment: (node) =>
+				attachmentFeature.measure(node as MeasuredAttachmentNode, undefined),
 			acroform: (node) =>
 				acroFormFeature.measure(node, {
 					document: host.pdfDocument,
@@ -83,6 +87,7 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
 				}),
 		}),
 		{
+			kind: "extension",
 			matches: () => true,
 			process: (node) =>
 				extensionFeature.measure(node, {
