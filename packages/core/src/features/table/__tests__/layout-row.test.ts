@@ -4,8 +4,9 @@ import BaseLayoutBuilder from "../../../layout/layout-builder.ts";
 import ColumnCalculator from "../../../layout/column-calculator.ts";
 import PageElementWriter from "../../../layout/element-writer.page.ts";
 import DocMeasure from "../../../measurement/doc-measure.ts";
+import DocPreprocessor from "../../../preprocessing/doc-preprocessor.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
-import type { ColumnWidth, PageSize, PreprocessedPdfNode } from "../../../types/internal.ts";
+import type { ColumnWidth, PageSize } from "../../../types/internal.ts";
 import TableRowLayout from "../layout-row.ts";
 
 var sampleTestProvider = {
@@ -46,13 +47,7 @@ describe("Table row layout", function () {
 			pageBreakAfter?: number,
 			secondColumnPageBreakAfter?: number,
 		): TableFixture {
-			var tableNode = {
-				table: {
-					headerRows,
-					widths: [100, 100],
-					body: [] as RowCellFixture[][],
-				},
-			} as unknown as Omit<TableFixture, "metrics">;
+			const rowsData: RowCellFixture[][] = [];
 
 			var rows = headerRows + otherRows;
 			while (rows--) {
@@ -69,15 +64,27 @@ describe("Table row layout", function () {
 					stack2.stack[secondColumnPageBreakAfter - 1].pageBreak = "after";
 				}
 
-				tableNode.table.body.push([stack1, stack2]);
+				rowsData.push([stack1, stack2]);
 			}
+			const tableNode = {
+				table: {
+					widths: [100, 100],
+					header: headerRows > 0 ? { rows: rowsData.slice(0, headerRows) } : undefined,
+					body: {
+						groups: otherRows > 0 ? [{ rows: rowsData.slice(headerRows) }] : [],
+					},
+				},
+			};
 
-			new DocMeasure(sampleTestProvider as unknown as PDFDocument, {}, {}).measureDocument(
-				tableNode as unknown as PreprocessedPdfNode,
-			);
-			ColumnCalculator.buildColumnWidths(tableNode.table.widths, 320);
+			const preprocessedTable = new DocPreprocessor().preprocessDocument(tableNode);
+			const measuredTable = new DocMeasure(
+				sampleTestProvider as unknown as PDFDocument,
+				{},
+				{},
+			).measureDocument(preprocessedTable) as unknown as TableFixture;
+			ColumnCalculator.buildColumnWidths(measuredTable.table.widths, 320);
 
-			return tableNode as TableFixture;
+			return measuredTable;
 		}
 
 		beforeEach(function () {

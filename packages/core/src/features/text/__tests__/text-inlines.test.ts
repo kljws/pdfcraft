@@ -136,6 +136,7 @@ describe("TextInlines", function () {
 
 	it("measures image fragments as part of a text line", function () {
 		const inlines = new TextInlines(sampleTestProvider, (node) => {
+			node._kind = "image";
 			node.image = "resolved-icon";
 			node._width = 24;
 			node._height = 16;
