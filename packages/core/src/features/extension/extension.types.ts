@@ -1,0 +1,13 @@
+import type { ExtensionNode } from "../../types";
+import type { LayoutNodeBase, MeasuredNodeBase, PreprocessedNodeBase } from "../../types/internal";
+
+export type PreprocessedExtensionNode = PreprocessedNodeBase &
+	ExtensionNode & { _kind: "extension" };
+
+export type ExtensionMeasureNode = MeasuredNodeBase & ExtensionNode & { _kind: "extension" };
+
+export type MeasuredExtensionNode = ExtensionMeasureNode &
+	ExtensionNode & { _kind: "extension"; _extension: string };
+
+export type LayoutExtensionNode = LayoutNodeBase &
+	ExtensionNode & { _kind: "extension"; _extension: string };

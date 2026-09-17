@@ -1,10 +1,14 @@
 import type { Decoration } from "../../types";
 import type {
 	Inline,
+	LayoutNodeBase,
 	LayoutPdfNode,
 	LineLike,
+	MeasuredNodeBase,
 	MeasuredPdfNode,
+	NodeText,
 	PdfNode,
+	PreprocessedNodeBase,
 	PreprocessedPdfNode,
 } from "../../types/internal";
 import type { ResolvedColor } from "../../rendering/renderer.types";
@@ -30,22 +34,29 @@ export interface InlineMeasurement {
 	maxWidth: number;
 }
 
-export type PreprocessedTextNode = PreprocessedPdfNode & {
+export type PreprocessedTextNode = PreprocessedNodeBase & {
 	_kind: "text";
-	text: NonNullable<PreprocessedPdfNode["text"]>;
+	text: NonNullable<NodeText<PreprocessedPdfNode>>;
 };
 
 export interface TextMetrics {
 	inlines: Inline[];
 }
 
-export type TextMeasureNode = MeasuredPdfNode & PreprocessedTextNode;
+export type TextMeasureNode = MeasuredNodeBase & {
+	_kind: "text";
+	text: NonNullable<NodeText<MeasuredPdfNode>>;
+};
 
 export type MeasuredTextNode = TextMeasureNode & {
 	metrics: TextMetrics;
 };
 
-export type LayoutTextNode = LayoutPdfNode & MeasuredTextNode;
+export type LayoutTextNode = LayoutNodeBase & {
+	_kind: "text";
+	text: NonNullable<NodeText<LayoutPdfNode>>;
+	metrics: TextMetrics;
+};
 
 export interface DecorationGroup {
 	line: LineLike;

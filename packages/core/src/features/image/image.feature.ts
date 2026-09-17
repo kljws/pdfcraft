@@ -1,12 +1,8 @@
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type PDFDocument from "../../rendering/pdf-document";
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type {
-	LayoutImageNode,
-	MeasuredImageNode,
-	PreprocessedImageNode,
-} from "./image.types";
+import type { LayoutImageNode, MeasuredImageNode, PreprocessedImageNode } from "./image.types";
 import ImageMeasurer from "./image-measurer";
 import { layoutImage, type ImageLayoutContext } from "./layout-image";
 import { placeImage, type ImageWriter } from "./place-image";
@@ -14,7 +10,8 @@ import { preprocessImage } from "./preprocess-image";
 import { renderImage, type ImageRenderContext } from "./render-image";
 
 interface ImageFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedImageNode;
 	measuredNode: MeasuredImageNode;
 	layoutNode: LayoutImageNode;
 	renderNode: LayoutImageNode;
@@ -25,7 +22,7 @@ interface ImageFeatureStages extends NodeFeatureStages {
 }
 
 interface ImageFeature extends NodeFeature<ImageFeatureStages> {
-	preprocess(node: PreprocessedPdfNode, context: undefined): PreprocessedImageNode;
+	preprocess(node: PdfNode, context: undefined): PreprocessedImageNode;
 	createMeasurer(document: PDFDocument, styles: StyleContextStack): ImageMeasurer;
 	measure(node: MeasuredImageNode, context: ImageMeasurer): MeasuredImageNode;
 	place(writer: ImageWriter, node: LayoutImageNode, index?: number): ReturnType<typeof placeImage>;
@@ -35,7 +32,7 @@ interface ImageFeature extends NodeFeature<ImageFeatureStages> {
 
 export const imageFeature: ImageFeature = {
 	kind: "image",
-	matches(node: PreprocessedPdfNode): boolean {
+	matches(node: PdfNode): boolean {
 		return Boolean(node.image);
 	},
 	preprocess(node): PreprocessedImageNode {

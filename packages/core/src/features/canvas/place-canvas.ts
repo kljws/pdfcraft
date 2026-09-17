@@ -1,7 +1,8 @@
 import type DocumentContext from "../../document/document-context";
 import { getAlignmentOffset } from "../../layout/element-writer.helpers";
-import type { CurrentPosition, LayoutPdfNode, Vector } from "../../types/internal";
+import type { CurrentPosition, Vector } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
+import type { LayoutCanvasNode } from "./canvas.types";
 
 export interface CanvasWriter {
 	context(): DocumentContext;
@@ -14,7 +15,7 @@ export interface CanvasWriter {
 	): CurrentPosition | undefined;
 }
 
-export function alignCanvas(node: LayoutPdfNode, availableWidth: number): void {
+export function alignCanvas(node: LayoutCanvasNode, availableWidth: number): void {
 	const offset = getAlignmentOffset(node._alignment, availableWidth, node._minWidth ?? 0);
 	if (offset) {
 		node.canvas?.forEach((vector) => offsetVector(vector, offset, 0));
@@ -23,7 +24,7 @@ export function alignCanvas(node: LayoutPdfNode, availableWidth: number): void {
 
 export function placeCanvas(
 	writer: CanvasWriter,
-	node: LayoutPdfNode,
+	node: LayoutCanvasNode,
 	index?: number,
 ): false | Array<CurrentPosition | undefined> {
 	const context = writer.context();

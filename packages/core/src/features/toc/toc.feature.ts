@@ -1,5 +1,5 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { layoutToc, type TocLayoutContext } from "./layout-toc";
 import { measureToc, type TocMeasureContext } from "./measure-toc";
 import {
@@ -8,11 +8,13 @@ import {
 	type TocItemRegistrationContext,
 	type TocPreprocessContext,
 } from "./preprocess-toc";
+import type { LayoutTocNode, MeasuredTocNode, PreprocessedTocNode } from "./toc.types";
 
 interface TocFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
-	measuredNode: MeasuredPdfNode;
-	layoutNode: LayoutPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedTocNode;
+	measuredNode: MeasuredTocNode;
+	layoutNode: LayoutTocNode;
 	renderNode: never;
 	preprocessContext: TocPreprocessContext;
 	measureContext: TocMeasureContext;
@@ -21,9 +23,10 @@ interface TocFeatureStages extends NodeFeatureStages {
 }
 
 interface TocFeature extends NodeFeature<TocFeatureStages> {
+	preprocess(node: PdfNode, context: TocPreprocessContext): PreprocessedTocNode;
 	registerItem(node: PreprocessedPdfNode, context: TocItemRegistrationContext): void;
-	measure(node: MeasuredPdfNode, context: TocMeasureContext): MeasuredPdfNode;
-	layout(node: LayoutPdfNode, context: TocLayoutContext): void;
+	measure(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode;
+	layout(node: LayoutTocNode, context: TocLayoutContext): void;
 }
 
 export const tocFeature: TocFeature = {

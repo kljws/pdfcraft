@@ -33,11 +33,13 @@ export function layoutText(node: LayoutTextNode, context: TextLayoutContext): vo
 	} else if (line && Array.isArray(node.text)) {
 		for (const item of node.text) {
 			if (isObject(item) && item.outline) {
-				const outlineNode = item as LayoutPdfNode;
+				const outlineNode = item as unknown as LayoutPdfNode;
 				line._outline = {
 					id: outlineNode.id,
 					parentId: outlineNode.outlineParentId,
-					text: outlineNode.outlineText || String(outlineNode.text ?? ""),
+					text:
+						outlineNode.outlineText ||
+						("text" in outlineNode ? String(outlineNode.text ?? "") : ""),
 					expanded: outlineNode.outlineExpanded || false,
 				};
 			}

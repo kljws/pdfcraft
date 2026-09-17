@@ -27,4 +27,3 @@ describe("extension layout", function () {
 		assert.equal(pages.length, 1);
 	});
 });
-

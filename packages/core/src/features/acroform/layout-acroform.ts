@@ -1,11 +1,11 @@
 import type PageElementWriter from "../../layout/element-writer.page";
-import type { LayoutPdfNode } from "../../types/internal";
+import type { LayoutAcroFormNode } from "./acroform.types";
 
 export interface AcroFormLayoutContext {
 	writer: PageElementWriter;
 }
 
-export function layoutAcroForm(node: LayoutPdfNode, context: AcroFormLayoutContext): void {
+export function layoutAcroForm(node: LayoutAcroFormNode, context: AcroFormLayoutContext): void {
 	const position = context.writer.addAcroForm(node);
 	if (position) {
 		node._position = position;

@@ -1,6 +1,7 @@
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type PDFDocument from "../../rendering/pdf-document";
-import type { Inline, MeasuredPdfNode } from "../../types/internal";
+import type { Inline } from "../../types/internal";
+import type { MeasuredAcroFormNode } from "./acroform.types";
 
 export interface AcroFormMeasureContext {
 	document: PDFDocument;
@@ -8,9 +9,9 @@ export interface AcroFormMeasureContext {
 }
 
 export function measureAcroForm(
-	node: MeasuredPdfNode,
+	node: MeasuredAcroFormNode,
 	context: AcroFormMeasureContext,
-): MeasuredPdfNode {
+): MeasuredAcroFormNode {
 	const width = typeof node.width === "number" ? node.width : 10;
 	const height = typeof node.height === "number" ? node.height : 15;
 	node._minWidth = width;

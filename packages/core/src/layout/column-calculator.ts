@@ -1,7 +1,9 @@
 import { isString } from "../utils/variable-type";
 import type { ColumnWidth, TableLayout } from "../types/internal";
 
-type TableWidthNode<Node extends object> = Node & { _layout?: TableLayout<Node> };
+type TableWidthNode<Node extends object> = Node & {
+	metrics?: { layout?: TableLayout<Node> };
+};
 
 function buildColumnWidths<Node extends object>(
 	columns: ColumnWidth[],
@@ -37,7 +39,7 @@ function buildColumnWidths<Node extends object>(
 			// In tables we have to take into consideration the reserved width for paddings and borders
 			let reservedWidth = 0;
 			if (tableNode) {
-				const layout = tableNode._layout;
+				const layout = tableNode.metrics?.layout;
 				if (!layout) throw new Error("Internal layout error: table layout was not resolved");
 				const paddingLeft = layout.paddingLeft(colIndex, tableNode);
 				const paddingRight = layout.paddingRight(colIndex, tableNode);

@@ -1,5 +1,6 @@
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { isString } from "../../utils/variable-type";
+import type { PreprocessedTocNode } from "./toc.types";
 
 export interface TocPreprocessContext {
 	tocs: Record<string, PreprocessedPdfNode>;
@@ -23,10 +24,16 @@ export function registerTocItem(
 		const tocItemId = node.tocItem[index];
 
 		if (!context.tocs[tocItemId]) {
-			context.tocs[tocItemId] = { toc: { _items: [], _pseudo: true } };
+			context.tocs[tocItemId] = {
+				_kind: "toc",
+				toc: { _items: [], _pseudo: true },
+			};
 		}
-		const toc = context.tocs[tocItemId].toc;
-		if (!toc) throw new Error(`Internal preprocessing error: missing TOC '${tocItemId}'`);
+		const tocNode = context.tocs[tocItemId];
+		if (tocNode._kind !== "toc") {
+			throw new Error(`Internal preprocessing error: missing TOC '${tocItemId}'`);
+		}
+		const toc = tocNode.toc;
 
 		if (!node.id) node.id = `toc-${tocItemId}-${toc._items.length}`;
 		toc._items.push({
@@ -36,26 +43,26 @@ export function registerTocItem(
 	}
 }
 
-export function preprocessToc(
-	node: PreprocessedPdfNode,
-	context: TocPreprocessContext,
-): PreprocessedPdfNode {
-	const toc = node.toc;
-	if (!toc) throw new Error("Internal preprocessing error: expected a TOC node");
+export function preprocessToc(node: PdfNode, context: TocPreprocessContext): PreprocessedTocNode {
+	if (!node.toc) throw new Error("Internal preprocessing error: expected a TOC node");
+	node._kind = "toc";
+	const tocNode = node as unknown as PreprocessedTocNode;
+	const toc = tocNode.toc;
 	if (!toc.id) toc.id = "_default_";
 
 	toc.title = toc.title ? context.preprocessNode(toc.title) : null;
 	toc._items = [];
 
 	if (context.tocs[toc.id]) {
-		const registeredToc = context.tocs[toc.id].toc;
-		if (!registeredToc) {
+		const registeredNode = context.tocs[toc.id];
+		if (registeredNode._kind !== "toc") {
 			throw new Error(`Internal preprocessing error: missing TOC '${toc.id}'`);
 		}
+		const registeredToc = registeredNode.toc;
 		if (!registeredToc._pseudo) throw new Error(`TOC '${toc.id}' already exists`);
 		toc._items = registeredToc._items;
 	}
 
-	context.tocs[toc.id] = node;
-	return node;
+	context.tocs[toc.id] = tocNode;
+	return tocNode;
 }

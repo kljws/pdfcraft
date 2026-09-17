@@ -36,7 +36,7 @@ describe("Table row layout", function () {
 				widths: ColumnWidth[];
 				body: RowCellFixture[][];
 			};
-			_offsets: { offsets: number[] };
+			metrics: { offsets: { offsets: number[] } };
 		}
 
 		function createTable(
@@ -52,7 +52,7 @@ describe("Table row layout", function () {
 					widths: [100, 100],
 					body: [] as RowCellFixture[][],
 				},
-			} as unknown as Omit<TableFixture, "_offsets">;
+			} as unknown as Omit<TableFixture, "metrics">;
 
 			var rows = headerRows + otherRows;
 			while (rows--) {
@@ -98,7 +98,7 @@ describe("Table row layout", function () {
 			var result = rowLayout.processRow({
 				cells: doc.table.body[0],
 				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
+				gaps: doc.metrics.offsets.offsets,
 				tableBody: doc.table.body,
 				rowIndex: 0,
 			});
@@ -112,7 +112,7 @@ describe("Table row layout", function () {
 			var result = rowLayout.processRow({
 				cells: doc.table.body[0],
 				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
+				gaps: doc.metrics.offsets.offsets,
 				tableBody: doc.table.body,
 				rowIndex: 0,
 			});
@@ -127,7 +127,7 @@ describe("Table row layout", function () {
 			var result = rowLayout.processRow({
 				cells: doc.table.body[0],
 				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
+				gaps: doc.metrics.offsets.offsets,
 				tableBody: doc.table.body,
 				rowIndex: 0,
 			});
@@ -144,7 +144,7 @@ describe("Table row layout", function () {
 			var result = rowLayout.processRow({
 				cells: doc.table.body[0],
 				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
+				gaps: doc.metrics.offsets.offsets,
 				tableBody: doc.table.body,
 				rowIndex: 0,
 			});
@@ -157,7 +157,7 @@ describe("Table row layout", function () {
 			var result = rowLayout.processRow({
 				cells: doc.table.body[0],
 				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
+				gaps: doc.metrics.offsets.offsets,
 				tableBody: doc.table.body,
 				rowIndex: 0,
 			});
@@ -175,7 +175,7 @@ describe("Table row layout", function () {
 			var result = rowLayout.processRow({
 				cells: doc.table.body[0],
 				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
+				gaps: doc.metrics.offsets.offsets,
 				tableBody: doc.table.body,
 				rowIndex: 0,
 			});
@@ -193,7 +193,7 @@ describe("Table row layout", function () {
 			var result = rowLayout.processRow({
 				cells: doc.table.body[0],
 				widths: doc.table.widths,
-				gaps: doc._offsets.offsets,
+				gaps: doc.metrics.offsets.offsets,
 				tableBody: doc.table.body,
 				rowIndex: 0,
 			});

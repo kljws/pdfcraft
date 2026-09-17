@@ -1,5 +1,6 @@
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
+import type { PreprocessedSectionNode } from "./section.types";
 
 export interface SectionPreprocessContext {
 	allowSections: boolean;
@@ -7,14 +8,16 @@ export interface SectionPreprocessContext {
 }
 
 export function preprocessSection(
-	node: PreprocessedPdfNode,
+	node: PdfNode,
 	context: SectionPreprocessContext,
-): PreprocessedPdfNode {
+): PreprocessedSectionNode {
 	if (!context.allowSections) {
 		throw new Error(
 			`Incorrect document structure, section node is only allowed at the root level of document structure: ${stringifyNode(node)}`,
 		);
 	}
-	node.section = context.preprocessNode(node.section);
-	return node;
+	node._kind = "section";
+	const sectionNode = node as unknown as PreprocessedSectionNode;
+	sectionNode.section = context.preprocessNode(sectionNode.section);
+	return sectionNode;
 }

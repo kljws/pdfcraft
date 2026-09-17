@@ -9,15 +9,72 @@ import type {
 	Position,
 } from "./layout.types";
 import type { Vector } from "./rendering.types";
-import type {
-	ColumnNode,
-	ColumnWidth,
-	PdfTable,
-	RawTableWidths,
-	TableLayout,
-	TableOffsets,
-} from "./table.types";
+import type { ColumnNode, ColumnWidth, PdfTable, RawTableWidths, TableLayout } from "./table.types";
 import type { Inline, ListMarker, PdfFont, TextMeasurement } from "./text.types";
+import type {
+	PreprocessedTextNode,
+	MeasuredTextNode,
+	LayoutTextNode,
+} from "../features/text/text.types";
+import type {
+	PreprocessedImageNode,
+	MeasuredImageNode,
+	LayoutImageNode,
+} from "../features/image/image.types";
+import type {
+	PreprocessedAttachmentNode,
+	MeasuredAttachmentNode,
+	LayoutAttachmentNode,
+} from "../features/attachment/attachment.types";
+import type {
+	PreprocessedTableNode,
+	MeasuredTableNode,
+	LayoutTableNode,
+	TableMeasureNode,
+} from "../features/table/table.types";
+import type {
+	PreprocessedListNode,
+	MeasuredListNode,
+	LayoutListNode,
+	ListMeasureNode,
+} from "../features/list/list.types";
+import type {
+	PreprocessedStackNode,
+	MeasuredStackNode,
+	LayoutStackNode,
+} from "../features/stack/stack.types";
+import type {
+	PreprocessedColumnsNode,
+	MeasuredColumnsNode,
+	LayoutColumnsNode,
+} from "../features/columns/columns.types";
+import type {
+	PreprocessedSectionNode,
+	MeasuredSectionNode,
+	LayoutSectionNode,
+} from "../features/section/section.types";
+import type {
+	PreprocessedTocNode,
+	MeasuredTocNode,
+	LayoutTocNode,
+} from "../features/toc/toc.types";
+import type {
+	PreprocessedCanvasNode,
+	MeasuredCanvasNode,
+	LayoutCanvasNode,
+} from "../features/canvas/canvas.types";
+import type {
+	PreprocessedAcroFormNode,
+	MeasuredAcroFormNode,
+	LayoutAcroFormNode,
+} from "../features/acroform/acroform.types";
+import type {
+	PreprocessedExtensionNode,
+	ExtensionMeasureNode,
+	MeasuredExtensionNode,
+	LayoutExtensionNode,
+} from "../features/extension/extension.types";
+import type { TextMeasureNode } from "../features/text/text.types";
 
 export type Metadata = Record<string, unknown>;
 export type Nullable<T> = T | null;
@@ -187,8 +244,6 @@ export interface PdfNode {
 	_inlines?: Inline[];
 	_gap?: number;
 	_gapSize?: TextMeasurement;
-	_offsets?: TableOffsets;
-	_layout?: TableLayout;
 	_headerLayout?: TableLayout;
 	_bodyLayout?: TableLayout;
 	_span?: boolean;
@@ -256,8 +311,6 @@ export interface MeasuredNodeState<Node = PdfNode> {
 	_inlines?: Inline[];
 	_gap?: number;
 	_gapSize?: TextMeasurement;
-	_offsets?: TableOffsets;
-	_layout?: TableLayout<Node>;
 	_headerLayout?: TableLayout<Node>;
 	_bodyLayout?: TableLayout<Node>;
 	_span?: boolean;
@@ -318,7 +371,19 @@ type KnownNodeProperties<T> = {
 	]: T[Key];
 };
 type KnownPdfNode = KnownNodeProperties<PdfNode>;
-type NodeHierarchyKey = "text" | "stack" | "columns" | "ul" | "ol" | "table" | "section" | "toc";
+type NodeHierarchyKey =
+	| "text"
+	| "stack"
+	| "columns"
+	| "ul"
+	| "ol"
+	| "table"
+	| "section"
+	| "toc"
+	| "canvas"
+	| "image"
+	| "attachment"
+	| "acroform";
 interface NodeHierarchy<Node, TableWidths = RawTableWidths> {
 	text?: NodeText<Node>;
 	stack?: Node[];
@@ -334,19 +399,80 @@ type NodeDefinition = Omit<
 	PreprocessedNodeKey | MeasuredNodeKey | LayoutNodeKey | NodeHierarchyKey
 >;
 
-export type RawPdfNode = NodeDefinition & NodeHierarchy<RawPdfNode>;
-export type PreprocessedPdfNode = NodeDefinition &
-	NodeHierarchy<PreprocessedPdfNode> &
-	PreprocessedNodeState<PreprocessedPdfNode>;
-export type MeasuredPdfNode = NodeDefinition &
-	NodeHierarchy<MeasuredPdfNode, ColumnWidth[]> &
-	PreprocessedNodeState<MeasuredPdfNode> &
-	MeasuredNodeState<MeasuredPdfNode>;
-export type LayoutPdfNode = NodeDefinition &
-	NodeHierarchy<LayoutPdfNode, ColumnWidth[]> &
-	PreprocessedNodeState<LayoutPdfNode> &
-	MeasuredNodeState<LayoutPdfNode> &
-	LayoutNodeState<LayoutPdfNode>;
+export type RawPdfNode = NodeDefinition &
+	NodeHierarchy<RawPdfNode> &
+	Pick<KnownPdfNode, "canvas" | "image" | "attachment" | "acroform">;
+export interface PreprocessedNodeBase
+	extends NodeDefinition, PreprocessedNodeState<PreprocessedPdfNode> {}
+
+export interface MeasuredNodeBase
+	extends
+		NodeDefinition,
+		PreprocessedNodeState<MeasuredPdfNode>,
+		MeasuredNodeState<MeasuredPdfNode> {}
+
+export interface LayoutNodeBase
+	extends
+		NodeDefinition,
+		PreprocessedNodeState<LayoutPdfNode>,
+		MeasuredNodeState<LayoutPdfNode>,
+		LayoutNodeState<LayoutPdfNode> {}
+
+export type PreprocessedPdfNode =
+	| PreprocessedTextNode
+	| PreprocessedImageNode
+	| PreprocessedAttachmentNode
+	| PreprocessedTableNode
+	| PreprocessedListNode
+	| PreprocessedStackNode
+	| PreprocessedColumnsNode
+	| PreprocessedSectionNode
+	| PreprocessedTocNode
+	| PreprocessedCanvasNode
+	| PreprocessedAcroFormNode
+	| PreprocessedExtensionNode;
+
+export type MeasurePdfNode =
+	| TextMeasureNode
+	| TableMeasureNode
+	| ListMeasureNode
+	| MeasuredImageNode
+	| MeasuredAttachmentNode
+	| MeasuredStackNode
+	| MeasuredColumnsNode
+	| MeasuredSectionNode
+	| MeasuredTocNode
+	| MeasuredCanvasNode
+	| MeasuredAcroFormNode
+	| ExtensionMeasureNode;
+
+export type MeasuredPdfNode =
+	| MeasuredTextNode
+	| MeasuredImageNode
+	| MeasuredAttachmentNode
+	| MeasuredTableNode
+	| MeasuredListNode
+	| MeasuredStackNode
+	| MeasuredColumnsNode
+	| MeasuredSectionNode
+	| MeasuredTocNode
+	| MeasuredCanvasNode
+	| MeasuredAcroFormNode
+	| MeasuredExtensionNode;
+
+export type LayoutPdfNode =
+	| LayoutTextNode
+	| LayoutImageNode
+	| LayoutAttachmentNode
+	| LayoutTableNode
+	| LayoutListNode
+	| LayoutStackNode
+	| LayoutColumnsNode
+	| LayoutSectionNode
+	| LayoutTocNode
+	| LayoutCanvasNode
+	| LayoutAcroFormNode
+	| LayoutExtensionNode;
 
 export interface ImageCover {
 	width: number;

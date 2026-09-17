@@ -1,6 +1,6 @@
-import type { LayoutPdfNode } from "../../types/internal";
+import type { LayoutCanvasNode } from "./canvas.types";
 
-export function decorateCanvas(node: LayoutPdfNode): void {
+export function decorateCanvas(node: LayoutCanvasNode): void {
 	for (const vector of node.canvas ?? []) {
 		const position = {
 			x: vector.x,
@@ -14,6 +14,6 @@ export function decorateCanvas(node: LayoutPdfNode): void {
 	}
 }
 
-export function resetCanvas(node: LayoutPdfNode): void {
+export function resetCanvas(node: LayoutCanvasNode): void {
 	for (const vector of node.canvas ?? []) vector.resetXY?.();
 }

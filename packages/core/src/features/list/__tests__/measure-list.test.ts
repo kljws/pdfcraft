@@ -9,12 +9,13 @@ import type {
 	PdfNode,
 	PreprocessedPdfNode,
 	TableLayout,
+	TextMeasurement,
 } from "../../../types/internal.ts";
 
 interface MeasuredFixture extends PdfNode {
 	_minWidth: number;
 	_maxWidth: number;
-	_gapSize: NonNullable<PdfNode["_gapSize"]>;
+	metrics: { gapSize: TextMeasurement };
 	ul: MeasuredFixture[];
 	ol: MeasuredFixture[];
 }
@@ -65,7 +66,7 @@ describe("List measurement", function () {
 			assert(result.ul[0]._minWidth);
 			assert(result.ul[0]._maxWidth);
 
-			assert(result._gapSize);
+			assert(result.metrics.gapSize);
 		});
 	});
 
@@ -78,7 +79,7 @@ describe("List measurement", function () {
 			assert(result.ol[0]._minWidth);
 			assert(result.ol[0]._maxWidth);
 
-			assert(result._gapSize);
+			assert(result.metrics.gapSize);
 		});
 
 		it("should not increase listMarker when list item is a nested list", function () {
@@ -108,9 +109,9 @@ describe("List measurement", function () {
 			var result = docMeasure.measureNode(node);
 
 			assert.strictEqual(result, node as unknown as MeasuredFixture);
-			assert(result._gapSize.width > 0);
-			assert.equal(result._minWidth, 7 * 12 + result._gapSize.width);
-			assert.equal(result._maxWidth, 14 * 12 + result._gapSize.width);
+			assert(result.metrics.gapSize.width > 0);
+			assert.equal(result._minWidth, 7 * 12 + result.metrics.gapSize.width);
+			assert.equal(result._maxWidth, 14 * 12 + result.metrics.gapSize.width);
 		});
 	});
 });

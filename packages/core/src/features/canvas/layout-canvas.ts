@@ -1,11 +1,11 @@
 import type PageElementWriter from "../../layout/element-writer.page";
-import type { LayoutPdfNode } from "../../types/internal";
+import type { LayoutCanvasNode } from "./canvas.types";
 
 export interface CanvasLayoutContext {
 	writer: Pick<PageElementWriter, "addCanvas">;
 }
 
-export function layoutCanvas(node: LayoutPdfNode, context: CanvasLayoutContext): void {
+export function layoutCanvas(node: LayoutCanvasNode, context: CanvasLayoutContext): void {
 	const positions = context.writer.addCanvas(node);
 	if (positions) {
 		node.positions ??= [];

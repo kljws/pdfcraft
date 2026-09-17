@@ -1,5 +1,11 @@
 import type { ExtensionNode, ExtensionResourceReference, PdfCraftExtensions } from "../../types";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { LayoutPdfNode, PdfNode } from "../../types/internal";
+import type {
+	ExtensionMeasureNode,
+	LayoutExtensionNode,
+	MeasuredExtensionNode,
+	PreprocessedExtensionNode,
+} from "./extension.types";
 import { copyExtensionPageBreakProperties } from "./extension-page-break";
 import { findExtensionForNode } from "./extension-registry";
 import { layoutExtension, type ExtensionLayoutContext } from "./layout-extension";
@@ -10,8 +16,12 @@ import { resolveExtensionResources } from "./resolve-extension-resources";
 
 export const extensionFeature = {
 	kind: "extension",
-	matches(node: PreprocessedPdfNode, extensions: PdfCraftExtensions): boolean {
+	matches(node: PdfNode, extensions: PdfCraftExtensions): boolean {
 		return Boolean(findExtensionForNode(node as ExtensionNode, extensions));
+	},
+	preprocess(node: PdfNode): PreprocessedExtensionNode {
+		node._kind = "extension";
+		return node as unknown as PreprocessedExtensionNode;
 	},
 	resolveResources(
 		documentDefinition: ExtensionNode,
@@ -20,20 +30,23 @@ export const extensionFeature = {
 	): void {
 		resolveExtensionResources(documentDefinition, extensions, resolve);
 	},
-	measure(node: MeasuredPdfNode, host: ExtensionMeasureHost): MeasuredPdfNode | undefined {
+	measure(
+		node: ExtensionMeasureNode,
+		host: ExtensionMeasureHost,
+	): MeasuredExtensionNode | undefined {
 		return measureExtension(node, host);
 	},
 	place(
 		writer: ExtensionWriter,
-		node: LayoutPdfNode,
+		node: LayoutExtensionNode,
 		index?: number,
 	): ReturnType<typeof placeExtension> {
 		return placeExtension(writer, node, index);
 	},
-	layout(node: LayoutPdfNode, context: ExtensionLayoutContext): void {
+	layout(node: LayoutExtensionNode, context: ExtensionLayoutContext): void {
 		layoutExtension(node, context);
 	},
-	render(node: LayoutPdfNode, host: ExtensionRenderHost): void {
+	render(node: LayoutExtensionNode, host: ExtensionRenderHost): void {
 		renderExtension(node, host);
 	},
 	copyPageBreakProperties(

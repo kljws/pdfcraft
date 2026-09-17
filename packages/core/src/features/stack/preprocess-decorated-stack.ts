@@ -1,4 +1,4 @@
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
 import { isNumber, isString } from "../../utils/variable-type";
 
@@ -26,11 +26,11 @@ const isColor = (value: unknown): boolean =>
 
 export interface DecoratedStackPreprocessContext {
 	allowSections: boolean;
-	preprocessTable(node: PreprocessedPdfNode, allowSections: boolean): PreprocessedPdfNode;
+	preprocessTable(node: PdfNode, allowSections: boolean): PreprocessedPdfNode;
 }
 
 export function preprocessDecoratedStack(
-	node: PreprocessedPdfNode,
+	node: PdfNode,
 	context: DecoratedStackPreprocessContext,
 ): PreprocessedPdfNode {
 	const block = node as unknown as Record<string, unknown>;
@@ -59,9 +59,9 @@ export function preprocessDecoratedStack(
 	const content = node.stack;
 	if (!content) throw new Error("Internal preprocessing error: expected a stack node");
 	const layout = {
-		hLineWidth: (index: number, tableNode: PreprocessedPdfNode) =>
+		hLineWidth: (index: number, tableNode: PdfNode) =>
 			index === 0 || index === (tableNode.table?.body.length ?? 0) ? borderWidth : 0,
-		vLineWidth: (index: number, tableNode: PreprocessedPdfNode) =>
+		vLineWidth: (index: number, tableNode: PdfNode) =>
 			index === 0 || index === (tableNode.table?.body[0]?.length ?? 0) ? borderWidth : 0,
 		hLineColor: borderColor,
 		vLineColor: borderColor,
@@ -80,7 +80,7 @@ export function preprocessDecoratedStack(
 			layout,
 		},
 		_blockContainer: true,
-	} as unknown as PreprocessedPdfNode["table"];
+	} as unknown as PdfNode["table"];
 	delete node.stack;
 	for (const property of [
 		"borderRadius",

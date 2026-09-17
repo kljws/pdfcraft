@@ -1,8 +1,9 @@
 import type { TableRowGroupLayout } from "../../types";
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
 import { isNumber, isObject, isPositiveInteger, isString } from "../../utils/variable-type";
 import { normalizeTableBody } from "./table-body";
+import type { PreprocessedTableNode } from "./table.types";
 
 const ROW_GROUP_LAYOUT_PROPERTIES = new Set([
 	"hLineWidth",
@@ -17,11 +18,7 @@ const ROW_GROUP_LAYOUT_PROPERTIES = new Set([
 	"vLineStyle",
 ]);
 
-const requireNodeArray = (
-	value: unknown,
-	property: string,
-	node: PreprocessedPdfNode,
-): unknown[] => {
+const requireNodeArray = (value: unknown, property: string, node: PdfNode): unknown[] => {
 	if (!Array.isArray(value)) {
 		throw new Error(
 			`Invalid ${property} node: '${property}' must be an array, received ${stringifyNode(node)}`,
@@ -44,9 +41,9 @@ export interface TablePreprocessContext {
 }
 
 export function preprocessTable(
-	node: PreprocessedPdfNode,
+	node: PdfNode,
 	context: TablePreprocessContext,
-): PreprocessedPdfNode {
+): PreprocessedTableNode {
 	if (!isObject(node.table)) {
 		throw new Error(
 			`Invalid table node: 'table' must be an object, received ${stringifyNode(node)}`,
@@ -253,5 +250,6 @@ export function preprocessTable(
 		}
 	}
 
-	return node;
+	node._kind = "table";
+	return node as unknown as PreprocessedTableNode;
 }

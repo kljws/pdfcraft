@@ -38,4 +38,3 @@ describe("stack layout", function () {
 
 });
 
-

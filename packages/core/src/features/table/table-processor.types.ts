@@ -1,5 +1,6 @@
 import type { Color } from "../../types";
 import type { LayoutPdfNode, PageItem, PdfPage, Vector } from "../../types/internal";
+import type { LayoutTableNode } from "./table.types";
 
 export type VectorPageItem = Extract<PageItem, { type: "vector" }>;
 
@@ -43,7 +44,7 @@ export interface ResolvedTableLayout {
 }
 
 export interface TableProcessorState {
-	tableNode: LayoutPdfNode;
+	tableNode: LayoutTableNode;
 	layout: ResolvedTableLayout;
 	rowSpanData: RowSpanData[];
 	borderRadius: number;

@@ -73,7 +73,7 @@ export function replayFragment(
 			case "extension":
 			case "attachment":
 			case "acroform": {
-				const image = pack(item.item) as LayoutPdfNode;
+				const image = pack<LayoutPdfNode>(item.item) as LayoutPdfNode;
 				updateNodePageNumbers(image, ctx.page + 1);
 
 				image.x = (image.x || 0) + (useBlockXOffset ? block.xOffset || 0 : ctx.x);

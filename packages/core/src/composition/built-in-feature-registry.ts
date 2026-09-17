@@ -9,7 +9,7 @@ import { stackFeature } from "../features/stack/stack.feature";
 import { tableFeature } from "../features/table/table.feature";
 import { textFeature } from "../features/text/text.feature";
 import { tocFeature } from "../features/toc/toc.feature";
-import type { PreprocessedPdfNode } from "../types/internal";
+import type { PdfNode } from "../types/internal";
 import type { NodeStageHandler } from "../engine/node-stage-dispatcher";
 
 export type BuiltInFeatureName =
@@ -53,7 +53,7 @@ const DEFAULT_FEATURE_ORDER: readonly BuiltInFeatureName[] = [
 	"acroform",
 ];
 
-const FEATURE_MATCHERS: Record<BuiltInFeatureName, (node: PreprocessedPdfNode) => boolean> = {
+const FEATURE_MATCHERS: Record<BuiltInFeatureName, (node: PdfNode) => boolean> = {
 	section: (node) => sectionFeature.matches(node),
 	columns: (node) => columnsFeature.matches(node),
 	stack: (node) => stackFeature.matches(node),
@@ -67,13 +67,11 @@ const FEATURE_MATCHERS: Record<BuiltInFeatureName, (node: PreprocessedPdfNode) =
 	acroform: (node) => acroFormFeature.matches(node),
 };
 
-export function getBuiltInFeatureKind(
-	node: PreprocessedPdfNode,
-): BuiltInFeatureName | undefined {
+export function getBuiltInFeatureKind(node: PdfNode): BuiltInFeatureName | undefined {
 	return DEFAULT_FEATURE_ORDER.find((name) => FEATURE_MATCHERS[name](node));
 }
 
-export function createBuiltInFeatureHandlers<Node extends PreprocessedPdfNode, Context, Result>(
+export function createBuiltInFeatureHandlers<Node extends PdfNode, Context, Result>(
 	processors: BuiltInFeatureProcessors<Node, Context, Result>,
 	order: readonly BuiltInFeatureName[] = DEFAULT_FEATURE_ORDER,
 ): NodeStageHandler<Node, Context, Result>[] {

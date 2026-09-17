@@ -15,15 +15,31 @@ describe("DocPreprocessor", function () {
 		it("tags nodes after public-shape dispatch", function () {
 			assert.equal(docPreprocessor.preprocessNode({ text: "Invoice" })._kind, "text");
 			assert.equal(docPreprocessor.preprocessNode({ image: "logo" })._kind, "image");
+			assert.equal(docPreprocessor.preprocessNode({ canvas: [] })._kind, "canvas");
+			assert.equal(docPreprocessor.preprocessNode({ stack: [] })._kind, "stack");
+			assert.equal(docPreprocessor.preprocessNode({ columns: [] })._kind, "columns");
+			assert.equal(docPreprocessor.preprocessNode({ ul: [] })._kind, "list");
+			assert.equal(docPreprocessor.preprocessNode({ toc: {} })._kind, "toc");
 			assert.equal(
 				docPreprocessor.preprocessNode({ attachment: "invoice.xml" })._kind,
 				"attachment",
+			);
+			assert.equal(
+				docPreprocessor.preprocessNode({ acroform: { type: "text", id: "field" } })._kind,
+				"acroform",
 			);
 			assert.equal(
 				docPreprocessor.preprocessNode({
 					table: { body: { groups: [{ rows: [["Cell"]] }] } },
 				})._kind,
 				"table",
+			);
+		});
+
+		it("tags section document roots", function () {
+			assert.equal(
+				docPreprocessor.preprocessDocument({ section: "chapter" })._kind,
+				"section",
 			);
 		});
 

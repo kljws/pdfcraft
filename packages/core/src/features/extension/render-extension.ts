@@ -1,7 +1,7 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import { findFont } from "../../rendering/renderer.helpers";
 import type { ExtensionNode, PdfCraftExtensions } from "../../types";
-import type { LayoutPdfNode } from "../../types/internal";
+import type { LayoutExtensionNode } from "./extension.types";
 import { findExtensionByName } from "./extension-registry";
 
 export interface ExtensionRenderHost {
@@ -9,7 +9,7 @@ export interface ExtensionRenderHost {
 	extensions: PdfCraftExtensions;
 }
 
-export function renderExtension(node: LayoutPdfNode, host: ExtensionRenderHost): void {
+export function renderExtension(node: LayoutExtensionNode, host: ExtensionRenderHost): void {
 	const extension = findExtensionByName(node._extension, host.extensions);
 	if (!extension?.render) {
 		throw new Error(`No renderer registered for extension '${node._extension ?? "unknown"}'`);

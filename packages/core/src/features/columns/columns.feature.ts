@@ -1,13 +1,19 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { layoutColumns, type ColumnsLayoutContext } from "./layout-columns";
 import { measureColumns, type ColumnsMeasureContext } from "./measure-columns";
 import { preprocessColumns, type ColumnsPreprocessContext } from "./preprocess-columns";
+import type {
+	LayoutColumnsNode,
+	MeasuredColumnsNode,
+	PreprocessedColumnsNode,
+} from "./columns.types";
 
 interface ColumnsFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
-	measuredNode: MeasuredPdfNode;
-	layoutNode: LayoutPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedColumnsNode;
+	measuredNode: MeasuredColumnsNode;
+	layoutNode: LayoutColumnsNode;
 	renderNode: never;
 	preprocessContext: ColumnsPreprocessContext;
 	measureContext: ColumnsMeasureContext;
@@ -16,8 +22,9 @@ interface ColumnsFeatureStages extends NodeFeatureStages {
 }
 
 interface ColumnsFeature extends NodeFeature<ColumnsFeatureStages> {
-	measure(node: MeasuredPdfNode, context: ColumnsMeasureContext): MeasuredPdfNode;
-	layout(node: LayoutPdfNode, context: ColumnsLayoutContext): void;
+	preprocess(node: PdfNode, context: ColumnsPreprocessContext): PreprocessedColumnsNode;
+	measure(node: MeasuredColumnsNode, context: ColumnsMeasureContext): MeasuredColumnsNode;
+	layout(node: LayoutColumnsNode, context: ColumnsLayoutContext): void;
 }
 
 export const columnsFeature: ColumnsFeature = {

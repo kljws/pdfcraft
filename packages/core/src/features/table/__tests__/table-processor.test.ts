@@ -1,11 +1,12 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
 import type DocumentContext from "../../../document/document-context.ts";
 import type PageElementWriter from "../../../layout/element-writer.page.ts";
-import type { PdfNode, Vector } from "../../../types/internal.ts";
+import type { Vector } from "../../../types/internal.ts";
 import type { TablePageBreak } from "../table-pagination.ts";
 import BaseTableProcessor from "../table-processor.ts";
 import { resetTableLayoutState } from "../table-processor.lifecycle.ts";
 import type { ResolvedTableLayout } from "../table-processor.types.ts";
+import type { LayoutTableNode } from "../table.types.ts";
 
 interface MutableTableFixture {
 	table: {
@@ -14,11 +15,13 @@ interface MutableTableFixture {
 		headerRows?: unknown;
 		keepWithHeaderRows?: unknown;
 	};
-	_offsets: { total: number };
-	_layout: Record<string, () => void>;
+	metrics: {
+		offsets: { total: number };
+		layout: Record<string, () => void>;
+	};
 }
 
-const asNode = (value: unknown): PdfNode => value as PdfNode;
+const asNode = (value: unknown): LayoutTableNode => value as LayoutTableNode;
 const asWriter = (value: unknown): PageElementWriter => value as PageElementWriter;
 
 class TableProcessor extends BaseTableProcessor {
@@ -262,18 +265,18 @@ describe("TableProcessor", function () {
 						widths: [{ width: "*" }],
 						body: [],
 					},
-					_offsets: {
-						total: 56472,
-					},
-					_layout: {
-						paddingLeft: function () {},
-						paddingRight: function () {},
-						paddingBottom: function () {},
-						paddingTop: function () {},
-						vLineWidth: function () {},
-						hLineWidth: function () {},
-						fillColor: function () {},
-						fillOpacity: function () {},
+					metrics: {
+						offsets: { total: 56472 },
+						layout: {
+							paddingLeft: function () {},
+							paddingRight: function () {},
+							paddingBottom: function () {},
+							paddingTop: function () {},
+							vLineWidth: function () {},
+							hLineWidth: function () {},
+							fillColor: function () {},
+							fillOpacity: function () {},
+						},
 					},
 				};
 			};
@@ -347,18 +350,18 @@ describe("TableProcessor", function () {
 					["e", "f"],
 				],
 			},
-			_offsets: {
-				total: 9,
-			},
-			_layout: {
-				paddingLeft: function () {},
-				paddingRight: function () {},
-				paddingBottom: function () {},
-				paddingTop: function () {},
-				vLineWidth: function () {},
-				hLineWidth: function () {},
-				fillColor: function () {},
-				fillOpacity: function () {},
+			metrics: {
+				offsets: { total: 9 },
+				layout: {
+					paddingLeft: function () {},
+					paddingRight: function () {},
+					paddingBottom: function () {},
+					paddingTop: function () {},
+					vLineWidth: function () {},
+					hLineWidth: function () {},
+					fillColor: function () {},
+					fillOpacity: function () {},
+				},
 			},
 		};
 

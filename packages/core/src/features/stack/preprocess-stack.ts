@@ -1,5 +1,6 @@
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
+import type { PreprocessedStackNode } from "./stack.types";
 
 export interface StackPreprocessContext {
 	allowSections: boolean;
@@ -7,17 +8,22 @@ export interface StackPreprocessContext {
 }
 
 export function preprocessStack(
-	node: PreprocessedPdfNode,
+	node: PdfNode,
 	context: StackPreprocessContext,
-): PreprocessedPdfNode {
+): PreprocessedStackNode {
 	if (!Array.isArray(node.stack)) {
 		throw new Error(
 			`Invalid stack node: 'stack' must be an array, received ${stringifyNode(node)}`,
 		);
 	}
 
-	for (let index = 0; index < node.stack.length; index++) {
-		node.stack[index] = context.preprocessNode(node.stack[index], context.allowSections);
+	node._kind = "stack";
+	const stackNode = node as unknown as PreprocessedStackNode;
+	for (let index = 0; index < stackNode.stack.length; index++) {
+		stackNode.stack[index] = context.preprocessNode(
+			stackNode.stack[index],
+			context.allowSections,
+		);
 	}
-	return node;
+	return stackNode;
 }

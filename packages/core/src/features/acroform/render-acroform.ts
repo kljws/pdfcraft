@@ -1,6 +1,7 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import type { EmbeddedFont } from "../../rendering/renderer.types";
-import type { Inline, LayoutPdfNode } from "../../types/internal";
+import type { Inline } from "../../types/internal";
+import type { LayoutAcroFormNode } from "./acroform.types";
 
 const collectFormStrings = (value: unknown, strings: string[]): void => {
 	if (typeof value === "string") strings.push(value);
@@ -14,7 +15,7 @@ export class AcroFormRenderer {
 
 	constructor(private readonly document: PDFDocument) {}
 
-	render(node: LayoutPdfNode | Inline, x: number, y: number): void {
+	render(node: LayoutAcroFormNode | Inline, x: number, y: number): void {
 		const form = node.acroform;
 		if (!form) throw new Error("Cannot render an AcroForm node without a field definition");
 		const font = "_formFont" in node ? (node._formFont ?? node.font) : node.font;

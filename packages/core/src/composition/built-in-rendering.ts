@@ -1,26 +1,28 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
+import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
 import { attachmentFeature } from "../features/attachment/attachment.feature";
 import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
 import type { LayoutImageNode } from "../features/image/image.types";
+import type { LayoutExtensionNode } from "../features/extension/extension.types";
 import { watermarkFeature } from "../features/repeatables/watermark.feature";
 import { textFeature } from "../features/text/text.feature";
 import type PDFDocument from "../rendering/pdf-document";
 import type { RenderablePage } from "../rendering/renderer.types";
 import type { PdfCraftExtensions } from "../types";
-import type { Inline, LayoutPdfNode, LineLike } from "../types/internal";
+import type { Inline, LineLike } from "../types/internal";
 
 export interface BuiltInGraphicsRendering {
-	renderImage(node: LayoutPdfNode, resetVectorState: () => void): void;
-	renderExtension(node: LayoutPdfNode): void;
-	renderAttachment(node: LayoutPdfNode): void;
+	renderImage(node: LayoutImageNode, resetVectorState: () => void): void;
+	renderExtension(node: LayoutExtensionNode): void;
+	renderAttachment(node: LayoutAttachmentNode): void;
 	renderWatermark(page: RenderablePage): void;
 }
 
 export interface BuiltInRendering {
 	graphics: BuiltInGraphicsRendering;
-	renderAcroForm(node: LayoutPdfNode | Inline, x: number, y: number): void;
+	renderAcroForm(node: LayoutAcroFormNode | Inline, x: number, y: number): void;
 	renderLine(
 		line: LineLike,
 		outlineMap: Record<string, PDFKit.PDFOutline>,
@@ -35,10 +37,9 @@ export function createBuiltInGraphicsRendering(
 ): BuiltInGraphicsRendering {
 	return {
 		renderImage: (node, resetVectorState) =>
-			imageFeature.render(node as LayoutImageNode, { document, resetVectorState }),
+			imageFeature.render(node, { document, resetVectorState }),
 		renderExtension: (node) => extensionFeature.render(node, { document, extensions }),
-		renderAttachment: (node) =>
-			attachmentFeature.render(node as LayoutAttachmentNode, { document }),
+		renderAttachment: (node) => attachmentFeature.render(node, { document }),
 		renderWatermark: (page) => watermarkFeature.render(document, page),
 	};
 }
@@ -48,8 +49,12 @@ export function createBuiltInRendering(
 	extensions: PdfCraftExtensions = [],
 ): BuiltInRendering {
 	const acroFormRenderer = acroFormFeature.createRenderer(document);
-	const renderAcroForm = (node: LayoutPdfNode | Inline, x: number, y: number): void => {
-		acroFormFeature.render(node, { renderer: acroFormRenderer, x, y });
+	const renderAcroForm = (node: LayoutAcroFormNode | Inline, x: number, y: number): void => {
+		acroFormFeature.render(node, {
+			renderer: acroFormRenderer,
+			x,
+			y,
+		});
 	};
 
 	return {

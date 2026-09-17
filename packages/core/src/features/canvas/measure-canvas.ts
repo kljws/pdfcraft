@@ -1,9 +1,12 @@
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { Alignment } from "../../types";
-import type { MeasuredPdfNode } from "../../types/internal";
 import { getCanvasPathBounds } from "../../utils/canvas-path-bounds";
+import type { MeasuredCanvasNode } from "./canvas.types";
 
-export function measureCanvas(node: MeasuredPdfNode, styles: StyleContextStack): MeasuredPdfNode {
+export function measureCanvas(
+	node: MeasuredCanvasNode,
+	styles: StyleContextStack,
+): MeasuredCanvasNode {
 	let width = 0;
 	let height = 0;
 

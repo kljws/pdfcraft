@@ -10,12 +10,16 @@ import EventEmitter from "../utils/event-emitter";
 import type { EventArgs, EventKey, EventListener } from "../utils/event-emitter";
 import type {
 	CurrentPosition,
-	LayoutPdfNode,
 	LineLike,
 	PageItem,
 	PageMarginSource,
 } from "../types/internal";
 import { getFragmentHeight } from "./element-writer.helpers";
+import type { LayoutImageNode } from "../features/image/image.types";
+import type { LayoutCanvasNode } from "../features/canvas/canvas.types";
+import type { LayoutExtensionNode } from "../features/extension/extension.types";
+import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
+import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
 
 interface ElementFragment {
 	items: PageItem[];
@@ -96,23 +100,23 @@ class PageElementWriter {
 		);
 	}
 
-	addImage(image: LayoutPdfNode, index?: number): CurrentPosition | false {
+	addImage(image: LayoutImageNode, index?: number): CurrentPosition | false {
 		return this._fitOnPage(() => this.writer.addImage(image, index));
 	}
 
-	addCanvas(image: LayoutPdfNode, index?: number): false | Array<CurrentPosition | undefined> {
+	addCanvas(image: LayoutCanvasNode, index?: number): false | Array<CurrentPosition | undefined> {
 		return this._fitOnPage(() => this.writer.addCanvas(image, index));
 	}
 
-	addExtension(node: LayoutPdfNode, index?: number): CurrentPosition | false {
+	addExtension(node: LayoutExtensionNode, index?: number): CurrentPosition | false {
 		return this._fitOnPage(() => this.writer.addExtension(node, index));
 	}
 
-	addAttachment(attachment: LayoutPdfNode, index?: number): CurrentPosition | false {
+	addAttachment(attachment: LayoutAttachmentNode, index?: number): CurrentPosition | false {
 		return this._fitOnPage(() => this.writer.addAttachment(attachment, index));
 	}
 
-	addAcroForm(node: LayoutPdfNode, index?: number): CurrentPosition | false {
+	addAcroForm(node: LayoutAcroFormNode, index?: number): CurrentPosition | false {
 		return this._fitOnPage(() => this.writer.addAcroForm(node, index));
 	}
 

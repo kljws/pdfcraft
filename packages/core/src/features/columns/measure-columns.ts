@@ -1,6 +1,7 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { ColumnNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { MeasuredColumnsNode } from "./columns.types";
 
 export interface ColumnsMeasureContext {
 	styles: StyleContextStack;
@@ -8,15 +9,17 @@ export interface ColumnsMeasureContext {
 }
 
 export function measureColumns(
-	node: MeasuredPdfNode,
+	node: MeasuredColumnsNode,
 	context: ColumnsMeasureContext,
-): MeasuredPdfNode {
-	const columns = node.columns!;
+): MeasuredColumnsNode {
+	const columns = node.columns;
 	const columnGap = context.styles.getProperty("columnGap");
 	node._gap = typeof columnGap === "number" ? columnGap : 0;
 
 	for (let index = 0; index < columns.length; index++) {
-		columns[index] = context.measureChild(columns[index]) as ColumnNode<MeasuredPdfNode>;
+		columns[index] = context.measureChild(
+			columns[index] as unknown as PreprocessedPdfNode,
+		) as ColumnNode<MeasuredPdfNode>;
 	}
 
 	const measures = ColumnCalculator.measureMinMax(columns);

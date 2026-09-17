@@ -2,6 +2,7 @@ import Line from "../../layout/line";
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { LayoutPdfNode, LineLike, ListMarker } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
+import type { LayoutListNode } from "./list.types";
 
 export interface ListLayoutContext {
 	writer: PageElementWriter;
@@ -11,7 +12,7 @@ export interface ListLayoutContext {
 	processNode(node: LayoutPdfNode): void;
 }
 
-export function layoutList(node: LayoutPdfNode, context: ListLayoutContext): void {
+export function layoutList(node: LayoutListNode, context: ListLayoutContext): void {
 	let nextMarker: ListMarker | null = null;
 	const addMarkerToFirstLeaf = (line: LineLike): void => {
 		if (nextMarker && !context.isLinearNodeListSuppressed()) {
@@ -34,8 +35,7 @@ export function layoutList(node: LayoutPdfNode, context: ListLayoutContext): voi
 
 	const items = context.ordered ? node.ol : node.ul;
 	if (!items) throw new Error("Internal layout error: expected a preprocessed list node");
-	const gapSize = node._gapSize;
-	if (!gapSize) throw new Error("Internal layout error: list gap was not measured");
+	const { gapSize } = node.metrics;
 	node.positions ??= [];
 	const positions = node.positions;
 

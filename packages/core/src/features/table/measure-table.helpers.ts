@@ -11,21 +11,24 @@ import type {
 } from "../../types/internal";
 import { pack } from "../../utils/tools";
 import { isNumber, isObject, isString } from "../../utils/variable-type";
+import type { MeasuredTableNode, TableMeasureNode } from "./table.types";
 
 export function resolveTableLayout(
-	node: MeasuredPdfNode,
+	node: TableMeasureNode,
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
 	layoutDefinition: unknown = node.layout,
 ): TableLayout<MeasuredPdfNode> {
 	const layout = isString(layoutDefinition) ? tableLayouts[layoutDefinition] : layoutDefinition;
 	return pack<TableLayout<MeasuredPdfNode>>(
-		defaultTableLayout,
-		isObject(layout) ? (layout as Partial<TableLayout>) : undefined,
+		defaultTableLayout as unknown as Partial<TableLayout<MeasuredPdfNode>>,
+		isObject(layout)
+			? (layout as unknown as Partial<TableLayout<MeasuredPdfNode>>)
+			: undefined,
 	);
 }
 
 export function resolveTableRowGroupLayout(
-	node: MeasuredPdfNode,
+	node: TableMeasureNode,
 	bodyLayout: TableLayout<MeasuredPdfNode>,
 	group: TableRowGroupRange<MeasuredPdfNode>,
 ): TableLayout<MeasuredPdfNode> {
@@ -109,17 +112,25 @@ export function combineTableLayouts(
 	bodyLayout: TableLayout<MeasuredPdfNode>,
 	groupLayouts: TableLayout<MeasuredPdfNode>[] = [],
 ): TableLayout<MeasuredPdfNode> {
+	const getTableNode = (node: MeasuredPdfNode): MeasuredTableNode => {
+		if (node._kind !== "table") {
+			throw new Error("Internal measurement error: expected a table node");
+		}
+		return node;
+	};
 	const useHeader = (index: number, node: MeasuredPdfNode) =>
-		(node.table!.headerRows ?? 0) > 0 && index < (node.table!.headerRows ?? 0);
+		(getTableNode(node).table.headerRows ?? 0) > 0 &&
+		index < (getTableNode(node).table.headerRows ?? 0);
 	const useHeaderBoundary = (index: number, node: MeasuredPdfNode) =>
-		(node.table!.headerRows ?? 0) > 0 && index <= (node.table!.headerRows ?? 0);
+		(getTableNode(node).table.headerRows ?? 0) > 0 &&
+		index <= (getTableNode(node).table.headerRows ?? 0);
 
 	return {
 		hLineWidth: (index, node) =>
 			(useHeaderBoundary(index, node) ? headerLayout : bodyLayout).hLineWidth(index, node),
 		vLineWidth: (index, node) =>
 			Math.max(
-				(node.table!.headerRows ?? 0) > 0 ? headerLayout.vLineWidth(index, node) : 0,
+				(getTableNode(node).table.headerRows ?? 0) > 0 ? headerLayout.vLineWidth(index, node) : 0,
 				bodyLayout.vLineWidth(index, node),
 				...groupLayouts.map((layout) => layout.vLineWidth(index, node)),
 			),
@@ -136,13 +147,13 @@ export function combineTableLayouts(
 			headerLayout.vLineStyle?.(index, node) ?? bodyLayout.vLineStyle?.(index, node),
 		paddingLeft: (index, node) =>
 			Math.max(
-				(node.table!.headerRows ?? 0) > 0 ? headerLayout.paddingLeft(index, node) : 0,
+				(getTableNode(node).table.headerRows ?? 0) > 0 ? headerLayout.paddingLeft(index, node) : 0,
 				bodyLayout.paddingLeft(index, node),
 				...groupLayouts.map((layout) => layout.paddingLeft(index, node)),
 			),
 		paddingRight: (index, node) =>
 			Math.max(
-				(node.table!.headerRows ?? 0) > 0 ? headerLayout.paddingRight(index, node) : 0,
+				(getTableNode(node).table.headerRows ?? 0) > 0 ? headerLayout.paddingRight(index, node) : 0,
 				bodyLayout.paddingRight(index, node),
 				...groupLayouts.map((layout) => layout.paddingRight(index, node)),
 			),
@@ -180,7 +191,7 @@ export interface ColumnSpanMeasurement {
 }
 
 export function getTableOffsets(
-	node: MeasuredPdfNode,
+	node: MeasuredTableNode,
 	layout: TableLayout<MeasuredPdfNode>,
 ): TableOffsets {
 	const table = node.table!;
@@ -201,11 +212,11 @@ export function getTableOffsets(
 }
 
 export function extendWidthsForColumnSpans(
-	node: MeasuredPdfNode,
+	node: MeasuredTableNode,
 	columnSpans: ColumnSpanMeasurement[],
 ): void {
 	const table = node.table!;
-	const offsets = node._offsets!;
+	const offsets = node.metrics.offsets;
 	for (const span of columnSpans) {
 		const current = getMinMax(node, span.col, span.span, offsets);
 		const minimumDifference = span.minWidth - current.minWidth;
@@ -239,7 +250,7 @@ export function extendWidthsForColumnSpans(
 }
 
 function getMinMax(
-	node: MeasuredPdfNode,
+	node: MeasuredTableNode,
 	column: number,
 	span: number,
 	offsets: TableOffsets,
@@ -262,7 +273,7 @@ export function markColumnSpans(row: MeasuredPdfNode[], column: number, span: nu
 			_minWidth: 0,
 			_maxWidth: 0,
 			rowSpan: row[column].rowSpan,
-		};
+		} as MeasuredPdfNode;
 	}
 }
 
@@ -279,11 +290,11 @@ export function markRowSpans(
 			_maxWidth: 0,
 			fillColor: table.body[row][column].fillColor,
 			fillOpacity: table.body[row][column].fillOpacity,
-		};
+		} as MeasuredPdfNode;
 	}
 }
 
-export function extendTableWidths(node: MeasuredPdfNode): void {
+export function extendTableWidths(node: TableMeasureNode): void {
 	const table = node.table!;
 	const rawWidths = table.widths ?? "auto";
 	const widths = Array.isArray(rawWidths) ? [...rawWidths] : [rawWidths];

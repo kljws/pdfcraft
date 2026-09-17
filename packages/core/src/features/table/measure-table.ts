@@ -14,6 +14,7 @@ import {
 	resolveTableLayout,
 	resolveTableRowGroupLayout,
 } from "./measure-table.helpers";
+import type { MeasuredTableNode, TableMeasureNode } from "./table.types";
 
 export interface TableMeasureContext {
 	styles: StyleContextStack;
@@ -21,7 +22,10 @@ export interface TableMeasureContext {
 	measureNode(node: MeasuredPdfNode): MeasuredPdfNode;
 }
 
-export function measureTable(node: MeasuredPdfNode, context: TableMeasureContext): MeasuredPdfNode {
+export function measureTable(
+	node: TableMeasureNode,
+	context: TableMeasureContext,
+): MeasuredTableNode {
 	extendTableWidths(node);
 	const table = node.table!;
 	const tableAlignment = context.styles.getProperty("tableAlignment");
@@ -33,12 +37,17 @@ export function measureTable(node: MeasuredPdfNode, context: TableMeasureContext
 	for (const group of table._rowGroups ?? []) {
 		group.layout = resolveTableRowGroupLayout(node, bodyLayout, group);
 	}
-	node._layout = combineTableLayouts(
+	const layout = combineTableLayouts(
 		node._headerLayout,
 		bodyLayout,
 		(table._rowGroups ?? []).map((group) => group.layout ?? bodyLayout),
 	);
-	node._offsets = getTableOffsets(node, node._layout);
+	const measuredNode = node as MeasuredTableNode;
+	const offsets = getTableOffsets(measuredNode, layout);
+	measuredNode.metrics = {
+		layout,
+		offsets,
+	};
 
 	const colSpans: Array<{ col: number; span: number; minWidth: number; maxWidth: number }> = [];
 	let col;
@@ -82,13 +91,13 @@ export function measureTable(node: MeasuredPdfNode, context: TableMeasureContext
 		}
 	}
 
-	extendWidthsForColumnSpans(node, colSpans);
+	extendWidthsForColumnSpans(measuredNode, colSpans);
 
 	const measures = ColumnCalculator.measureMinMax(table.widths);
-	node._minWidth = measures.min + node._offsets.total;
-	node._maxWidth = measures.max + node._offsets.total;
+	node._minWidth = measures.min + measuredNode.metrics.offsets.total;
+	node._maxWidth = measures.max + measuredNode.metrics.offsets.total;
 
-	return node;
+	return measuredNode;
 
 	function measureCell(data: MeasuredPdfNode): () => MeasuredPdfNode {
 		return () => {
@@ -103,7 +112,7 @@ export function measureTable(node: MeasuredPdfNode, context: TableMeasureContext
 				const fillOpacity = context.styles.getProperty("fillOpacity");
 				data.fillOpacity = typeof fillOpacity === "number" ? fillOpacity : undefined;
 			}
-			return context.measureNode(data);
+			return context.measureNode(data as unknown as MeasuredPdfNode);
 		};
 	}
 }

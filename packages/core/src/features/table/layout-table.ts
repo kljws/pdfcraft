@@ -7,6 +7,7 @@ import {
 	getPageBreakListBySpan,
 	type TablePageBreak,
 } from "./table-pagination";
+import type { LayoutTableNode } from "./table.types";
 
 export interface TableLayoutHost {
 	writer: PageElementWriter;
@@ -35,7 +36,7 @@ function getRowHeight(
 }
 
 function getRowColumnGeometry(
-	tableNode: LayoutPdfNode,
+	tableNode: LayoutTableNode,
 	processor: TableProcessor,
 ): { widths: ColumnWidth[]; offsets: number[] } {
 	const table = tableNode.table;
@@ -62,7 +63,7 @@ function getRowColumnGeometry(
 	return { widths, offsets };
 }
 
-export function layoutTable(tableNode: LayoutPdfNode, host: TableLayoutHost): void {
+export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): void {
 	const table = tableNode.table;
 	if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
 	host.nestedLevel++;

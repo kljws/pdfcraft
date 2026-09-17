@@ -1,13 +1,20 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { layoutTable, type TableLayoutHost } from "./layout-table";
 import { measureTable, type TableMeasureContext } from "./measure-table";
 import { preprocessTable, type TablePreprocessContext } from "./preprocess-table";
+import type {
+	LayoutTableNode,
+	MeasuredTableNode,
+	PreprocessedTableNode,
+	TableMeasureNode,
+} from "./table.types";
 
 interface TableFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
-	measuredNode: MeasuredPdfNode;
-	layoutNode: LayoutPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedTableNode;
+	measuredNode: TableMeasureNode;
+	layoutNode: LayoutTableNode;
 	renderNode: never;
 	preprocessContext: TablePreprocessContext;
 	measureContext: TableMeasureContext;
@@ -16,8 +23,9 @@ interface TableFeatureStages extends NodeFeatureStages {
 }
 
 interface TableFeature extends NodeFeature<TableFeatureStages> {
-	measure(node: MeasuredPdfNode, context: TableMeasureContext): MeasuredPdfNode;
-	layout(node: LayoutPdfNode, context: TableLayoutHost): void;
+	preprocess(node: PdfNode, context: TablePreprocessContext): PreprocessedTableNode;
+	measure(node: TableMeasureNode, context: TableMeasureContext): MeasuredTableNode;
+	layout(node: LayoutTableNode, context: TableLayoutHost): void;
 }
 
 export const tableFeature: TableFeature = {

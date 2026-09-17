@@ -1,13 +1,19 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { layoutSection, type SectionLayoutContext } from "./layout-section";
 import { measureSection, type SectionMeasureContext } from "./measure-section";
 import { preprocessSection, type SectionPreprocessContext } from "./preprocess-section";
+import type {
+	LayoutSectionNode,
+	MeasuredSectionNode,
+	PreprocessedSectionNode,
+} from "./section.types";
 
 interface SectionFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
-	measuredNode: MeasuredPdfNode;
-	layoutNode: LayoutPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedSectionNode;
+	measuredNode: MeasuredSectionNode;
+	layoutNode: LayoutSectionNode;
 	renderNode: never;
 	preprocessContext: SectionPreprocessContext;
 	measureContext: SectionMeasureContext;
@@ -16,8 +22,9 @@ interface SectionFeatureStages extends NodeFeatureStages {
 }
 
 interface SectionFeature extends NodeFeature<SectionFeatureStages> {
-	measure(node: MeasuredPdfNode, context: SectionMeasureContext): MeasuredPdfNode;
-	layout(node: LayoutPdfNode, context: SectionLayoutContext): void;
+	preprocess(node: PdfNode, context: SectionPreprocessContext): PreprocessedSectionNode;
+	measure(node: MeasuredSectionNode, context: SectionMeasureContext): MeasuredSectionNode;
+	layout(node: LayoutSectionNode, context: SectionLayoutContext): void;
 }
 
 export const sectionFeature: SectionFeature = {

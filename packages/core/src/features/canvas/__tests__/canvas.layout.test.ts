@@ -48,4 +48,3 @@ describe("canvas layout", function () {
 		assert.equal(pages.length, 1);
 	});
 });
-

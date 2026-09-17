@@ -1,13 +1,13 @@
 import type StyleContextStack from "../styles/style-context-stack";
 import type { Alignment } from "../../types";
-import type { Dimensions, MeasuredPdfNode } from "../../types/internal";
+import type { Dimensions, MeasuredNodeBase } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
 
-export function measureBox(
-	node: MeasuredPdfNode,
+export function measureBox<Node extends MeasuredNodeBase>(
+	node: Node,
 	dimensions: Dimensions,
 	styles: StyleContextStack,
-): MeasuredPdfNode {
+): Node {
 	if (Array.isArray(node.fit)) {
 		const factor =
 			dimensions.width / dimensions.height > node.fit[0] / node.fit[1]

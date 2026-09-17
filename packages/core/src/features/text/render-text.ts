@@ -1,6 +1,7 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import type { EmbeddedFont } from "../../rendering/renderer.types";
 import type { Inline, LayoutPdfNode, LineLike, MeasuredPdfNode } from "../../types/internal";
+import type { LayoutAcroFormNode } from "../acroform/acroform.types";
 import { isNumber } from "../../utils/variable-type";
 import TextDecorator from "./text-decorator";
 import TextInlines from "./text-inlines";
@@ -10,7 +11,7 @@ export interface TextRenderContext {
 	outlineMap: Record<string, PDFKit.PDFOutline>;
 	x: number;
 	y: number;
-	renderAcroForm(node: LayoutPdfNode | Inline, x: number, y: number): void;
+	renderAcroForm(node: LayoutAcroFormNode | Inline, x: number, y: number): void;
 }
 
 interface TextOptions extends PDFKit.Mixins.TextOptions {
@@ -29,7 +30,7 @@ const preparePageNodeRefLine = (
 	inline: Inline,
 ): void => {
 	const positions = "positions" in pageNodeRef ? pageNodeRef.positions : undefined;
-	if (positions === undefined) throw new Error("Page reference id not found");
+	if (!Array.isArray(positions)) throw new Error("Page reference id not found");
 
 	const pageNumber = positions[0]?.pageNumber;
 	if (pageNumber === undefined) throw new Error("Page reference position not found");

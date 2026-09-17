@@ -1,4 +1,4 @@
-import type { LayoutPdfNode, PdfPage, Position } from "../../types/internal";
+import type { LayoutPdfNode, PdfNode, PdfPage, Position } from "../../types/internal";
 import type {
 	PageBreakBefore,
 	PageBreakBeforeContext,
@@ -33,14 +33,17 @@ export const pageBreakBeforeFeature = {
 		if (!pageBreakBefore) return false;
 
 		const nodes = linearNodeList.filter(
-			(node) => Boolean(node.positions?.length) && (node.text !== "" || Boolean(node.listMarker)),
+			(node) =>
+				Boolean(node.positions?.length) &&
+				(node._kind !== "text" || node.text !== "" || Boolean(node.listMarker)),
 		);
 		for (const node of nodes) {
 			const positions = node.positions;
 			if (!positions?.length) continue;
+			const publicNode = node as unknown as PdfNode;
 			const nodeInfo = {} as PageBreakNodeInfo;
 			for (const key of NODE_INFO_KEYS) {
-				if (node[key] !== undefined) nodeInfo[key] = node[key];
+				if (publicNode[key] !== undefined) nodeInfo[key] = publicNode[key];
 			}
 			context.copyExtensionProperties(node, nodeInfo);
 			nodeInfo.startPosition = positions[0];
@@ -48,11 +51,13 @@ export const pageBreakBeforeFeature = {
 				new Set(
 					positions
 						.map((position: Position) => position.pageNumber)
-						.filter((pageNumber): pageNumber is number => pageNumber !== undefined),
+						.filter(
+							(pageNumber: number | undefined): pageNumber is number => pageNumber !== undefined,
+						),
 				),
 			);
 			nodeInfo.pages = pages.length;
-			nodeInfo.stack = Array.isArray(node.stack);
+			nodeInfo.stack = node._kind === "stack";
 			node.nodeInfo = nodeInfo;
 		}
 

@@ -327,4 +327,3 @@ describe("text layout", function () {
 	});
 });
 
-

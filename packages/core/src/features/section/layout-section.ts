@@ -2,6 +2,7 @@ import type { PageSizeDefinition } from "../../configuration/page-size";
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { LayoutPdfNode, PageMarginSource } from "../../types/internal";
 import { resolveSectionPage, type SectionNode } from "./resolve-section-page";
+import type { LayoutSectionNode } from "./section.types";
 
 export interface SectionLayoutContext {
 	writer: PageElementWriter;
@@ -10,7 +11,7 @@ export interface SectionLayoutContext {
 	processNode(node: LayoutPdfNode): void;
 }
 
-export function layoutSection(sectionNode: LayoutPdfNode, context: SectionLayoutContext): void {
+export function layoutSection(sectionNode: LayoutSectionNode, context: SectionLayoutContext): void {
 	const section = sectionNode as SectionNode;
 	const page = context.writer.context().getCurrentPage();
 	if (!page || page.items.length > 0) {

@@ -1,6 +1,7 @@
 import { assert, describe, it } from "vitest";
+import type { LayoutTableNode } from "../../features/table/table.types.ts";
 import ColumnCalculator from "../column-calculator.ts";
-import type { ColumnWidth, PdfNode } from "../../types/internal";
+import type { ColumnWidth } from "../../types/internal";
 
 describe("ColumnCalculator", function () {
 	describe("buildColumnWidths", function () {
@@ -140,12 +141,14 @@ describe("ColumnCalculator", function () {
 				{ width: "*", _minWidth: 10, _maxWidth: 10 },
 			];
 			const tableNode = {
-				_layout: {
-					paddingLeft: (index: number) => index,
-					paddingRight: (index: number) => index + 1,
-					vLineWidth: (index: number) => index * 2,
+				metrics: {
+					layout: {
+						paddingLeft: (index: number) => index,
+						paddingRight: (index: number) => index + 1,
+						vLineWidth: (index: number) => index * 2,
+					},
 				},
-			} as unknown as PdfNode;
+			} as unknown as LayoutTableNode;
 
 			ColumnCalculator.buildColumnWidths(columns, 90, 10, tableNode);
 
@@ -193,30 +196,32 @@ describe("ColumnCalculator", function () {
 					widths: ["50%", "25%", "25%"],
 					body: [[{ text: "50%" }, { text: "25%" }, { text: "25%" }]],
 				},
-				_layout: {
-					vLineWidth: function (i: number) {
-						if (i === 0) {
-							return 4;
-						}
-						if (i === 1) {
-							return 6;
-						}
-						if (i === 2) {
-							return 5;
-						}
-						if (i === 3) {
-							return 4;
-						}
-						return 0;
-					},
-					paddingLeft: function (i: number) {
-						return i === 0 ? 5 : 3;
-					},
-					paddingRight: function () {
-						return 7;
+				metrics: {
+					layout: {
+						vLineWidth: function (i: number) {
+							if (i === 0) {
+								return 4;
+							}
+							if (i === 1) {
+								return 6;
+							}
+							if (i === 2) {
+								return 5;
+							}
+							if (i === 3) {
+								return 4;
+							}
+							return 0;
+						},
+						paddingLeft: function (i: number) {
+							return i === 0 ? 5 : 3;
+						},
+						paddingRight: function () {
+							return 7;
+						},
 					},
 				},
-			} as unknown as PdfNode;
+			} as unknown as LayoutTableNode;
 
 			ColumnCalculator.buildColumnWidths(columns, availableWidth, offsetTotal, tableNode);
 			// 200 Total available width (availableWidth + offsetTotal) === 149 + 51

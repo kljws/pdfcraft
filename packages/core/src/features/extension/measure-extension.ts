@@ -1,9 +1,9 @@
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type PDFDocument from "../../rendering/pdf-document";
 import type { ExtensionNode, PdfCraftExtensions } from "../../types";
-import type { MeasuredPdfNode } from "../../types/internal";
 import { measureBox } from "../../services/measurement/measure-box";
 import { findExtensionForNode } from "./extension-registry";
+import type { ExtensionMeasureNode, MeasuredExtensionNode } from "./extension.types";
 
 export interface ExtensionMeasureHost {
 	document: PDFDocument;
@@ -12,9 +12,9 @@ export interface ExtensionMeasureHost {
 }
 
 export function measureExtension(
-	node: MeasuredPdfNode,
+	node: ExtensionMeasureNode,
 	host: ExtensionMeasureHost,
-): MeasuredPdfNode | undefined {
+): MeasuredExtensionNode | undefined {
 	const extension = findExtensionForNode(node as ExtensionNode, host.extensions);
 	if (!extension) return undefined;
 
@@ -25,5 +25,5 @@ export function measureExtension(
 		getStyle: (property) => host.styles.getProperty(property),
 		measureBox: (dimensions) => measureBox(node, dimensions, host.styles),
 	});
-	return node;
+	return node as MeasuredExtensionNode;
 }

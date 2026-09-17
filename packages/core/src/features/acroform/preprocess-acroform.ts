@@ -1,5 +1,6 @@
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { isNumber, isObject } from "../../utils/variable-type";
+import type { PreprocessedAcroFormNode } from "./acroform.types";
 
 const SUPPORTED_TYPES: ReadonlySet<unknown> = new Set([
 	"text",
@@ -9,7 +10,7 @@ const SUPPORTED_TYPES: ReadonlySet<unknown> = new Set([
 	"checkbox",
 ]);
 
-export function preprocessAcroForm(node: PreprocessedPdfNode): PreprocessedPdfNode {
+export function preprocessAcroForm(node: PdfNode): PreprocessedAcroFormNode {
 	const form = node.acroform;
 	if (!isObject(form)) {
 		throw new Error("Invalid AcroForm node: 'acroform' must be an object");
@@ -26,5 +27,6 @@ export function preprocessAcroForm(node: PreprocessedPdfNode): PreprocessedPdfNo
 	if (node.height !== undefined && !(isNumber(node.height) && node.height > 0)) {
 		throw new Error("Invalid AcroForm node: 'height' must be a positive number");
 	}
-	return node;
+	node._kind = "acroform";
+	return node as unknown as PreprocessedAcroFormNode;
 }

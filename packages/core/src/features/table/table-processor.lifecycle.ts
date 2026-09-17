@@ -1,11 +1,6 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
-import type {
-	LayoutPdfNode,
-	PdfPage,
-	TableOffsets,
-	TableRowGroupRange,
-} from "../../types/internal";
+import type { LayoutPdfNode, PdfPage, TableOffsets, TableRowGroupRange } from "../../types/internal";
 import { isPositiveInteger } from "../../utils/variable-type";
 import {
 	createRowSpanData,
@@ -19,11 +14,12 @@ import type {
 	RowSpanData,
 	TablePageVectorRegistry,
 } from "./table-processor.types";
+import type { LayoutTableNode } from "./table.types";
 
 export interface TableLifecycleState {
-	tableNode: LayoutPdfNode;
+	tableNode: LayoutTableNode;
 	_isCurrentRowUnbreakable: boolean;
-	_currentRowGroup?: TableRowGroupRange;
+	_currentRowGroup?: TableRowGroupRange<LayoutPdfNode>;
 	offsets: TableOffsets;
 	layout: ResolvedTableLayout;
 	headerLayout: ResolvedTableLayout;
@@ -34,7 +30,7 @@ export interface TableLifecycleState {
 	vectorRegistryByPage: Map<PdfPage, TablePageVectorRegistry>;
 	tableOffset: number;
 	rowSpanData: RowSpanData[];
-	rowGroupsByRow: Array<TableRowGroupRange | undefined>;
+	rowGroupsByRow: Array<TableRowGroupRange<LayoutPdfNode> | undefined>;
 	cleanUpRepeatables: boolean;
 	headerRows: number;
 	rowsWithoutPageBreak: number;
@@ -52,7 +48,7 @@ export interface TableLifecycleState {
 	drawHorizontalLine(lineIndex: number, writer: PageElementWriter): void;
 }
 
-export function resetTableLayoutState(tableNode: LayoutPdfNode): void {
+export function resetTableLayoutState(tableNode: LayoutTableNode): void {
 	delete tableNode._breaksBySpan;
 	delete tableNode._bottomByPage;
 	const table = requireTable(tableNode);
@@ -80,12 +76,13 @@ export function beginTable(processor: TableLifecycleState, writer: PageElementWr
 	const tableNode = processor.tableNode;
 	resetTableLayoutState(tableNode);
 	const table = requireTable(tableNode);
-	const offsets = tableNode._offsets;
+	const offsets = tableNode.metrics.offsets;
 	if (!offsets) throw new Error("Internal layout error: table offsets were not measured");
 	processor.offsets = offsets;
-	processor.layout = tableNode._layout as ResolvedTableLayout;
-	processor.headerLayout = (tableNode._headerLayout ?? tableNode._layout) as ResolvedTableLayout;
-	processor.bodyLayout = (tableNode._bodyLayout ?? tableNode._layout) as ResolvedTableLayout;
+	processor.layout = tableNode.metrics.layout as ResolvedTableLayout;
+	processor.headerLayout = (tableNode._headerLayout ??
+		tableNode.metrics.layout) as ResolvedTableLayout;
+	processor.bodyLayout = (tableNode._bodyLayout ?? tableNode.metrics.layout) as ResolvedTableLayout;
 
 	const contextWidth = writer.context().availableWidth;
 	const availableWidth = contextWidth - processor.offsets.total;

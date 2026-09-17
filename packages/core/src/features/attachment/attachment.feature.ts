@@ -1,5 +1,5 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { layoutAttachment, type AttachmentLayoutContext } from "./layout-attachment";
 import { measureAttachment } from "./measure-attachment";
 import { placeAttachment, type AttachmentWriter } from "./place-attachment";
@@ -11,7 +11,8 @@ import type {
 } from "./attachment.types";
 
 interface AttachmentFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedAttachmentNode;
 	measuredNode: MeasuredAttachmentNode;
 	layoutNode: LayoutAttachmentNode;
 	renderNode: LayoutAttachmentNode;
@@ -22,7 +23,7 @@ interface AttachmentFeatureStages extends NodeFeatureStages {
 }
 
 interface AttachmentFeature extends NodeFeature<AttachmentFeatureStages> {
-	preprocess(node: PreprocessedPdfNode, context: undefined): PreprocessedAttachmentNode;
+	preprocess(node: PdfNode, context: undefined): PreprocessedAttachmentNode;
 	measure(node: MeasuredAttachmentNode, context: undefined): MeasuredAttachmentNode;
 	place(
 		writer: AttachmentWriter,
@@ -40,7 +41,7 @@ export const attachmentFeature: AttachmentFeature = {
 	},
 	preprocess(node): PreprocessedAttachmentNode {
 		node._kind = "attachment";
-		return node as PreprocessedAttachmentNode;
+		return node as unknown as PreprocessedAttachmentNode;
 	},
 	measure: measureAttachment,
 	layout: layoutAttachment,

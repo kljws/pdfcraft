@@ -1,13 +1,16 @@
 import type { MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { getNodeId } from "../../utils/node";
+import type { MeasuredTocNode } from "./toc.types";
 
 export interface TocMeasureContext {
 	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
 }
 
-export function measureToc(node: MeasuredPdfNode, context: TocMeasureContext): MeasuredPdfNode {
-	const toc = node.toc!;
-	if (toc.title) toc.title = context.measureNode(toc.title);
+export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode {
+	const toc = node.toc;
+	if (toc.title) {
+		toc.title = context.measureNode(toc.title as unknown as PreprocessedPdfNode);
+	}
 
 	if (toc._items.length > 0) {
 		const body: PreprocessedPdfNode[][] = [];
@@ -19,13 +22,18 @@ export function measureToc(node: MeasuredPdfNode, context: TocMeasureContext): M
 				: [0, 0, 0, 0];
 
 		if (toc.sortBy === "title") {
-			toc._items.sort((a, b) =>
-				String(a._textNodeRef?.text).localeCompare(String(b._textNodeRef?.text), toc.sortLocale),
-			);
+			toc._items.sort((a, b) => {
+				const aText = a._textNodeRef?._kind === "text" ? a._textNodeRef.text : "";
+				const bText = b._textNodeRef?._kind === "text" ? b._textNodeRef.text : "";
+				return String(aText).localeCompare(String(bText), toc.sortLocale);
+			});
 		}
 
 		for (const item of toc._items) {
 			const textNode = item._textNodeRef!;
+			if (textNode._kind !== "text") {
+				throw new Error("Internal measurement error: expected a text TOC item");
+			}
 			const lineStyle = textNode.tocStyle || textStyle;
 			const lineMargin =
 				Array.isArray(textNode.tocMargin) && textNode.tocMargin.length === 4
@@ -35,6 +43,7 @@ export function measureToc(node: MeasuredPdfNode, context: TocMeasureContext): M
 			const destination = getNodeId(item._nodeRef) ?? undefined;
 			body.push([
 				{
+					_kind: "text",
 					text: textNode.text,
 					linkToDestination: destination,
 					alignment: "left",
@@ -42,6 +51,7 @@ export function measureToc(node: MeasuredPdfNode, context: TocMeasureContext): M
 					margin: lineMargin,
 				},
 				{
+					_kind: "text",
 					text: "00000",
 					linkToDestination: destination,
 					alignment: "right",
@@ -55,6 +65,7 @@ export function measureToc(node: MeasuredPdfNode, context: TocMeasureContext): M
 		}
 
 		const tocTable: PreprocessedPdfNode = {
+			_kind: "table",
 			table: {
 				dontBreakRows: true,
 				widths: ["*", "auto"],

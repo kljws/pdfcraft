@@ -8,6 +8,7 @@ import type {
 } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
 import { buildUnorderedMarker, formatOrderedMarker } from "./list-markers";
+import type { ListMeasureNode, MeasuredListNode } from "./list.types";
 
 export interface ListMeasureContext {
 	styles: StyleContextStack;
@@ -17,52 +18,55 @@ export interface ListMeasureContext {
 }
 
 export function measureUnorderedList(
-	node: MeasuredPdfNode,
+	node: ListMeasureNode,
 	context: ListMeasureContext,
-): MeasuredPdfNode {
+): MeasuredListNode {
 	const style = context.styles.clone();
 	const items = node.ul!;
 	node.type ||= "disc";
-	node._gapSize = context.measureGap();
+	const measuredNode = node as MeasuredListNode;
+	measuredNode.metrics = { gapSize: context.measureGap() };
+	const { gapSize } = measuredNode.metrics;
 	node._minWidth = 0;
 	node._maxWidth = 0;
 
 	for (let index = 0; index < items.length; index++) {
-		const item = (items[index] = context.measureChild(items[index]));
-		if (!item.ol && !item.ul) {
-			item.listMarker = buildUnorderedMarker(
-				item,
-				style,
-				node._gapSize,
-				item.listType || node.type,
-			);
+		const item = (items[index] = context.measureChild(
+			items[index] as unknown as PreprocessedPdfNode,
+		));
+		if (item._kind !== "list") {
+			item.listMarker = buildUnorderedMarker(item, style, gapSize, item.listType || node.type);
 		}
 
-		node._minWidth = Math.max(node._minWidth, (item._minWidth ?? 0) + node._gapSize.width);
-		node._maxWidth = Math.max(node._maxWidth, (item._maxWidth ?? 0) + node._gapSize.width);
+		node._minWidth = Math.max(node._minWidth, (item._minWidth ?? 0) + gapSize.width);
+		node._maxWidth = Math.max(node._maxWidth, (item._maxWidth ?? 0) + gapSize.width);
 	}
 
-	return node;
+	return measuredNode;
 }
 
 export function measureOrderedList(
-	node: MeasuredPdfNode,
+	node: ListMeasureNode,
 	context: ListMeasureContext,
-): MeasuredPdfNode {
+): MeasuredListNode {
 	const style = context.styles.clone();
 	const items = node.ol!;
 	node.type ||= "decimal";
 	node.separator ||= ".";
 	node.reversed ||= false;
 	if (!isNumber(node.start)) node.start = node.reversed ? items.length : 1;
-	node._gapSize = context.measureGap();
+	const measuredNode = node as MeasuredListNode;
+	measuredNode.metrics = { gapSize: context.measureGap() };
+	const { gapSize } = measuredNode.metrics;
 	node._minWidth = 0;
 	node._maxWidth = 0;
 
 	let counter = node.start;
 	for (let index = 0; index < items.length; index++) {
-		const item = (items[index] = context.measureChild(items[index]));
-		if (!item.ol && !item.ul) {
+		const item = (items[index] = context.measureChild(
+			items[index] as unknown as PreprocessedPdfNode,
+		));
+		if (item._kind !== "list") {
 			const counterValue = isNumber(item.counter) ? item.counter : counter;
 			const counterText = formatOrderedMarker(
 				counterValue,
@@ -88,7 +92,7 @@ export function measureOrderedList(
 			}
 
 			if (item.listMarker?._inlines) {
-				node._gapSize.width = Math.max(node._gapSize.width, item.listMarker._inlines[0].width);
+				gapSize.width = Math.max(gapSize.width, item.listMarker._inlines[0].width);
 			}
 			counter += node.reversed ? -1 : 1;
 		}
@@ -97,13 +101,13 @@ export function measureOrderedList(
 		node._maxWidth = Math.max(node._maxWidth, item._maxWidth ?? 0);
 	}
 
-	node._minWidth += node._gapSize.width;
-	node._maxWidth += node._gapSize.width;
+	node._minWidth += gapSize.width;
+	node._maxWidth += gapSize.width;
 	for (const item of items) {
-		if (!item.ol && !item.ul && item.listMarker) {
-			item.listMarker._minWidth = item.listMarker._maxWidth = node._gapSize.width;
+		if (item._kind !== "list" && item.listMarker) {
+			item.listMarker._minWidth = item.listMarker._maxWidth = gapSize.width;
 		}
 	}
 
-	return node;
+	return measuredNode;
 }

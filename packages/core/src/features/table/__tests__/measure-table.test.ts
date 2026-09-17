@@ -12,6 +12,7 @@ import type {
 	PreprocessedPdfNode,
 	TableLayout,
 } from "../../../types/internal.ts";
+import type { MeasuredTableNode } from "../table.types.ts";
 
 interface MeasuredFixture extends PdfNode {
 	_minWidth: number;
@@ -148,7 +149,12 @@ describe("Table measurement", function () {
 		it("should extend document-definition-object", function () {
 			docPreprocessor.preprocessNode(tableNode);
 			var result = docMeasure.measureNode(tableNode);
+			const measuredTable = result as unknown as MeasuredTableNode;
 
+			assert(measuredTable.metrics.offsets);
+			assert(measuredTable.metrics.layout);
+			assert.notProperty(measuredTable, "_offsets");
+			assert.notProperty(measuredTable, "_layout");
 			assert(result.table.body[0][0]._minWidth);
 			assert(result.table.body[0][0]._maxWidth);
 			assert(result.table.body[0][3]._minWidth);

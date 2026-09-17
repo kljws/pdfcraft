@@ -1,4 +1,5 @@
 export interface NodeFeatureStages {
+	preprocessNode: unknown;
 	preprocessedNode: unknown;
 	measuredNode: unknown;
 	layoutNode: unknown;
@@ -11,9 +12,9 @@ export interface NodeFeatureStages {
 
 export interface NodeFeature<Stages extends NodeFeatureStages> {
 	readonly kind: string;
-	matches(node: Stages["preprocessedNode"]): boolean;
+	matches(node: Stages["preprocessNode"]): boolean;
 	preprocess(
-		node: Stages["preprocessedNode"],
+		node: Stages["preprocessNode"],
 		context: Stages["preprocessContext"],
 	): Stages["preprocessedNode"];
 	measure(node: Stages["measuredNode"], context: Stages["measureContext"]): Stages["measuredNode"];

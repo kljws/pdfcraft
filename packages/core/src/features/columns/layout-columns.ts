@@ -1,6 +1,7 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { ColumnWidth, LayoutPdfNode, Position } from "../../types/internal";
+import type { LayoutColumnsNode } from "./columns.types";
 
 interface ColumnsRowOptions {
 	marginX: [number, number];
@@ -17,7 +18,7 @@ export interface ColumnsLayoutContext {
 	processRow(options: ColumnsRowOptions): { positions: Position[] };
 }
 
-export function layoutColumns(node: LayoutPdfNode, context: ColumnsLayoutContext): void {
+export function layoutColumns(node: LayoutColumnsNode, context: ColumnsLayoutContext): void {
 	context.enterNestedLevel();
 	const columns = node.columns;
 	if (!columns) throw new Error("Internal layout error: expected preprocessed columns");

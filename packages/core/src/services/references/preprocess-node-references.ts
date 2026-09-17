@@ -1,4 +1,5 @@
 import type { NodeReference, PreprocessedPdfNode } from "../../types/internal";
+import type { PreprocessedTextNode } from "../../features/text/text.types";
 
 export interface NodeReferencePreprocessContext {
 	parentNode: PreprocessedPdfNode | null;
@@ -6,7 +7,7 @@ export interface NodeReferencePreprocessContext {
 }
 
 export function preprocessNodeReferences(
-	node: PreprocessedPdfNode,
+	node: PreprocessedTextNode,
 	context: NodeReferencePreprocessContext,
 ): void {
 	if (node.id) {
@@ -26,8 +27,8 @@ export function preprocessNodeReferences(
 
 	if (node.pageReference) {
 		context.nodeReferences[node.pageReference] ??= {
-			_nodeRef: {},
-			_textNodeRef: {},
+			_nodeRef: {} as PreprocessedPdfNode,
+			_textNodeRef: {} as PreprocessedPdfNode,
 			_pseudo: true,
 		};
 		node.text = "00000";
@@ -36,7 +37,10 @@ export function preprocessNodeReferences(
 	}
 
 	if (node.textReference) {
-		context.nodeReferences[node.textReference] ??= { _nodeRef: {}, _pseudo: true };
+		context.nodeReferences[node.textReference] ??= {
+			_nodeRef: {} as PreprocessedPdfNode,
+			_pseudo: true,
+		};
 		node.text = "";
 		node.linkToDestination = node.textReference;
 		node._textRef = context.nodeReferences[node.textReference];

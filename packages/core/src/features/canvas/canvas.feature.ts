@@ -1,15 +1,17 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
 import type StyleContextStack from "../../services/styles/style-context-stack";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { decorateCanvas, resetCanvas } from "./decorate-canvas";
 import { layoutCanvas, type CanvasLayoutContext } from "./layout-canvas";
 import { measureCanvas } from "./measure-canvas";
 import { placeCanvas, type CanvasWriter } from "./place-canvas";
+import type { LayoutCanvasNode, MeasuredCanvasNode, PreprocessedCanvasNode } from "./canvas.types";
 
 interface CanvasFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
-	measuredNode: MeasuredPdfNode;
-	layoutNode: LayoutPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedCanvasNode;
+	measuredNode: MeasuredCanvasNode;
+	layoutNode: LayoutCanvasNode;
 	renderNode: never;
 	preprocessContext: undefined;
 	measureContext: StyleContextStack;
@@ -18,11 +20,16 @@ interface CanvasFeatureStages extends NodeFeatureStages {
 }
 
 interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {
-	measure(node: MeasuredPdfNode, context: StyleContextStack): MeasuredPdfNode;
-	place(writer: CanvasWriter, node: LayoutPdfNode, index?: number): ReturnType<typeof placeCanvas>;
-	layout(node: LayoutPdfNode, context: CanvasLayoutContext): void;
-	decorate(node: LayoutPdfNode): void;
-	reset(node: LayoutPdfNode): void;
+	preprocess(node: PdfNode, context: undefined): PreprocessedCanvasNode;
+	measure(node: MeasuredCanvasNode, context: StyleContextStack): MeasuredCanvasNode;
+	place(
+		writer: CanvasWriter,
+		node: LayoutCanvasNode,
+		index?: number,
+	): ReturnType<typeof placeCanvas>;
+	layout(node: LayoutCanvasNode, context: CanvasLayoutContext): void;
+	decorate(node: LayoutCanvasNode): void;
+	reset(node: LayoutCanvasNode): void;
 }
 
 export const canvasFeature: CanvasFeature = {
@@ -30,8 +37,9 @@ export const canvasFeature: CanvasFeature = {
 	matches(node): boolean {
 		return Boolean(node.canvas);
 	},
-	preprocess(node): PreprocessedPdfNode {
-		return node;
+	preprocess(node): PreprocessedCanvasNode {
+		node._kind = "canvas";
+		return node as unknown as PreprocessedCanvasNode;
 	},
 	measure: measureCanvas,
 	layout: layoutCanvas,

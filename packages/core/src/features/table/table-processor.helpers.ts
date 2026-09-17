@@ -1,6 +1,7 @@
 import { PAGE_BREAK_VALUES } from "./table-processor.constants";
 import { trackVectorInsertion } from "../../layout/vector-insertion";
 import type { ColumnWidth, LayoutPdfNode, PdfPage, PdfTable, Vector } from "../../types/internal";
+import type { LayoutTableNode } from "./table.types";
 import type {
 	ResolvedTableLayout,
 	RowSpanData,
@@ -15,7 +16,7 @@ export type TableVectorRole =
 	| "leftFill"
 	| "rightFill";
 
-export const requireTable = (tableNode: LayoutPdfNode): PdfTable<LayoutPdfNode> => {
+export const requireTable = (tableNode: LayoutTableNode): PdfTable<LayoutPdfNode> => {
 	const table = tableNode.table;
 	if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
 	return table;
@@ -89,7 +90,7 @@ export const hasExplicitPageBreak = (cell: LayoutPdfNode): boolean => {
 	return typeof cell.pageBreak === "string" && PAGE_BREAK_VALUES.has(cell.pageBreak);
 };
 
-export const getTableInnerContentWidth = (tableNode: LayoutPdfNode): number =>
+export const getTableInnerContentWidth = (tableNode: LayoutTableNode): number =>
 	requireTable(tableNode).widths.reduce((width: number, column: ColumnWidth) => {
 		return width + (column._calcWidth ?? column._minWidth);
 	}, 0);
@@ -136,7 +137,7 @@ export const createRoundedRectanglePath = (
 };
 
 export const createRowSpanData = (
-	tableNode: LayoutPdfNode,
+	tableNode: LayoutTableNode,
 	layout: ResolvedTableLayout,
 	horizontalOffset = 0,
 ): RowSpanData[] => {

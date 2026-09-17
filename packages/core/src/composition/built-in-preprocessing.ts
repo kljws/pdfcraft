@@ -10,32 +10,30 @@ import { stackFeature } from "../features/stack/stack.feature";
 import { tableFeature } from "../features/table/table.feature";
 import { textFeature } from "../features/text/text.feature";
 import { asRawText, normalizeTextProperty } from "../features/text/preprocess-text";
+import type { PreprocessedTextNode } from "../features/text/text.types";
 import { tocFeature } from "../features/toc/toc.feature";
 import { dispatchNodeStage, type NodeStageHandler } from "../engine/node-stage-dispatcher";
 import type { PdfCraftExtensions } from "../types";
-import type { NodeText, PreprocessedPdfNode, RawPdfNode } from "../types/internal";
+import type { NodeText, PdfNode, PreprocessedPdfNode, RawPdfNode } from "../types/internal";
 import { stringifyNode } from "../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../utils/variable-type";
-import {
-	createBuiltInFeatureHandlers,
-	getBuiltInFeatureKind,
-} from "./built-in-feature-registry";
+import { createBuiltInFeatureHandlers } from "./built-in-feature-registry";
 
 interface BuiltInPreprocessingHost {
 	parentNode: PreprocessedPdfNode | null;
 	tocs: Record<string, PreprocessedPdfNode>;
 	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
-	preprocessReferences(node: PreprocessedPdfNode): void;
+	preprocessReferences(node: PreprocessedTextNode): void;
 }
 
-const hasBlockDecoration = (node: PreprocessedPdfNode): boolean => {
+const hasBlockDecoration = (node: PdfNode): boolean => {
 	const block = node as unknown as Record<string, unknown>;
 	return ["borderRadius", "borderWidth", "backgroundColor", "padding"].some(
 		(property) => block[property] !== undefined,
 	);
 };
 
-const normalizeNode = (input: unknown): PreprocessedPdfNode => {
+const normalizeNode = (input: unknown): PdfNode => {
 	let rawNode: RawPdfNode;
 	if (Array.isArray(input)) {
 		rawNode = { stack: input as RawPdfNode[] };
@@ -57,9 +55,9 @@ const normalizeNode = (input: unknown): PreprocessedPdfNode => {
 		throw new Error(`Unrecognized document structure: ${description}`);
 	}
 
-	const node = rawNode as PreprocessedPdfNode;
+	const node = rawNode as PdfNode;
 	if ("text" in node) {
-		node.text = normalizeTextProperty(node.text) as NodeText<PreprocessedPdfNode>;
+		node.text = normalizeTextProperty(node.text) as NodeText;
 	}
 	return node;
 };
@@ -68,10 +66,7 @@ export function createBuiltInPreprocessing(
 	host: BuiltInPreprocessingHost,
 	extensions: PdfCraftExtensions = [],
 ) {
-	const preprocessTable = (
-		node: PreprocessedPdfNode,
-		isSectionAllowed = false,
-	): PreprocessedPdfNode =>
+	const preprocessTable = (node: PdfNode, isSectionAllowed = false): PreprocessedPdfNode =>
 		tableFeature.preprocess(node, {
 			allowSections: isSectionAllowed,
 			preprocessNode: (item, allowSections) => host.preprocessNode(item, allowSections),
@@ -81,7 +76,7 @@ export function createBuiltInPreprocessing(
 			parentNode: host.parentNode,
 			tocs: host.tocs,
 		});
-	const preprocessText = (node: PreprocessedPdfNode): PreprocessedPdfNode =>
+	const preprocessText = (node: PdfNode): PreprocessedPdfNode =>
 		textFeature.preprocess(node, {
 			get parentNode() {
 				return host.parentNode;
@@ -93,8 +88,8 @@ export function createBuiltInPreprocessing(
 			preprocessReferences: (item) => host.preprocessReferences(item),
 			preprocessNode: (item) => host.preprocessNode(item),
 		});
-	const handlers: NodeStageHandler<PreprocessedPdfNode, boolean, PreprocessedPdfNode>[] = [
-		...createBuiltInFeatureHandlers<PreprocessedPdfNode, boolean, PreprocessedPdfNode>({
+	const handlers: NodeStageHandler<PdfNode, boolean, PreprocessedPdfNode>[] = [
+		...createBuiltInFeatureHandlers<PdfNode, boolean, PreprocessedPdfNode>({
 			section: (node, allowSections) =>
 				sectionFeature.preprocess(node, {
 					allowSections,
@@ -132,17 +127,14 @@ export function createBuiltInPreprocessing(
 		{
 			kind: "extension",
 			matches: (node) => extensionFeature.matches(node, extensions),
-			process: (node) => node,
+			process: (node) => extensionFeature.preprocess(node),
 		},
 	];
 
 	return {
 		normalizeNode,
-		processNode: (node: PreprocessedPdfNode, isSectionAllowed: boolean) => {
+		processNode: (node: PdfNode, isSectionAllowed: boolean) => {
 			const result = dispatchNodeStage(node, isSectionAllowed, handlers);
-			if (result.handled && result.value) {
-				result.value._kind = getBuiltInFeatureKind(result.value) ?? result.kind;
-			}
 			return result.handled ? result.value : undefined;
 		},
 	};

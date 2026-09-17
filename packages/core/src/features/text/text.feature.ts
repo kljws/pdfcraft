@@ -1,5 +1,5 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { LineLike, PreprocessedPdfNode } from "../../types/internal";
+import type { LineLike, PdfNode } from "../../types/internal";
 import { buildTextLine } from "./build-text-line";
 import { layoutText, type TextLayoutContext } from "./layout-text";
 import { measureText, type TextMeasureContext } from "./measure-text";
@@ -13,7 +13,8 @@ import type {
 } from "./text.types";
 
 interface TextFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedTextNode;
 	measuredNode: TextMeasureNode;
 	layoutNode: LayoutTextNode;
 	renderNode: LineLike;
@@ -24,8 +25,8 @@ interface TextFeatureStages extends NodeFeatureStages {
 }
 
 interface TextFeature extends NodeFeature<TextFeatureStages> {
-	matchesReference(node: PreprocessedPdfNode): boolean;
-	preprocess(node: PreprocessedPdfNode, context: TextPreprocessContext): PreprocessedTextNode;
+	matchesReference(node: PdfNode): boolean;
+	preprocess(node: PdfNode, context: TextPreprocessContext): PreprocessedTextNode;
 	measure(node: TextMeasureNode, context: TextMeasureContext): MeasuredTextNode;
 	buildLine(node: LayoutTextNode, availableWidth: number): ReturnType<typeof buildTextLine>;
 	layout(node: LayoutTextNode, context: TextLayoutContext): void;

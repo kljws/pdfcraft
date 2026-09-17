@@ -5,9 +5,20 @@ import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode, RawPdfNode } 
 describe("document node lifecycle types", () => {
 	it("exposes only state available at each pipeline stage", () => {
 		const raw: RawPdfNode = { text: "raw" };
-		const preprocessed: PreprocessedPdfNode = { text: "preprocessed" };
-		const measured: MeasuredPdfNode = { text: "measured", _minWidth: 10 };
-		const layout: LayoutPdfNode = { text: "layout", _minWidth: 10, positions: [] };
+		const preprocessed: PreprocessedPdfNode = { _kind: "text", text: "preprocessed" };
+		const measured: MeasuredPdfNode = {
+			_kind: "text",
+			text: "measured",
+			metrics: { inlines: [] },
+			_minWidth: 10,
+		};
+		const layout: LayoutPdfNode = {
+			_kind: "text",
+			text: "layout",
+			metrics: { inlines: [] },
+			_minWidth: 10,
+			positions: [],
+		};
 
 		// @ts-expect-error Measurement state is unavailable on raw nodes.
 		void raw._minWidth;

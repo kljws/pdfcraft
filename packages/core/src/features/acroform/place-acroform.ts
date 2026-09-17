@@ -1,6 +1,7 @@
 import type DocumentContext from "../../document/document-context";
-import type { CurrentPosition, LayoutPdfNode } from "../../types/internal";
+import type { CurrentPosition } from "../../types/internal";
 import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
+import type { LayoutAcroFormNode } from "./acroform.types";
 
 export interface AcroFormWriter {
 	context(): DocumentContext;
@@ -9,7 +10,7 @@ export interface AcroFormWriter {
 
 export function placeAcroForm(
 	writer: AcroFormWriter,
-	node: LayoutPdfNode,
+	node: LayoutAcroFormNode,
 	index?: number,
 ): CurrentPosition | false {
 	const context = writer.context();

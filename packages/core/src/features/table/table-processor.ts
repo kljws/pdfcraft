@@ -7,6 +7,7 @@ import type {
 	TableOffsets,
 	TableRowGroupRange,
 } from "../../types/internal";
+import type { LayoutTableNode } from "./table.types";
 import type { TablePageBreak } from "./table-pagination";
 import type {
 	ResolvedTableLayout,
@@ -17,9 +18,9 @@ import { beginTable, beginTableRow } from "./table-processor.lifecycle";
 import { drawTableRowSegment, type TableLinePosition } from "./table-processor.rows";
 
 class TableProcessor {
-	tableNode: LayoutPdfNode;
+	tableNode: LayoutTableNode;
 	_isCurrentRowUnbreakable = false;
-	_currentRowGroup?: TableRowGroupRange;
+	_currentRowGroup?: TableRowGroupRange<LayoutPdfNode>;
 	offsets!: TableOffsets;
 	layout!: ResolvedTableLayout;
 	headerLayout!: ResolvedTableLayout;
@@ -30,7 +31,7 @@ class TableProcessor {
 	vectorRegistryByPage = new Map<PdfPage, TablePageVectorRegistry>();
 	tableOffset = 0;
 	rowSpanData: RowSpanData[] = [];
-	rowGroupsByRow: Array<TableRowGroupRange | undefined> = [];
+	rowGroupsByRow: Array<TableRowGroupRange<LayoutPdfNode> | undefined> = [];
 	cleanUpRepeatables = false;
 	headerRows = 0;
 	rowsWithoutPageBreak = 0;
@@ -47,7 +48,7 @@ class TableProcessor {
 	reservedAtBottom = 0;
 	headerRepeatable: ReturnType<PageElementWriter["currentBlockToRepeatable"]> | null = null;
 
-	constructor(tableNode: LayoutPdfNode) {
+	constructor(tableNode: LayoutTableNode) {
 		this.tableNode = tableNode;
 		this._isCurrentRowUnbreakable = false;
 	}

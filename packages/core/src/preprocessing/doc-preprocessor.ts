@@ -3,6 +3,7 @@ import type { NodeReference, PreprocessedPdfNode } from "../types/internal";
 import type { PdfCraftExtensions } from "../types";
 import { preprocessNodeReferences } from "../services/references/preprocess-node-references";
 import { createBuiltInPreprocessing } from "../composition/built-in-preprocessing";
+import type { PreprocessedTextNode } from "../features/text/text.types";
 
 class DocPreprocessor {
 	declare parentNode: PreprocessedPdfNode | null;
@@ -11,6 +12,9 @@ class DocPreprocessor {
 	private readonly preprocessing: ReturnType<typeof createBuiltInPreprocessing>;
 
 	constructor(extensions: PdfCraftExtensions = []) {
+		this.parentNode = null;
+		this.tocs = {};
+		this.nodeReferences = {};
 		this.preprocessing = createBuiltInPreprocessing(this, extensions);
 	}
 
@@ -35,7 +39,7 @@ class DocPreprocessor {
 		throw new Error(`Unrecognized document structure: ${stringifyNode(node)}`);
 	}
 
-	preprocessReferences(node: PreprocessedPdfNode): void {
+	preprocessReferences(node: PreprocessedTextNode): void {
 		preprocessNodeReferences(node, {
 			parentNode: this.parentNode,
 			nodeReferences: this.nodeReferences,

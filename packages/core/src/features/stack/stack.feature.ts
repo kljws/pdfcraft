@@ -1,5 +1,5 @@
 import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { layoutStack, type StackLayoutContext } from "./layout-stack";
 import { measureStack, type StackMeasureContext } from "./measure-stack";
 import {
@@ -7,11 +7,13 @@ import {
 	type DecoratedStackPreprocessContext,
 } from "./preprocess-decorated-stack";
 import { preprocessStack, type StackPreprocessContext } from "./preprocess-stack";
+import type { LayoutStackNode, MeasuredStackNode, PreprocessedStackNode } from "./stack.types";
 
 interface StackFeatureStages extends NodeFeatureStages {
-	preprocessedNode: PreprocessedPdfNode;
-	measuredNode: MeasuredPdfNode;
-	layoutNode: LayoutPdfNode;
+	preprocessNode: PdfNode;
+	preprocessedNode: PreprocessedStackNode;
+	measuredNode: MeasuredStackNode;
+	layoutNode: LayoutStackNode;
 	renderNode: never;
 	preprocessContext: StackPreprocessContext;
 	measureContext: StackMeasureContext;
@@ -20,12 +22,10 @@ interface StackFeatureStages extends NodeFeatureStages {
 }
 
 interface StackFeature extends NodeFeature<StackFeatureStages> {
-	preprocessDecorated(
-		node: PreprocessedPdfNode,
-		context: DecoratedStackPreprocessContext,
-	): PreprocessedPdfNode;
-	measure(node: MeasuredPdfNode, context: StackMeasureContext): MeasuredPdfNode;
-	layout(node: LayoutPdfNode, context: StackLayoutContext): void;
+	preprocess(node: PdfNode, context: StackPreprocessContext): PreprocessedStackNode;
+	preprocessDecorated(node: PdfNode, context: DecoratedStackPreprocessContext): PreprocessedPdfNode;
+	measure(node: MeasuredStackNode, context: StackMeasureContext): MeasuredStackNode;
+	layout(node: LayoutStackNode, context: StackLayoutContext): void;
 }
 
 export const stackFeature: StackFeature = {

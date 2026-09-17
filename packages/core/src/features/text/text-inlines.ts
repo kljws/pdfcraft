@@ -203,6 +203,9 @@ class TextInlines {
 						throw new Error("Inline image measurement is unavailable");
 					}
 					const measuredImage = this.measureInlineImage(inline as unknown as MeasuredPdfNode);
+					if (measuredImage._kind !== "image") {
+						throw new Error("Inline image measurement returned a non-image node");
+					}
 					inline.image = measuredImage.image as string;
 					inline.width = inline._imageWidth = measuredImage._width ?? 0;
 					inline.height = inline._imageHeight = measuredImage._height ?? 0;

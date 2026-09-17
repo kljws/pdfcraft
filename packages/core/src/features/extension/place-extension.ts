@@ -1,6 +1,7 @@
 import type DocumentContext from "../../document/document-context";
-import type { CurrentPosition, LayoutPdfNode } from "../../types/internal";
+import type { CurrentPosition } from "../../types/internal";
 import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
+import type { LayoutExtensionNode } from "./extension.types";
 
 export interface ExtensionWriter {
 	context(): DocumentContext;
@@ -9,7 +10,7 @@ export interface ExtensionWriter {
 
 export function placeExtension(
 	writer: ExtensionWriter,
-	node: LayoutPdfNode,
+	node: LayoutExtensionNode,
 	index?: number,
 ): CurrentPosition | false {
 	const height = node._height ?? 0;

@@ -1,24 +1,27 @@
-import type { ColumnNode, PreprocessedPdfNode } from "../../types/internal";
+import type { ColumnNode, PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
+import type { PreprocessedColumnsNode } from "./columns.types";
 
 export interface ColumnsPreprocessContext {
 	preprocessNode(input: unknown): PreprocessedPdfNode;
 }
 
 export function preprocessColumns(
-	node: PreprocessedPdfNode,
+	node: PdfNode,
 	context: ColumnsPreprocessContext,
-): PreprocessedPdfNode {
+): PreprocessedColumnsNode {
 	if (!Array.isArray(node.columns)) {
 		throw new Error(
 			`Invalid columns node: 'columns' must be an array, received ${stringifyNode(node)}`,
 		);
 	}
 
-	for (let index = 0; index < node.columns.length; index++) {
-		node.columns[index] = context.preprocessNode(
-			node.columns[index],
+	node._kind = "columns";
+	const columnsNode = node as unknown as PreprocessedColumnsNode;
+	for (let index = 0; index < columnsNode.columns.length; index++) {
+		columnsNode.columns[index] = context.preprocessNode(
+			columnsNode.columns[index],
 		) as ColumnNode<PreprocessedPdfNode>;
 	}
-	return node;
+	return columnsNode;
 }

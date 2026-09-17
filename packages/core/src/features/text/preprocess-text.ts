@@ -1,4 +1,4 @@
-import type { NodeText, PreprocessedPdfNode, RawPdfNode } from "../../types/internal";
+import type { NodeText, PdfNode, PreprocessedPdfNode, RawPdfNode } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../../utils/variable-type";
 import type { PreprocessedTextNode } from "./text.types";
@@ -6,7 +6,7 @@ import type { PreprocessedTextNode } from "./text.types";
 export interface TextPreprocessContext {
 	parentNode: PreprocessedPdfNode | null;
 	registerTocItem(node: PreprocessedPdfNode): void;
-	preprocessReferences(node: PreprocessedPdfNode): void;
+	preprocessReferences(node: PreprocessedTextNode): void;
 	preprocessNode(input: unknown): PreprocessedPdfNode;
 }
 
@@ -39,23 +39,24 @@ export function asRawText(value: unknown): NodeText<RawPdfNode> {
 }
 
 export function preprocessText(
-	node: PreprocessedPdfNode,
+	node: PdfNode,
 	context: TextPreprocessContext,
 ): PreprocessedTextNode {
-	context.registerTocItem(node);
-	context.preprocessReferences(node);
+	node._kind = "text";
+	const textNode = node as unknown as PreprocessedTextNode;
+	context.registerTocItem(textNode);
+	context.preprocessReferences(textNode);
 
-	if (isObject(node.text) && "text" in node.text) {
-		node.text = [context.preprocessNode(node.text)];
-	} else if (Array.isArray(node.text)) {
+	if (isObject(textNode.text) && "text" in textNode.text) {
+		textNode.text = [context.preprocessNode(textNode.text)];
+	} else if (Array.isArray(textNode.text)) {
 		const ownsParent = context.parentNode === null;
-		if (ownsParent) context.parentNode = node;
-		for (let index = 0; index < node.text.length; index++) {
-			node.text[index] = context.preprocessNode(node.text[index]);
+		if (ownsParent) context.parentNode = textNode;
+		for (let index = 0; index < textNode.text.length; index++) {
+			textNode.text[index] = context.preprocessNode(textNode.text[index]);
 		}
 		if (ownsParent) context.parentNode = null;
 	}
 
-	node._kind = "text";
-	return node as PreprocessedTextNode;
+	return textNode;
 }
