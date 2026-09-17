@@ -153,14 +153,15 @@ export interface Column extends ContentBase {
 	stack?: Content[];
 }
 
-export interface ListNode extends ContentBase {
-	ul?: Content[];
-	ol?: Content[];
+interface ListNodeBase extends ContentBase {
 	type?: ListType;
 	start?: number;
 	reversed?: boolean;
 	separator?: string | [string, string];
 }
+
+export type ListNode = ListNodeBase &
+	({ ul: Content[]; ol?: never } | { ol: Content[]; ul?: never });
 
 export interface TableChrome {
 	colSpan?: number;
