@@ -1,4 +1,8 @@
-import { drawHorizontalLine, drawVerticalLine } from "./table-processor.borders";
+import {
+	drawHorizontalLine,
+	drawVerticalLine,
+	type HorizontalLineOptions,
+} from "./table-processor.borders";
 import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { PdfPage, PdfTable, TableOffsets, TableRowGroupRange } from "../../types/internal";
@@ -186,22 +190,9 @@ class TableProcessor {
 	drawHorizontalLine(
 		lineIndex: number,
 		writer: PageElementWriter,
-		overrideY?: number,
-		moveDown = true,
-		forcePage?: number,
-		styleLineIndex = lineIndex,
-		borderSide: "both" | "top" | "bottom" = "both",
+		options?: HorizontalLineOptions,
 	): void {
-		drawHorizontalLine(
-			this,
-			lineIndex,
-			writer,
-			overrideY,
-			moveDown,
-			forcePage,
-			styleLineIndex,
-			borderSide,
-		);
+		drawHorizontalLine(this, lineIndex, writer, options);
 	}
 
 	drawVerticalLine(
@@ -295,15 +286,13 @@ class TableProcessor {
 		const skipOrphanePadding = firstSegmentEnd - ys[0].y0 === this.rowPaddingTop;
 		if (skipOrphanePadding && pageBreaks.length > 0 && this.layout.hLineWhenBroken !== false) {
 			const firstBreak = pageBreaks[0];
-			this.drawHorizontalLine(
-				rowIndex,
-				writer,
-				firstBreak.prevY,
-				false,
-				firstBreak.prevPage,
-				this.table.body.length,
-				"bottom",
-			);
+			this.drawHorizontalLine(rowIndex, writer, {
+				overrideY: firstBreak.prevY,
+				moveDown: false,
+				forcePage: firstBreak.prevPage,
+				styleLineIndex: this.table.body.length,
+				borderSide: "bottom",
+			});
 		}
 		if (
 			rowIndex === 0 &&
@@ -317,7 +306,11 @@ class TableProcessor {
 				// Get the page where table started at
 				pageTableStartedAt = pageBreaks[0].prevPage;
 			}
-			this.drawHorizontalLine(0, writer, this._tableTopBorderY, false, pageTableStartedAt);
+			this.drawHorizontalLine(0, writer, {
+				overrideY: this._tableTopBorderY,
+				moveDown: false,
+				forcePage: pageTableStartedAt,
+			});
 		}
 		for (let yi = skipOrphanePadding ? 1 : 0, yl = ys.length; yi < yl; yi++) {
 			const willBreak = yi < ys.length - 1;
@@ -350,18 +343,20 @@ class TableProcessor {
 
 			// Draw horizontal lines before the vertical lines so they are not overridden
 			if (willBreak && this.layout.hLineWhenBroken !== false) {
-				this.drawHorizontalLine(
-					rowIndex + 1,
-					writer,
-					y2,
-					false,
-					undefined,
-					this.table.body.length,
-					"bottom",
-				);
+				this.drawHorizontalLine(rowIndex + 1, writer, {
+					overrideY: y2,
+					moveDown: false,
+					styleLineIndex: this.table.body.length,
+					borderSide: "bottom",
+				});
 			}
 			if (rowBreakWithoutHeader && this.layout.hLineWhenBroken !== false) {
-				this.drawHorizontalLine(rowIndex, writer, y1, false, undefined, 0, "top");
+				this.drawHorizontalLine(rowIndex, writer, {
+					overrideY: y1,
+					moveDown: false,
+					styleLineIndex: 0,
+					borderSide: "top",
+				});
 			}
 			const roundedTopY = this.roundedTopByPage.get(ys[yi].page);
 			const segmentTopY = y1 - hzLineOffset + this.topLineWidth / 2;
@@ -431,18 +426,16 @@ class TableProcessor {
 		if (shouldCommitCurrentRowUnbreakable) {
 			const pageChangedCallback = (change: TablePageBreak) => {
 				if (rowIndex > 0 && this.layout.hLineWhenBroken !== false) {
-					this.drawHorizontalLine(
-						rowIndex,
-						writer,
-						change.prevY,
-						false,
-						change.prevPage,
-						this.table.body.length,
-						"bottom",
-					);
+					this.drawHorizontalLine(rowIndex, writer, {
+						overrideY: change.prevY,
+						moveDown: false,
+						forcePage: change.prevPage,
+						styleLineIndex: this.table.body.length,
+						borderSide: "bottom",
+					});
 					if (!this.headerRows) {
 						// Draw the top border of the row after a page break.
-						this.drawHorizontalLine(rowIndex, writer, undefined, true, undefined, 0, "top");
+						this.drawHorizontalLine(rowIndex, writer, { styleLineIndex: 0, borderSide: "top" });
 					}
 				}
 			};
@@ -460,17 +453,18 @@ class TableProcessor {
 			const groupStartRow = this._currentRowGroup.startRow;
 			const pageChangedCallback = (change: TablePageBreak) => {
 				if (groupStartRow > 0 && this.layout.hLineWhenBroken !== false) {
-					this.drawHorizontalLine(
-						groupStartRow,
-						writer,
-						change.prevY,
-						false,
-						change.prevPage,
-						this.table.body.length,
-						"bottom",
-					);
+					this.drawHorizontalLine(groupStartRow, writer, {
+						overrideY: change.prevY,
+						moveDown: false,
+						forcePage: change.prevPage,
+						styleLineIndex: this.table.body.length,
+						borderSide: "bottom",
+					});
 					if (!this.headerRows) {
-						this.drawHorizontalLine(groupStartRow, writer, undefined, true, undefined, 0, "top");
+						this.drawHorizontalLine(groupStartRow, writer, {
+							styleLineIndex: 0,
+							borderSide: "top",
+						});
 					}
 				}
 			};

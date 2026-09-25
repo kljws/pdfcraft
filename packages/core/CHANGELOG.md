@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Removed double casts from decorated-stack preprocessing, text outline layout and page-break-before node info, and table span placeholders are created by one typed helper.
 - Ordered and unordered list markers resolve their color through one shared `resolveMarkerColor` rule.
 - Canvas layout and decoration, image preprocessing and extension lookup now live in their feature descriptors, removing the `layout-canvas`, `decorate-canvas`, `preprocess-image` and `extension-registry` modules.
+- Table horizontal borders take a named `HorizontalLineOptions` object instead of five optional positional arguments.
 - Merged table lifecycle state into `TableProcessor` and graphics coordination into `Renderer` while preserving the dedicated table border/row algorithms and vector/clipping state owners.
 
 ### Tests

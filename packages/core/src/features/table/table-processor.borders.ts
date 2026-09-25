@@ -136,15 +136,30 @@ const addRoundedCorner = (
 	);
 };
 
+export interface HorizontalLineOptions {
+	/** Draws the line at this y instead of the current cursor position. */
+	overrideY?: number;
+	/** Moves the cursor below the line once drawn (default `true`). */
+	moveDown?: boolean;
+	/** Page index receiving the line vectors. */
+	forcePage?: number;
+	/** Line index used to resolve the layout width, style and color (default: `lineIndex`). */
+	styleLineIndex?: number;
+	/** Which adjacent cell borders decide whether each segment is drawn (default `"both"`). */
+	borderSide?: "both" | "top" | "bottom";
+}
+
 export function drawHorizontalLine(
 	processor: TableProcessor,
 	lineIndex: number,
 	writer: PageElementWriter,
-	overrideY?: number,
-	moveDown: boolean = true,
-	forcePage?: number,
-	styleLineIndex = lineIndex,
-	borderSide: "both" | "top" | "bottom" = "both",
+	{
+		overrideY,
+		moveDown = true,
+		forcePage,
+		styleLineIndex = lineIndex,
+		borderSide = "both",
+	}: HorizontalLineOptions = {},
 ): void {
 	const lineWidth = processor.layout.hLineWidth(styleLineIndex, processor.tableNode);
 	if (lineWidth) {

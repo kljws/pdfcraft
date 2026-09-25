@@ -82,19 +82,19 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 					processor.topLineWidth;
 			if (host.writer.context().availableHeight < minimumRowHeight) {
 				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
-					processor.drawHorizontalLine(
-						rowIndex,
-						host.writer,
-						host.writer.context().y - processor.bottomLineWidth,
-						false,
-						undefined,
-						table.body.length,
-						"bottom",
-					);
+					processor.drawHorizontalLine(rowIndex, host.writer, {
+						overrideY: host.writer.context().y - processor.bottomLineWidth,
+						moveDown: false,
+						styleLineIndex: table.body.length,
+						borderSide: "bottom",
+					});
 				}
 				host.snakingAwarePageBreak();
 				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
-					processor.drawHorizontalLine(rowIndex, host.writer, undefined, true, undefined, 0, "top");
+					processor.drawHorizontalLine(rowIndex, host.writer, {
+						styleLineIndex: 0,
+						borderSide: "top",
+					});
 				}
 			}
 		}
@@ -112,15 +112,12 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 			const fullPageHeight = page.pageSize.height - page.pageMargins.top - page.pageMargins.bottom;
 			if (requiredHeight > context.availableHeight && requiredHeight <= fullPageHeight) {
 				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
-					processor.drawHorizontalLine(
-						rowIndex,
-						host.writer,
-						context.y - processor.bottomLineWidth,
-						false,
-						undefined,
-						table.body.length,
-						"bottom",
-					);
+					processor.drawHorizontalLine(rowIndex, host.writer, {
+						overrideY: context.y - processor.bottomLineWidth,
+						moveDown: false,
+						styleLineIndex: table.body.length,
+						borderSide: "bottom",
+					});
 				}
 				context.moveDown(context.availableHeight);
 				if (context.inSnakingColumns()) {
@@ -129,7 +126,10 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 					host.writer.moveToNextPage();
 				}
 				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
-					processor.drawHorizontalLine(rowIndex, host.writer, undefined, true, undefined, 0, "top");
+					processor.drawHorizontalLine(rowIndex, host.writer, {
+						styleLineIndex: 0,
+						borderSide: "top",
+					});
 				}
 			}
 		}
