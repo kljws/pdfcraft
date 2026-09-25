@@ -5,8 +5,8 @@ import type {
 	ResolvedTableLayout,
 	RowSpanData,
 	TablePageVectorRegistry,
-	TableProcessorState,
 } from "./table-processor.types";
+import type TableProcessor from "./table-processor";
 
 const PAGE_BREAK_VALUES = new Set([
 	"before",
@@ -54,7 +54,7 @@ export function resetTableLayoutState(tableNode: LayoutTableNode): void {
 }
 
 const getPageVectorRegistry = (
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	page: PdfPage,
 ): TablePageVectorRegistry => {
 	let registry = processor.vectorRegistryByPage.get(page);
@@ -72,7 +72,7 @@ const getPageVectorRegistry = (
 };
 
 export const trackTableVector = (
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	vector: Vector,
 	roles: TableVectorRole[],
 	group?: object,

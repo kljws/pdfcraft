@@ -1,6 +1,6 @@
 import type PageElementWriter from "../../layout/element-writer.page";
 import { isNumber } from "../../utils/variable-type";
-import type { TableProcessorState } from "./table-processor.types";
+import type TableProcessor from "./table-processor";
 import {
 	createRoundedRectanglePath,
 	requireTable,
@@ -16,26 +16,6 @@ export interface TableLinePosition {
 	index: number;
 }
 
-export interface TableRowRenderState extends TableProcessorState {
-	dontBreakRows: boolean;
-	bottomLineWidth: number;
-	rowPaddingTop: number;
-	rowPaddingBottom: number;
-	topLineWidth: number;
-	reservedAtBottom: number;
-	rowTopPageY: number;
-	drawVerticalLine(
-		x: number,
-		y0: number,
-		y1: number,
-		vLineColIndex: number,
-		writer: PageElementWriter,
-		vLineRowIndex: number,
-		beforeVLineColIndex: number | null,
-		trim?: { top: number; bottom: number },
-	): void;
-}
-
 interface RowSegment {
 	y1: number;
 	y2: number;
@@ -46,7 +26,7 @@ interface RowSegment {
 }
 
 export function drawTableRowSegment(
-	processor: TableRowRenderState,
+	processor: TableProcessor,
 	rowIndex: number,
 	writer: PageElementWriter,
 	xs: TableLinePosition[],

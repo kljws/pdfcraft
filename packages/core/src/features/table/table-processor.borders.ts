@@ -2,7 +2,7 @@ import type PageElementWriter from "../../layout/element-writer.page";
 import type { Color } from "../../types";
 import type { Vector } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
-import type { TableProcessorState } from "./table-processor.types";
+import type TableProcessor from "./table-processor";
 import {
 	createRoundedRectanglePath,
 	requireTable,
@@ -11,7 +11,7 @@ import {
 } from "./table-processor.helpers";
 
 const removeExistingPageBottomLines = (
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	writer: PageElementWriter,
 	pageIndex: number,
 	bottomY: number,
@@ -36,7 +36,7 @@ const removeExistingPageBottomLines = (
 };
 
 const roundExistingPageBottom = (
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	writer: PageElementWriter,
 	pageIndex: number,
 	bottomY: number,
@@ -87,7 +87,7 @@ const hasCellBorder = (
 ): boolean => (cell?.border ? cell.border[side] : defaultBorder);
 
 const getHorizontalBorderColor = (
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	cell: { borderColor?: [Color, Color, Color, Color] } | undefined,
 	side: 1 | 3,
 	lineIndex: number,
@@ -100,7 +100,7 @@ const getHorizontalBorderColor = (
 };
 
 const addRoundedCorner = (
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	writer: PageElementWriter,
 	corner: "topLeft" | "topRight" | "bottomRight" | "bottomLeft",
 	x: number,
@@ -137,7 +137,7 @@ const addRoundedCorner = (
 };
 
 export function drawHorizontalLine(
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	lineIndex: number,
 	writer: PageElementWriter,
 	overrideY?: number,
@@ -369,7 +369,7 @@ export function drawHorizontalLine(
 }
 
 export function drawVerticalLine(
-	processor: TableProcessorState,
+	processor: TableProcessor,
 	x: number,
 	y0: number,
 	y1: number,

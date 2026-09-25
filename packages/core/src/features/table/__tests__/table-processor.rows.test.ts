@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { drawTableRowSegment, type TableRowRenderState } from "../table-processor.rows";
+import type TableProcessor from "../table-processor";
+import { drawTableRowSegment } from "../table-processor.rows";
 import type PageElementWriter from "../../../layout/element-writer.page";
 import type { Vector } from "../../../types/internal";
 
@@ -29,7 +30,7 @@ describe("drawTableRowSegment", () => {
 			reservedAtBottom: 0,
 			rowTopPageY: 10,
 			drawVerticalLine: () => {},
-		} as unknown as TableRowRenderState;
+		} as unknown as TableProcessor;
 
 		drawTableRowSegment(
 			processor,

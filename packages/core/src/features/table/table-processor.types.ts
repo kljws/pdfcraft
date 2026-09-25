@@ -1,6 +1,6 @@
 import type { Color } from "../../types";
-import type { PdfPage, Vector, VectorPageItem } from "../../types/internal";
-import type { LayoutTableCell, LayoutTableNode } from "./table.types";
+import type { Vector, VectorPageItem } from "../../types/internal";
+import type { LayoutTableCell } from "./table.types";
 
 export interface TablePageVectorRegistry {
 	horizontalGroup?: object;
@@ -39,13 +39,4 @@ export interface ResolvedTableLayout {
 	fillOpacity?:
 		| number
 		| ((rowIndex: number, node: LayoutTableCell, columnIndex: number) => number | undefined);
-}
-
-export interface TableProcessorState {
-	tableNode: LayoutTableNode;
-	layout: ResolvedTableLayout;
-	rowSpanData: RowSpanData[];
-	borderRadius: number;
-	roundedTopByPage: Map<number, number>;
-	vectorRegistryByPage: Map<PdfPage, TablePageVectorRegistry>;
 }
