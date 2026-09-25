@@ -43,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Documentation
 
-- Replaced the former source map with `docs/ARCHITECTURE-CORE.md`, which defines the target feature, document-feature and shared-service architecture of `@pdfcraft/core`.
+- Replaced the former source map with `packages/core/docs/ARCHITECTURE.md`, which describes the current organization of `@pdfcraft/core`: generation pipeline, folder roles, feature descriptors and registry, node lifecycle types, composition ports, dependency rules and test layout.
 
 ## [0.8.0] - 2026-09-05
 
