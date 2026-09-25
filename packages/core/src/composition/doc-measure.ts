@@ -2,7 +2,7 @@ import StyleContextStack from "../services/styles/style-context-stack";
 import type { Dictionary, PdfCraftExtensions, Style } from "../types";
 import type { MeasuredPdfNode, PreprocessedPdfNode, TableLayout } from "../types/internal";
 import type PDFDocument from "../rendering/pdf-document";
-import { createBuiltInMeasurement } from "../composition/built-in-measurement";
+import { createBuiltInMeasurement } from "./built-in-measurement";
 
 class DocMeasure {
 	readonly pdfDocument: PDFDocument;
@@ -27,21 +27,7 @@ class DocMeasure {
 		this.textInlines = this.measurement.textInlines;
 	}
 
-	/**
-	 * Measures all nodes and sets min/max-width properties required for the second
-	 * layout-pass.
-	 *
-	 * @param docStructure document-definition-object
-	 * @returns document-measurement-object
-	 */
-	measureDocument(docStructure: PreprocessedPdfNode): MeasuredPdfNode {
-		return this.measureNode(docStructure);
-	}
-
-	measureBlock(node: PreprocessedPdfNode): MeasuredPdfNode {
-		return this.measureNode(node);
-	}
-
+	/** Measures a preprocessed node tree and sets the sizes required by layout. */
 	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode {
 		return this.measurement.measureNode(node);
 	}

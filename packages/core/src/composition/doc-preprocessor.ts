@@ -1,7 +1,7 @@
 import { stringifyNode } from "../utils/node";
 import type { NodeReference, PreprocessedPdfNode } from "../types/internal";
 import type { PdfCraftExtensions } from "../types";
-import { createBuiltInPreprocessing } from "../composition/built-in-preprocessing";
+import { createBuiltInPreprocessing } from "./built-in-preprocessing";
 
 class DocPreprocessor {
 	declare parentNode: PreprocessedPdfNode | null;

@@ -6,15 +6,12 @@ import { describe, expect, it } from "vitest";
 const SOURCE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Layers that must stay feature-neutral (docs/ARCHITECTURE-CORE.md, "Dépendances autorisées"). */
-const NEUTRAL_LAYERS = ["engine", "services", "types", "utils"];
+const NEUTRAL_LAYERS = ["document", "engine", "layout", "services", "types", "utils"];
 
-/**
- * Known exceptions, each to be removed by a planned refactor step. The internal node lifecycle
- * unions still aggregate every feature's node types until node typing is reworked.
- */
-const ALLOWED_VIOLATIONS = new Set<string>();
+/** Orchestration entry points inside neutral layers, allowed to import composed facades. */
+const ORCHESTRATION_FILES = new Set(["layout/layout-builder.ts"]);
 
-const IMPORT_PATTERN = /(?:from\s+|import\s*\(\s*)["'](\.{1,2}\/[^"']+)["']/g;
+const IMPORT_PATTERN = /(?:from\s+|import\s*\(?\s*)["'](\.{1,2}\/[^"']+)["']/g;
 
 function listSourceFiles(directory: string): string[] {
 	return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -45,12 +42,16 @@ function findViolations(): string[] {
 			if (layer === "features" && targetLayer === "features" && targetFeature !== feature) {
 				violations.push(`${source} -> features/${targetFeature}/`);
 			}
-			if (NEUTRAL_LAYERS.includes(layer) && ["features", "composition"].includes(targetLayer)) {
+			if (
+				NEUTRAL_LAYERS.includes(layer) &&
+				!ORCHESTRATION_FILES.has(source) &&
+				["features", "composition"].includes(targetLayer)
+			) {
 				violations.push(`${source} -> ${targetLayer}/`);
 			}
 		}
 	}
-	return [...new Set(violations)].filter((violation) => !ALLOWED_VIOLATIONS.has(violation));
+	return [...new Set(violations)];
 }
 
 describe("core architecture", () => {

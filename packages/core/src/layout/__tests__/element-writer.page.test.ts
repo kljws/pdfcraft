@@ -1,6 +1,7 @@
 import { assert, beforeEach, describe, it, vi, type MockInstance } from "vitest";
 import DocumentContext from "../../document/document-context.ts";
 import PageElementWriter from "../element-writer.page.ts";
+import { createBuiltInElementPlacement } from "../../composition/built-in-element-placement.ts";
 import type {
 	CurrentPosition,
 	LineLike,
@@ -130,7 +131,7 @@ describe("PageElementWriter", function () {
 
 		emitSpy = vi.spyOn(PageElementWriter.prototype, "emit");
 
-		pew = new PageElementWriter(ctx);
+		pew = new PageElementWriter(ctx, createBuiltInElementPlacement());
 	});
 
 	describe("addLine", function () {

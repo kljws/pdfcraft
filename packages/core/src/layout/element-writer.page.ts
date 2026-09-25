@@ -1,4 +1,3 @@
-import { createBuiltInElementPlacement } from "../composition/built-in-element-placement";
 import ElementWriter, {
 	type ElementPlacementAdapter,
 	type ElementWriterEvents,
@@ -42,10 +41,7 @@ class PageElementWriter {
 	repeatables: ElementFragment[];
 	originalX = 0;
 
-	constructor(
-		context: DocumentContext,
-		placement: ElementPlacementAdapter = createBuiltInElementPlacement(),
-	) {
+	constructor(context: DocumentContext, placement: ElementPlacementAdapter) {
 		this.writer = new ElementWriter(context, (line) => this.emit("lineAdded", line), placement);
 		this.transactionLevel = 0;
 		this.repeatables = [];

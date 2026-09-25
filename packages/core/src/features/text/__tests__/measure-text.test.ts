@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
-import BaseDocPreprocessor from "../../../preprocessing/doc-preprocessor.ts";
-import BaseDocMeasure from "../../../measurement/doc-measure.ts";
+import BaseDocPreprocessor from "../../../composition/doc-preprocessor.ts";
+import BaseDocMeasure from "../../../composition/doc-measure.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
 import type { MeasuredPdfNode, PreprocessedPdfNode } from "../../../types/internal.ts";
 import type TextInlines from "../text-inlines.ts";

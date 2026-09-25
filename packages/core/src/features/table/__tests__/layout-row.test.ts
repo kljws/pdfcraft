@@ -3,8 +3,9 @@ import DocumentContext from "../../../document/document-context.ts";
 import BaseLayoutBuilder from "../../../layout/layout-builder.ts";
 import ColumnCalculator from "../../../layout/column-calculator.ts";
 import PageElementWriter from "../../../layout/element-writer.page.ts";
-import DocMeasure from "../../../measurement/doc-measure.ts";
-import DocPreprocessor from "../../../preprocessing/doc-preprocessor.ts";
+import { createBuiltInElementPlacement } from "../../../composition/built-in-element-placement.ts";
+import DocMeasure from "../../../composition/doc-measure.ts";
+import DocPreprocessor from "../../../composition/doc-preprocessor.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
 import type { ColumnWidth, PageSize } from "../../../types/internal.ts";
 import TableRowLayout from "../layout-row.ts";
@@ -81,7 +82,7 @@ describe("Table row layout", function () {
 				sampleTestProvider as unknown as PDFDocument,
 				{},
 				{},
-			).measureDocument(preprocessedTable) as unknown as TableFixture;
+			).measureNode(preprocessedTable) as unknown as TableFixture;
 			ColumnCalculator.buildColumnWidths(measuredTable.table.widths, 320);
 
 			return measuredTable;
@@ -94,7 +95,7 @@ describe("Table row layout", function () {
 			builder = new BaseLayoutBuilder(pageSize, pageMargins);
 			var ctx = new DocumentContext();
 			ctx.addPage(pageSize, pageMargins);
-			builder.writer = new PageElementWriter(ctx);
+			builder.writer = new PageElementWriter(ctx, createBuiltInElementPlacement());
 			builder.linearNodeList = [];
 			rowLayout = new TableRowLayout(builder);
 		});

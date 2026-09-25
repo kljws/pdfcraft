@@ -1,5 +1,5 @@
-import type DocMeasure from "../measurement/doc-measure";
-import type DocPreprocessor from "../preprocessing/doc-preprocessor";
+import type DocMeasure from "./doc-measure";
+import type DocPreprocessor from "./doc-preprocessor";
 import type PDFDocument from "../rendering/pdf-document";
 import type { Style } from "../types";
 import type { LayoutPdfNode } from "../types/internal";
@@ -46,7 +46,7 @@ export function createBuiltInDocumentFeatures(
 					commitUnbreakableBlock: (forcedX, forcedY) =>
 						host.writer.commitUnbreakableBlock(forcedX, forcedY),
 					preprocessNode: (node) => host.docPreprocessor.preprocessBlock(node),
-					measureNode: (node) => host.docMeasure.measureBlock(node) as LayoutPdfNode,
+					measureNode: (node) => host.docMeasure.measureNode(node) as LayoutPdfNode,
 					layoutNode: layoutRepeatableNode,
 					recordBackgroundItems: (count) => {
 						context.backgroundLength[context.page] += count;
@@ -66,7 +66,7 @@ export function createBuiltInDocumentFeatures(
 					commitUnbreakableBlock: (forcedX, forcedY, detachedOverflowMessage) =>
 						host.writer.commitUnbreakableBlock(forcedX, forcedY, detachedOverflowMessage),
 					preprocessNode: (node) => host.docPreprocessor.preprocessBlock(node),
-					measureNode: (node) => host.docMeasure.measureBlock(node) as LayoutPdfNode,
+					measureNode: (node) => host.docMeasure.measureNode(node) as LayoutPdfNode,
 					layoutNode: layoutRepeatableNode,
 				});
 			},

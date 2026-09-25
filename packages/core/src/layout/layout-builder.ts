@@ -1,5 +1,5 @@
-import type DocMeasure from "../measurement/doc-measure";
-import type DocPreprocessor from "../preprocessing/doc-preprocessor";
+import type DocMeasure from "../composition/doc-measure";
+import type DocPreprocessor from "../composition/doc-preprocessor";
 import type PageElementWriter from "./element-writer.page";
 import { pack } from "../utils/tools";
 import type { LayoutPdfNode, MeasuredPdfNode } from "../types/internal";

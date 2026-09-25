@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
-import BaseDocPreprocessor from "../../../preprocessing/doc-preprocessor.ts";
-import BaseDocMeasure from "../../../measurement/doc-measure.ts";
+import BaseDocPreprocessor from "../../../composition/doc-preprocessor.ts";
+import BaseDocMeasure from "../../../composition/doc-measure.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
 import type { Dictionary, PdfCraftExtensions, Style } from "../../../types/index.ts";
 import type {

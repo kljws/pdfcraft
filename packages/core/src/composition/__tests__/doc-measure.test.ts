@@ -1,5 +1,5 @@
 import { assert, describe, it } from "vitest";
-import BaseDocPreprocessor from "../../preprocessing/doc-preprocessor.ts";
+import BaseDocPreprocessor from "../doc-preprocessor.ts";
 import BaseDocMeasure from "../doc-measure.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
 import type { Dictionary, PdfCraftExtensions, Style } from "../../types/index.ts";
@@ -21,8 +21,8 @@ class DocMeasure extends BaseDocMeasure {
 		super(pdfDocument as PDFDocument, styleDictionary, defaultStyle, extensions, tableLayouts);
 	}
 
-	override measureDocument(node: unknown): MeasuredPdfNode {
-		return super.measureDocument(node as PreprocessedPdfNode);
+	override measureNode(node: unknown): MeasuredPdfNode {
+		return super.measureNode(node as PreprocessedPdfNode);
 	}
 }
 
@@ -49,17 +49,17 @@ describe("DocMeasure", function () {
 		const measure = new BaseDocMeasure(sampleTestProvider as unknown as PDFDocument, {}, {});
 
 		assert.throws(
-			() => measure.measureDocument({ custom: "test" } as PreprocessedPdfNode),
+			() => measure.measureNode({ custom: "test" } as PreprocessedPdfNode),
 			/Unrecognized document structure/,
 		);
 	});
 
-	describe("measureDocument", function () {
+	describe("measureNode", function () {
 		it("should treat margin in styling properties with higher priority", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { marginStyle: { margin: 10 } }, {});
 			var node = { text: "test", style: "marginStyle", margin: [5, 5, 5, 5] };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [5, 5, 5, 5]);
 		});
 
@@ -67,7 +67,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { topLevel: { margin: [123, 3, 5, 6] } }, {});
 			var node = { text: "test", style: "topLevel" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [123, 3, 5, 6]);
 		});
 
@@ -75,7 +75,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, {}, {});
 			var node = { text: "test", marginLeft: 10, margin: 20 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [20, 20, 20, 20]);
 		});
 
@@ -83,7 +83,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, {}, {});
 			var node = { text: "test", marginLeft: 10, margin: 0 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 0, 0, 0]);
 		});
 
@@ -91,7 +91,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", margin: 10 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [10, 10, 10, 10]);
 		});
 
@@ -99,7 +99,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", margin: 0 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 0, 0, 0]);
 		});
 
@@ -107,7 +107,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", marginLeft: 10 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [10, 20, 20, 20]);
 		});
 
@@ -115,7 +115,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", marginLeft: 0 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 20, 20, 20]);
 		});
 
@@ -123,7 +123,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
 			var node = { text: "test", style: "marginLeft", marginLeft: 10 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [10, 0, 0, 0]);
 		});
 
@@ -131,7 +131,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
 			var node = { text: "test", style: "marginLeft", marginLeft: 0 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 0, 0, 0]);
 		});
 
@@ -139,7 +139,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
 			var node = { text: "test", style: "marginLeft", margin: 10 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [10, 10, 10, 10]);
 		});
 
@@ -147,7 +147,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
 			var node = { text: "test", style: "marginLeft", margin: 0 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 0, 0, 0]);
 		});
 
@@ -159,7 +159,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: ["quote", "small"] };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 0, 0, 5]);
 		});
 
@@ -171,7 +171,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { ul: ["one", "two", { text: "three", style: "subLevel" }], style: "topLevel" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [123, 3, 5, 6]);
 			assert(result.ul);
 			assert.equal(result.ul[0]._margin, null);
@@ -199,7 +199,7 @@ describe("DocMeasure", function () {
 				style: "topLevel",
 			};
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [123, 3, 5, 6]);
 			assert(result.ul);
 			assert.equal(result.ul[0]._margin, null);
@@ -212,28 +212,28 @@ describe("DocMeasure", function () {
 		it("should process marginLeft property if defined", function () {
 			var node = { text: "some text", marginLeft: 5 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [5, 0, 0, 0]);
 		});
 
 		it("should process marginRight property if defined", function () {
 			var node = { text: "some text", marginRight: 5 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 0, 5, 0]);
 		});
 
 		it("should process multiple single margin properties if defined", function () {
 			var node = { text: "some text", marginRight: 5, marginTop: 10, marginBottom: 2 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [0, 10, 5, 2]);
 		});
 
 		it("should treat margin property with higher priority than single margin properties", function () {
 			var node = { text: "some text", marginRight: 5, marginTop: 10, marginBottom: 2, margin: 12 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [12, 12, 12, 12]);
 		});
 
@@ -245,7 +245,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "some text", style: ["style1", "style2"] };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [5, 10, 0, 0]);
 		});
 
@@ -253,7 +253,7 @@ describe("DocMeasure", function () {
 			docMeasure = new DocMeasure(sampleTestProvider, { style1: { marginLeft: 5 } }, {});
 			var node = { text: "some text", style: ["style1"], marginRight: 15 };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [5, 0, 15, 0]);
 		});
 
@@ -265,7 +265,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { ul: ["one", "two", { text: "three", style: "subLevel" }], style: "topLevel" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [123, 3, 5, 6]);
 			assert(result.ul);
 			assert.deepEqual(result.ul[2]._margin, [5, 0, 0, 0]);
@@ -287,7 +287,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: "subheader" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [2, 1, 1, 1]);
 		});
 
@@ -310,7 +310,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: "subheader" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [3, 1, 0, 2]);
 		});
 
@@ -343,7 +343,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: "marginExtends3" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [20, 20, 20, 20]);
 		});
 
@@ -376,7 +376,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: "marginExtends4" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [50, 20, 20, 20]);
 		});
 
@@ -409,7 +409,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: ["marginExtends1", "marginExtends2"] };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [20, 20, 20, 20]);
 		});
 
@@ -442,7 +442,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: ["marginExtends2", "marginExtends1"] };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [50, 20, 20, 20]);
 		});
 
@@ -463,7 +463,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: "subheader" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [2, 1, 1, 1]);
 		});
 
@@ -480,7 +480,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { text: "test", style: "subheader" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureDocument(node);
+			var result = docMeasure.measureNode(node);
 			assert.deepEqual(result._margin, [2, 0, 0, 0]);
 		});
 	});

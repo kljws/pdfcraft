@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
-import BaseDocPreprocessor from "../../../preprocessing/doc-preprocessor.ts";
-import BaseDocMeasure from "../../../measurement/doc-measure.ts";
+import BaseDocPreprocessor from "../../../composition/doc-preprocessor.ts";
+import BaseDocMeasure from "../../../composition/doc-measure.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
 import StyleContextStack from "../../../services/styles/style-context-stack.ts";
 import type { PreprocessedPdfNode } from "../../../types/internal.ts";
@@ -27,7 +27,7 @@ describe("Image measurement", function () {
 		const node = { text: ["before ", { image: "logo", width: 20 }, " after"] };
 		new BaseDocPreprocessor().preprocessDocument(node);
 
-		const result = measure.measureDocument(node as PreprocessedPdfNode) as MeasuredTextNode;
+		const result = measure.measureNode(node as PreprocessedPdfNode) as MeasuredTextNode;
 		const image = result.metrics.inlines.find((inline) => inline.image !== undefined)!;
 
 		assert.equal(image.image, "logo");

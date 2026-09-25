@@ -7,9 +7,10 @@ import {
 	type DocumentLayoutPassResult,
 } from "../engine/document-layout-pipeline";
 import PageElementWriter from "../layout/element-writer.page";
+import { createBuiltInElementPlacement } from "./built-in-element-placement";
 import { calculatePageHeight } from "../layout/page-item-geometry";
-import DocMeasure from "../measurement/doc-measure";
-import DocPreprocessor from "../preprocessing/doc-preprocessor";
+import DocMeasure from "./doc-measure";
+import DocPreprocessor from "./doc-preprocessor";
 import type PDFDocument from "../rendering/pdf-document";
 import type { Dictionary, PdfCraftExtensions, Style } from "../types";
 import type {
@@ -87,13 +88,13 @@ export function runBuiltInDocumentPass(
 ): DocumentLayoutPassResult {
 	host.linearNodeList = [];
 	const processedDocument = host.docPreprocessor.preprocessDocument(input.docStructure);
-	const layoutDocument = host.docMeasure.measureDocument(processedDocument) as LayoutPdfNode;
+	const layoutDocument = host.docMeasure.measureNode(processedDocument) as LayoutPdfNode;
 
 	const documentContext = new DocumentContext();
 	documentContext.pageMarginSource = host.pageMargins;
 	documentContext.pageCount = input.pageCount;
 	documentContext.bottomMarginOverrides = input.bottomMarginOverrides;
-	host.writer = new PageElementWriter(documentContext);
+	host.writer = new PageElementWriter(documentContext, createBuiltInElementPlacement());
 	const documentFeatures = createBuiltInDocumentFeatures(
 		host,
 		input.pdfDocument,
