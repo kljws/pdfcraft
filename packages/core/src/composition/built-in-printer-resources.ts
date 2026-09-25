@@ -1,6 +1,4 @@
-import {
-	getResolvedAttachments,
-} from "../features/attachment/attachment-resources";
+import { getResolvedAttachments } from "../features/attachment/attachment-resources";
 import { extensionFeature } from "../features/extension/extension.feature";
 import type { PrinterDocumentDefinition, PrinterResourceReference } from "../core/printer.types";
 import type { PdfCraftExtensions } from "../types";

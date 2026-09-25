@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Replaced the stage-specific node dispatcher with a single ordered node-feature registry. Each built-in `kind` is registered once, duplicate kinds are rejected, public nodes are matched in the established order before preprocessing and preprocessed nodes are dispatched directly by `_kind`.
+- Built-in measurement, layout, decoration/reset and page-item placement now go through the registry with shared `NodeMeasureContext`, `NodeLayoutContext` and `NodePlaceContext` engine contracts, removing the per-feature `switch` from layout composition and the canvas-specific decoration branches.
+- Made every node-feature lifecycle hook except matching optional and introduced explicit preprocessed, measured and layout node types for built-in features.
+- Removed unused registry introspection helpers.
+
+### Fixed
+
+- Restored exclusive `ListNode` typing: a list must define exactly one of `ul` or `ol`.
+
+### Tests
+
+- Added feature-level layout tests for canvas, columns, extension, image, list, stack, table, text and page breaks, and registry tests for matching order, kind dispatch and duplicate kinds.
+
+### Documentation
+
+- Replaced the former source map with `docs/ARCHITECTURE-CORE.md`, which defines the target feature, document-feature and shared-service architecture of `@pdfcraft/core`.
+
 ## [0.8.0] - 2026-09-05
 
 ### Added

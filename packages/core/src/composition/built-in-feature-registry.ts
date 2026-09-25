@@ -13,16 +13,8 @@ import { stackFeature } from "../features/stack/stack.feature";
 import { tableFeature } from "../features/table/table.feature";
 import { textFeature } from "../features/text/text.feature";
 import { tocFeature } from "../features/toc/toc.feature";
-import type {
-	LayoutPdfNode,
-	MeasurePdfNode,
-	MeasuredPdfNode,
-	PdfNode,
-} from "../types/internal";
-import type {
-	PrinterDocumentDefinition,
-	PrinterResourceReference,
-} from "../core/printer.types";
+import type { LayoutPdfNode, MeasurePdfNode, MeasuredPdfNode, PdfNode } from "../types/internal";
+import type { PrinterDocumentDefinition, PrinterResourceReference } from "../core/printer.types";
 import type {
 	NodeLayoutContext,
 	NodeLayoutHook,
@@ -32,33 +24,11 @@ import type {
 	NodePlaceHook,
 	NodePlaceResult,
 } from "../engine/contracts/node-feature";
+
 interface RegistryFeature {
 	readonly kind: string;
 	matches(node: PdfNode): boolean;
 }
-
-export type NodeFeatureHook =
-	| "preprocess"
-	| "resolveResources"
-	| "measure"
-	| "layout"
-	| "place"
-	| "render"
-	| "decorate"
-	| "reset"
-	| "inline";
-
-const NODE_FEATURE_HOOKS: readonly NodeFeatureHook[] = [
-	"preprocess",
-	"resolveResources",
-	"measure",
-	"layout",
-	"place",
-	"render",
-	"decorate",
-	"reset",
-	"inline",
-];
 
 export function createNodeFeatureRegistry<const Features extends readonly RegistryFeature[]>(
 	features: Features,
@@ -72,26 +42,11 @@ export function createNodeFeatureRegistry<const Features extends readonly Regist
 	}
 
 	return {
-		features,
 		byKind: byKind as ReadonlyMap<string, Features[number]>,
-		match(node: PdfNode): Features[number] | undefined {
-			return features.find((feature) => feature.matches(node));
-		},
 		dispatch(node: PdfNode): Features[number] | undefined {
 			return typeof node._kind === "string"
 				? byKind.get(node._kind)
 				: features.find((feature) => feature.matches(node));
-		},
-		matching(node: PdfNode): Features[number][] {
-			return features.filter((feature) => feature.matches(node));
-		},
-		withHook(hook: NodeFeatureHook): Features[number][] {
-			return features.filter((feature) => hook in feature);
-		},
-		hooks(kind: Features[number]["kind"]): NodeFeatureHook[] {
-			const feature = byKind.get(kind);
-			if (!feature) return [];
-			return NODE_FEATURE_HOOKS.filter((hook) => hook in feature);
 		},
 	};
 }
@@ -175,9 +130,7 @@ export function placeFeatureItem(
 	context: NodePlaceContext,
 ): NodePlaceResult {
 	const feature =
-		featureKind === extensionFeature.kind
-			? extensionFeature
-			: getBuiltInFeatureByKind(featureKind);
+		featureKind === extensionFeature.kind ? extensionFeature : getBuiltInFeatureByKind(featureKind);
 	if (!feature?.place) {
 		throw new Error(`Node feature '${featureKind}' does not support page-item placement`);
 	}

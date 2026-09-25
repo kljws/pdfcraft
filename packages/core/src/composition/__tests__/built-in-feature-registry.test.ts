@@ -37,37 +37,4 @@ describe("built-in feature registry", () => {
 			"Duplicate node feature kind 'duplicate'",
 		);
 	});
-
-	it("reports every match so ambiguous public nodes are detectable", () => {
-		const node = { table: {}, text: "ambiguous" } as PdfNode;
-		expect(builtInFeatureRegistry.matching(node).map((feature) => feature.kind)).toEqual([
-			"table",
-			"text",
-		]);
-		expect(builtInFeatureRegistry.match(node)?.kind).toBe("table");
-	});
-
-	it("exposes the hooks implemented by each descriptor", () => {
-		expect(builtInFeatureRegistry.hooks("attachment")).toEqual([
-			"preprocess",
-			"resolveResources",
-			"measure",
-			"layout",
-			"place",
-			"render",
-		]);
-		expect(builtInFeatureRegistry.hooks("image")).toEqual([
-			"preprocess",
-			"measure",
-			"layout",
-			"place",
-			"render",
-			"inline",
-		]);
-		expect(
-			builtInFeatureRegistry.withHook("resolveResources").map((feature) => feature.kind),
-		).toEqual(["attachment"]);
-		expect(builtInFeatureRegistry.withHook("measure")).toEqual([...builtInFeatures]);
-		expect(builtInFeatureRegistry.withHook("layout")).toEqual([...builtInFeatures]);
-	});
 });
