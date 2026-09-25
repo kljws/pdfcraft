@@ -1,8 +1,42 @@
 import type {
-	DynamicNodeGetter,
-	HeaderFooterLayoutContext,
-	RepeatableSizeFunction,
-} from "./header-footer.types";
+	LayoutPdfNode,
+	PageMargins,
+	PageSize,
+	PdfPage,
+	PreprocessedPdfNode,
+} from "../../types/internal";
+
+interface RepeatableSize {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+type RepeatableSizeFunction = (
+	pageSize: PageSize,
+	pageMargins: PageMargins,
+) => RepeatableSize;
+
+type DynamicNodeGetter = (
+	pageNumber: number,
+	pageCount: number,
+	pageSize: PageSize,
+) => unknown;
+
+interface HeaderFooterLayoutContext {
+	pages: PdfPage[];
+	setCurrentPage(pageIndex: number): void;
+	beginUnbreakableBlock(width: number, height: number): void;
+	commitUnbreakableBlock(
+		forcedX: number,
+		forcedY: number,
+		detachedOverflowMessage?: string,
+	): number | undefined;
+	preprocessNode(node: unknown): PreprocessedPdfNode;
+	measureNode(node: PreprocessedPdfNode): LayoutPdfNode;
+	layoutNode(node: LayoutPdfNode): void;
+}
 
 const layoutDynamicRepeatable = (
 	nodeGetter: unknown,

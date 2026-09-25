@@ -28,6 +28,20 @@ export function layoutFeatureItem(
 	node._node = node;
 }
 
+export function canPlaceOnCurrentPage(
+	node: LayoutPdfNode,
+	height: number,
+	page: PdfPage | undefined,
+	availableHeight: number,
+): page is PdfPage {
+	if (!page) return false;
+	return !(
+		node.absolutePosition === undefined &&
+		availableHeight < height &&
+		page.items.length > 0
+	);
+}
+
 export function getAlignmentOffset(
 	alignment: string | undefined,
 	availableWidth: number,

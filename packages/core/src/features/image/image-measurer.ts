@@ -2,7 +2,6 @@ import type StyleContextStack from "../../services/styles/style-context-stack";
 import type PDFDocument from "../../rendering/pdf-document";
 import { measureBox } from "../../services/measurement/measure-box";
 import type { Color } from "../../types";
-import type { Dimensions } from "../../types/internal";
 import type { MeasuredImageNode } from "./image.types";
 
 class ImageMeasurer {
@@ -14,27 +13,21 @@ class ImageMeasurer {
 		private readonly styleStack: StyleContextStack,
 	) {}
 
-	measureImageWithDimensions(node: MeasuredImageNode, dimensions: Dimensions): MeasuredImageNode {
-		return measureBox(node, dimensions, this.styleStack) as MeasuredImageNode;
-	}
-
 	convertIfInlineImage(node: MeasuredImageNode): void {
+		let source: string | Uint8Array | undefined;
 		if (node.image instanceof Uint8Array) {
-			const source = node.image;
-			const label = this.getInlineImageLabel(source);
-			this.pdfDocument.images[label] ??= source;
-			node.image = label;
-			return;
-		}
-		if (
+			source = node.image;
+		} else if (
 			typeof node.image === "string" &&
 			/^data:(image\/(jpeg|jpg|png)|application\/octet-stream);base64,/.test(node.image)
 		) {
-			const source = node.image;
-			const label = this.getInlineImageLabel(source);
-			this.pdfDocument.images[label] ??= source;
-			node.image = label;
+			source = node.image;
 		}
+		if (source === undefined) return;
+
+		const label = this.getInlineImageLabel(source);
+		this.pdfDocument.images[label] ??= source;
+		node.image = label;
 	}
 
 	private getInlineImageLabel(source: string | Uint8Array): string {
@@ -58,7 +51,7 @@ class ImageMeasurer {
 			imageSize = { width: image.height, height: image.width };
 		}
 
-		this.measureImageWithDimensions(node, imageSize);
+		measureBox(node, imageSize, this.styleStack);
 		node._imageBorderColor = node.borderColor as unknown as Color | undefined;
 		return node;
 	}

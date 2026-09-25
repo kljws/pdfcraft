@@ -1,4 +1,5 @@
 import type PDFDocument from "../../rendering/pdf-document";
+import { addPageLink } from "../../rendering/renderer.helpers";
 import { isNumber } from "../../utils/variable-type";
 import type { LayoutImageNode } from "./image.types";
 
@@ -72,16 +73,7 @@ export function renderImage(image: LayoutImageNode, context: ImageRenderContext)
 		document.link(image.x!, image.y!, image._width!, image._height!, image.link);
 	}
 	if (image.linkToPage) {
-		const action = document.ref({
-			Type: "Action",
-			S: "GoTo",
-			D: [image.linkToPage, 0, 0],
-		});
-		(action.end as () => void)();
-		document.annotate(image.x!, image.y!, image._width!, image._height!, {
-			Subtype: "Link",
-			Dest: [image.linkToPage - 1, "XYZ", null, null, null],
-		} as PDFKit.Mixins.AnnotationOption);
+		addPageLink(document, image.x!, image.y!, image._width!, image._height!, image.linkToPage);
 	}
 	if (image.linkToDestination) {
 		document.goTo(image.x!, image.y!, image._width!, image._height!, image.linkToDestination);

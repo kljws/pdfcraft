@@ -1,5 +1,8 @@
 import type { NodePlaceContext } from "../../engine/contracts/node-feature";
-import { getAlignmentOffset } from "../../layout/element-writer.helpers";
+import {
+	canPlaceOnCurrentPage,
+	getAlignmentOffset,
+} from "../../layout/element-writer.helpers";
 import type { CurrentPosition } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
 import type { LayoutCanvasNode } from "./canvas.types";
@@ -20,14 +23,7 @@ export function placeCanvasItem(
 	const page = context.getCurrentPage();
 	const height = node._minHeight ?? 0;
 
-	if (
-		!page ||
-		(node.absolutePosition === undefined &&
-			context.availableHeight < height &&
-			page.items.length > 0)
-	) {
-		return false;
-	}
+	if (!canPlaceOnCurrentPage(node, height, page, context.availableHeight)) return false;
 
 	alignCanvas(node, context.availableWidth);
 	const positions: Array<CurrentPosition | undefined> = [];

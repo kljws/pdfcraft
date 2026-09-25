@@ -262,19 +262,17 @@ export function drawHorizontalLine(
 
 			if (shouldDrawLine) {
 				currentLine ??= { left: data.left, width: 0 };
+				const spanningCell =
+					rowCellAbove?.colSpan && rowBottomBorder
+						? rowCellAbove
+						: cellAbove?.colSpan && bottomBorder
+							? cellAbove
+							: currentCell?.colSpan && topBorder
+								? currentCell
+								: undefined;
 				let colSpanIndex = 0;
-				if (rowCellAbove && rowCellAbove.colSpan && rowBottomBorder) {
-					while (rowCellAbove.colSpan > colSpanIndex) {
-						currentLine.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
-					}
-					i += colSpanIndex - 1;
-				} else if (cellAbove && cellAbove.colSpan && bottomBorder) {
-					while (cellAbove.colSpan > colSpanIndex) {
-						currentLine.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
-					}
-					i += colSpanIndex - 1;
-				} else if (currentCell && currentCell.colSpan && topBorder) {
-					while (currentCell.colSpan > colSpanIndex) {
+				if (spanningCell?.colSpan) {
+					while (spanningCell.colSpan > colSpanIndex) {
 						currentLine.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
 					}
 					i += colSpanIndex - 1;

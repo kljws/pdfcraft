@@ -1,5 +1,9 @@
 import type { NodePlaceContext } from "../../engine/contracts/node-feature";
-import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
+import {
+	addPageItem,
+	alignImage,
+	canPlaceOnCurrentPage,
+} from "../../layout/element-writer.helpers";
 import type { CurrentPosition } from "../../types/internal";
 import type { LayoutImageNode } from "./image.types";
 
@@ -12,14 +16,7 @@ export function placeImageItem(
 	const page = context.getCurrentPage();
 	const position = writer.getCurrentPositionOnPage();
 
-	if (
-		!page ||
-		(image.absolutePosition === undefined &&
-			context.availableHeight < height &&
-			page.items.length > 0)
-	) {
-		return false;
-	}
+	if (!canPlaceOnCurrentPage(image, height, page, context.availableHeight)) return false;
 
 	image._x ??= image.x || 0;
 	image.x = context.x + image._x;

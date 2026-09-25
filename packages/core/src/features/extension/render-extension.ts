@@ -1,5 +1,5 @@
 import type PDFDocument from "../../rendering/pdf-document";
-import { findFont } from "../../rendering/renderer.helpers";
+import { addPageLink, findFont } from "../../rendering/renderer.helpers";
 import type { PdfCraftExtensions } from "../../types";
 import type { LayoutExtensionNode } from "./extension.types";
 import { findExtensionByName } from "./extension-registry";
@@ -38,16 +38,7 @@ export function renderExtension(node: LayoutExtensionNode, host: ExtensionRender
 		host.document.link(node.x!, node.y!, node._width!, node._height!, node.link);
 	}
 	if (node.linkToPage) {
-		const action = host.document.ref({
-			Type: "Action",
-			S: "GoTo",
-			D: [node.linkToPage, 0, 0],
-		});
-		(action.end as () => void)();
-		host.document.annotate(node.x!, node.y!, node._width!, node._height!, {
-			Subtype: "Link",
-			Dest: [node.linkToPage - 1, "XYZ", null, null, null],
-		} as PDFKit.Mixins.AnnotationOption);
+		addPageLink(host.document, node.x!, node.y!, node._width!, node._height!, node.linkToPage);
 	}
 	if (node.linkToDestination) {
 		host.document.goTo(node.x!, node.y!, node._width!, node._height!, node.linkToDestination);

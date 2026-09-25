@@ -1,5 +1,20 @@
-import type { PageSize } from "../../types/internal";
-import type { BackgroundGetter, BackgroundLayoutContext } from "./background.types";
+import type { LayoutPdfNode, PageSize, PreprocessedPdfNode } from "../../types/internal";
+
+type BackgroundGetter =
+	| ((pageNumber: number, pageSize: PageSize) => unknown)
+	| ((pageNumber: number, pageCount: number, pageSize: PageSize) => unknown);
+
+interface BackgroundLayoutContext {
+	pageNumber: number;
+	pageCount: number;
+	pageSize: PageSize;
+	beginUnbreakableBlock(width: number, height: number): void;
+	commitUnbreakableBlock(forcedX: number, forcedY: number): void;
+	preprocessNode(node: unknown): PreprocessedPdfNode;
+	measureNode(node: PreprocessedPdfNode): LayoutPdfNode;
+	layoutNode(node: LayoutPdfNode): void;
+	recordBackgroundItems(count: number): void;
+}
 
 export const backgroundFeature = {
 	layout(background: unknown, context: BackgroundLayoutContext): boolean {

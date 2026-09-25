@@ -13,12 +13,10 @@ import type {
 	MeasuredExtensionNode,
 	PreprocessedExtensionNode,
 } from "./extension.types";
-import { copyExtensionPageBreakProperties } from "./extension-page-break";
-import { findExtensionForNode } from "./extension-registry";
+import { findExtensionByName, findExtensionForNode } from "./extension-registry";
 import { measureExtension } from "./measure-extension";
 import { placeExtensionItem } from "./place-extension";
 import { renderExtension, type ExtensionRenderHost } from "./render-extension";
-import { resolveExtensionResources } from "./resolve-extension-resources";
 
 export interface ExtensionResourceContext {
 	extensions: PdfCraftExtensions;
@@ -34,7 +32,9 @@ export const extensionFeature = {
 		return markNodeKind(node, "extension");
 	},
 	resolveResources(documentDefinition: ExtensionNode, context: ExtensionResourceContext): void {
-		resolveExtensionResources(documentDefinition, context.extensions, context.resolve);
+		for (const extension of context.extensions) {
+			extension.resolveResources?.(documentDefinition, context.resolve);
+		}
 	},
 	measure(node: ExtensionMeasureNode, context: NodeMeasureContext): MeasuredExtensionNode | undefined {
 		return measureExtension(node, {
@@ -60,6 +60,10 @@ export const extensionFeature = {
 		target: Record<string, unknown>,
 		extensions: PdfCraftExtensions,
 	): void {
-		copyExtensionPageBreakProperties(node, target, extensions);
+		if (node._kind !== "extension") return;
+		const extension = findExtensionByName(node._extension, extensions);
+		for (const key of extension?.pageBreakKeys ?? []) {
+			if (node[key] !== undefined) target[key] = node[key];
+		}
 	},
 };

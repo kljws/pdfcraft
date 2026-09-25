@@ -1,4 +1,5 @@
 import type PDFDocument from "../../rendering/pdf-document";
+import { addPageLink } from "../../rendering/renderer.helpers";
 import type { EmbeddedFont } from "../../rendering/renderer.types";
 import type { Inline, LayoutPdfNode, LineLike, MeasuredPdfNode } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
@@ -109,16 +110,14 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 		}
 
 		if (inline.linkToPage) {
-			const action = document.ref({
-				Type: "Action",
-				S: "GoTo",
-				D: [inline.linkToPage, 0, 0],
-			});
-			(action.end as () => void)();
-			document.annotate(x + inline.x, shiftedY, inline.width, inline.height, {
-				Subtype: "Link",
-				Dest: [inline.linkToPage - 1, "XYZ", null, null, null],
-			} as PDFKit.Mixins.AnnotationOption);
+			addPageLink(
+				document,
+				x + inline.x,
+				shiftedY,
+				inline.width,
+				inline.height,
+				inline.linkToPage,
+			);
 		}
 	}
 

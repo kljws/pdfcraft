@@ -1,15 +1,30 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import StyleContextStack from "../../services/styles/style-context-stack";
 import TextMetrics from "../../services/typography/text-metrics";
-import type { Style } from "../../types";
-import type { PageSize } from "../../types/internal";
+import type { Color, Style } from "../../types";
+import type { MeasuredWatermark, PageSize, WatermarkSize } from "../../types/internal";
 import { isNumber, isValue } from "../../utils/variable-type";
-import type {
-	MeasuredWatermark,
-	NormalizedWatermark,
-	WatermarkDefinition,
-	WatermarkSize,
-} from "./watermark.types";
+
+export interface WatermarkDefinition {
+	text: string;
+	font?: string;
+	fontSize?: number | "auto";
+	color?: Color;
+	opacity?: number;
+	bold?: boolean;
+	italics?: boolean;
+	angle?: number | null;
+}
+
+interface NormalizedWatermark extends WatermarkDefinition {
+	font: string;
+	fontSize: number;
+	color: Color;
+	opacity: number;
+	bold: boolean;
+	italics: boolean;
+	angle: number;
+}
 
 export function createWatermark(
 	watermark: WatermarkDefinition,

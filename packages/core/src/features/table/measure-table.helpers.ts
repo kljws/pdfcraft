@@ -6,6 +6,7 @@ import type {
 	PdfTable,
 	RawColumnWidth,
 	TableLayout,
+	TableOffsets,
 	TableRowGroupRange,
 } from "../../types/internal";
 import { pack } from "../../utils/tools";
@@ -173,11 +174,6 @@ export function combineTableLayouts(
 		defaultBorder: headerLayout.defaultBorder || bodyLayout.defaultBorder,
 		hLineWhenBroken: bodyLayout.hLineWhenBroken,
 	};
-}
-
-export interface TableOffsets {
-	total: number;
-	offsets: number[];
 }
 
 export interface ColumnSpanMeasurement {

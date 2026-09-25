@@ -1,6 +1,10 @@
 import type { NodePlaceContext } from "../../engine/contracts/node-feature";
 import type { CurrentPosition } from "../../types/internal";
-import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
+import {
+	addPageItem,
+	alignImage,
+	canPlaceOnCurrentPage,
+} from "../../layout/element-writer.helpers";
 import type { LayoutAcroFormNode } from "./acroform.types";
 
 export function placeAcroFormItem(
@@ -10,14 +14,7 @@ export function placeAcroFormItem(
 	const context = writer.context();
 	const page = context.getCurrentPage();
 	const height = typeof node.height === "number" ? node.height : 15;
-	if (
-		!page ||
-		(node.absolutePosition === undefined &&
-			context.availableHeight < height &&
-			page.items.length > 0)
-	) {
-		return false;
-	}
+	if (!canPlaceOnCurrentPage(node, height, page, context.availableHeight)) return false;
 
 	const position = writer.getCurrentPositionOnPage();
 	node._width = typeof node.width === "number" ? node.width : Math.max(0, context.availableWidth);
