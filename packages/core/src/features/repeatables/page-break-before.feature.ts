@@ -37,8 +37,7 @@ export const pageBreakBeforeFeature = {
 				(node._kind !== "text" || node.text !== "" || context.hasLeadingMarker(node)),
 		);
 		for (const node of nodes) {
-			const positions = node.positions;
-			if (!positions?.length) continue;
+			const positions = node.positions!;
 			const publicNode = node as unknown as PdfNode;
 			const nodeInfo = {} as PageBreakNodeInfo;
 			for (const key of NODE_INFO_KEYS) {
@@ -65,8 +64,7 @@ export const pageBreakBeforeFeature = {
 			if (node.pageBreak === "before" || node.pageBreakCalculated) continue;
 
 			node.pageBreakCalculated = true;
-			const nodeInfo = node.nodeInfo;
-			if (!nodeInfo) continue;
+			const nodeInfo = node.nodeInfo!;
 			const pageNumber = nodeInfo.pageNumbers[0];
 			const getNodes = (start: number, end: number, targetPage: number): PageBreakNodeInfo[] => {
 				const result: PageBreakNodeInfo[] = [];

@@ -10,18 +10,11 @@ import {
 import PageElementWriter from "../layout/element-writer.page";
 import { createBuiltInElementPlacement } from "./built-in-feature-registry";
 import { calculatePageHeight } from "../layout/page-item-geometry";
-import { createBuiltInMeasurement, type BuiltInMeasurement } from "./built-in-measurement";
-import { createBuiltInPreprocessing, type BuiltInPreprocessing } from "./built-in-preprocessing";
+import type { BuiltInMeasurement } from "./built-in-measurement";
+import type { BuiltInPreprocessing } from "./built-in-preprocessing";
 import type PDFDocument from "../rendering/pdf-document";
-import type { Dictionary, PdfCraftExtensions, Style } from "../types";
-import type {
-	LayoutPdfNode,
-	MeasuredPdfNode,
-	PageMarginSource,
-	PageSize,
-	PdfPage,
-	TableLayout,
-} from "../types/internal";
+import type { PdfCraftExtensions, Style } from "../types";
+import type { LayoutPdfNode, PageMarginSource, PageSize, PdfPage } from "../types/internal";
 import { createBuiltInDocumentFeatures } from "./built-in-document-features";
 
 interface BuiltInDocumentPipelineContext {
@@ -52,25 +45,6 @@ interface BuiltInDocumentPassInput {
 	pageCount: number;
 	bottomMarginOverrides: readonly number[];
 	requiresFirstPage(document: LayoutPdfNode): boolean;
-}
-
-export function createBuiltInDocumentProcessors(
-	pdfDocument: PDFDocument,
-	styleDictionary: Dictionary<Style>,
-	defaultStyle: Style,
-	extensions: PdfCraftExtensions,
-	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
-) {
-	return {
-		preprocessing: createBuiltInPreprocessing(extensions),
-		measurement: createBuiltInMeasurement({
-			document: pdfDocument,
-			styleDictionary,
-			defaultStyle,
-			extensions,
-			tableLayouts,
-		}),
-	};
 }
 
 export function runBuiltInDocumentPipeline(context: BuiltInDocumentPipelineContext): PdfPage[] {

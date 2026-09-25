@@ -18,12 +18,12 @@ import {
 	type VerticalAlignmentStackEntry,
 } from "../engine/layout-node-lifecycle";
 import {
-	createBuiltInDocumentProcessors,
 	runBuiltInDocumentPass,
 	runBuiltInDocumentPipeline,
 } from "../composition/built-in-document-pipeline";
 import { createBuiltInLayout } from "../composition/built-in-layout";
-import type { DocumentLayoutPassResult } from "../engine/document-layout-pipeline";
+import { createBuiltInMeasurement } from "../composition/built-in-measurement";
+import { createBuiltInPreprocessing } from "../composition/built-in-preprocessing";
 import { moveDownWithPageBreak, moveToNextSnakingColumnOrPage } from "../engine/layout-pagination";
 type TableLayoutSource = Partial<TableLayout> | PublicTableLayout;
 
@@ -45,11 +45,6 @@ class LayoutBuilder {
 	writer!: PageElementWriter;
 	private readonly layout: ReturnType<typeof createBuiltInLayout>;
 
-	/**
-	 * @param pageSize - an object defining page width and height
-	 * @param pageMargins - an object defining top, left, right and bottom margins
-	 * @param extensions
-	 */
 	constructor(
 		pageSize: PageSize,
 		pageMargins: PageMarginSource,
@@ -78,21 +73,7 @@ class LayoutBuilder {
 		});
 	}
 
-	/**
-	 * Executes layout engine on document-definition-object and creates an array of pages
-	 * containing positioned Blocks, Lines and inlines
-	 *
-	 * @param docStructure document-definition-object
-	 * @param pdfDocument pdfkit document
-	 * @param styleDictionary dictionary with style definitions
-	 * @param defaultStyle default style definition
-	 * @param background
-	 * @param header
-	 * @param footer
-	 * @param watermark
-	 * @param pageBreakBeforeFct
-	 * @returns an array of pages
-	 */
+	/** Lays out a document definition into pages of positioned lines, inlines and vectors. */
 	layoutDocument(
 		docStructure: unknown,
 		pdfDocument: PDFDocument,
@@ -104,24 +85,22 @@ class LayoutBuilder {
 		watermark: unknown,
 		pageBreakBeforeFct?: PageBreakBefore,
 	): PdfPage[] {
-		const processors = createBuiltInDocumentProcessors(
-			pdfDocument,
+		this.preprocessing = createBuiltInPreprocessing(this.extensions);
+		this.measurement = createBuiltInMeasurement({
+			document: pdfDocument,
 			styleDictionary,
 			defaultStyle,
-			this.extensions,
-			this.tableLayouts,
-		);
-		this.preprocessing = processors.preprocessing;
-		this.measurement = processors.measurement;
+			extensions: this.extensions,
+			tableLayouts: this.tableLayouts,
+		});
 
 		return runBuiltInDocumentPipeline({
 			extensions: this.extensions,
 			pageBreakBefore: pageBreakBeforeFct,
 			runPass: (pageCount, bottomMarginOverrides) =>
-				this.tryLayoutDocument(
+				runBuiltInDocumentPass(this, {
 					docStructure,
 					pdfDocument,
-					styleDictionary,
 					defaultStyle,
 					background,
 					header,
@@ -129,33 +108,8 @@ class LayoutBuilder {
 					watermark,
 					pageCount,
 					bottomMarginOverrides,
-				),
-		});
-	}
-
-	tryLayoutDocument(
-		docStructure: unknown,
-		pdfDocument: PDFDocument,
-		styleDictionary: Dictionary<Style>,
-		defaultStyle: Style,
-		background: unknown,
-		header: unknown,
-		footer: unknown,
-		watermark: unknown,
-		pageCount = 0,
-		bottomMarginOverrides: readonly number[] = [],
-	): DocumentLayoutPassResult {
-		return runBuiltInDocumentPass(this, {
-			docStructure,
-			pdfDocument,
-			defaultStyle,
-			background,
-			header,
-			footer,
-			watermark,
-			pageCount,
-			bottomMarginOverrides,
-			requiresFirstPage: (document) => this.layout.requiresFirstPage(document),
+					requiresFirstPage: (document) => this.layout.requiresFirstPage(document),
+				}),
 		});
 	}
 
@@ -172,12 +126,7 @@ class LayoutBuilder {
 		});
 	}
 
-	/**
-	 * Helper for page breaks that respects snaking column context.
-	 * When in snaking columns, first tries moving to next column.
-	 * If no columns available, moves to next page and resets x to left margin.
-	 * @param pageOrientation - Optional page orientation for the new page
-	 */
+	/** Moves to the next snaking column when one is available, otherwise to the next page. */
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void {
 		moveToNextSnakingColumnOrPage(this.writer, pageOrientation);
 	}
