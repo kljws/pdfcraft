@@ -1,9 +1,11 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import { createBuiltInPreprocessing } from "../../../composition/built-in-preprocessing.ts";
-import { createTestMeasurement } from "../../../__tests__/fixtures/measurement.ts";
+import {
+	createTestMeasurement,
+	sampleTestProvider,
+} from "../../../__tests__/fixtures/measurement.ts";
 import type {
 	ColumnWidth,
-	PdfFont,
 	PdfNode,
 	PdfTable,
 	TableLayout,
@@ -28,21 +30,6 @@ interface TableNodeFixture extends Omit<PdfNode, "layout" | "table"> {
 		headerLines?: number;
 	};
 }
-
-var sampleTestProvider = {
-	provideFont: function (_familyName: string, bold: boolean, italics: boolean): PdfFont {
-		return {
-			ascender: 0,
-			descender: 0,
-			widthOfString: function (text: string, size: number) {
-				return text.length * size * (bold ? 1.5 : 1) * (italics ? 1.1 : 1);
-			},
-			lineHeight: function (size: number) {
-				return size;
-			},
-		};
-	},
-};
 
 var emptyTableLayout: TableLayout = {
 	defaultBorder: true,

@@ -1,22 +1,7 @@
 import { assert, describe, it } from "vitest";
-import type { PdfFont } from "../../../types/internal.ts";
+import { sampleTestProvider } from "../../../__tests__/fixtures/measurement.ts";
 import TextInlines from "../text-inlines.ts";
 import StyleContextStack from "../../../services/styles/style-context-stack.ts";
-
-var sampleTestProvider = {
-	provideFont: function (_familyName: string, bold: boolean, italics: boolean): PdfFont {
-		return {
-			ascender: 0,
-			descender: 0,
-			widthOfString: function (text: string, size: number) {
-				return text.length * size * (bold ? 1.5 : 1) * (italics ? 1.1 : 1);
-			},
-			lineHeight: function (size: number) {
-				return size;
-			},
-		};
-	},
-};
 
 var textInlines = new TextInlines(sampleTestProvider, undefined, (inline) => inline);
 

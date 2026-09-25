@@ -1,5 +1,4 @@
 import { assert, describe, it } from "vitest";
-import StyleContextStack from "../../../services/styles/style-context-stack.ts";
 import { LayoutBuilder as TestLayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
 import { sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
 
@@ -9,9 +8,6 @@ describe("extension layout", function () {
 			{ width: 841.89, height: 555.28, orientation: "portrait" },
 			{ left: 40, right: 40, top: 40, bottom: 40 },
 		);
-		builderAP.pages = [];
-		builderAP.context = [{ page: -1, availableWidth: 320, availableHeight: 0 }];
-		builderAP.styleStack = new StyleContextStack();
 		var desc = [
 			{
 				box: "first",

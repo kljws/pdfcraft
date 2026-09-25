@@ -1,5 +1,4 @@
 import BaseLayoutBuilder from "../../src/layout/layout-builder.ts";
-import StyleContextStack from "../../src/services/styles/style-context-stack.ts";
 import type PDFDocument from "../../src/rendering/pdf-document.ts";
 import type { Dictionary, PdfCraftExtension, Style } from "../../src/types/index.ts";
 import type { PageBreakBefore } from "../../src/engine/page-break-before.types.ts";
@@ -33,10 +32,6 @@ const boxExtension: PdfCraftExtension = {
 };
 
 export class LayoutBuilder extends BaseLayoutBuilder {
-	declare pages: RichPage[];
-	declare context: Array<Record<string, number>>;
-	declare styleStack: StyleContextStack;
-
 	constructor(pageSize: PageSize, pageMargins: PageMargins) {
 		super(pageSize, pageMargins, [boxExtension]);
 	}
@@ -97,8 +92,5 @@ export function createLayoutBuilder(): LayoutBuilder {
 		{ width: 400, height: 800, orientation: "portrait" },
 		{ left: 40, right: 40, top: 40, bottom: 40 },
 	);
-	builder.pages = [];
-	builder.context = [{ page: -1, availableWidth: 320, availableHeight: 0 }];
-	builder.styleStack = new StyleContextStack();
 	return builder;
 }

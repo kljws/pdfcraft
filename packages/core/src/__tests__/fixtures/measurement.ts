@@ -1,7 +1,22 @@
 import { createBuiltInMeasurement } from "../../composition/built-in-measurement.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
 import type { Dictionary, PdfCraftExtensions, Style } from "../../types/index.ts";
-import type { MeasuredPdfNode, PreprocessedPdfNode, TableLayout } from "../../types/internal.ts";
+import type {
+	MeasuredPdfNode,
+	PdfFont,
+	PreprocessedPdfNode,
+	TableLayout,
+} from "../../types/internal.ts";
+
+export const sampleTestProvider = {
+	provideFont: (_familyName: string, bold: boolean, italics: boolean): PdfFont => ({
+		ascender: 0,
+		descender: 0,
+		widthOfString: (text: string, size: number) =>
+			text.length * size * (bold ? 1.5 : 1) * (italics ? 1.1 : 1),
+		lineHeight: (size: number) => size,
+	}),
+};
 
 /**
  * Built-in measurement over a stub PDF document. `measureNode` accepts fixtures that were

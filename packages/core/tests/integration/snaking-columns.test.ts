@@ -576,100 +576,28 @@ describe("Integration test: snaking columns", function () {
 		assert.ok(Math.abs(xPositions[2] - 480) < 2, "Col 3 X should be 480, found: " + xPositions[2]);
 	});
 
-	it("should handle columnGap: 0", function () {
-		var lines = [];
-		for (var i = 0; i < 60; i++) lines.push("Line " + (i + 1));
-		var text = lines.join("\n");
-
-		var dd = {
-			content: [
-				{
-					columns: [{ text: text, fontSize: 14 }, { text: "" }],
-					columnGap: 0,
-					snakingColumns: true,
-				},
-			],
+	it.each([
+		{ name: "default columnGap", columnGap: undefined, expectedSecondX: 140 },
+		{ name: "columnGap: 0", columnGap: 0, expectedSecondX: 140 },
+		{ name: "columnGap: 30", columnGap: 30, expectedSecondX: 170 },
+		{ name: "columnGap: 50", columnGap: 50, expectedSecondX: 190 },
+	])("should handle $name", function ({ columnGap, expectedSecondX }) {
+		const text = Array.from({ length: 60 }, (_, index) => `Line ${index + 1}`).join("\n");
+		const columns = {
+			columns: [{ text, width: 100, fontSize: 14 }, { text: "", width: "*" }],
+			snakingColumns: true,
+			...(columnGap === undefined ? {} : { columnGap }),
 		};
 
-		var pages = testHelper.renderPages("A4", dd);
+		const pages = testHelper.renderPages("A4", { content: [columns] });
 
 		assert.equal(pages.length, 1, "Should fit on one page");
-
-		var items = pages[0].items;
-		var xPositions = items.map((node) => node.item.x);
-		var uniqueX = [...new Set(xPositions)].sort((a, b) => a - b);
-
-		assert.ok(uniqueX.length >= 2, "Content should snake to column 2 even with no gap");
-
-		// With columnGap: 0, column 2 should start immediately after column 1
-		if (uniqueX.length >= 2) {
-			var col1End = uniqueX[0] + (uniqueX[1] - uniqueX[0]);
-			assert.ok(col1End > uniqueX[0], "Columns should be adjacent with no gap");
-		}
-	});
-
-	it("should handle large columnGap", function () {
-		var lines = [];
-		for (var i = 0; i < 60; i++) lines.push("Line " + (i + 1));
-		var text = lines.join("\n");
-
-		var dd = {
-			content: [
-				{
-					columns: [{ text: text, fontSize: 14 }, { text: "" }],
-					columnGap: 50,
-					snakingColumns: true,
-				},
-			],
-		};
-
-		var pages = testHelper.renderPages("A4", dd);
-
-		assert.equal(pages.length, 1, "Should fit on one page with large gap");
-
-		var items = pages[0].items;
-		var xPositions = items.map((node) => node.item.x);
-		var uniqueX = [...new Set(xPositions)].sort((a, b) => a - b);
-
+		const uniqueX = [
+			...new Set(pages[0].items.map((node) => normalizeX(node.item.x))),
+		].sort((a, b) => a - b);
 		assert.ok(uniqueX.length >= 2, "Content should snake to column 2");
-
-		// Verify there's a significant gap between columns
-		if (uniqueX.length >= 2) {
-			var gap = uniqueX[1] - uniqueX[0];
-			// Gap should be at least columnGap (50) plus some column width
-			assert.ok(gap > 50, "Should have significant gap between columns");
-		}
-	});
-
-	it("should handle default columnGap (30)", function () {
-		var lines = [];
-		for (var i = 0; i < 60; i++) lines.push("Line " + (i + 1));
-		var text = lines.join("\n");
-
-		var dd = {
-			content: [
-				{
-					columns: [{ text: text, fontSize: 14 }, { text: "" }],
-					columnGap: 30,
-					snakingColumns: true,
-				},
-			],
-		};
-
-		var pages = testHelper.renderPages("A4", dd);
-
-		assert.equal(pages.length, 1, "Should fit on one page with default gap");
-
-		var items = pages[0].items;
-		var xPositions = items.map((node) => node.item.x);
-		var uniqueX = [...new Set(xPositions)].sort((a, b) => a - b);
-
-		assert.ok(uniqueX.length >= 2, "Content should snake to column 2");
-
-		if (uniqueX.length >= 2) {
-			var gap = uniqueX[1] - uniqueX[0];
-			assert.ok(gap >= 30, "Gap should be at least 30 (default columnGap)");
-		}
+		assert.equal(uniqueX[0], 40, "Column 1 should start at the left margin");
+		assert.equal(uniqueX[1], expectedSecondX, "Column 2 should include the configured gap");
 	});
 
 	it("should verify Column 2 top Y matches Column 1 top Y (coordinate precision)", function () {
@@ -1622,10 +1550,6 @@ describe("Integration test: snaking columns", function () {
 	});
 
 	describe("snaking columns with table nodes", function () {
-		function normalizeX(x: number): number {
-			return Math.round(x);
-		}
-
 		it("should snake a real table node from column 1 to column 2 on the same page", function () {
 			var tableBody = [["Header 1", "Header 2", "Header 3"]];
 			for (var i = 1; i <= 30; i++) {
