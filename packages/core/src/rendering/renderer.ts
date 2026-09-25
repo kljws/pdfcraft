@@ -4,7 +4,6 @@ import type { LineLike } from "../types/internal";
 import RendererGraphics from "./renderer.graphics";
 import type PDFDocument from "./pdf-document";
 import type { ClipRectangle, RenderablePage, VerticalAlignmentItem } from "./renderer.types";
-import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
 
 class Renderer {
 	private readonly pdfDocument: PDFDocument;
@@ -48,22 +47,6 @@ class Renderer {
 					case "line":
 						this.renderLine(item.item, item.item.x ?? 0, item.item.y ?? 0);
 						break;
-					case "image":
-						this.graphics.renderImage(item.item);
-						break;
-					case "extension":
-						this.graphics.renderExtension(item.item);
-						break;
-					case "attachment":
-						this.graphics.renderAttachment(item.item);
-						break;
-					case "acroform":
-						this.rendering.renderAcroForm(
-							item.item as LayoutAcroFormNode,
-							item.item.x ?? 0,
-							item.item.y ?? 0,
-						);
-						break;
 					case "beginClip":
 						this.graphics.beginClip(item.item as ClipRectangle);
 						break;
@@ -75,6 +58,9 @@ class Renderer {
 						break;
 					case "endVerticalAlignment":
 						this.graphics.endVerticalAlignment(item.item as VerticalAlignmentItem);
+						break;
+					default:
+						this.graphics.renderFeatureItem(item.type, item.item);
 						break;
 				}
 

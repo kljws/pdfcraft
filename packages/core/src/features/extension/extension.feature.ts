@@ -1,6 +1,10 @@
 import type { ExtensionNode, ExtensionResourceReference, PdfCraftExtensions } from "../../types";
 import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
-import type { NodeLayoutContext, NodeMeasureContext, NodePlaceContext } from "../../engine/contracts/node-feature";
+import type {
+	NodeLayoutContext,
+	NodeMeasureContext,
+	NodePlaceContext,
+} from "../../engine/contracts/node-feature";
 import type {
 	ExtensionMeasureNode,
 	LayoutExtensionNode,
@@ -15,6 +19,11 @@ import { placeExtensionItem } from "./place-extension";
 import { renderExtension, type ExtensionRenderHost } from "./render-extension";
 import { resolveExtensionResources } from "./resolve-extension-resources";
 
+export interface ExtensionResourceContext {
+	extensions: PdfCraftExtensions;
+	resolve(resource: ExtensionResourceReference): string;
+}
+
 export const extensionFeature = {
 	kind: "extension",
 	matches(node: PdfNode, extensions: PdfCraftExtensions): boolean {
@@ -24,24 +33,20 @@ export const extensionFeature = {
 		node._kind = "extension";
 		return node as unknown as PreprocessedExtensionNode;
 	},
-	resolveResources(
-		documentDefinition: ExtensionNode,
-		extensions: PdfCraftExtensions,
-		resolve: (resource: ExtensionResourceReference) => string,
-	): void {
-		resolveExtensionResources(documentDefinition, extensions, resolve);
+	resolveResources(documentDefinition: ExtensionNode, context: ExtensionResourceContext): void {
+		resolveExtensionResources(documentDefinition, context.extensions, context.resolve);
 	},
-	measure(
-		node: MeasurePdfNode,
-		context: NodeMeasureContext,
-	): MeasuredExtensionNode | undefined {
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredExtensionNode | undefined {
 		return measureExtension(node as ExtensionMeasureNode, {
 			document: context.document,
 			styles: context.styles,
 			extensions: context.extensions,
 		});
 	},
-	place(node: LayoutExtensionNode, context: NodePlaceContext): ReturnType<typeof placeExtensionItem> {
+	place(
+		node: LayoutExtensionNode,
+		context: NodePlaceContext,
+	): ReturnType<typeof placeExtensionItem> {
 		return placeExtensionItem(node, context);
 	},
 	layout(node: LayoutPdfNode, context: NodeLayoutContext): void {

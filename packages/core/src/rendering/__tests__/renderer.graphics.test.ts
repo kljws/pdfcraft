@@ -179,7 +179,7 @@ describe("Renderer graphics", () => {
 			linkToFile: "attachment",
 		} as LayoutPdfNode;
 
-		renderer.renderImage(image);
+		renderer.renderFeatureItem("image", image);
 
 		expect(document.opacity).toHaveBeenCalledWith(0.5);
 		expect(document.rect).toHaveBeenCalledWith(10, 20, 100, 50);
@@ -210,7 +210,13 @@ describe("Renderer graphics", () => {
 		const { document } = createDocument();
 		const renderer = new RendererGraphics(document as unknown as PDFDocument);
 
-		renderer.renderImage({ image: "image", x: 1, y: 2, _width: 3, _height: 4 } as LayoutPdfNode);
+		renderer.renderFeatureItem("image", {
+			image: "image",
+			x: 1,
+			y: 2,
+			_width: 3,
+			_height: 4,
+		} as LayoutPdfNode);
 
 		expect(document.image).toHaveBeenCalledWith("image", 1, 2, { width: 3, height: 4 });
 		expect(document.save).not.toHaveBeenCalled();
@@ -220,7 +226,7 @@ describe("Renderer graphics", () => {
 		const { document } = createDocument();
 		const renderer = new RendererGraphics(document as unknown as PDFDocument);
 
-		renderer.renderImage({
+		renderer.renderFeatureItem("image", {
 			image: "image",
 			x: 10,
 			y: 20,
@@ -246,7 +252,7 @@ describe("Renderer graphics", () => {
 		const { document } = createDocument();
 		const renderer = new RendererGraphics(document as unknown as PDFDocument);
 
-		renderer.renderImage({
+		renderer.renderFeatureItem("image", {
 			image: "image",
 			x: 5,
 			y: 6,
@@ -281,7 +287,7 @@ describe("Renderer graphics", () => {
 			linkToDestination: "svg-target",
 		} as LayoutPdfNode;
 
-		renderer.renderExtension(node);
+		renderer.renderFeatureItem("extension", node);
 
 		const context = renderExtension.mock.calls[0][0];
 		expect(context.node).toBe(node);
@@ -300,7 +306,11 @@ describe("Renderer graphics", () => {
 		const renderer = new RendererGraphics(document as unknown as PDFDocument);
 
 		expect(() =>
-			renderer.renderExtension({ _extension: "missing", x: 0, y: 0 } as LayoutPdfNode),
+			renderer.renderFeatureItem("extension", {
+				_extension: "missing",
+				x: 0,
+				y: 0,
+			} as LayoutPdfNode),
 		).toThrow("No renderer registered for extension 'missing'");
 	});
 
@@ -308,7 +318,7 @@ describe("Renderer graphics", () => {
 		const { document } = createDocument();
 		document.getFontFile.mockReturnValue(null);
 		const renderer = new RendererGraphics(document as unknown as PDFDocument, [extension]);
-		renderer.renderExtension({ _extension: "test", x: 0, y: 0 } as LayoutPdfNode);
+		renderer.renderFeatureItem("extension", { _extension: "test", x: 0, y: 0 } as LayoutPdfNode);
 		const context = renderExtension.mock.calls[0][0];
 
 		expect(() => context.resolveFont("Roboto", true, false, "Roboto")).toThrow(
@@ -328,7 +338,7 @@ describe("Renderer graphics", () => {
 		const bottom = { ...middle, verticalAlignment: "bottom" as const };
 		const multipage = { ...middle, isCellContentMultiPage: true };
 
-		renderer.renderAttachment({
+		renderer.renderFeatureItem("attachment", {
 			attachment: "attachment",
 			icon: "Paperclip",
 			x: 1,

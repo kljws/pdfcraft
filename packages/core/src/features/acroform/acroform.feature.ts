@@ -28,7 +28,13 @@ interface AcroFormFeatureStages extends NodeFeatureStages {
 	preprocessContext: undefined;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-	renderContext: { renderer: AcroFormRenderer; x: number; y: number };
+	renderContext: AcroFormRenderContext;
+}
+
+export interface AcroFormRenderContext {
+	renderer: AcroFormRenderer;
+	x: number;
+	y: number;
 }
 
 interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
@@ -39,10 +45,7 @@ interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
 	measureInline(inline: Inline): Inline;
 	place(node: LayoutAcroFormNode, context: NodePlaceContext): ReturnType<typeof placeAcroFormItem>;
 	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
-	render(
-		node: LayoutAcroFormNode | Inline,
-		context: { renderer: AcroFormRenderer; x: number; y: number },
-	): void;
+	render(node: LayoutAcroFormNode | Inline, context: AcroFormRenderContext): void;
 }
 
 export const acroFormFeature: AcroFormFeature = {

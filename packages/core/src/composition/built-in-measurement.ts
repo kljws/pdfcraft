@@ -1,4 +1,5 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
+import { imageFeature } from "../features/image/image.feature";
 import TextInlines from "../features/text/text-inlines";
 import type { NodeMeasureContext } from "../engine/contracts/node-feature";
 import type PDFDocument from "../rendering/pdf-document";
@@ -11,10 +12,7 @@ import type {
 	TableLayout,
 } from "../types/internal";
 import { getNodeMargin, stringifyNode } from "../utils/node";
-import {
-	measureInlineImageFeature,
-	measureRegisteredNodeFeature,
-} from "./built-in-feature-registry";
+import { measureRegisteredNodeFeature } from "./built-in-feature-registry";
 
 interface BuiltInMeasurementHost {
 	readonly pdfDocument: PDFDocument;
@@ -39,7 +37,7 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
 	};
 	const textInlines = new TextInlines(
 		host.pdfDocument,
-		(node) => measureInlineImageFeature(node, context),
+		(node) => imageFeature.inline.measure(node, context),
 		(inline) => acroFormFeature.measureInline(inline),
 	);
 

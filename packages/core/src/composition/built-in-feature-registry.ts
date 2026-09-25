@@ -1,13 +1,9 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import { attachmentFeature } from "../features/attachment/attachment.feature";
-import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
 import { canvasFeature } from "../features/canvas/canvas.feature";
 import { columnsFeature } from "../features/columns/columns.feature";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
-import type { LayoutImageNode } from "../features/image/image.types";
-import type PDFDocument from "../rendering/pdf-document";
-import { stringifyNode } from "../utils/node";
 import { listFeature } from "../features/list/list.feature";
 import { sectionFeature } from "../features/section/section.feature";
 import { stackFeature } from "../features/stack/stack.feature";
@@ -15,7 +11,7 @@ import { tableFeature } from "../features/table/table.feature";
 import { textFeature } from "../features/text/text.feature";
 import { tocFeature } from "../features/toc/toc.feature";
 import type { LayoutPdfNode, MeasurePdfNode, MeasuredPdfNode, PdfNode } from "../types/internal";
-import type { PrinterDocumentDefinition, PrinterResourceReference } from "../core/printer.types";
+import { stringifyNode } from "../utils/node";
 import type {
 	NodeLayoutContext,
 	NodeLayoutHook,
@@ -79,50 +75,46 @@ export type BuiltInFeatureName = BuiltInFeature["kind"];
 
 export const builtInFeatureRegistry = createNodeFeatureRegistry(builtInFeatures);
 
-export function getBuiltInFeatureByKind(kind: string): BuiltInFeature | undefined {
-	return builtInFeatureRegistry.byKind.get(kind);
+/**
+ * Features reachable by `_kind` once preprocessing has run. Registered extensions share one
+ * `extension` descriptor; its matcher needs the instance extensions and lives in preprocessing.
+ */
+const nodeFeatures = [...builtInFeatures, extensionFeature] as const;
+type NodeFeatureDescriptor = (typeof nodeFeatures)[number];
+const nodeFeaturesByKind = new Map<string, NodeFeatureDescriptor>(
+	nodeFeatures.map((feature) => [feature.kind, feature]),
+);
+
+export function getBuiltInFeatureByKind(kind: string): NodeFeatureDescriptor | undefined {
+	return nodeFeaturesByKind.get(kind);
 }
 
 export function measureRegisteredNodeFeature(
 	node: MeasurePdfNode,
 	context: NodeMeasureContext,
 ): MeasuredPdfNode | undefined {
-	const feature = getBuiltInFeatureByKind(node._kind);
-	if (feature) {
-		const measure: NodeMeasureHook = feature.measure;
-		return measure(node, context);
-	}
-	return node._kind === extensionFeature.kind ? extensionFeature.measure(node, context) : undefined;
-}
-
-export function measureInlineImageFeature(
-	node: MeasuredPdfNode,
-	context: NodeMeasureContext,
-): MeasuredPdfNode {
-	return imageFeature.inline.measure(node, context);
+	const measure: NodeMeasureHook | undefined = getBuiltInFeatureByKind(node._kind)?.measure;
+	return measure?.(node, context);
 }
 
 export function layoutRegisteredNodeFeature(
 	node: LayoutPdfNode,
 	context: NodeLayoutContext,
 ): boolean {
-	const feature = getBuiltInFeatureByKind(node._kind);
-	if (feature) {
-		const layout: NodeLayoutHook = feature.layout;
-		layout(node, context);
-		return true;
-	}
-	if (node._kind !== extensionFeature.kind) return false;
-	extensionFeature.layout(node, context);
+	const layout: NodeLayoutHook | undefined = getBuiltInFeatureByKind(node._kind)?.layout;
+	if (!layout) return false;
+	layout(node, context);
 	return true;
 }
 
 export function decorateRegisteredNodeFeature(node: LayoutPdfNode): void {
-	getBuiltInFeatureByKind(node._kind)?.decorate?.(node);
+	const feature = getBuiltInFeatureByKind(node._kind);
+	if (feature && "decorate" in feature) feature.decorate?.(node);
 }
 
 export function resetRegisteredNodeFeature(node: LayoutPdfNode): void {
-	getBuiltInFeatureByKind(node._kind)?.reset?.(node);
+	const feature = getBuiltInFeatureByKind(node._kind);
+	if (feature && "reset" in feature) feature.reset?.(node);
 }
 
 export function placeFeatureItem(
@@ -130,31 +122,36 @@ export function placeFeatureItem(
 	node: LayoutPdfNode,
 	context: NodePlaceContext,
 ): NodePlaceResult {
-	const feature =
-		featureKind === extensionFeature.kind ? extensionFeature : getBuiltInFeatureByKind(featureKind);
-	if (!feature?.place) {
+	const feature = getBuiltInFeatureByKind(featureKind);
+	if (!feature || !("place" in feature)) {
 		throw new Error(`Node feature '${featureKind}' does not support page-item placement`);
 	}
-	const place: NodePlaceHook = feature.place as NodePlaceHook;
+	const place = feature.place as NodePlaceHook;
 	return place(node, context);
 }
 
-export function renderMigratedNodeFeature(
-	node: LayoutAttachmentNode | LayoutImageNode,
-	document: PDFDocument,
-	resetVectorState: () => void,
-): boolean {
-	if ("attachment" in node) {
-		attachmentFeature.render(node, { document });
-		return true;
+/** Renders a page item emitted by the feature registered under `featureKind`. */
+export function renderFeatureItem<Context>(
+	featureKind: string,
+	node: LayoutPdfNode,
+	context: Context,
+): void {
+	const feature = getBuiltInFeatureByKind(featureKind);
+	if (!feature || !("render" in feature)) {
+		throw new Error(`Node feature '${featureKind}' does not support page-item rendering`);
 	}
-	imageFeature.render(node, { document, resetVectorState });
-	return true;
+	const render = feature.render as (node: LayoutPdfNode, context: Context) => void;
+	render(node, context);
 }
 
-export function resolveMigratedFeatureResources(
-	document: PrinterDocumentDefinition,
-	resolve: (resource: PrinterResourceReference) => string,
+/** Lets every feature that owns document-level resources resolve them before measurement. */
+export function resolveFeatureResources<Document, Context>(
+	document: Document,
+	context: Context,
 ): void {
-	attachmentFeature.resolveResources(document, resolve);
+	for (const feature of nodeFeatures) {
+		if (!("resolveResources" in feature)) continue;
+		const resolve = feature.resolveResources as (document: Document, context: Context) => void;
+		resolve(document, context);
+	}
 }

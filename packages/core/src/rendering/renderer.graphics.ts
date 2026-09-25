@@ -9,9 +9,6 @@ import type { ClipRectangle, RenderablePage, VerticalAlignmentItem } from "./ren
 import VectorRenderer from "./vector-renderer";
 import ClippingRenderer from "./clipping-renderer";
 import { beginVerticalAlignment, endVerticalAlignment } from "./render-vertical-alignment";
-import type { LayoutImageNode } from "../features/image/image.types";
-import type { LayoutExtensionNode } from "../features/extension/extension.types";
-import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
 
 class RendererGraphics {
 	protected readonly pdfDocument: PDFDocument;
@@ -50,16 +47,8 @@ class RendererGraphics {
 		this.vectors.render(vector);
 	}
 
-	renderImage(image: LayoutPdfNode): void {
-		this.rendering.renderImage(image as LayoutImageNode, () => this.resetVectorState());
-	}
-
-	renderExtension(node: LayoutPdfNode): void {
-		this.rendering.renderExtension(node as LayoutExtensionNode);
-	}
-
-	renderAttachment(attachment: LayoutPdfNode): void {
-		this.rendering.renderAttachment(attachment as LayoutAttachmentNode);
+	renderFeatureItem(kind: string, node: LayoutPdfNode): void {
+		this.rendering.renderFeatureItem(kind, node, () => this.resetVectorState());
 	}
 
 	beginClip(rect: ClipRectangle): void {
