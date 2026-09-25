@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Aligned internal naming: `alignImage` is now `alignItem`, stack, columns and list measure their children through the shared `measureNode` port instead of a renamed `measureChild` wrapper, `ExtensionRenderHost` is now `ExtensionRenderContext`, and the resolved rendering attachment type is `ResolvedAttachmentDefinition`.
 - Table border, row and vector-registry helpers now take `TableProcessor` directly, removing the `TableProcessorState` and `TableRowRenderState` interfaces that mirrored its fields.
 - Removed double casts from decorated-stack preprocessing, text outline layout and page-break-before node info, and table span placeholders are created by one typed helper.
+- Ordered and unordered list markers resolve their color through one shared `resolveMarkerColor` rule.
 - Merged table lifecycle state into `TableProcessor` and graphics coordination into `Renderer` while preserving the dedicated table border/row algorithms and vector/clipping state owners.
 
 ### Tests

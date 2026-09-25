@@ -1,4 +1,4 @@
-import StyleContextStack from "../../services/styles/style-context-stack";
+import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { Color } from "../../types";
 import type {
 	Inline,
@@ -7,7 +7,7 @@ import type {
 	TextMeasurement,
 } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
-import { buildUnorderedMarker, formatOrderedMarker } from "./list-markers";
+import { buildUnorderedMarker, formatOrderedMarker, resolveMarkerColor } from "./list-markers";
 import type { ListMeasureNode, MeasuredListItem, MeasuredListNode } from "./list.types";
 
 export interface ListMeasureContext {
@@ -72,16 +72,8 @@ export function measureOrderedList(
 			if (counterText === null) {
 				item.listMarker = { _minWidth: 0, _maxWidth: 0 };
 			} else {
-				const markerColor = (StyleContextStack.getStyleProperty(
-					item,
-					style,
-					"markerColor",
-					undefined,
-				) ||
-					style.getProperty("color") ||
-					"black") as Color;
 				item.listMarker = {
-					_inlines: context.buildMarkerInlines(counterText, markerColor, style),
+					_inlines: context.buildMarkerInlines(counterText, resolveMarkerColor(item, style), style),
 					_minWidth: 0,
 					_maxWidth: 0,
 				};

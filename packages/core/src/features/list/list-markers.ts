@@ -1,4 +1,5 @@
 import StyleContextStack from "../../services/styles/style-context-stack";
+import type { Color } from "../../types";
 import type { MeasuredPdfNode, TextMeasurement, Vector } from "../../types/internal";
 import type { ListMarker } from "./list.types";
 
@@ -30,16 +31,20 @@ function markerVector(
 	};
 }
 
+/** Marker color: the item's `markerColor`, then the current text color, then black. */
+export function resolveMarkerColor(item: MeasuredPdfNode, styleStack: StyleContextStack): Color {
+	return (StyleContextStack.getStyleProperty(item, styleStack, "markerColor", undefined) ||
+		styleStack.getProperty("color") ||
+		"black") as Color;
+}
+
 export function buildUnorderedMarker(
 	item: MeasuredPdfNode,
 	styleStack: StyleContextStack,
 	gapSize: TextMeasurement,
 	type: string,
 ): ListMarker {
-	const color =
-		StyleContextStack.getStyleProperty(item, styleStack, "markerColor", undefined) ||
-		styleStack.getProperty("color") ||
-		"black";
+	const color = resolveMarkerColor(item, styleStack);
 	const markerContent: Pick<ListMarker, "canvas"> =
 		type === "none"
 			? {}
