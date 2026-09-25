@@ -4,12 +4,7 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type {
-	LayoutPdfNode,
-	MeasurePdfNode,
-	PdfNode,
-	PreprocessedPdfNode,
-} from "../../types/internal";
+import type { MeasurePdfNode, PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { layoutTable, type TableLayoutHost } from "./layout-table";
 import { measureTable } from "./measure-table";
 import { preprocessTable, type TablePreprocessContext } from "./preprocess-table";
@@ -18,7 +13,6 @@ import type {
 	MeasuredTableNode,
 	PreprocessedTableNode,
 	TableMeasureNode,
-	LayoutTableCell,
 } from "./table.types";
 
 /** Shared row layout supplied by composition to tables. */
@@ -41,7 +35,6 @@ interface TableFeatureStages extends NodeFeatureStages {
 
 interface TableFeature extends NodeFeature<TableFeatureStages> {
 	readonly kind: "table";
-	isSpanPlaceholder(node: LayoutPdfNode): boolean;
 	preprocess(node: PdfNode, context: TablePreprocessContext): PreprocessedTableNode;
 	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredTableNode;
 	layout(node: LayoutTableNode, context: TableLayoutFeatureContext): void;
@@ -49,10 +42,6 @@ interface TableFeature extends NodeFeature<TableFeatureStages> {
 
 export const tableFeature: TableFeature = {
 	kind: "table",
-	/** Whether the node only reserves space covered by a spanning cell and has no content. */
-	isSpanPlaceholder(node): boolean {
-		return Boolean((node as LayoutTableCell)._span);
-	},
 	matches(node): boolean {
 		return Boolean(node.table);
 	},

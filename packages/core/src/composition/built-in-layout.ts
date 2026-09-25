@@ -1,7 +1,6 @@
 import type { ColumnsLayoutCapabilities } from "../features/columns/columns.feature";
 import type { TableLayoutCapabilities } from "../features/table/table.feature";
 import TableRowLayout, { type TableRowLayoutHost } from "../features/table/layout-row";
-import { tableFeature } from "../features/table/table.feature";
 import type { NodeLayoutContext } from "../engine/contracts/node-feature";
 import type { PageOrientation } from "../types";
 import type { LayoutPdfNode, PageMarginSource, PageSize } from "../types/internal";
@@ -60,7 +59,6 @@ export function createBuiltInLayout(
 		},
 		decorateNode: (node: LayoutPdfNode): void => decorateLayoutNode(node, nodeDecorationHooks),
 		layoutNode: (node: LayoutPdfNode): void => {
-			if (tableFeature.isSpanPlaceholder(node)) return;
 			layoutRegisteredNodeFeature(node, context);
 		},
 	};
