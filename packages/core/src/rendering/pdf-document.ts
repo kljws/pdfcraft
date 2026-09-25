@@ -9,7 +9,7 @@ import type {
 	VirtualFileSystem,
 } from "../types";
 import type {
-	AttachmentDefinition,
+	ResolvedAttachmentDefinition,
 	EmbeddedFont,
 	EmbeddedImage,
 	FontFile,
@@ -47,7 +47,7 @@ class PDFDocument extends PDFKit {
 	declare patterns: Dictionary<PDFKit.PDFTilingPattern>;
 	declare images: Dictionary<string | Uint8Array | ArrayBuffer>;
 	declare extensionDocument: Record<string, unknown>;
-	declare attachments: Dictionary<AttachmentDefinition>;
+	declare attachments: Dictionary<ResolvedAttachmentDefinition>;
 	declare virtualfs: VirtualFileSystem | null;
 	declare localAccessPolicy: LocalAccessPolicy | undefined;
 	declare _font: EmbeddedFont;
@@ -61,7 +61,7 @@ class PDFDocument extends PDFKit {
 		y: number,
 		width: number,
 		height: number,
-		file: AttachmentDefinition | FontFile,
+		file: ResolvedAttachmentDefinition | FontFile,
 		options?: FileAnnotationOptions,
 	) => this;
 
@@ -69,7 +69,7 @@ class PDFDocument extends PDFKit {
 		fonts: FontDescriptors = {},
 		images: Dictionary<string | Uint8Array | ArrayBuffer> = {},
 		patterns: Dictionary<PatternDefinition> = {},
-		attachments: Dictionary<AttachmentDefinition> = {},
+		attachments: Dictionary<ResolvedAttachmentDefinition> = {},
 		options: PdfDocumentOptions = {},
 		virtualfs: VirtualFileSystem | null = null,
 		localAccessPolicy?: LocalAccessPolicy,
@@ -208,8 +208,8 @@ class PDFDocument extends PDFKit {
 		return null;
 	}
 
-	provideAttachment(src: string | AttachmentDefinition): AttachmentDefinition {
-		const checkRequired = (obj: unknown): AttachmentDefinition => {
+	provideAttachment(src: string | ResolvedAttachmentDefinition): ResolvedAttachmentDefinition {
+		const checkRequired = (obj: unknown): ResolvedAttachmentDefinition => {
 			if (!obj || typeof obj !== "object") {
 				throw new Error("No attachment");
 			}
@@ -217,7 +217,7 @@ class PDFDocument extends PDFKit {
 				throw new Error('The "src" key is required for attachments');
 			}
 
-			return obj as AttachmentDefinition;
+			return obj as ResolvedAttachmentDefinition;
 		};
 
 		const attachment =

@@ -53,9 +53,7 @@ export const stackFeature = {
 			: preprocessStack(node, context);
 	},
 	measure(node, context): MeasuredStackNode {
-		return measureStack(node, {
-			measureChild: (item) => context.measureNode(item),
-		});
+		return measureStack(node, context);
 	},
 	layout(node, context): void {
 		layoutStack(node, {

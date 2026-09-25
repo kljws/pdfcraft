@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Simplified the internal node-feature pipeline by removing unused contracts and casts, using exact lifecycle node types, and consolidating repeated atomic layout, page-fit and PDF page-link logic without changing the public API.
 - Colocated single-use attachment, extension, section, table-of-contents and repeatable-document behavior with their owning features, removing pass-through layout, measurement, resource, page-break, rendering and type modules.
 - `LayoutBuilder.layoutDocument` now creates preprocessing and measurement and runs each layout pass directly, removing the internal `tryLayoutDocument` façade and the single-use `createBuiltInDocumentProcessors` wrapper.
+- Aligned internal naming: `alignImage` is now `alignItem`, stack, columns and list measure their children through the shared `measureNode` port instead of a renamed `measureChild` wrapper, `ExtensionRenderHost` is now `ExtensionRenderContext`, and the resolved rendering attachment type is `ResolvedAttachmentDefinition`.
 - Merged table lifecycle state into `TableProcessor` and graphics coordination into `Renderer` while preserving the dedicated table border/row algorithms and vector/clipping state owners.
 
 ### Tests

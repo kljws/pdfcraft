@@ -12,7 +12,7 @@ export interface EmbeddedImage {
 
 export type { PatternDefinition } from "../types";
 
-export interface AttachmentDefinition extends PDFKit.Mixins.PDFAttachmentOptions {
+export interface ResolvedAttachmentDefinition extends PDFKit.Mixins.PDFAttachmentOptions {
 	src: AttachmentSource["src"];
 }
 

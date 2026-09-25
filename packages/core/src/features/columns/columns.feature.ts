@@ -46,10 +46,7 @@ export const columnsFeature = {
 	},
 	preprocess: preprocessColumns,
 	measure(node, context): MeasuredColumnsNode {
-		return measureColumns(node, {
-			styles: context.styles,
-			measureChild: (item) => context.measureNode(item),
-		});
+		return measureColumns(node, context);
 	},
 	layout(node, context): void {
 		layoutColumns(node, {

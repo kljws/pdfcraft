@@ -1,10 +1,6 @@
 import type { NodePlaceContext } from "../../engine/contracts/node-feature";
 import type { CurrentPosition } from "../../types/internal";
-import {
-	addPageItem,
-	alignImage,
-	canPlaceOnCurrentPage,
-} from "../../layout/element-writer.helpers";
+import { addPageItem, alignItem, canPlaceOnCurrentPage } from "../../layout/element-writer.helpers";
 import type { LayoutAcroFormNode } from "./acroform.types";
 
 export function placeAcroFormItem(
@@ -22,7 +18,7 @@ export function placeAcroFormItem(
 	node._x ??= node.x || 0;
 	node.x = context.x + node._x;
 	node.y = context.y;
-	alignImage(node, context.availableWidth);
+	alignItem(node, context.availableWidth);
 	addPageItem(page, { type: "acroform", item: node }, index);
 	context.moveDown(height);
 	return position;

@@ -1,7 +1,7 @@
 import { acroFormFeature, type AcroFormRenderContext } from "../features/acroform/acroform.feature";
 import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
 import type { AttachmentRenderContext } from "../features/attachment/render-attachment";
-import type { ExtensionRenderHost } from "../features/extension/render-extension";
+import type { ExtensionRenderContext } from "../features/extension/render-extension";
 import type { ImageRenderContext } from "../features/image/render-image";
 import { watermarkFeature } from "../features/repeatables/watermark.feature";
 import { textFeature } from "../features/text/text.feature";
@@ -14,7 +14,7 @@ import { renderFeatureItem } from "./built-in-feature-registry";
 /** Every capability a feature page-item renderer may request. */
 type BuiltInRenderContext = AcroFormRenderContext &
 	AttachmentRenderContext &
-	ExtensionRenderHost &
+	ExtensionRenderContext &
 	ImageRenderContext;
 
 export interface BuiltInGraphicsRendering {

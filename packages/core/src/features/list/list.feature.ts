@@ -66,7 +66,7 @@ export const listFeature = {
 	measure(node, context): MeasuredListNode {
 		const measureContext: ListMeasureContext = {
 			styles: context.styles,
-			measureChild: (item) => context.measureNode(item),
+			measureNode: context.measureNode,
 			measureGap: () => context.inlines.sizeOfText("9. ", context.styles),
 			buildMarkerInlines: (text, color, styles) =>
 				context.inlines.buildInlines({ text, color }, styles).items,

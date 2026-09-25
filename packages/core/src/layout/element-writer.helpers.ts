@@ -56,10 +56,10 @@ export function getAlignmentOffset(
 	return 0;
 }
 
-export function alignImage(image: LayoutPdfNode, availableWidth: number): void {
-	const offset = getAlignmentOffset(image._alignment, availableWidth, image._minWidth ?? 0);
+export function alignItem(item: LayoutPdfNode, availableWidth: number): void {
+	const offset = getAlignmentOffset(item._alignment, availableWidth, item._minWidth ?? 0);
 	if (offset) {
-		image.x = (image.x || 0) + offset;
+		item.x = (item.x || 0) + offset;
 	}
 }
 

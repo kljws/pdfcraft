@@ -8,7 +8,7 @@ import type {
 } from "../../engine/contracts/node-feature";
 import {
 	addPageItem,
-	alignImage,
+	alignItem,
 	canPlaceOnCurrentPage,
 	layoutFeatureItem,
 } from "../../layout/element-writer.helpers";
@@ -20,7 +20,7 @@ import type {
 	PreprocessedExtensionNode,
 } from "./extension.types";
 import { findExtensionByName, findExtensionForNode } from "./extension-registry";
-import { renderExtension, type ExtensionRenderHost } from "./render-extension";
+import { renderExtension, type ExtensionRenderContext } from "./render-extension";
 
 export interface ExtensionResourceContext {
 	extensions: PdfCraftExtensions;
@@ -67,7 +67,7 @@ export const extensionFeature = {
 		node._x ??= node.x || 0;
 		node.x = context.x + node._x;
 		node.y = context.y;
-		alignImage(node, context.availableWidth);
+		alignItem(node, context.availableWidth);
 		addPageItem(page, { type: "extension", item: node }, index);
 		context.moveDown(height);
 		return position;
@@ -75,8 +75,8 @@ export const extensionFeature = {
 	layout(node: LayoutExtensionNode, context: NodeLayoutContext): void {
 		layoutFeatureItem("extension", node, context.writer);
 	},
-	render(node: LayoutExtensionNode, host: ExtensionRenderHost): void {
-		renderExtension(node, host);
+	render(node: LayoutExtensionNode, context: ExtensionRenderContext): void {
+		renderExtension(node, context);
 	},
 	copyPageBreakProperties(
 		node: LayoutPdfNode,

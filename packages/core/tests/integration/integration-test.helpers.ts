@@ -10,14 +10,14 @@ import type {
 	PdfCraftExtensions,
 	Style,
 } from "../../src/types/index.ts";
-import type { AttachmentDefinition } from "../../src/rendering/renderer.types.ts";
+import type { ResolvedAttachmentDefinition } from "../../src/rendering/renderer.types.ts";
 import type { Inline, PageMarginSource, PageMargins } from "../../src/types/internal.ts";
 
 interface IntegrationDocumentDefinition extends Record<string, unknown> {
 	content: unknown;
 	pageOrientation?: string;
 	images?: Dictionary<string>;
-	attachments?: Dictionary<AttachmentDefinition>;
+	attachments?: Dictionary<ResolvedAttachmentDefinition>;
 	styles?: Dictionary<Style>;
 	defaultStyle?: Style;
 	pageMargins?: PageMarginSource | number[];
