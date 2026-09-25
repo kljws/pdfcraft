@@ -25,7 +25,7 @@ describe("Text measurement", function () {
 
 		assert(called);
 		assert.equal(result.metrics.inlines.length, 1);
-		assert.equal(result._inlines, undefined);
+		assert.notProperty(result, "_inlines");
 		assert.equal(result._minWidth, 1);
 		assert.equal(result._maxWidth, 10);
 		assert.strictEqual(result, node as unknown as MeasuredPdfNode);

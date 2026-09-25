@@ -1,4 +1,5 @@
 import { extensionFeature } from "../features/extension/extension.feature";
+import { listFeature } from "../features/list/list.feature";
 import { pageBreakBeforeFeature } from "../features/repeatables/page-break-before.feature";
 import type { PageBreakBefore } from "../engine/page-break-before.types";
 import DocumentContext from "../document/document-context";
@@ -83,6 +84,7 @@ export function runBuiltInDocumentPipeline(context: BuiltInDocumentPipelineConte
 				{
 					copyExtensionProperties: (node, nodeInfo) =>
 						extensionFeature.copyPageBreakProperties(node, nodeInfo, context.extensions),
+					hasLeadingMarker: (node) => listFeature.hasMarker(node),
 				},
 			),
 	});

@@ -1,13 +1,13 @@
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { ProcessRowOptions, ProcessRowResult } from "./layout-row";
-import type { ColumnWidth, LayoutPdfNode, PdfTable } from "../../types/internal";
+import type { ColumnWidth, PdfTable } from "../../types/internal";
 import TableProcessor from "./table-processor";
 import {
 	findSameRowPageBreakByRowSpanData,
 	getPageBreakListBySpan,
 	type TablePageBreak,
 } from "./table-pagination";
-import type { LayoutTableNode } from "./table.types";
+import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 
 export interface TableLayoutHost {
 	writer: PageElementWriter;
@@ -17,7 +17,7 @@ export interface TableLayoutHost {
 }
 
 function getRowHeight(
-	heights: PdfTable<LayoutPdfNode>["heights"],
+	heights: PdfTable<LayoutTableCell>["heights"],
 	rowIndex: number,
 ): number | undefined {
 	const height =

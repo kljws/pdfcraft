@@ -15,4 +15,6 @@ export type PageBreakBefore = (
 
 export interface PageBreakBeforeContext {
 	copyExtensionProperties(node: LayoutPdfNode, nodeInfo: PageBreakNodeInfo): void;
+	/** Whether a parent feature draws a marker in front of the node, such as a list bullet. */
+	hasLeadingMarker(node: LayoutPdfNode): boolean;
 }

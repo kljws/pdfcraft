@@ -2,8 +2,9 @@ import { assert, describe, it } from "vitest";
 import { createBuiltInPreprocessing } from "../../../composition/built-in-preprocessing.ts";
 import { createTestMeasurement } from "../../../__tests__/fixtures/measurement.ts";
 import type { PdfFont, PdfNode, TextMeasurement } from "../../../types/internal.ts";
+import type { ListItemState } from "../list.types.ts";
 
-interface MeasuredFixture extends PdfNode {
+interface MeasuredFixture extends PdfNode, ListItemState {
 	_minWidth: number;
 	_maxWidth: number;
 	metrics: { gapSize: TextMeasurement };

@@ -35,7 +35,7 @@ export const pageBreakBeforeFeature = {
 		const nodes = linearNodeList.filter(
 			(node) =>
 				Boolean(node.positions?.length) &&
-				(node._kind !== "text" || node.text !== "" || Boolean(node.listMarker)),
+				(node._kind !== "text" || node.text !== "" || context.hasLeadingMarker(node)),
 		);
 		for (const node of nodes) {
 			const positions = node.positions;

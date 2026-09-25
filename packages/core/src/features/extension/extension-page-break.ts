@@ -7,6 +7,7 @@ export function copyExtensionPageBreakProperties(
 	target: Record<string, unknown>,
 	extensions: PdfCraftExtensions,
 ): void {
+	if (node._kind !== "extension") return;
 	const extension = findExtensionByName(node._extension, extensions);
 	const extensionNode = node as unknown as ExtensionNode;
 	for (const key of extension?.pageBreakKeys ?? []) {

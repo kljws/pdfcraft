@@ -1,5 +1,5 @@
 import type { ColumnWidth } from "./table.types";
-import type { LayoutPdfNode, Metadata } from "./document.types";
+import type { Metadata } from "./document.types";
 
 export interface Point {
 	x: number;
@@ -64,11 +64,6 @@ export interface ContextSnapshot {
 	columnWidths?: ColumnWidth[] | null;
 	lastColumnWidth?: number;
 }
-
-export type EndingCell = LayoutPdfNode & {
-	_endContext?: ContextSnapshot;
-	_endingContext?: ContextSnapshot;
-};
 
 export interface LayoutResult {
 	positions: Position[];

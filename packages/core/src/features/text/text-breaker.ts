@@ -2,7 +2,7 @@ import LineBreaker from "linebreak";
 import { isObject } from "../../utils/variable-type";
 import StyleContextStack from "../../services/styles/style-context-stack";
 import type { PdfNode } from "../../types/internal";
-import type { BrokenInline, BrokenWord, TextFragment } from "./text.types";
+import type { BrokenInline, BrokenWord, TextFragment, TextReferenceState } from "./text.types";
 
 const splitWords = (input: unknown, noWrap: boolean, breakAll: boolean = false): BrokenWord[] => {
 	const words: BrokenWord[] = [];
@@ -127,7 +127,7 @@ class TextBreaker {
 				false,
 			);
 			if (isObject(item)) {
-				const node = item as PdfNode;
+				const node = item as PdfNode & TextReferenceState<PdfNode>;
 				const textReference = node._textRef;
 				if (isObject(textReference) && isObject(textReference._textNodeRef)) {
 					const referencedText = textReference._textNodeRef.text;

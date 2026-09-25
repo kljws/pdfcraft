@@ -54,8 +54,42 @@ function findViolations(): string[] {
 	return [...new Set(violations)];
 }
 
+const SHARED_NODE_STATE = ["PreprocessedNodeState", "MeasuredNodeState", "LayoutNodeState"];
+
+function listSharedNodeStateFields(): string[] {
+	const source = readFileSync(join(SOURCE_ROOT, "types/document.types.ts"), "utf8");
+	return SHARED_NODE_STATE.flatMap((name) => {
+		const body = source.match(new RegExp(`interface ${name}(?:<[^>]*>)? \\{([^}]*)\\}`))?.[1] ?? "";
+		return [...body.matchAll(/^\s*(\w+)\??:/gm)].map((match) => match[1]);
+	});
+}
+
+/** Owner of a source file: its feature for feature code, otherwise its top-level layer. */
+function ownerOf(file: string): string {
+	const [layer, feature] = relative(SOURCE_ROOT, file).split("/");
+	return layer === "features" ? `features/${feature}` : layer;
+}
+
+function findFeatureOwnedSharedFields(): string[] {
+	const sources = listSourceFiles(SOURCE_ROOT)
+		.filter((file) => ownerOf(file) !== "types")
+		.map((file) => ({ owner: ownerOf(file), source: readFileSync(file, "utf8") }));
+	return listSharedNodeStateFields().flatMap((field) => {
+		const pattern = new RegExp(`\\b${field}\\b`);
+		const owners = new Set(
+			sources.filter(({ source }) => pattern.test(source)).map(({ owner }) => owner),
+		);
+		const [owner] = owners;
+		return owners.size === 1 && owner.startsWith("features/") ? [`${field} (${owner})`] : [];
+	});
+}
+
 describe("core architecture", () => {
 	it("keeps features independent and neutral layers free of features and composition", () => {
 		expect(findViolations()).toEqual([]);
+	});
+
+	it("keeps shared node state free of fields owned by a single feature", () => {
+		expect(findFeatureOwnedSharedFields()).toEqual([]);
 	});
 });

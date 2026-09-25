@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Node-feature measure, layout, decorate and reset hooks now receive the node type of their own kind; the registry narrows by `_kind` once instead of every feature descriptor casting the lifecycle union.
 - The page element writer no longer builds its own feature placement: composition injects the placement port, so layout writers and document context stay independent of features and composition.
 - Replaced the `DocMeasure` and `DocPreprocessor` classes with the `createBuiltInMeasurement` and `createBuiltInPreprocessing` composition functions, removing the single-file `measurement/` and `preprocessing/` layers. Preprocessing now creates fresh reference and table-of-contents state for every document or block pass instead of resetting shared instance state, and measurement accepts its inline text engine as an option instead of a mutable field.
+- Shared node state in `types/` now only holds feature-neutral concepts: node references, sizes, margins, positions and the vertical-alignment box. Table span, row and cross-page cell state moved to a table-owned `TableNodeState` (with `EndingCell`), list markers to a list-owned `ListItemState` (with `ListMarker`), text page and text references to `TextReferenceState`, the column gap to columns nodes and the form-field font to AcroForm nodes. The internal `PdfNode` type no longer redeclares lifecycle state, and unused `_rowSpan`, `_gapSize`, node-level `_outline` and `pageBreaks` fields were removed.
+- Page-break-before detection and layout composition no longer read list and table internals; they use `hasLeadingMarker` and `isSpanPlaceholder` ports supplied by the list and table features.
 
 ### Fixed
 
@@ -34,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Added feature-level layout tests for canvas, columns, extension, image, list, stack, table, text and page breaks, and registry tests for matching order, kind dispatch and duplicate kinds.
 - Added an architecture test that fails when a feature imports another feature or when document context, layout writers, engine, services, types or utilities import features or composition.
 - Measurement tests share one fixture built on the composition functions instead of subclassing the former measurement and preprocessing classes.
+- The architecture test also fails when a shared node-state field is used by a single feature only.
 
 ### Documentation
 

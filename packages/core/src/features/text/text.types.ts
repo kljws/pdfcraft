@@ -6,6 +6,7 @@ import type {
 	LineLike,
 	MeasuredNodeBase,
 	MeasuredPdfNode,
+	NodeReference,
 	NodeText,
 	PdfNode,
 	PreprocessedNodeBase,
@@ -34,29 +35,38 @@ export interface InlineMeasurement {
 	maxWidth: number;
 }
 
-export type PreprocessedTextNode = PreprocessedNodeBase & {
-	_kind: "text";
-	text: NonNullable<NodeText<PreprocessedPdfNode>>;
-};
+/** References resolved from `pageReference` and `textReference` during preprocessing. */
+export interface TextReferenceState<Node> {
+	_pageRef?: NodeReference<Node>;
+	_textRef?: NodeReference<Node>;
+}
+
+export type PreprocessedTextNode = PreprocessedNodeBase &
+	TextReferenceState<PreprocessedPdfNode> & {
+		_kind: "text";
+		text: NonNullable<NodeText<PreprocessedPdfNode>>;
+	};
 
 export interface TextMetrics {
 	inlines: Inline[];
 }
 
-export type TextMeasureNode = MeasuredNodeBase & {
-	_kind: "text";
-	text: NonNullable<NodeText<MeasuredPdfNode>>;
-};
+export type TextMeasureNode = MeasuredNodeBase &
+	TextReferenceState<MeasuredPdfNode> & {
+		_kind: "text";
+		text: NonNullable<NodeText<MeasuredPdfNode>>;
+	};
 
 export type MeasuredTextNode = TextMeasureNode & {
 	metrics: TextMetrics;
 };
 
-export type LayoutTextNode = LayoutNodeBase & {
-	_kind: "text";
-	text: NonNullable<NodeText<LayoutPdfNode>>;
-	metrics: TextMetrics;
-};
+export type LayoutTextNode = LayoutNodeBase &
+	TextReferenceState<LayoutPdfNode> & {
+		_kind: "text";
+		text: NonNullable<NodeText<LayoutPdfNode>>;
+		metrics: TextMetrics;
+	};
 
 export interface DecorationGroup {
 	line: LineLike;

@@ -1,7 +1,7 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { Color, Dictionary } from "../../types";
-import type { MeasuredPdfNode, TableLayout } from "../../types/internal";
+import type { TableLayout } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
 import { isObject } from "../../utils/variable-type";
 import {
@@ -14,12 +14,12 @@ import {
 	resolveTableLayout,
 	resolveTableRowGroupLayout,
 } from "./measure-table.helpers";
-import type { MeasuredTableNode, TableMeasureNode } from "./table.types";
+import type { MeasuredTableCell, MeasuredTableNode, TableMeasureNode } from "./table.types";
 
 export interface TableMeasureContext {
 	styles: StyleContextStack;
-	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
-	measureNode(node: MeasuredPdfNode): MeasuredPdfNode;
+	tableLayouts: Dictionary<Partial<TableLayout<MeasuredTableCell>>>;
+	measureNode(node: MeasuredTableCell): MeasuredTableCell;
 }
 
 export function measureTable(
@@ -99,7 +99,7 @@ export function measureTable(
 
 	return measuredNode;
 
-	function measureCell(data: MeasuredPdfNode): () => MeasuredPdfNode {
+	function measureCell(data: MeasuredTableCell): () => MeasuredTableCell {
 		return () => {
 			if (isObject(data)) {
 				data.border = context.styles.getProperty("border") as
@@ -112,7 +112,7 @@ export function measureTable(
 				const fillOpacity = context.styles.getProperty("fillOpacity");
 				data.fillOpacity = typeof fillOpacity === "number" ? fillOpacity : undefined;
 			}
-			return context.measureNode(data as unknown as MeasuredPdfNode);
+			return context.measureNode(data as unknown as MeasuredTableCell);
 		};
 	}
 }

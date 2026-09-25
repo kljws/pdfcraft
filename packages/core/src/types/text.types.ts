@@ -6,7 +6,6 @@ import type {
 	SerializedBuffer,
 } from "./document.types";
 import type { OutlineDefinition, Position } from "./layout.types";
-import type { Vector } from "./rendering.types";
 
 export interface TextMeasurement {
 	width: number;
@@ -15,15 +14,6 @@ export interface TextMeasurement {
 	lineHeight: number;
 	descender: number;
 	ascender: number;
-}
-
-export interface ListMarker {
-	canvas?: Vector[];
-	_inlines?: Inline[];
-	_minWidth: number;
-	_maxWidth: number;
-	_minHeight?: number;
-	_maxHeight?: number;
 }
 
 export interface PdfFont {

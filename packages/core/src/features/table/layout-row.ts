@@ -1,6 +1,6 @@
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { PageOrientation } from "../../types";
-import type { ColumnWidth, LayoutPdfNode, Position } from "../../types/internal";
+import type { ColumnWidth, Position } from "../../types/internal";
 import {
 	columnLeftOffset,
 	findStartingRowSpanCell,
@@ -10,16 +10,17 @@ import {
 	type TablePageBreak,
 } from "./table-pagination";
 import type { VerticalAlignmentStackEntry } from "../../engine/layout-node-lifecycle";
+import type { LayoutTableCell } from "./table.types";
 
 export interface ProcessRowOptions {
 	marginX?: [number, number];
 	dontBreakRows?: boolean;
 	rowsWithoutPageBreak?: number;
-	cells: LayoutPdfNode[];
+	cells: LayoutTableCell[];
 	widths: ColumnWidth[];
 	gaps: number[] | null;
-	tableNode?: LayoutPdfNode;
-	tableBody?: LayoutPdfNode[][];
+	tableNode?: LayoutTableCell;
+	tableBody?: LayoutTableCell[][];
 	rowIndex?: number;
 	height?: number;
 	snakingColumns?: boolean;
@@ -34,7 +35,7 @@ export interface TableRowLayoutHost {
 	writer: PageElementWriter;
 	nestedLevel: number;
 	verticalAlignmentItemStack: VerticalAlignmentStackEntry[];
-	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
+	processNode(node: LayoutTableCell, isVerticalAlignmentAllowed?: boolean): void;
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
 }
 
@@ -261,7 +262,7 @@ class TableRowLayout {
 						`Internal layout error: missing vertical-alignment controls for table cell ${i}`,
 					);
 				}
-				const itemBegin = alignmentEntry.begin.item;
+				const itemBegin: LayoutTableCell = alignmentEntry.begin.item;
 				itemBegin.viewHeight = rowHeight;
 				itemBegin.nodeHeight = cell.__height;
 				itemBegin.cell = cell;
@@ -271,8 +272,8 @@ class TableRowLayout {
 				itemBegin.isCellContentMultiPage = cellPositions.some(
 					(item: Position) => item.pageNumber !== firstPageNumber,
 				);
-				itemBegin.getViewHeight = function (this: LayoutPdfNode): number {
-					const cell = this.cell;
+				itemBegin.getViewHeight = function (this: LayoutTableCell): number {
+					const cell = this.cell as LayoutTableCell | undefined;
 					if (!cell)
 						throw new Error("Internal layout error: missing vertically aligned table cell");
 					if (cell._willBreak) {
@@ -299,7 +300,7 @@ class TableRowLayout {
 
 					return this.viewHeight ?? 0;
 				};
-				itemBegin.getNodeHeight = function (this: LayoutPdfNode): number {
+				itemBegin.getNodeHeight = function (this: LayoutTableCell): number {
 					return this.nodeHeight ?? 0;
 				};
 

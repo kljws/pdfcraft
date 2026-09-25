@@ -1,11 +1,6 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
-import type {
-	LayoutPdfNode,
-	PdfPage,
-	TableOffsets,
-	TableRowGroupRange,
-} from "../../types/internal";
+import type { PdfPage, TableOffsets, TableRowGroupRange } from "../../types/internal";
 import { isPositiveInteger } from "../../utils/variable-type";
 import {
 	createRowSpanData,
@@ -19,12 +14,12 @@ import type {
 	RowSpanData,
 	TablePageVectorRegistry,
 } from "./table-processor.types";
-import type { LayoutTableNode } from "./table.types";
+import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 
 export interface TableLifecycleState {
 	tableNode: LayoutTableNode;
 	_isCurrentRowUnbreakable: boolean;
-	_currentRowGroup?: TableRowGroupRange<LayoutPdfNode>;
+	_currentRowGroup?: TableRowGroupRange<LayoutTableCell>;
 	offsets: TableOffsets;
 	layout: ResolvedTableLayout;
 	headerLayout: ResolvedTableLayout;
@@ -35,7 +30,7 @@ export interface TableLifecycleState {
 	vectorRegistryByPage: Map<PdfPage, TablePageVectorRegistry>;
 	tableOffset: number;
 	rowSpanData: RowSpanData[];
-	rowGroupsByRow: Array<TableRowGroupRange<LayoutPdfNode> | undefined>;
+	rowGroupsByRow: Array<TableRowGroupRange<LayoutTableCell> | undefined>;
 	cleanUpRepeatables: boolean;
 	headerRows: number;
 	rowsWithoutPageBreak: number;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { NodeReference, PreprocessedPdfNode } from "../../../types/internal";
 import { preprocessNodeReferences } from "../preprocess-node-references";
+import type { PreprocessedTextNode } from "../text.types";
 
 const createContext = (parentNode: PreprocessedPdfNode | null = null) => ({
 	parentNode,
@@ -10,7 +11,7 @@ const createContext = (parentNode: PreprocessedPdfNode | null = null) => ({
 describe("preprocessNodeReferences", () => {
 	it("resolves a forward page reference through the shared registry entry", () => {
 		const context = createContext();
-		const reference = { pageReference: "chapter" } as PreprocessedPdfNode;
+		const reference = { pageReference: "chapter" } as unknown as PreprocessedTextNode;
 		preprocessNodeReferences(reference, context);
 
 		expect(reference.text).toBe("00000");
@@ -28,7 +29,7 @@ describe("preprocessNodeReferences", () => {
 
 	it("resolves a forward text reference and preserves destination linking", () => {
 		const context = createContext();
-		const reference = { textReference: "caption" } as PreprocessedPdfNode;
+		const reference = { textReference: "caption" } as unknown as PreprocessedTextNode;
 		preprocessNodeReferences(reference, context);
 
 		expect(reference.text).toBe("");

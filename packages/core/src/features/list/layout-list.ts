@@ -1,8 +1,8 @@
 import Line from "../../layout/line";
 import type PageElementWriter from "../../layout/element-writer.page";
-import type { LayoutPdfNode, LineLike, ListMarker } from "../../types/internal";
+import type { LayoutPdfNode, LineLike } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
-import type { LayoutListNode } from "./list.types";
+import type { LayoutListNode, ListMarker } from "./list.types";
 
 export interface ListLayoutContext {
 	writer: PageElementWriter;

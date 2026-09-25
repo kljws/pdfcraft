@@ -3,7 +3,6 @@ import type { Dictionary } from "../../types";
 import type { TableLayoutNode, TableRowGroupLayout, TableRowGroupLayoutContext } from "../../types";
 import type {
 	ColumnWidth,
-	MeasuredPdfNode,
 	PdfTable,
 	RawColumnWidth,
 	TableLayout,
@@ -11,25 +10,25 @@ import type {
 } from "../../types/internal";
 import { pack } from "../../utils/tools";
 import { isNumber, isObject, isString } from "../../utils/variable-type";
-import type { MeasuredTableNode, TableMeasureNode } from "./table.types";
+import type { MeasuredTableCell, MeasuredTableNode, TableMeasureNode } from "./table.types";
 
 export function resolveTableLayout(
 	node: TableMeasureNode,
-	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
+	tableLayouts: Dictionary<Partial<TableLayout<MeasuredTableCell>>>,
 	layoutDefinition: unknown = node.layout,
-): TableLayout<MeasuredPdfNode> {
+): TableLayout<MeasuredTableCell> {
 	const layout = isString(layoutDefinition) ? tableLayouts[layoutDefinition] : layoutDefinition;
-	return pack<TableLayout<MeasuredPdfNode>>(
-		defaultTableLayout as unknown as Partial<TableLayout<MeasuredPdfNode>>,
-		isObject(layout) ? (layout as unknown as Partial<TableLayout<MeasuredPdfNode>>) : undefined,
+	return pack<TableLayout<MeasuredTableCell>>(
+		defaultTableLayout as unknown as Partial<TableLayout<MeasuredTableCell>>,
+		isObject(layout) ? (layout as unknown as Partial<TableLayout<MeasuredTableCell>>) : undefined,
 	);
 }
 
 export function resolveTableRowGroupLayout(
 	node: TableMeasureNode,
-	bodyLayout: TableLayout<MeasuredPdfNode>,
-	group: TableRowGroupRange<MeasuredPdfNode>,
-): TableLayout<MeasuredPdfNode> {
+	bodyLayout: TableLayout<MeasuredTableCell>,
+	group: TableRowGroupRange<MeasuredTableCell>,
+): TableLayout<MeasuredTableCell> {
 	const definition = group.layoutDefinition as TableRowGroupLayout | undefined;
 	if (!definition) return bodyLayout;
 	const context: TableRowGroupLayoutContext = {
@@ -106,20 +105,20 @@ export function resolveTableRowGroupLayout(
 }
 
 export function combineTableLayouts(
-	headerLayout: TableLayout<MeasuredPdfNode>,
-	bodyLayout: TableLayout<MeasuredPdfNode>,
-	groupLayouts: TableLayout<MeasuredPdfNode>[] = [],
-): TableLayout<MeasuredPdfNode> {
-	const getTableNode = (node: MeasuredPdfNode): MeasuredTableNode => {
+	headerLayout: TableLayout<MeasuredTableCell>,
+	bodyLayout: TableLayout<MeasuredTableCell>,
+	groupLayouts: TableLayout<MeasuredTableCell>[] = [],
+): TableLayout<MeasuredTableCell> {
+	const getTableNode = (node: MeasuredTableCell): MeasuredTableNode => {
 		if (node._kind !== "table") {
 			throw new Error("Internal measurement error: expected a table node");
 		}
 		return node;
 	};
-	const useHeader = (index: number, node: MeasuredPdfNode) =>
+	const useHeader = (index: number, node: MeasuredTableCell) =>
 		(getTableNode(node).table.headerRows ?? 0) > 0 &&
 		index < (getTableNode(node).table.headerRows ?? 0);
-	const useHeaderBoundary = (index: number, node: MeasuredPdfNode) =>
+	const useHeaderBoundary = (index: number, node: MeasuredTableCell) =>
 		(getTableNode(node).table.headerRows ?? 0) > 0 &&
 		index <= (getTableNode(node).table.headerRows ?? 0);
 
@@ -159,13 +158,13 @@ export function combineTableLayouts(
 			(useHeader(index, node) ? headerLayout : bodyLayout).paddingTop(index, node),
 		paddingBottom: (index, node) =>
 			(useHeader(index, node) ? headerLayout : bodyLayout).paddingBottom(index, node),
-		fillColor: (rowIndex: number, node: MeasuredPdfNode, columnIndex: number) => {
+		fillColor: (rowIndex: number, node: MeasuredTableCell, columnIndex: number) => {
 			const layout = useHeader(rowIndex, node) ? headerLayout : bodyLayout;
 			return typeof layout.fillColor === "function"
 				? layout.fillColor(rowIndex, node, columnIndex)
 				: layout.fillColor;
 		},
-		fillOpacity: (rowIndex: number, node: MeasuredPdfNode, columnIndex: number) => {
+		fillOpacity: (rowIndex: number, node: MeasuredTableCell, columnIndex: number) => {
 			const layout = useHeader(rowIndex, node) ? headerLayout : bodyLayout;
 			return typeof layout.fillOpacity === "function"
 				? layout.fillOpacity(rowIndex, node, columnIndex)
@@ -190,7 +189,7 @@ export interface ColumnSpanMeasurement {
 
 export function getTableOffsets(
 	node: MeasuredTableNode,
-	layout: TableLayout<MeasuredPdfNode>,
+	layout: TableLayout<MeasuredTableCell>,
 ): TableOffsets {
 	const table = node.table!;
 	const offsets: number[] = [];
@@ -264,19 +263,19 @@ function getMinMax(
 	return result;
 }
 
-export function markColumnSpans(row: MeasuredPdfNode[], column: number, span: number): void {
+export function markColumnSpans(row: MeasuredTableCell[], column: number, span: number): void {
 	for (let index = 1; index < span; index++) {
 		row[column + index] = {
 			_span: true,
 			_minWidth: 0,
 			_maxWidth: 0,
 			rowSpan: row[column].rowSpan,
-		} as MeasuredPdfNode;
+		} as MeasuredTableCell;
 	}
 }
 
 export function markRowSpans(
-	table: PdfTable<MeasuredPdfNode>,
+	table: PdfTable<MeasuredTableCell>,
 	row: number,
 	column: number,
 	span: number,
@@ -288,7 +287,7 @@ export function markRowSpans(
 			_maxWidth: 0,
 			fillColor: table.body[row][column].fillColor,
 			fillOpacity: table.body[row][column].fillOpacity,
-		} as MeasuredPdfNode;
+		} as MeasuredTableCell;
 	}
 }
 

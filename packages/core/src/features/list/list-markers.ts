@@ -1,5 +1,6 @@
 import StyleContextStack from "../../services/styles/style-context-stack";
-import type { ListMarker, MeasuredPdfNode, TextMeasurement, Vector } from "../../types/internal";
+import type { MeasuredPdfNode, TextMeasurement, Vector } from "../../types/internal";
+import type { ListMarker } from "./list.types";
 
 function markerVector(
 	type: "disc" | "circle" | "square",

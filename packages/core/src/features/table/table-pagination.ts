@@ -1,11 +1,12 @@
-import type { LayoutPdfNode, PageBreak } from "../../types/internal";
+import type { PageBreak } from "../../types/internal";
+import type { LayoutTableCell } from "./table.types";
 
 export type TablePageBreak = PageBreak;
 
 export function findStartingRowSpanCell(
-	cells: LayoutPdfNode[],
+	cells: LayoutTableCell[],
 	columnIndex: number,
-): LayoutPdfNode | null {
+): LayoutTableCell | null {
 	let requiredColspan = 1;
 	for (let index = columnIndex - 1; index >= 0; index--) {
 		if (!cells[index]?._span) {
@@ -26,7 +27,7 @@ export function getPageBreak(
 }
 
 export function getPageBreakListBySpan(
-	tableNode: LayoutPdfNode | undefined,
+	tableNode: LayoutTableCell | undefined,
 	page: number,
 	rowIndex: number,
 ): TablePageBreak | null {
@@ -68,7 +69,7 @@ export function resolveBreakY(
 
 export function updatePageBreaksData(
 	pageBreaks: TablePageBreak[],
-	tableNode: LayoutPdfNode,
+	tableNode: LayoutTableCell,
 	rowIndex: number,
 ): void {
 	const bottomByPage = tableNode._bottomByPage ?? {};
@@ -95,7 +96,7 @@ export function storePageBreakData(
 	data: TablePageBreak,
 	startsRowSpan: boolean,
 	pageBreaks: TablePageBreak[],
-	tableNode: LayoutPdfNode | undefined,
+	tableNode: LayoutTableCell | undefined,
 ): void {
 	const rowIndex = data.rowIndex;
 	if (rowIndex === undefined) {
@@ -139,11 +140,11 @@ export function columnLeftOffset(columnIndex: number, gaps?: readonly number[] |
 }
 
 export function getRowSpanEndingCell(
-	tableBody: LayoutPdfNode[][],
+	tableBody: LayoutTableCell[][],
 	rowIndex: number,
-	column: LayoutPdfNode,
+	column: LayoutTableCell,
 	columnIndex: number,
-): LayoutPdfNode | null {
+): LayoutTableCell | null {
 	if (!column.rowSpan || column.rowSpan <= 1) return null;
 
 	const endingRow = rowIndex + column.rowSpan - 1;

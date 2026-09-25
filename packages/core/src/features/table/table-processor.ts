@@ -1,13 +1,7 @@
 import { drawHorizontalLine, drawVerticalLine } from "./table-processor.borders";
 import type PageElementWriter from "../../layout/element-writer.page";
-import type {
-	LayoutPdfNode,
-	PdfPage,
-	PdfTable,
-	TableOffsets,
-	TableRowGroupRange,
-} from "../../types/internal";
-import type { LayoutTableNode } from "./table.types";
+import type { PdfPage, PdfTable, TableOffsets, TableRowGroupRange } from "../../types/internal";
+import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 import type { TablePageBreak } from "./table-pagination";
 import type {
 	ResolvedTableLayout,
@@ -20,7 +14,7 @@ import { drawTableRowSegment, type TableLinePosition } from "./table-processor.r
 class TableProcessor {
 	tableNode: LayoutTableNode;
 	_isCurrentRowUnbreakable = false;
-	_currentRowGroup?: TableRowGroupRange<LayoutPdfNode>;
+	_currentRowGroup?: TableRowGroupRange<LayoutTableCell>;
 	offsets!: TableOffsets;
 	layout!: ResolvedTableLayout;
 	headerLayout!: ResolvedTableLayout;
@@ -31,7 +25,7 @@ class TableProcessor {
 	vectorRegistryByPage = new Map<PdfPage, TablePageVectorRegistry>();
 	tableOffset = 0;
 	rowSpanData: RowSpanData[] = [];
-	rowGroupsByRow: Array<TableRowGroupRange<LayoutPdfNode> | undefined> = [];
+	rowGroupsByRow: Array<TableRowGroupRange<LayoutTableCell> | undefined> = [];
 	cleanUpRepeatables = false;
 	headerRows = 0;
 	rowsWithoutPageBreak = 0;
@@ -53,7 +47,7 @@ class TableProcessor {
 		this._isCurrentRowUnbreakable = false;
 	}
 
-	private get table(): PdfTable<LayoutPdfNode> {
+	private get table(): PdfTable<LayoutTableCell> {
 		const table = this.tableNode.table;
 		if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
 		return table;

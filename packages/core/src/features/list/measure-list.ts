@@ -8,7 +8,7 @@ import type {
 } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
 import { buildUnorderedMarker, formatOrderedMarker } from "./list-markers";
-import type { ListMeasureNode, MeasuredListNode } from "./list.types";
+import type { ListMeasureNode, MeasuredListItem, MeasuredListNode } from "./list.types";
 
 export interface ListMeasureContext {
 	styles: StyleContextStack;
@@ -31,7 +31,7 @@ export function measureUnorderedList(
 	node._maxWidth = 0;
 
 	for (let index = 0; index < items.length; index++) {
-		const item = (items[index] = context.measureChild(
+		const item: MeasuredListItem = (items[index] = context.measureChild(
 			items[index] as unknown as PreprocessedPdfNode,
 		));
 		if (item._kind !== "list") {
@@ -63,7 +63,7 @@ export function measureOrderedList(
 
 	let counter = node.start;
 	for (let index = 0; index < items.length; index++) {
-		const item = (items[index] = context.measureChild(
+		const item: MeasuredListItem = (items[index] = context.measureChild(
 			items[index] as unknown as PreprocessedPdfNode,
 		));
 		if (item._kind !== "list") {

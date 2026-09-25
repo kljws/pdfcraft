@@ -1,16 +1,7 @@
 import type { AcroFormDefinition, Alignment, Color, Decoration, Margin } from "./index";
-import type {
-	ContextSnapshot,
-	EndingCell,
-	NodeLayoutInfo,
-	OutlineDefinition,
-	PageBreak,
-	Point,
-	Position,
-} from "./layout.types";
+import type { NodeLayoutInfo, Point, Position } from "./layout.types";
 import type { Vector } from "./rendering.types";
 import type { ColumnNode, PdfTable, RawTableWidths, TableLayout } from "./table.types";
-import type { Inline, ListMarker, PdfFont, TextMeasurement } from "./text.types";
 
 export type Metadata = Record<string, unknown>;
 export type Nullable<T> = T | null;
@@ -156,71 +147,6 @@ export interface PdfNode {
 	columnGap?: number;
 	snakingColumns?: boolean;
 	padding?: Margin;
-
-	// Preprocessing references.
-	_nodeRef?: PdfNode;
-	_textNodeRef?: PdfNode;
-	_tocItemRef?: PdfNode;
-	_pageRef?: NodeReference;
-	_textRef?: NodeReference;
-	_pseudo?: boolean;
-
-	// Measurement state.
-	_margin?: [number, number, number, number] | null;
-	_paragraphGap?: number;
-	_minWidth?: number;
-	_maxWidth?: number;
-	_minHeight?: number;
-	_maxHeight?: number;
-	_width?: number;
-	_height?: number;
-	_alignment?: Alignment;
-	_extension?: string;
-	_tableAlignment?: "left" | "center" | "right";
-	_inlines?: Inline[];
-	_gap?: number;
-	_gapSize?: TextMeasurement;
-	_headerLayout?: TableLayout;
-	_bodyLayout?: TableLayout;
-	_span?: boolean;
-	_colSpan?: number;
-	_rowSpan?: number;
-	listMarker?: ListMarker;
-	positions?: Position[];
-	pageBreaks?: PageBreak[];
-	nodeInfo?: NodeLayoutInfo;
-
-	// Layout state.
-	_bottomY?: number;
-	_originalXOffset?: number;
-	_columnEndingContext?: ContextSnapshot;
-	_endingCell?: EndingCell;
-	_leftEndingCell?: EndingCell;
-	_startingRowSpanY?: number;
-	_startingRowSpanPage?: number;
-	_rowTopPageY?: number;
-	_breaksBySpan?: PageBreak[];
-	_willBreak?: boolean;
-	_outline?: OutlineDefinition;
-	_isUnbreakableContext?: boolean;
-	pageNumber?: number;
-	x?: number;
-	y?: number;
-	resetXY?: () => void;
-	getNodeHeight?: () => number;
-	getViewHeight?: () => number;
-	isCellContentMultiPage?: boolean;
-	_bottomByPage?: Record<number, number>;
-	viewHeight?: number;
-	nodeHeight?: number;
-	bottomY?: number;
-	cell?: PdfNode;
-	__height?: number;
-	_rowTopPageYPadding?: number;
-	_lastPageNumber?: number;
-	_rowSpanCurrentOffset?: number;
-	_x?: number;
-	_formFont?: PdfFont;
 }
 
 export interface PreprocessedNodeState<Node = PdfNode> {
@@ -228,12 +154,10 @@ export interface PreprocessedNodeState<Node = PdfNode> {
 	_nodeRef?: Node;
 	_textNodeRef?: Node;
 	_tocItemRef?: Node;
-	_pageRef?: NodeReference<Node>;
-	_textRef?: NodeReference<Node>;
 	_pseudo?: boolean;
 }
 
-export interface MeasuredNodeState<Node = PdfNode> {
+export interface MeasuredNodeState {
 	_margin?: [number, number, number, number] | null;
 	_paragraphGap?: number;
 	_minWidth?: number;
@@ -243,53 +167,25 @@ export interface MeasuredNodeState<Node = PdfNode> {
 	_width?: number;
 	_height?: number;
 	_alignment?: Alignment;
-	_tableAlignment?: "left" | "center" | "right";
-	_inlines?: Inline[];
-	_gap?: number;
-	_gapSize?: TextMeasurement;
-	_headerLayout?: TableLayout<Node>;
-	_bodyLayout?: TableLayout<Node>;
-	_span?: boolean;
-	_colSpan?: number;
-	_rowSpan?: number;
-	listMarker?: ListMarker;
 }
 
 export interface LayoutNodeState<Node = PdfNode> {
 	_node?: Node;
 	_position?: Position;
 	positions?: Position[];
-	pageBreaks?: PageBreak[];
 	nodeInfo?: NodeLayoutInfo;
-	_bottomY?: number;
-	_originalXOffset?: number;
-	_columnEndingContext?: ContextSnapshot;
-	_endingCell?: EndingCell;
-	_leftEndingCell?: EndingCell;
-	_startingRowSpanY?: number;
-	_startingRowSpanPage?: number;
-	_rowTopPageY?: number;
-	_breaksBySpan?: PageBreak[];
-	_willBreak?: boolean;
-	_outline?: OutlineDefinition;
-	_isUnbreakableContext?: boolean;
 	pageNumber?: number;
 	x?: number;
 	y?: number;
 	resetXY?: () => void;
+	__height?: number;
+	_x?: number;
+	// Vertical-alignment box state, filled by the container that aligns its content.
 	getNodeHeight?: () => number;
 	getViewHeight?: () => number;
-	isCellContentMultiPage?: boolean;
-	_bottomByPage?: Record<number, number>;
-	viewHeight?: number;
 	nodeHeight?: number;
-	bottomY?: number;
 	cell?: Node;
-	__height?: number;
-	_rowTopPageYPadding?: number;
-	_lastPageNumber?: number;
-	_rowSpanCurrentOffset?: number;
-	_x?: number;
+	isCellContentMultiPage?: boolean;
 }
 
 type PreprocessedNodeKey = keyof PreprocessedNodeState;
@@ -342,16 +238,13 @@ export interface PreprocessedNodeBase
 	extends NodeDefinition, PreprocessedNodeState<PreprocessedPdfNode> {}
 
 export interface MeasuredNodeBase
-	extends
-		NodeDefinition,
-		PreprocessedNodeState<MeasuredPdfNode>,
-		MeasuredNodeState<MeasuredPdfNode> {}
+	extends NodeDefinition, PreprocessedNodeState<MeasuredPdfNode>, MeasuredNodeState {}
 
 export interface LayoutNodeBase
 	extends
 		NodeDefinition,
 		PreprocessedNodeState<LayoutPdfNode>,
-		MeasuredNodeState<LayoutPdfNode>,
+		MeasuredNodeState,
 		LayoutNodeState<LayoutPdfNode> {}
 
 /**

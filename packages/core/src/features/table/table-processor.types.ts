@@ -1,6 +1,6 @@
 import type { Color } from "../../types";
-import type { LayoutPdfNode, PageItem, PdfPage, Vector } from "../../types/internal";
-import type { LayoutTableNode } from "./table.types";
+import type { PageItem, PdfPage, Vector } from "../../types/internal";
+import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 
 export type VectorPageItem = Extract<PageItem, { type: "vector" }>;
 
@@ -24,23 +24,23 @@ export interface RowSpanData {
 export interface ResolvedTableLayout {
 	defaultBorder: boolean;
 	hLineWhenBroken?: boolean;
-	hLineWidth(index: number, node: LayoutPdfNode): number;
-	vLineWidth(index: number, node: LayoutPdfNode): number;
-	hLineStyle(index: number, node: LayoutPdfNode): { dash?: Vector["dash"] } | null | undefined;
-	vLineStyle(index: number, node: LayoutPdfNode): { dash?: Vector["dash"] } | null | undefined;
-	hLineColor: Color | ((index: number, node: LayoutPdfNode, columnIndex?: number) => Color);
-	vLineColor: Color | ((index: number, node: LayoutPdfNode, rowIndex?: number) => Color);
-	paddingLeft(index: number, node: LayoutPdfNode): number;
-	paddingRight(index: number, node: LayoutPdfNode): number;
-	paddingTop(index: number, node: LayoutPdfNode): number;
-	paddingBottom(index: number, node: LayoutPdfNode): number;
+	hLineWidth(index: number, node: LayoutTableCell): number;
+	vLineWidth(index: number, node: LayoutTableCell): number;
+	hLineStyle(index: number, node: LayoutTableCell): { dash?: Vector["dash"] } | null | undefined;
+	vLineStyle(index: number, node: LayoutTableCell): { dash?: Vector["dash"] } | null | undefined;
+	hLineColor: Color | ((index: number, node: LayoutTableCell, columnIndex?: number) => Color);
+	vLineColor: Color | ((index: number, node: LayoutTableCell, rowIndex?: number) => Color);
+	paddingLeft(index: number, node: LayoutTableCell): number;
+	paddingRight(index: number, node: LayoutTableCell): number;
+	paddingTop(index: number, node: LayoutTableCell): number;
+	paddingBottom(index: number, node: LayoutTableCell): number;
 	fillColor?:
 		| Color
 		| null
-		| ((rowIndex: number, node: LayoutPdfNode, columnIndex: number) => Color | null | undefined);
+		| ((rowIndex: number, node: LayoutTableCell, columnIndex: number) => Color | null | undefined);
 	fillOpacity?:
 		| number
-		| ((rowIndex: number, node: LayoutPdfNode, columnIndex: number) => number | undefined);
+		| ((rowIndex: number, node: LayoutTableCell, columnIndex: number) => number | undefined);
 }
 
 export interface TableProcessorState {

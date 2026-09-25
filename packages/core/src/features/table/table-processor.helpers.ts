@@ -1,7 +1,7 @@
 import { PAGE_BREAK_VALUES } from "./table-processor.constants";
 import { trackVectorInsertion } from "../../layout/vector-insertion";
-import type { ColumnWidth, LayoutPdfNode, PdfPage, PdfTable, Vector } from "../../types/internal";
-import type { LayoutTableNode } from "./table.types";
+import type { ColumnWidth, PdfPage, PdfTable, Vector } from "../../types/internal";
+import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 import type {
 	ResolvedTableLayout,
 	RowSpanData,
@@ -16,7 +16,7 @@ export type TableVectorRole =
 	| "leftFill"
 	| "rightFill";
 
-export const requireTable = (tableNode: LayoutTableNode): PdfTable<LayoutPdfNode> => {
+export const requireTable = (tableNode: LayoutTableNode): PdfTable<LayoutTableCell> => {
 	const table = tableNode.table;
 	if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
 	return table;
@@ -82,7 +82,7 @@ export const trackTableVector = (
 	});
 };
 
-export const hasExplicitPageBreak = (cell: LayoutPdfNode): boolean => {
+export const hasExplicitPageBreak = (cell: LayoutTableCell): boolean => {
 	if (!cell || typeof cell !== "object") {
 		return false;
 	}
@@ -157,7 +157,7 @@ export const createRowSpanData = (
 	return data;
 };
 
-export const propagateCellBorders = (body: LayoutPdfNode[][]): void => {
+export const propagateCellBorders = (body: LayoutTableCell[][]): void => {
 	const setBorder = (
 		rowIndex: number,
 		columnIndex: number,

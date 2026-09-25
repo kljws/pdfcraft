@@ -7,13 +7,14 @@ import type {
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { TextSize } from "../../services/typography/text-metrics";
 import type { Color } from "../../types";
-import type { Inline, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { Inline, LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
 import { layoutList } from "./layout-list";
 import type {
 	LayoutListNode,
 	ListMeasureNode,
 	MeasuredListNode,
 	PreprocessedListNode,
+	LayoutListItem,
 } from "./list.types";
 import { measureOrderedList, measureUnorderedList, type ListMeasureContext } from "./measure-list";
 import { preprocessList, type ListPreprocessContext } from "./preprocess-list";
@@ -51,10 +52,15 @@ interface ListFeature extends NodeFeature<ListFeatureStages> {
 	measureUnordered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
 	measureOrdered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
 	layout(node: LayoutListNode, context: NodeLayoutContext): void;
+	hasMarker(node: LayoutPdfNode): boolean;
 }
 
 export const listFeature: ListFeature = {
 	kind: "list",
+	/** Whether list measurement attached a marker to this item. */
+	hasMarker(node): boolean {
+		return Boolean((node as LayoutListItem).listMarker);
+	},
 	matches(node): boolean {
 		return Boolean(node.ul || node.ol);
 	},
