@@ -2,7 +2,6 @@ import type { PageSize } from "../../types/internal";
 import type { BackgroundGetter, BackgroundLayoutContext } from "./background.types";
 
 export const backgroundFeature = {
-	kind: "background",
 	layout(background: unknown, context: BackgroundLayoutContext): boolean {
 		const dynamicBackgroundUsesPageCount =
 			typeof background === "function" && background.length >= 3;
@@ -11,7 +10,7 @@ export const backgroundFeature = {
 
 		// Three-argument backgrounds run during iterative layout, so pageCount is the
 		// current pass estimate. Returning content marks the pass as page-count-dependent
-		// and makes LayoutBuilder rerun it when the actual count changes.
+		// and makes the document layout pipeline rerun it when the actual count changes.
 		const pageBackground =
 			typeof background === "function" && background.length === 2
 				? (getBackground as (pageNumber: number, pageSize: PageSize) => unknown)(

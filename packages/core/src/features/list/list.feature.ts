@@ -49,8 +49,6 @@ interface ListFeature extends NodeFeature<ListFeatureStages> {
 	readonly kind: "list";
 	preprocess(node: PdfNode, context: ListPreprocessContext): PreprocessedListNode;
 	measure(node: MeasurePdfNode, context: ListMeasureFeatureContext): MeasuredListNode;
-	measureUnordered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
-	measureOrdered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
 	layout(node: LayoutListNode, context: NodeLayoutContext): void;
 	hasMarker(node: LayoutPdfNode): boolean;
 }
@@ -78,8 +76,6 @@ export const listFeature: ListFeature = {
 			? measureUnorderedList(listNode, measureContext)
 			: measureOrderedList(listNode, measureContext);
 	},
-	measureUnordered: measureUnorderedList,
-	measureOrdered: measureOrderedList,
 	layout(node, context): void {
 		const listNode = node;
 		layoutList(listNode, {

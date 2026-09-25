@@ -70,9 +70,6 @@ export const builtInFeatures = [
 	acroFormFeature,
 ] as const;
 
-export type BuiltInFeature = (typeof builtInFeatures)[number];
-export type BuiltInFeatureName = BuiltInFeature["kind"];
-
 export const builtInFeatureRegistry = createNodeFeatureRegistry(builtInFeatures);
 
 /**

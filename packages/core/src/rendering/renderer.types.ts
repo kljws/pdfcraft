@@ -1,10 +1,4 @@
-import type {
-	Color,
-	Dictionary,
-	FontDescriptors,
-	PatternDefinition,
-	VirtualFileSystem,
-} from "../types";
+import type { Color, PatternDefinition } from "../types";
 import type { AttachmentSource, MeasuredWatermark, PdfPage } from "../types/internal";
 
 export type { EmbeddedFont, FontFile, FontStyle } from "../services/typography/font.types";
@@ -25,14 +19,6 @@ export interface AttachmentDefinition extends PDFKit.Mixins.PDFAttachmentOptions
 export type PdfDocumentOptions = Omit<PDFKit.PDFDocumentOptions, "font"> & {
 	font?: string | null;
 };
-
-export interface PdfDocumentResources {
-	fonts?: FontDescriptors;
-	images?: Dictionary<string>;
-	patterns?: Dictionary<PatternDefinition>;
-	attachments?: Dictionary<AttachmentDefinition>;
-	virtualFileSystem?: VirtualFileSystem | null;
-}
 
 export interface RenderablePage extends PdfPage {
 	watermark?: MeasuredWatermark;

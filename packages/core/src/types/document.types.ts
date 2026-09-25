@@ -4,8 +4,6 @@ import type { Vector } from "./rendering.types";
 import type { ColumnNode, PdfTable, RawTableWidths, TableLayout } from "./table.types";
 
 export type Metadata = Record<string, unknown>;
-export type Nullable<T> = T | null;
-export type MaybePromise<T> = T | Promise<T>;
 
 export type NodeText<Node = PdfNode> =
 	| string

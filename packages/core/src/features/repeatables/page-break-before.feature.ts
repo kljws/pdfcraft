@@ -23,7 +23,6 @@ const NODE_INFO_KEYS = [
 ] as const;
 
 export const pageBreakBeforeFeature = {
-	kind: "pageBreakBefore",
 	addIfNecessary(
 		linearNodeList: LayoutPdfNode[],
 		pages: PdfPage[],

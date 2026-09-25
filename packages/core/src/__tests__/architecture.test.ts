@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const SOURCE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** Layers that must stay feature-neutral (docs/ARCHITECTURE-CORE.md, "Dépendances autorisées"). */
+/** Layers that must stay feature-neutral (docs/ARCHITECTURE.md, "Dépendances autorisées"). */
 const NEUTRAL_LAYERS = ["document", "engine", "layout", "services", "types", "utils"];
 
 /** Orchestration entry points inside neutral layers, allowed to import composed facades. */

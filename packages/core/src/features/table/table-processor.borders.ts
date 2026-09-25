@@ -260,14 +260,8 @@ export function drawHorizontalLine(
 						: processor.layout.hLineColor;
 			}
 
-			if (!currentLine && shouldDrawLine) {
-				currentLine = { left: data.left, width: 0 };
-			}
-
 			if (shouldDrawLine) {
-				if (!currentLine) {
-					throw new Error("Internal layout error: missing active horizontal table line");
-				}
+				currentLine ??= { left: data.left, width: 0 };
 				let colSpanIndex = 0;
 				if (rowCellAbove && rowCellAbove.colSpan && rowBottomBorder) {
 					while (rowCellAbove.colSpan > colSpanIndex) {

@@ -1,11 +1,4 @@
-import type {
-	Color,
-	Dictionary,
-	FontDescriptors,
-	LocalAccessPolicy,
-	VfsEncoding,
-	VirtualFileSystem,
-} from "./index";
+import type { Color, FontDescriptors, VfsEncoding } from "./index";
 import type { LayoutPdfNode, Metadata } from "./document.types";
 import type { PageMargins, PageSize, Point, Position } from "./layout.types";
 import type { LineLike } from "./text.types";
@@ -99,12 +92,3 @@ export interface FontContainer {
 	vfs: Record<string, string | { data: string; encoding?: VfsEncoding }>;
 	fonts: FontDescriptors;
 }
-
-export interface PrinterDependencies {
-	fonts: FontDescriptors | Dictionary;
-	virtualfs: VirtualFileSystem;
-	localAccessPolicy?: LocalAccessPolicy;
-}
-
-export type ProgressCallback = (progress: number) => void;
-export type VoidCallback = () => void;

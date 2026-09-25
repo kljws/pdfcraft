@@ -5,7 +5,6 @@ import { renderWatermark } from "./render-watermark";
 import type { WatermarkDefinition, WatermarkLayoutContext } from "./watermark.types";
 
 export const watermarkFeature = {
-	kind: "watermark",
 	layout(watermark: unknown, context: WatermarkLayoutContext): void {
 		for (const page of context.pages) {
 			let pageWatermark = watermark;
@@ -15,7 +14,6 @@ export const watermarkFeature = {
 			if (pageWatermark === undefined || pageWatermark === null) continue;
 			if (isString(pageWatermark)) pageWatermark = { text: pageWatermark };
 			if (
-				pageWatermark === null ||
 				typeof pageWatermark !== "object" ||
 				!("text" in pageWatermark) ||
 				!pageWatermark.text

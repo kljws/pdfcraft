@@ -1,5 +1,5 @@
 import type { PageOrientation } from "../types";
-import type { Metadata, PageMargins, PageMarginSource, PageSize, PdfPage } from "../types/internal";
+import type { PageMargins, PageMarginSource, PdfPage } from "../types/internal";
 
 export interface ContextCoordinates {
 	x: number;
@@ -49,12 +49,6 @@ export interface PagePosition {
 	top: number;
 	verticalRatio: number;
 	horizontalRatio: number;
-}
-
-export interface CreatePageOptions {
-	pageSize: PageSize;
-	pageMargins: PageMargins;
-	customProperties: Metadata;
 }
 
 export interface DocumentContextEvents {

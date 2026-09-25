@@ -65,11 +65,6 @@ export interface ContextSnapshot {
 	lastColumnWidth?: number;
 }
 
-export interface LayoutResult {
-	positions: Position[];
-	pageBreaks?: PageBreak[];
-}
-
 export interface PageBreak {
 	prevPage: number;
 	prevY: number;

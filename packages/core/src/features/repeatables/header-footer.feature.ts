@@ -58,7 +58,6 @@ const layoutDynamicRepeatable = (
 };
 
 export const headerFooterFeature = {
-	kind: "headerFooter",
 	layout(
 		header: unknown,
 		footer: unknown,

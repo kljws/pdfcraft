@@ -14,7 +14,6 @@ export interface TextLayoutContext {
 export function layoutText(node: LayoutTextNode, context: TextLayoutContext): void {
 	const nextLine = () => buildTextLine(node, context.writer.context().availableWidth);
 	let line = nextLine();
-	if (line) line._node = node;
 	let currentHeight = line ? line.getHeight() : 0;
 	const maxHeight = node.maxHeight || -1;
 
