@@ -26,16 +26,13 @@ export function getPageItemBottom(item: PageItem): number {
 			return getVectorBottom(item.item);
 		case "line":
 			return (item.item.y ?? 0) + item.item.getHeight();
-		case "image":
-		case "extension":
-		case "attachment":
-		case "acroform":
-			return (item.item.y ?? 0) + (item.item._height ?? 0);
 		case "beginClip":
 			return (item.item.y ?? 0) + (item.item.height ?? 0);
 		case "beginVerticalAlignment":
 		case "endVerticalAlignment":
 			return item.item.y ?? 0;
+		default:
+			return (item.item.y ?? 0) + (item.item._height ?? 0);
 	}
 }
 

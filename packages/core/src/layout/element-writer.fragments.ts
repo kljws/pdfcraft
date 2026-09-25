@@ -69,19 +69,6 @@ export function replayFragment(
 				break;
 			}
 
-			case "image":
-			case "extension":
-			case "attachment":
-			case "acroform": {
-				const image = pack<LayoutPdfNode>(item.item) as LayoutPdfNode;
-				updateNodePageNumbers(image, ctx.page + 1);
-
-				image.x = (image.x || 0) + (useBlockXOffset ? block.xOffset || 0 : ctx.x);
-				image.y = (image.y || 0) + (useBlockYOffset ? block.yOffset || 0 : ctx.y);
-
-				page.items.push({ type: item.type, item: image });
-				break;
-			}
 			case "beginClip":
 			case "beginVerticalAlignment":
 			case "endVerticalAlignment": {
@@ -94,6 +81,16 @@ export function replayFragment(
 			case "endClip":
 				page.items.push(item);
 				break;
+			default: {
+				const node = pack<LayoutPdfNode>(item.item) as LayoutPdfNode;
+				updateNodePageNumbers(node, ctx.page + 1);
+
+				node.x = (node.x || 0) + (useBlockXOffset ? block.xOffset || 0 : ctx.x);
+				node.y = (node.y || 0) + (useBlockYOffset ? block.yOffset || 0 : ctx.y);
+
+				page.items.push({ type: item.type, item: node });
+				break;
+			}
 		}
 	});
 

@@ -9,7 +9,7 @@ import type {
 	Position,
 } from "./layout.types";
 import type { Vector } from "./rendering.types";
-import type { ColumnNode, ColumnWidth, PdfTable, RawTableWidths, TableLayout } from "./table.types";
+import type { ColumnNode, PdfTable, RawTableWidths, TableLayout } from "./table.types";
 import type { Inline, ListMarker, PdfFont, TextMeasurement } from "./text.types";
 import type {
 	PreprocessedTextNode,

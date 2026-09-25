@@ -42,10 +42,19 @@ export interface Vector {
 	_position?: Position;
 }
 
+/**
+ * Positioned node emitted by a feature's placement hook. Its `type` is the emitting feature's
+ * kind; layout and rendering treat it generically and dispatch it back to that feature.
+ */
+export interface FeaturePageItem {
+	type: "image" | "extension" | "attachment" | "acroform";
+	item: LayoutPdfNode;
+}
+
 export type PageItem =
 	| { type: "vector"; item: Vector }
 	| { type: "line"; item: LineLike }
-	| { type: "image" | "extension" | "attachment" | "acroform"; item: LayoutPdfNode }
+	| FeaturePageItem
 	| {
 			type: "beginClip" | "beginVerticalAlignment" | "endVerticalAlignment";
 			item: PageControlItem;

@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - A public content node recognized by several features, such as `{ image, canvas }` or `{ stack, ul }`, is now rejected with an `Ambiguous document node` error instead of being handled by whichever feature was registered first.
 - Measurement composition now builds its shared context without deferred assignment.
 - Resource resolution and page-item rendering now go through the node-feature registry. Features with document resources share one `resolveResources(document, context)` hook, the renderer dispatches image, attachment, AcroForm and extension page items by feature kind while keeping vectors, lines, clipping and vertical alignment as shared primitives, and block and inline AcroForm fields share one lazily initialized form renderer.
+- Feature-emitted page items now share one internal `FeaturePageItem` type whose `type` is the emitting feature kind. Page-height geometry and cloned-fragment replay handle them generically instead of listing image, extension, attachment and AcroForm items.
 - Registered extensions are now resolved by `_kind` like built-in features during measurement, layout, placement and rendering, removing the remaining extension-specific branches and the attachment/image-specific registry helpers.
 
 ### Fixed
