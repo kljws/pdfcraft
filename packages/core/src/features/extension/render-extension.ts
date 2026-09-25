@@ -1,6 +1,6 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import { findFont } from "../../rendering/renderer.helpers";
-import type { ExtensionNode, PdfCraftExtensions } from "../../types";
+import type { PdfCraftExtensions } from "../../types";
 import type { LayoutExtensionNode } from "./extension.types";
 import { findExtensionByName } from "./extension-registry";
 
@@ -17,7 +17,7 @@ export function renderExtension(node: LayoutExtensionNode, host: ExtensionRender
 
 	extension.render({
 		document: host.document,
-		node: node as ExtensionNode,
+		node,
 		resolveFont: (family, bold, italic, fallback) => {
 			const fontFamilies = family
 				.split(",")

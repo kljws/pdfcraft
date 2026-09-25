@@ -5,7 +5,6 @@ import TableProcessor from "./table-processor";
 import {
 	findSameRowPageBreakByRowSpanData,
 	getPageBreakListBySpan,
-	type TablePageBreak,
 } from "./table-pagination";
 import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 
@@ -167,9 +166,8 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 		tableNode.positions ??= [];
 		tableNode.positions.push(...result.positions);
 		if (result.pageBreaks.length === 0) {
-			const breaksBySpan = tableNode._breaksBySpan as TablePageBreak[] | undefined;
 			const breakData = findSameRowPageBreakByRowSpanData(
-				breaksBySpan,
+				tableNode._breaksBySpan,
 				pageBeforeProcessing,
 				rowIndex,
 			);

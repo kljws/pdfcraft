@@ -1,4 +1,4 @@
-import type { ExtensionNode, PdfCraftExtensions } from "../../types";
+import type { PdfCraftExtensions } from "../../types";
 import type { LayoutPdfNode } from "../../types/internal";
 import { findExtensionByName } from "./extension-registry";
 
@@ -9,8 +9,7 @@ export function copyExtensionPageBreakProperties(
 ): void {
 	if (node._kind !== "extension") return;
 	const extension = findExtensionByName(node._extension, extensions);
-	const extensionNode = node as unknown as ExtensionNode;
 	for (const key of extension?.pageBreakKeys ?? []) {
-		if (extensionNode[key] !== undefined) target[key] = extensionNode[key];
+		if (node[key] !== undefined) target[key] = node[key];
 	}
 }

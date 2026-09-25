@@ -14,6 +14,7 @@ export const watermarkFeature = {
 			if (pageWatermark === undefined || pageWatermark === null) continue;
 			if (isString(pageWatermark)) pageWatermark = { text: pageWatermark };
 			if (
+				pageWatermark === null ||
 				typeof pageWatermark !== "object" ||
 				!("text" in pageWatermark) ||
 				!pageWatermark.text

@@ -1,6 +1,6 @@
 import { markNodeKind } from "../../utils/node";
 import type { ExtensionNode, ExtensionResourceReference, PdfCraftExtensions } from "../../types";
-import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { LayoutPdfNode, PdfNode } from "../../types/internal";
 import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
@@ -28,7 +28,7 @@ export interface ExtensionResourceContext {
 export const extensionFeature = {
 	kind: "extension",
 	matches(node: PdfNode, extensions: PdfCraftExtensions): boolean {
-		return Boolean(findExtensionForNode(node as ExtensionNode, extensions));
+		return Boolean(findExtensionForNode(node, extensions));
 	},
 	preprocess(node: PdfNode): PreprocessedExtensionNode {
 		return markNodeKind(node, "extension");
@@ -36,8 +36,8 @@ export const extensionFeature = {
 	resolveResources(documentDefinition: ExtensionNode, context: ExtensionResourceContext): void {
 		resolveExtensionResources(documentDefinition, context.extensions, context.resolve);
 	},
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredExtensionNode | undefined {
-		return measureExtension(node as ExtensionMeasureNode, {
+	measure(node: ExtensionMeasureNode, context: NodeMeasureContext): MeasuredExtensionNode | undefined {
+		return measureExtension(node, {
 			document: context.document,
 			styles: context.styles,
 			extensions: context.extensions,

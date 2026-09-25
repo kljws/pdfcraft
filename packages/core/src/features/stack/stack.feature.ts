@@ -19,8 +19,7 @@ type StackFeaturePreprocessContext = StackPreprocessContext & DecoratedStackPrep
 const BLOCK_DECORATION_PROPERTIES = ["borderRadius", "borderWidth", "backgroundColor", "padding"];
 
 function hasBlockDecoration(node: PdfNode): boolean {
-	const block = node as unknown as Record<string, unknown>;
-	return BLOCK_DECORATION_PROPERTIES.some((property) => block[property] !== undefined);
+	return BLOCK_DECORATION_PROPERTIES.some((property) => node[property] !== undefined);
 }
 
 interface StackFeatureStages extends NodeFeatureStages {

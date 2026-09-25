@@ -7,7 +7,7 @@ import type {
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { TextSize } from "../../services/typography/text-metrics";
 import type { Color } from "../../types";
-import type { Inline, LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { Inline, LayoutPdfNode, PdfNode } from "../../types/internal";
 import { layoutList } from "./layout-list";
 import type {
 	LayoutListNode,
@@ -35,8 +35,8 @@ type ListMeasureFeatureContext = NodeMeasureContext & ListMeasureCapabilities;
 interface ListFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedListNode;
-	measureNode: MeasurePdfNode;
-	measuredNode: ListMeasureNode;
+	measureNode: ListMeasureNode;
+	measuredNode: MeasuredListNode;
 	layoutNode: LayoutListNode;
 	renderNode: never;
 	preprocessContext: ListPreprocessContext;
@@ -48,7 +48,7 @@ interface ListFeatureStages extends NodeFeatureStages {
 interface ListFeature extends NodeFeature<ListFeatureStages> {
 	readonly kind: "list";
 	preprocess(node: PdfNode, context: ListPreprocessContext): PreprocessedListNode;
-	measure(node: MeasurePdfNode, context: ListMeasureFeatureContext): MeasuredListNode;
+	measure(node: ListMeasureNode, context: ListMeasureFeatureContext): MeasuredListNode;
 	layout(node: LayoutListNode, context: NodeLayoutContext): void;
 	hasMarker(node: LayoutPdfNode): boolean;
 }
@@ -64,7 +64,6 @@ export const listFeature: ListFeature = {
 	},
 	preprocess: preprocessList,
 	measure(node, context): MeasuredListNode {
-		const listNode = node as ListMeasureNode;
 		const measureContext: ListMeasureContext = {
 			styles: context.styles,
 			measureChild: (item) => context.measureNode(item),
@@ -72,9 +71,9 @@ export const listFeature: ListFeature = {
 			buildMarkerInlines: (text, color, styles) =>
 				context.inlines.buildInlines({ text, color }, styles).items,
 		};
-		return listNode.ul
-			? measureUnorderedList(listNode, measureContext)
-			: measureOrderedList(listNode, measureContext);
+		return node.ul
+			? measureUnorderedList(node, measureContext)
+			: measureOrderedList(node, measureContext);
 	},
 	layout(node, context): void {
 		const listNode = node;

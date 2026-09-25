@@ -6,8 +6,7 @@ export type PreprocessedExtensionNode = PreprocessedNodeBase &
 
 export type ExtensionMeasureNode = MeasuredNodeBase & ExtensionNode & { _kind: "extension" };
 
-export type MeasuredExtensionNode = ExtensionMeasureNode &
-	ExtensionNode & { _kind: "extension"; _extension: string };
+export type MeasuredExtensionNode = ExtensionMeasureNode & { _extension: string };
 
 export type LayoutExtensionNode = LayoutNodeBase &
 	ExtensionNode & { _kind: "extension"; _extension: string };

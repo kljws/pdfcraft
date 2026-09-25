@@ -4,7 +4,7 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type { LineLike, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { LineLike, PdfNode } from "../../types/internal";
 import type TextInlines from "./text-inlines";
 import { layoutText } from "./layout-text";
 import { measureText } from "./measure-text";
@@ -27,8 +27,8 @@ type TextMeasureFeatureContext = NodeMeasureContext & TextMeasureCapabilities;
 interface TextFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTextNode;
-	measureNode: MeasurePdfNode;
-	measuredNode: TextMeasureNode;
+	measureNode: TextMeasureNode;
+	measuredNode: MeasuredTextNode;
 	layoutNode: LayoutTextNode;
 	renderNode: LineLike;
 	preprocessContext: TextPreprocessContext;
@@ -40,7 +40,7 @@ interface TextFeatureStages extends NodeFeatureStages {
 interface TextFeature extends NodeFeature<TextFeatureStages> {
 	readonly kind: "text";
 	preprocess(node: PdfNode, context: TextPreprocessContext): PreprocessedTextNode;
-	measure(node: MeasurePdfNode, context: TextMeasureFeatureContext): MeasuredTextNode;
+	measure(node: TextMeasureNode, context: TextMeasureFeatureContext): MeasuredTextNode;
 	layout(node: LayoutTextNode, context: NodeLayoutContext): void;
 	render(line: LineLike, context: TextRenderContext): void;
 }
@@ -52,7 +52,7 @@ export const textFeature: TextFeature = {
 	},
 	preprocess: preprocessText,
 	measure(node, context): MeasuredTextNode {
-		return measureText(node as TextMeasureNode, {
+		return measureText(node, {
 			inlines: context.inlines,
 			styles: context.styles,
 		});

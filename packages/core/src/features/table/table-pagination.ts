@@ -119,7 +119,7 @@ export function storePageBreakData(
 		throw new Error("Internal layout error: row-span page break has no span length");
 	}
 
-	const breaksBySpan = tableNode._breaksBySpan as TablePageBreak[] | undefined;
+	const breaksBySpan = tableNode._breaksBySpan;
 	let spanBreak = findSameRowPageBreakByRowSpanData(breaksBySpan, data.prevPage, rowIndex);
 	if (!spanBreak) {
 		spanBreak = {
