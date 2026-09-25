@@ -42,7 +42,7 @@ interface StackFeature extends NodeFeature<StackFeatureStages> {
 	layout(node: LayoutStackNode, context: NodeLayoutContext): void;
 }
 
-export const stackFeature: StackFeature = {
+export const stackFeature = {
 	kind: "stack",
 	matches(node): boolean {
 		return Boolean(node.stack);
@@ -63,4 +63,4 @@ export const stackFeature: StackFeature = {
 			moveDownWithPageBreak: context.moveDownWithPageBreak,
 		});
 	},
-};
+} satisfies StackFeature;

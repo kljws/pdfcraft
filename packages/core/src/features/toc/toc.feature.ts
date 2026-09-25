@@ -35,7 +35,7 @@ interface TocFeature extends NodeFeature<TocFeatureStages> {
 	layout(node: LayoutTocNode, context: NodeLayoutContext): void;
 }
 
-export const tocFeature: TocFeature = {
+export const tocFeature = {
 	kind: "toc",
 	matches(node): boolean {
 		return Boolean(node.toc);
@@ -55,4 +55,4 @@ export const tocFeature: TocFeature = {
 		if (toc.title) context.processNode(toc.title);
 		if (toc._table) context.processNode(toc._table);
 	},
-};
+} satisfies TocFeature;

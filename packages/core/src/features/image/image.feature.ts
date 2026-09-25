@@ -42,7 +42,7 @@ interface ImageFeature extends NodeFeature<ImageFeatureStages> {
 	render(node: LayoutImageNode, context: ImageRenderContext): void;
 }
 
-export const imageFeature: ImageFeature = {
+export const imageFeature = {
 	kind: "image",
 	matches(node: PdfNode): boolean {
 		return Boolean(node.image);
@@ -67,7 +67,7 @@ export const imageFeature: ImageFeature = {
 	render(node: LayoutImageNode, context: ImageRenderContext): void {
 		renderImage(node, context);
 	},
-};
+} satisfies ImageFeature;
 
 function getImageMeasurer(context: NodeMeasureContext): ImageMeasurer {
 	const existing = context.featureState.get("image.measurer");

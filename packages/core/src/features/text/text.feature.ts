@@ -45,7 +45,7 @@ interface TextFeature extends NodeFeature<TextFeatureStages> {
 	render(line: LineLike, context: TextRenderContext): void;
 }
 
-export const textFeature: TextFeature = {
+export const textFeature = {
 	kind: "text",
 	matches(node): boolean {
 		return node.text !== undefined || Boolean(node.pageReference || node.textReference);
@@ -64,4 +64,4 @@ export const textFeature: TextFeature = {
 		});
 	},
 	render: renderTextLine,
-};
+} satisfies TextFeature;

@@ -40,7 +40,7 @@ interface TableFeature extends NodeFeature<TableFeatureStages> {
 	layout(node: LayoutTableNode, context: TableLayoutFeatureContext): void;
 }
 
-export const tableFeature: TableFeature = {
+export const tableFeature = {
 	kind: "table",
 	matches(node): boolean {
 		return Boolean(node.table);
@@ -67,4 +67,4 @@ export const tableFeature: TableFeature = {
 		};
 		layoutTable(node, tableHost);
 	},
-};
+} satisfies TableFeature;

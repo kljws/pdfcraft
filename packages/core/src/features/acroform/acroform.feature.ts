@@ -48,7 +48,7 @@ interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
 	render(node: LayoutAcroFormNode | Inline, context: AcroFormRenderContext): void;
 }
 
-export const acroFormFeature: AcroFormFeature = {
+export const acroFormFeature = {
 	kind: "acroform",
 	matches(node): boolean {
 		return Boolean(node.acroform);
@@ -71,4 +71,4 @@ export const acroFormFeature: AcroFormFeature = {
 	render(node, { renderer, x, y }): void {
 		renderer.render(node, x, y);
 	},
-};
+} satisfies AcroFormFeature;

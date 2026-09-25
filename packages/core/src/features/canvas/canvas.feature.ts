@@ -36,7 +36,7 @@ interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {
 	reset(node: LayoutCanvasNode): void;
 }
 
-export const canvasFeature: CanvasFeature = {
+export const canvasFeature = {
 	kind: "canvas",
 	matches(node): boolean {
 		return Boolean(node.canvas);
@@ -57,4 +57,4 @@ export const canvasFeature: CanvasFeature = {
 	reset(node): void {
 		resetCanvas(node);
 	},
-};
+} satisfies CanvasFeature;

@@ -33,7 +33,7 @@ interface SectionFeature extends NodeFeature<SectionFeatureStages> {
 	layout(node: LayoutSectionNode, context: NodeLayoutContext): void;
 }
 
-export const sectionFeature: SectionFeature = {
+export const sectionFeature = {
 	kind: "section",
 	matches(node): boolean {
 		return Boolean(node.section);
@@ -51,4 +51,4 @@ export const sectionFeature: SectionFeature = {
 			processNode: (item) => context.processNode(item),
 		});
 	},
-};
+} satisfies SectionFeature;

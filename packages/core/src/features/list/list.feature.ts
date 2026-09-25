@@ -53,7 +53,7 @@ interface ListFeature extends NodeFeature<ListFeatureStages> {
 	hasMarker(node: LayoutPdfNode): boolean;
 }
 
-export const listFeature: ListFeature = {
+export const listFeature = {
 	kind: "list",
 	/** Whether list measurement attached a marker to this item. */
 	hasMarker(node): boolean {
@@ -85,4 +85,4 @@ export const listFeature: ListFeature = {
 			processNode: (item) => context.processNode(item),
 		});
 	},
-};
+} satisfies ListFeature;

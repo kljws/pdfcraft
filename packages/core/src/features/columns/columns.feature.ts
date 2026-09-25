@@ -39,7 +39,7 @@ interface ColumnsFeature extends NodeFeature<ColumnsFeatureStages> {
 	layout(node: LayoutColumnsNode, context: ColumnsLayoutFeatureContext): void;
 }
 
-export const columnsFeature: ColumnsFeature = {
+export const columnsFeature = {
 	kind: "columns",
 	matches(node): boolean {
 		return Boolean(node.columns);
@@ -59,4 +59,4 @@ export const columnsFeature: ColumnsFeature = {
 			processRow: (options) => context.processRow(options),
 		});
 	},
-};
+} satisfies ColumnsFeature;

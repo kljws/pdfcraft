@@ -56,7 +56,7 @@ interface AttachmentFeature extends NodeFeature<AttachmentFeatureStages> {
 	render(node: LayoutAttachmentNode, context: AttachmentRenderContext): void;
 }
 
-export const attachmentFeature: AttachmentFeature = {
+export const attachmentFeature = {
 	kind: "attachment",
 	matches(node): boolean {
 		return Boolean(node.attachment);
@@ -80,4 +80,4 @@ export const attachmentFeature: AttachmentFeature = {
 	render(node, context): void {
 		renderAttachment(node, context);
 	},
-};
+} satisfies AttachmentFeature;
