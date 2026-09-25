@@ -1,3 +1,4 @@
+import { markNodeKind } from "../../utils/node";
 import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { isString } from "../../utils/variable-type";
 import type { PreprocessedTocNode } from "./toc.types";
@@ -45,8 +46,7 @@ export function registerTocItem(
 
 export function preprocessToc(node: PdfNode, context: TocPreprocessContext): PreprocessedTocNode {
 	if (!node.toc) throw new Error("Internal preprocessing error: expected a TOC node");
-	node._kind = "toc";
-	const tocNode = node as unknown as PreprocessedTocNode;
+	const tocNode = markNodeKind(node, "toc");
 	const toc = tocNode.toc;
 	if (!toc.id) toc.id = "_default_";
 

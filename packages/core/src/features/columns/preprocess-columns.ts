@@ -1,5 +1,5 @@
 import type { ColumnNode, PdfNode, PreprocessedPdfNode } from "../../types/internal";
-import { stringifyNode } from "../../utils/node";
+import { stringifyNode, markNodeKind } from "../../utils/node";
 import type { PreprocessedColumnsNode } from "./columns.types";
 
 export interface ColumnsPreprocessContext {
@@ -16,8 +16,7 @@ export function preprocessColumns(
 		);
 	}
 
-	node._kind = "columns";
-	const columnsNode = node as unknown as PreprocessedColumnsNode;
+	const columnsNode = markNodeKind(node, "columns");
 	for (let index = 0; index < columnsNode.columns.length; index++) {
 		columnsNode.columns[index] = context.preprocessNode(
 			columnsNode.columns[index],

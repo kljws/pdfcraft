@@ -1,3 +1,4 @@
+import { markNodeKind } from "../../utils/node";
 import type { PdfNode } from "../../types/internal";
 import { isNumber, isObject } from "../../utils/variable-type";
 import type { PreprocessedAcroFormNode } from "./acroform.types";
@@ -27,6 +28,5 @@ export function preprocessAcroForm(node: PdfNode): PreprocessedAcroFormNode {
 	if (node.height !== undefined && !(isNumber(node.height) && node.height > 0)) {
 		throw new Error("Invalid AcroForm node: 'height' must be a positive number");
 	}
-	node._kind = "acroform";
-	return node as unknown as PreprocessedAcroFormNode;
+	return markNodeKind(node, "acroform");
 }

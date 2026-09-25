@@ -1,5 +1,5 @@
 import type { NodeText, PdfNode, PreprocessedPdfNode, RawPdfNode } from "../../types/internal";
-import { stringifyNode } from "../../utils/node";
+import { stringifyNode, markNodeKind } from "../../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../../utils/variable-type";
 import type { PreprocessedTextNode } from "./text.types";
 
@@ -42,8 +42,7 @@ export function preprocessText(
 	node: PdfNode,
 	context: TextPreprocessContext,
 ): PreprocessedTextNode {
-	node._kind = "text";
-	const textNode = node as unknown as PreprocessedTextNode;
+	const textNode = markNodeKind(node, "text");
 	context.registerTocItem(textNode);
 	context.preprocessReferences(textNode);
 

@@ -1,6 +1,6 @@
 import type { TableRowGroupLayout } from "../../types";
 import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
-import { stringifyNode } from "../../utils/node";
+import { stringifyNode, markNodeKind } from "../../utils/node";
 import { isNumber, isObject, isPositiveInteger, isString } from "../../utils/variable-type";
 import { normalizeTableBody } from "./table-body";
 import type { PreprocessedTableNode } from "./table.types";
@@ -250,6 +250,5 @@ export function preprocessTable(
 		}
 	}
 
-	node._kind = "table";
-	return node as unknown as PreprocessedTableNode;
+	return markNodeKind(node, "table");
 }

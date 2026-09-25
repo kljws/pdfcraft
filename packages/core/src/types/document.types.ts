@@ -267,6 +267,11 @@ type NodeOfStage<Stage extends keyof NodeKindStages> = {
 }[keyof NodeKindRegistry];
 
 export type PreprocessedPdfNode = NodeOfStage<"preprocessed">;
+/**
+ * A child handed to measurement by its parent. Nodes are measured in place, so the child is
+ * still preprocessed even though the parent's measured shape already types it as measured.
+ */
+export type PendingMeasureNode = PreprocessedPdfNode | MeasuredPdfNode;
 export type MeasurePdfNode = NodeOfStage<"measure">;
 export type MeasuredPdfNode = NodeOfStage<"measured">;
 export type LayoutPdfNode = NodeOfStage<"layout">;

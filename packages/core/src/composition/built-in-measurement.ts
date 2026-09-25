@@ -10,7 +10,7 @@ import type { Dictionary, PdfCraftExtensions, Style } from "../types";
 import type {
 	MeasurePdfNode,
 	MeasuredPdfNode,
-	PreprocessedPdfNode,
+	PendingMeasureNode,
 	TableLayout,
 } from "../types/internal";
 import { getNodeMargin, stringifyNode } from "../utils/node";
@@ -53,7 +53,7 @@ export function createBuiltInMeasurement(options: BuiltInMeasurementOptions) {
 			(inline) => acroFormFeature.measureInline(inline),
 		);
 
-	function measureNode(node: PreprocessedPdfNode): MeasuredPdfNode {
+	function measureNode(node: PendingMeasureNode): MeasuredPdfNode {
 		const measuredNode = node as unknown as MeasurePdfNode;
 		return styleStack.auto(measuredNode, () => {
 			measuredNode._margin = getNodeMargin(measuredNode, styleStack);

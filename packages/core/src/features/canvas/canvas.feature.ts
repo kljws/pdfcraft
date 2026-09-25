@@ -1,3 +1,4 @@
+import { markNodeKind } from "../../utils/node";
 import type {
 	NodeFeature,
 	NodeFeatureStages,
@@ -41,8 +42,7 @@ export const canvasFeature: CanvasFeature = {
 		return Boolean(node.canvas);
 	},
 	preprocess(node): PreprocessedCanvasNode {
-		node._kind = "canvas";
-		return node as unknown as PreprocessedCanvasNode;
+		return markNodeKind(node, "canvas");
 	},
 	measure(node, context): MeasuredCanvasNode {
 		return measureCanvas(node, context.styles);

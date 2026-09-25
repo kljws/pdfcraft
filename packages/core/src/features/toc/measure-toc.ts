@@ -1,15 +1,19 @@
-import type { MeasuredPdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type {
+	MeasuredPdfNode,
+	PendingMeasureNode,
+	PreprocessedPdfNode,
+} from "../../types/internal";
 import { getNodeId } from "../../utils/node";
 import type { MeasuredTocNode } from "./toc.types";
 
 export interface TocMeasureContext {
-	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
+	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
 }
 
 export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode {
 	const toc = node.toc;
 	if (toc.title) {
-		toc.title = context.measureNode(toc.title as unknown as PreprocessedPdfNode);
+		toc.title = context.measureNode(toc.title);
 	}
 
 	if (toc._items.length > 0) {

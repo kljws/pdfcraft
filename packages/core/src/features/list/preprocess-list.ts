@@ -1,5 +1,5 @@
 import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
-import { stringifyNode } from "../../utils/node";
+import { stringifyNode, markNodeKind } from "../../utils/node";
 import type { PreprocessedListNode } from "./list.types";
 
 export interface ListPreprocessContext {
@@ -18,8 +18,7 @@ export function preprocessList(
 		);
 	}
 
-	node._kind = "list";
-	const listNode = node as unknown as PreprocessedListNode;
+	const listNode = markNodeKind(node, "list");
 	const items = listNode[property];
 	if (!items) throw new Error(`Internal preprocessing error: missing '${property}' list`);
 	for (let index = 0; index < items.length; index++) {

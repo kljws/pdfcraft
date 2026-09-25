@@ -4,7 +4,7 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type { MeasurePdfNode, PdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { MeasurePdfNode, PdfNode } from "../../types/internal";
 import { layoutTable, type TableLayoutHost } from "./layout-table";
 import { measureTable } from "./measure-table";
 import { preprocessTable, type TablePreprocessContext } from "./preprocess-table";
@@ -50,7 +50,7 @@ export const tableFeature: TableFeature = {
 		return measureTable(node as TableMeasureNode, {
 			styles: context.styles,
 			tableLayouts: context.tableLayouts,
-			measureNode: (cell) => context.measureNode(cell as unknown as PreprocessedPdfNode),
+			measureNode: (cell) => context.measureNode(cell),
 		});
 	},
 	layout(node, context): void {

@@ -1,6 +1,6 @@
 import { isNumber, isString } from "./variable-type";
 import type StyleContextStack from "../services/styles/style-context-stack";
-import type { NodeStyleValue } from "../types/internal";
+import type { NodeStyleValue, PdfNode, PreprocessedPdfNode } from "../types/internal";
 
 type PartialMargin = [
 	left: number | undefined,
@@ -190,4 +190,17 @@ function toMarginValue(
 	defaultValue: number | undefined,
 ): number | undefined {
 	return toOptionalNumber(value) ?? currentValue ?? defaultValue;
+}
+
+/**
+ * Stamps a node with its feature kind and returns it as that kind's preprocessed shape.
+ * Preprocessing updates nodes in place instead of copying them: node references, TOC items and
+ * later layout passes rely on object identity, and re-running a pass dispatches by `_kind`.
+ */
+export function markNodeKind<Kind extends PreprocessedPdfNode["_kind"]>(
+	node: PdfNode,
+	kind: Kind,
+): Extract<PreprocessedPdfNode, { _kind: Kind }> {
+	node._kind = kind;
+	return node as unknown as Extract<PreprocessedPdfNode, { _kind: Kind }>;
 }

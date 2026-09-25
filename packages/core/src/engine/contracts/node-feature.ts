@@ -4,14 +4,14 @@ import type StyleContextStack from "../../services/styles/style-context-stack";
 import type DocumentContext from "../../document/document-context";
 import type { Dictionary, PageOrientation, PdfCraftExtensions } from "../../types";
 import type {
+	CurrentPosition,
+	LayoutPdfNode,
 	MeasurePdfNode,
 	MeasuredPdfNode,
-	LayoutPdfNode,
 	PageMarginSource,
 	PageSize,
-	PreprocessedPdfNode,
+	PendingMeasureNode,
 	TableLayout,
-	CurrentPosition,
 	Vector,
 } from "../../types/internal";
 
@@ -41,7 +41,7 @@ export interface NodeMeasureContext {
 	readonly extensions: PdfCraftExtensions;
 	readonly tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
 	readonly featureState: Map<string, object>;
-	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
+	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
 }
 
 export type NodeMeasureHook<Context extends NodeMeasureContext = NodeMeasureContext> = (

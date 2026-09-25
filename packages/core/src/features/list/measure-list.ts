@@ -3,7 +3,7 @@ import type { Color } from "../../types";
 import type {
 	Inline,
 	MeasuredPdfNode,
-	PreprocessedPdfNode,
+	PendingMeasureNode,
 	TextMeasurement,
 } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
@@ -12,7 +12,7 @@ import type { ListMeasureNode, MeasuredListItem, MeasuredListNode } from "./list
 
 export interface ListMeasureContext {
 	styles: StyleContextStack;
-	measureChild(node: PreprocessedPdfNode): MeasuredPdfNode;
+	measureChild(node: PendingMeasureNode): MeasuredPdfNode;
 	measureGap(): TextMeasurement;
 	buildMarkerInlines(text: string, color: Color, styles: StyleContextStack): Inline[];
 }
@@ -31,9 +31,7 @@ export function measureUnorderedList(
 	node._maxWidth = 0;
 
 	for (let index = 0; index < items.length; index++) {
-		const item: MeasuredListItem = (items[index] = context.measureChild(
-			items[index] as unknown as PreprocessedPdfNode,
-		));
+		const item: MeasuredListItem = (items[index] = context.measureChild(items[index]));
 		if (item._kind !== "list") {
 			item.listMarker = buildUnorderedMarker(item, style, gapSize, item.listType || node.type);
 		}
@@ -63,9 +61,7 @@ export function measureOrderedList(
 
 	let counter = node.start;
 	for (let index = 0; index < items.length; index++) {
-		const item: MeasuredListItem = (items[index] = context.measureChild(
-			items[index] as unknown as PreprocessedPdfNode,
-		));
+		const item: MeasuredListItem = (items[index] = context.measureChild(items[index]));
 		if (item._kind !== "list") {
 			const counterValue = isNumber(item.counter) ? item.counter : counter;
 			const counterText = formatOrderedMarker(

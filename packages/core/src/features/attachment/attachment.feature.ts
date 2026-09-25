@@ -1,3 +1,4 @@
+import { markNodeKind } from "../../utils/node";
 import type {
 	NodeFeature,
 	NodeFeatureStages,
@@ -61,8 +62,7 @@ export const attachmentFeature: AttachmentFeature = {
 		return Boolean(node.attachment);
 	},
 	preprocess(node): PreprocessedAttachmentNode {
-		node._kind = "attachment";
-		return node as unknown as PreprocessedAttachmentNode;
+		return markNodeKind(node, "attachment");
 	},
 	resolveResources(document, { resolve }): undefined {
 		resolveAttachmentReferences(document, resolve);
