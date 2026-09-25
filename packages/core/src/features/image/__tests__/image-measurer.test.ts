@@ -8,6 +8,17 @@ import ImageMeasurer from "../image-measurer.ts";
 import type { MeasuredImageNode } from "../image.types.ts";
 import type { MeasuredTextNode } from "../../text/text.types.ts";
 
+function measureWithIntrinsicDimensions(
+	node: MeasuredImageNode,
+	dimensions: { width: number; height: number },
+): MeasuredImageNode {
+	const document = {
+		images: {},
+		provideImage: () => ({ ...dimensions, orientation: 0 }),
+	} as unknown as PDFDocument;
+	return new ImageMeasurer(document, new StyleContextStack()).measureImage(node);
+}
+
 describe("Image measurement", function () {
 	it("measures registered images embedded in text", function () {
 		const measure = createTestMeasurement(
@@ -70,11 +81,7 @@ describe("Image measurement", function () {
 	});
 
 	it("falls back to intrinsic dimensions for an invalid width", function () {
-		const measurer = new ImageMeasurer(
-			{ images: {} } as unknown as PDFDocument,
-			new StyleContextStack(),
-		);
-		const result = measurer.measureImageWithDimensions(
+		const result = measureWithIntrinsicDimensions(
 			{ image: "...", width: "auto" } as MeasuredImageNode,
 			{ width: 42, height: 42 },
 		);
@@ -84,11 +91,7 @@ describe("Image measurement", function () {
 	});
 
 	it("falls back to intrinsic dimensions for an unsupported percentage width", function () {
-		const measurer = new ImageMeasurer(
-			{ images: {} } as unknown as PDFDocument,
-			new StyleContextStack(),
-		);
-		const result = measurer.measureImageWithDimensions(
+		const result = measureWithIntrinsicDimensions(
 			{ image: "...", width: "30%" } as MeasuredImageNode,
 			{ width: 120, height: 60 },
 		);
@@ -100,11 +103,7 @@ describe("Image measurement", function () {
 	});
 
 	it("falls back to intrinsic dimensions for an invalid height", function () {
-		const measurer = new ImageMeasurer(
-			{ images: {} } as unknown as PDFDocument,
-			new StyleContextStack(),
-		);
-		const result = measurer.measureImageWithDimensions(
+		const result = measureWithIntrinsicDimensions(
 			{ image: "...", height: "auto" } as MeasuredImageNode,
 			{ width: 42, height: 42 },
 		);
