@@ -1,16 +1,19 @@
 import { createBuiltInRendering, type BuiltInRendering } from "../composition/built-in-rendering";
 import type { PdfCraftExtensions } from "../types";
-import type { LineLike } from "../types/internal";
-import RendererGraphics from "./renderer.graphics";
+import type { LayoutPdfNode, LineLike, Vector } from "../types/internal";
+import ClippingRenderer from "./clipping-renderer";
 import type PDFDocument from "./pdf-document";
 import type { ClipRectangle, RenderablePage, VerticalAlignmentItem } from "./renderer.types";
+import { beginVerticalAlignment, endVerticalAlignment } from "./render-vertical-alignment";
+import VectorRenderer from "./vector-renderer";
 
 class Renderer {
 	private readonly pdfDocument: PDFDocument;
-	private readonly graphics: RendererGraphics;
 	private readonly progressCallback: ((progress: number) => void) | undefined;
 	private readonly outlineMap: Record<string, PDFKit.PDFOutline> = {};
 	private readonly rendering: BuiltInRendering;
+	private readonly vectors: VectorRenderer;
+	private readonly clipping: ClippingRenderer;
 
 	constructor(
 		pdfDocument: PDFDocument,
@@ -19,7 +22,8 @@ class Renderer {
 	) {
 		this.pdfDocument = pdfDocument;
 		this.rendering = createBuiltInRendering(pdfDocument, extensions);
-		this.graphics = new RendererGraphics(pdfDocument, extensions, this.rendering.graphics);
+		this.vectors = new VectorRenderer(pdfDocument);
+		this.clipping = new ClippingRenderer(pdfDocument, () => this.resetVectorState());
 		this.progressCallback = progressCallback;
 	}
 
@@ -33,34 +37,34 @@ class Renderer {
 
 		for (const page of pages) {
 			this.pdfDocument.addPage({ size: [page.pageSize.width, page.pageSize.height] });
-			this.graphics.beginPage();
+			this.resetVectorState();
 
 			for (const item of page.items) {
 				if (item.type !== "vector") {
-					this.graphics.prepareNonVectorItem();
+					this.resetVectorState();
 				}
 
 				switch (item.type) {
 					case "vector":
-						this.graphics.renderVector(item.item);
+						this.renderVector(item.item);
 						break;
 					case "line":
 						this.renderLine(item.item, item.item.x ?? 0, item.item.y ?? 0);
 						break;
 					case "beginClip":
-						this.graphics.beginClip(item.item as ClipRectangle);
+						this.beginClip(item.item as ClipRectangle);
 						break;
 					case "endClip":
-						this.graphics.endClip();
+						this.endClip();
 						break;
 					case "beginVerticalAlignment":
-						this.graphics.beginVerticalAlignment(item.item as VerticalAlignmentItem);
+						this.beginVerticalAlignment(item.item as VerticalAlignmentItem);
 						break;
 					case "endVerticalAlignment":
-						this.graphics.endVerticalAlignment(item.item as VerticalAlignmentItem);
+						this.endVerticalAlignment(item.item as VerticalAlignmentItem);
 						break;
 					default:
-						this.graphics.renderFeatureItem(item.type, item.item);
+						this.renderFeatureItem(item.type, item.item);
 						break;
 				}
 
@@ -68,16 +72,48 @@ class Renderer {
 				this.progressCallback?.(renderedItems / totalItems);
 			}
 
-			this.graphics.endPage();
+			this.clipping.assertBalanced();
 
 			if (page.watermark) {
-				this.graphics.renderWatermark(page);
+				this.renderWatermark(page);
 			}
 		}
 	}
 
 	renderLine(line: LineLike, x: number, y: number): void {
 		this.rendering.renderLine(line, this.outlineMap, x, y);
+	}
+
+	private resetVectorState(): void {
+		this.vectors.reset();
+	}
+
+	renderVector(vector: Vector): void {
+		this.vectors.render(vector);
+	}
+
+	renderFeatureItem(kind: string, node: LayoutPdfNode): void {
+		this.rendering.graphics.renderFeatureItem(kind, node, () => this.resetVectorState());
+	}
+
+	beginClip(rect: ClipRectangle): void {
+		this.clipping.begin(rect);
+	}
+
+	endClip(): void {
+		this.clipping.end();
+	}
+
+	beginVerticalAlignment(item: VerticalAlignmentItem): void {
+		beginVerticalAlignment(this.pdfDocument, item);
+	}
+
+	endVerticalAlignment(item: VerticalAlignmentItem): void {
+		endVerticalAlignment(this.pdfDocument, item);
+	}
+
+	renderWatermark(page: RenderablePage): void {
+		this.rendering.graphics.renderWatermark(page);
 	}
 }
 

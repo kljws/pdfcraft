@@ -1,6 +1,8 @@
 import { drawHorizontalLine, drawVerticalLine } from "./table-processor.borders";
+import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { PdfPage, PdfTable, TableOffsets, TableRowGroupRange } from "../../types/internal";
+import { isPositiveInteger } from "../../utils/variable-type";
 import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 import type { TablePageBreak } from "./table-pagination";
 import type {
@@ -8,7 +10,14 @@ import type {
 	RowSpanData,
 	TablePageVectorRegistry,
 } from "./table-processor.types";
-import { beginTable, beginTableRow } from "./table-processor.lifecycle";
+import {
+	createRowSpanData,
+	getTableInnerContentWidth,
+	hasExplicitPageBreak,
+	propagateCellBorders,
+	requireTable,
+	resetTableLayoutState,
+} from "./table-processor.helpers";
 import { drawTableRowSegment, type TableLinePosition } from "./table-processor.rows";
 
 class TableProcessor {
@@ -44,21 +53,129 @@ class TableProcessor {
 
 	constructor(tableNode: LayoutTableNode) {
 		this.tableNode = tableNode;
-		this._isCurrentRowUnbreakable = false;
 	}
 
 	private get table(): PdfTable<LayoutTableCell> {
-		const table = this.tableNode.table;
-		if (!table) throw new Error("Internal layout error: expected a preprocessed table node");
-		return table;
+		return requireTable(this.tableNode);
 	}
 
 	beginTable(writer: PageElementWriter): void {
-		beginTable(this, writer);
+		resetTableLayoutState(this.tableNode);
+		const offsets = this.tableNode.metrics.offsets;
+		if (!offsets) throw new Error("Internal layout error: table offsets were not measured");
+		this.offsets = offsets;
+		this.layout = this.tableNode.metrics.layout as ResolvedTableLayout;
+		this.headerLayout = (this.tableNode._headerLayout ??
+			this.tableNode.metrics.layout) as ResolvedTableLayout;
+		this.bodyLayout = (this.tableNode._bodyLayout ??
+			this.tableNode.metrics.layout) as ResolvedTableLayout;
+
+		const table = this.table;
+		const contextWidth = writer.context().availableWidth;
+		const availableWidth = contextWidth - this.offsets.total;
+		ColumnCalculator.buildColumnWidths(
+			table.widths,
+			availableWidth,
+			this.offsets.total,
+			this.tableNode,
+		);
+		this.tableWidth = this.offsets.total + getTableInnerContentWidth(this.tableNode);
+		this.borderRadius = Math.min(
+			Number.isFinite(table.borderRadius) ? Math.max(0, table.borderRadius ?? 0) : 0,
+			this.tableWidth / 2,
+		);
+		this.roundedTopByPage.clear();
+		this.vectorRegistryByPage.clear();
+		const remainingWidth = Math.max(0, contextWidth - this.tableWidth);
+		this.tableOffset =
+			this.tableNode._tableAlignment === "right"
+				? remainingWidth
+				: this.tableNode._tableAlignment === "center"
+					? remainingWidth / 2
+					: 0;
+		this.rowSpanData = createRowSpanData(this.tableNode, this.layout, this.tableOffset);
+		this.rowGroupsByRow = Array(table.body.length);
+		for (const group of table._rowGroups ?? []) {
+			for (let rowIndex = group.startRow; rowIndex <= group.endRow; rowIndex++) {
+				this.rowGroupsByRow[rowIndex] = group;
+			}
+		}
+		this.cleanUpRepeatables = false;
+		this.headerRows = 0;
+		this.rowsWithoutPageBreak = 0;
+
+		if (isPositiveInteger(table.headerRows)) {
+			this.headerRows = table.headerRows;
+			if (this.headerRows > table.body.length) {
+				throw new Error(
+					`Too few rows in the table. Property headerRows requires at least ${this.headerRows}, contains only ${table.body.length}`,
+				);
+			}
+			this.rowsWithoutPageBreak = this.headerRows;
+			const firstBodyGroup = table._rowGroups?.find(
+				(group) => group.startRow === this.headerRows,
+			);
+			if (firstBodyGroup?.keepTogether) {
+				this.rowsWithoutPageBreak = firstBodyGroup.endRow + 1;
+			}
+			if (isPositiveInteger(table.keepWithHeaderRows)) {
+				this.rowsWithoutPageBreak += table.keepWithHeaderRows;
+			}
+		}
+		this.layout = this.headerRows ? this.headerLayout : this.bodyLayout;
+
+		this.dontBreakRows = table.dontBreakRows || false;
+		if (this.rowsWithoutPageBreak || this.dontBreakRows) {
+			writer.beginUnbreakableBlock();
+			this.drawHorizontalLine(0, writer);
+			if (this.rowsWithoutPageBreak && this.dontBreakRows) {
+				writer.beginUnbreakableBlock();
+			}
+		}
+
+		propagateCellBorders(table.body);
 	}
 
 	beginRow(rowIndex: number, writer: PageElementWriter): void {
-		beginTableRow(this, rowIndex, writer);
+		const rowGroup = this.rowGroupsByRow[rowIndex];
+		this.selectLayout(rowIndex);
+		this._currentRowGroup = rowGroup;
+		if (rowGroup?.keepTogether && rowIndex === rowGroup.startRow) {
+			writer.beginUnbreakableBlock();
+		}
+
+		this.topLineWidth = this.layout.hLineWidth(rowIndex, this.tableNode);
+		this.rowPaddingTop = this.layout.paddingTop(rowIndex, this.tableNode);
+		this.bottomLineWidth = this.layout.hLineWidth(rowIndex + 1, this.tableNode);
+		this.rowPaddingBottom = this.layout.paddingBottom(rowIndex, this.tableNode);
+		const context = writer.context();
+		const currentPage =
+			typeof context.getCurrentPage === "function" ? context.getCurrentPage() : undefined;
+		this.rowXOffset =
+			context.x - (currentPage?.pageMargins.left ?? context.pageMargins?.left ?? 0);
+
+		this.rowCallback = () => {
+			const offset = this.rowPaddingTop + (!this.headerRows ? this.topLineWidth : 0);
+			writer.context().availableHeight -= this.reservedAtBottom;
+			writer.context().moveDown(offset);
+		};
+		writer.addListener("pageChanged", this.rowCallback);
+		if (rowIndex === 0 && !this.dontBreakRows && !this.rowsWithoutPageBreak) {
+			this._tableTopBorderY = writer.context().y;
+			writer.context().moveDown(this.topLineWidth);
+		}
+
+		this.rowTopPageY = writer.context().y + this.rowPaddingTop;
+		const rowHasPageBreak = this.table.body[rowIndex]?.some(hasExplicitPageBreak) ?? false;
+		const rowMustNotBreak = this.dontBreakRows || rowGroup?.dontBreakRows === true;
+		this._isCurrentRowUnbreakable =
+			rowMustNotBreak && !(this.dontBreakRows && rowIndex === 0) && !rowHasPageBreak;
+		if (this._isCurrentRowUnbreakable) writer.beginUnbreakableBlock();
+
+		this.rowTopY = writer.context().y;
+		this.reservedAtBottom = this.bottomLineWidth + this.rowPaddingBottom;
+		writer.context().availableHeight -= this.reservedAtBottom;
+		writer.context().moveDown(this.rowPaddingTop);
 	}
 
 	selectLayout(rowIndex: number): void {

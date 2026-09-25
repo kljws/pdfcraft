@@ -4,7 +4,7 @@ import type PageElementWriter from "../../../layout/element-writer.page.ts";
 import type { Vector } from "../../../types/internal.ts";
 import type { TablePageBreak } from "../table-pagination.ts";
 import BaseTableProcessor from "../table-processor.ts";
-import { resetTableLayoutState } from "../table-processor.lifecycle.ts";
+import { resetTableLayoutState } from "../table-processor.helpers.ts";
 import type { ResolvedTableLayout } from "../table-processor.types.ts";
 import type { LayoutTableNode } from "../table.types.ts";
 

@@ -30,6 +30,29 @@ export const requireTable = (tableNode: LayoutTableNode): PdfTable<LayoutTableCe
 	return table;
 };
 
+export function resetTableLayoutState(tableNode: LayoutTableNode): void {
+	delete tableNode._breaksBySpan;
+	delete tableNode._bottomByPage;
+	for (const row of requireTable(tableNode).body) {
+		for (const cell of row) {
+			delete cell._bottomY;
+			delete cell._originalXOffset;
+			delete cell._columnEndingContext;
+			delete cell._endingCell;
+			delete cell._leftEndingCell;
+			delete cell._startingRowSpanY;
+			delete cell._startingRowSpanPage;
+			delete cell._rowTopPageY;
+			delete cell._willBreak;
+			delete cell._isUnbreakableContext;
+			delete cell.__height;
+			delete cell._rowTopPageYPadding;
+			delete cell._lastPageNumber;
+			delete cell._rowSpanCurrentOffset;
+		}
+	}
+}
+
 const getPageVectorRegistry = (
 	processor: TableProcessorState,
 	page: PdfPage,

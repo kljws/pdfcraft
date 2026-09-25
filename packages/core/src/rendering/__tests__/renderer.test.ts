@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import RendererGraphics from "../renderer.graphics";
+import Renderer from "../renderer";
 import type PDFDocument from "../pdf-document";
 
 describe("Renderer", () => {
@@ -34,7 +34,7 @@ describe("Renderer", () => {
 			fillColor: vi.fn().mockReturnThis(),
 			fill: vi.fn().mockReturnThis(),
 		};
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.renderVector({
 			type: "rect",
@@ -51,7 +51,7 @@ describe("Renderer", () => {
 
 	it("does not emit unchanged vector graphics state repeatedly", () => {
 		const document = vectorDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 		const vector = { type: "rect" as const, x: 0, y: 0, w: 10, h: 10 };
 
 		renderer.renderVector(vector);
@@ -66,7 +66,7 @@ describe("Renderer", () => {
 
 	it("uses the public lineOpacity value for vector strokes", () => {
 		const document = vectorDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.renderVector({
 			type: "line",
@@ -88,7 +88,7 @@ describe("Renderer", () => {
 			clip: vi.fn().mockReturnThis(),
 			restore: vi.fn().mockReturnThis(),
 		};
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.beginClip({ x: 1, y: 2, width: 3, height: 4 });
 		renderer.endClip();
@@ -102,7 +102,7 @@ describe("Renderer", () => {
 
 	it("rejects invalid clip rectangles before changing PDF state", () => {
 		const document = { save: vi.fn() };
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		expect(() => renderer.beginClip({ x: 0, y: 0, width: -1, height: 4 })).toThrow(
 			/Clip rectangle/,

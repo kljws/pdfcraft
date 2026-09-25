@@ -3,7 +3,6 @@ import type { PdfCraftExtension } from "../../types";
 import type { LayoutPdfNode, Vector } from "../../types/internal";
 import type PDFDocument from "../pdf-document";
 import Renderer from "../renderer";
-import RendererGraphics from "../renderer.graphics";
 
 const renderExtension = vi.fn();
 const extension: PdfCraftExtension = {
@@ -67,7 +66,7 @@ describe("Renderer graphics", () => {
 		const { document } = createDocument();
 		const gradient = { stop: vi.fn() };
 		document.linearGradient.mockReturnValue(gradient);
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.renderVector({
 			type: "rect",
@@ -126,7 +125,7 @@ describe("Renderer graphics", () => {
 		const { document } = createDocument();
 		const pattern = ["pattern", "red"];
 		document.providePattern.mockReturnValue(pattern);
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 		const vector: Vector = {
 			type: "polyline",
 			points: [
@@ -146,7 +145,7 @@ describe("Renderer graphics", () => {
 
 	it("applies the layout offset to canvas paths (#1290)", () => {
 		const { document } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.renderVector({
 			type: "path",
@@ -164,7 +163,7 @@ describe("Renderer graphics", () => {
 
 	it("renders covered images and all supported annotations", () => {
 		const { document, action } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 		const image = {
 			image: "image",
 			x: 10,
@@ -208,7 +207,7 @@ describe("Renderer graphics", () => {
 
 	it("renders normally sized images without clipping", () => {
 		const { document } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.renderFeatureItem("image", {
 			image: "image",
@@ -224,7 +223,7 @@ describe("Renderer graphics", () => {
 
 	it("clips image corners and draws the border inside its layout box", () => {
 		const { document } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.renderFeatureItem("image", {
 			image: "image",
@@ -250,7 +249,7 @@ describe("Renderer graphics", () => {
 
 	it("clips covered images with a radius bounded by their dimensions", () => {
 		const { document } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		renderer.renderFeatureItem("image", {
 			image: "image",
@@ -274,7 +273,7 @@ describe("Renderer graphics", () => {
 
 	it("delegates extension rendering, resolves fonts and renders links", () => {
 		const { document, action } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument, [extension]);
+		const renderer = new Renderer(document as unknown as PDFDocument, undefined, [extension]);
 		const node = {
 			_extension: "test",
 			x: 5,
@@ -303,7 +302,7 @@ describe("Renderer graphics", () => {
 
 	it("reports a missing extension renderer", () => {
 		const { document } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 
 		expect(() =>
 			renderer.renderFeatureItem("extension", {
@@ -317,7 +316,7 @@ describe("Renderer graphics", () => {
 	it("reports a missing extension font style", () => {
 		const { document } = createDocument();
 		document.getFontFile.mockReturnValue(null);
-		const renderer = new RendererGraphics(document as unknown as PDFDocument, [extension]);
+		const renderer = new Renderer(document as unknown as PDFDocument, undefined, [extension]);
 		renderer.renderFeatureItem("extension", { _extension: "test", x: 0, y: 0 } as LayoutPdfNode);
 		const context = renderExtension.mock.calls[0][0];
 
@@ -328,7 +327,7 @@ describe("Renderer graphics", () => {
 
 	it("renders attachment icons, vertical alignment and watermarks", () => {
 		const { document } = createDocument();
-		const renderer = new RendererGraphics(document as unknown as PDFDocument);
+		const renderer = new Renderer(document as unknown as PDFDocument);
 		const middle = {
 			isCellContentMultiPage: false,
 			verticalAlignment: "middle" as const,
