@@ -44,8 +44,10 @@ export interface FeaturePageItem {
 	item: LayoutPdfNode;
 }
 
+export type VectorPageItem = { type: "vector"; item: Vector };
+
 export type PageItem =
-	| { type: "vector"; item: Vector }
+	| VectorPageItem
 	| { type: "line"; item: LineLike }
 	| FeaturePageItem
 	| {

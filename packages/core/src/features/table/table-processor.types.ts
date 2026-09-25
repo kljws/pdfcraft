@@ -1,8 +1,6 @@
 import type { Color } from "../../types";
-import type { PageItem, PdfPage, Vector } from "../../types/internal";
+import type { PdfPage, Vector, VectorPageItem } from "../../types/internal";
 import type { LayoutTableCell, LayoutTableNode } from "./table.types";
-
-export type VectorPageItem = Extract<PageItem, { type: "vector" }>;
 
 export interface TablePageVectorRegistry {
 	horizontalGroup?: object;

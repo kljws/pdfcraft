@@ -1,6 +1,5 @@
-import type { PageItem, PdfPage, Vector } from "../types/internal";
+import type { PdfPage, Vector, VectorPageItem } from "../types/internal";
 
-type VectorPageItem = Extract<PageItem, { type: "vector" }>;
 type VectorInsertionListener = (pageIndex: number, page: PdfPage, pageItem: VectorPageItem) => void;
 
 const vectorInsertionListener = Symbol("vectorInsertionListener");

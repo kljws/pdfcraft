@@ -8,13 +8,12 @@ import type {
 	PageBreak,
 	PageItem,
 	Vector,
+	VectorPageItem,
 } from "../types/internal";
 import { addPageItem, getAlignmentOffset } from "./element-writer.helpers";
 import { type ElementFragment, replayFragment } from "./element-writer.fragments";
 import { notifyVectorInsertion } from "./vector-insertion";
 import type { NodePlaceResult } from "../engine/contracts/node-feature";
-
-type VectorPageItem = Extract<PageItem, { type: "vector" }>;
 
 export interface ElementWriterEvents {
 	lineAdded: [line: LineLike];
