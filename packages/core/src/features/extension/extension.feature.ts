@@ -40,7 +40,10 @@ export const extensionFeature = {
 			extension.resolveResources?.(documentDefinition, context.resolve);
 		}
 	},
-	measure(node: ExtensionMeasureNode, context: NodeMeasureContext): MeasuredExtensionNode | undefined {
+	measure(
+		node: ExtensionMeasureNode,
+		context: NodeMeasureContext,
+	): MeasuredExtensionNode | undefined {
 		const extension = findExtensionForNode(node, context.extensions);
 		if (!extension) return undefined;
 

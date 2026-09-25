@@ -110,14 +110,7 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 		}
 
 		if (inline.linkToPage) {
-			addPageLink(
-				document,
-				x + inline.x,
-				shiftedY,
-				inline.width,
-				inline.height,
-				inline.linkToPage,
-			);
+			addPageLink(document, x + inline.x, shiftedY, inline.width, inline.height, inline.linkToPage);
 		}
 	}
 

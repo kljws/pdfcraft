@@ -13,16 +13,9 @@ interface RepeatableSize {
 	height: number;
 }
 
-type RepeatableSizeFunction = (
-	pageSize: PageSize,
-	pageMargins: PageMargins,
-) => RepeatableSize;
+type RepeatableSizeFunction = (pageSize: PageSize, pageMargins: PageMargins) => RepeatableSize;
 
-type DynamicNodeGetter = (
-	pageNumber: number,
-	pageCount: number,
-	pageSize: PageSize,
-) => unknown;
+type DynamicNodeGetter = (pageNumber: number, pageCount: number, pageSize: PageSize) => unknown;
 
 interface HeaderFooterLayoutContext {
 	pages: PdfPage[];

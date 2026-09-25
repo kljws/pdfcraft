@@ -2,10 +2,7 @@ import type PageElementWriter from "../../layout/element-writer.page";
 import type { ProcessRowOptions, ProcessRowResult } from "./layout-row";
 import type { ColumnWidth, PdfTable } from "../../types/internal";
 import TableProcessor from "./table-processor";
-import {
-	findSameRowPageBreakByRowSpanData,
-	getPageBreakListBySpan,
-} from "./table-pagination";
+import { findSameRowPageBreakByRowSpanData, getPageBreakListBySpan } from "./table-pagination";
 import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 
 export interface TableLayoutHost {

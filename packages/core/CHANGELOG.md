@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Simplified the internal node-feature pipeline by removing unused contracts and casts, using exact lifecycle node types, and consolidating repeated atomic layout, page-fit and PDF page-link logic without changing the public API.
+- Colocated single-use attachment, extension, section, table-of-contents and repeatable-document behavior with their owning features, removing pass-through layout, measurement, resource, page-break, rendering and type modules.
+- Merged table lifecycle state into `TableProcessor` and graphics coordination into `Renderer` while preserving the dedicated table border/row algorithms and vector/clipping state owners.
+
+### Tests
+
+- Consolidated repeated measurement fixtures and parametrized the snaking-column integration cases while retaining coverage of pagination, rendering and node identity behavior.
+
 ## [0.8.1] - 2026-09-25
 
 ### Changed

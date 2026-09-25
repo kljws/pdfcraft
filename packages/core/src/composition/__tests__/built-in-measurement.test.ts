@@ -1,9 +1,6 @@
 import { assert, describe, it } from "vitest";
 import { createBuiltInPreprocessing } from "../built-in-preprocessing.ts";
-import {
-	createTestMeasurement,
-	sampleTestProvider,
-} from "../../__tests__/fixtures/measurement.ts";
+import { createTestMeasurement, sampleTestProvider } from "../../__tests__/fixtures/measurement.ts";
 import { expectMeasuredKind } from "../../__tests__/fixtures/nodes.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
 

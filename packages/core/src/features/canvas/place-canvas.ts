@@ -1,8 +1,5 @@
 import type { NodePlaceContext } from "../../engine/contracts/node-feature";
-import {
-	canPlaceOnCurrentPage,
-	getAlignmentOffset,
-} from "../../layout/element-writer.helpers";
+import { canPlaceOnCurrentPage, getAlignmentOffset } from "../../layout/element-writer.helpers";
 import type { CurrentPosition } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
 import type { LayoutCanvasNode } from "./canvas.types";

@@ -1,5 +1,12 @@
 import type DocumentContext from "../document/document-context";
-import type { LayoutPdfNode, LineLike, PageItem, Position, Vector, VectorPageItem } from "../types/internal";
+import type {
+	LayoutPdfNode,
+	LineLike,
+	PageItem,
+	Position,
+	Vector,
+	VectorPageItem,
+} from "../types/internal";
 import { offsetVector, pack } from "../utils/tools";
 import { notifyVectorInsertion } from "./vector-insertion";
 

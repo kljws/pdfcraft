@@ -584,7 +584,10 @@ describe("Integration test: snaking columns", function () {
 	])("should handle $name", function ({ columnGap, expectedSecondX }) {
 		const text = Array.from({ length: 60 }, (_, index) => `Line ${index + 1}`).join("\n");
 		const columns = {
-			columns: [{ text, width: 100, fontSize: 14 }, { text: "", width: "*" }],
+			columns: [
+				{ text, width: 100, fontSize: 14 },
+				{ text: "", width: "*" },
+			],
 			snakingColumns: true,
 			...(columnGap === undefined ? {} : { columnGap }),
 		};
@@ -592,9 +595,9 @@ describe("Integration test: snaking columns", function () {
 		const pages = testHelper.renderPages("A4", { content: [columns] });
 
 		assert.equal(pages.length, 1, "Should fit on one page");
-		const uniqueX = [
-			...new Set(pages[0].items.map((node) => normalizeX(node.item.x))),
-		].sort((a, b) => a - b);
+		const uniqueX = [...new Set(pages[0].items.map((node) => normalizeX(node.item.x)))].sort(
+			(a, b) => a - b,
+		);
 		assert.ok(uniqueX.length >= 2, "Content should snake to column 2");
 		assert.equal(uniqueX[0], 40, "Column 1 should start at the left margin");
 		assert.equal(uniqueX[1], expectedSecondX, "Column 2 should include the configured gap");

@@ -112,9 +112,7 @@ class TableProcessor {
 				);
 			}
 			this.rowsWithoutPageBreak = this.headerRows;
-			const firstBodyGroup = table._rowGroups?.find(
-				(group) => group.startRow === this.headerRows,
-			);
+			const firstBodyGroup = table._rowGroups?.find((group) => group.startRow === this.headerRows);
 			if (firstBodyGroup?.keepTogether) {
 				this.rowsWithoutPageBreak = firstBodyGroup.endRow + 1;
 			}
@@ -151,8 +149,7 @@ class TableProcessor {
 		const context = writer.context();
 		const currentPage =
 			typeof context.getCurrentPage === "function" ? context.getCurrentPage() : undefined;
-		this.rowXOffset =
-			context.x - (currentPage?.pageMargins.left ?? context.pageMargins?.left ?? 0);
+		this.rowXOffset = context.x - (currentPage?.pageMargins.left ?? context.pageMargins?.left ?? 0);
 
 		this.rowCallback = () => {
 			const offset = this.rowPaddingTop + (!this.headerRows ? this.topLineWidth : 0);

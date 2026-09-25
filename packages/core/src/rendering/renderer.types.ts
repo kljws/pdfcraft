@@ -1,4 +1,4 @@
-import type { Color, PatternDefinition } from "../types";
+import type { Color } from "../types";
 import type { AttachmentSource, MeasuredWatermark, PdfPage } from "../types/internal";
 
 export type { EmbeddedFont, FontFile, FontStyle } from "../services/typography/font.types";
