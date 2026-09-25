@@ -8,7 +8,7 @@
 		"node": ">=22"
 	},
 	"scripts": {
-		"test": "pnpm run build && pnpm run typecheck && pnpm run test:types && pnpm run test:consumer && pnpm run test:unit && pnpm run test:integration && pnpm run test:browser && pnpm run lint && pnpm run format:check",
+		"test": "pnpm run build && pnpm run typecheck && pnpm run test:types && pnpm run test:consumer && pnpm run test:unit && pnpm run test:integration && pnpm run test:browser && pnpm run lint:check && pnpm run format:check",
 		"typecheck": "tsc --noEmit",
 		"typecheck:build": "pnpm --recursive --filter './packages/*' run typecheck",
 		"build": "pnpm --recursive --filter './packages/*' run build",
@@ -16,9 +16,9 @@
 		"benchmark:quick": "pnpm run build && node benchmarks/run.mjs --quick",
 		"benchmark:quote": "pnpm run build && node benchmarks/run.mjs --scenario=quote-concurrent-1,quote-concurrent-10,quote-concurrent-100",
 		"visual:generate": "pnpm run build && node tests/visual/generate.mjs",
-		"lint": "oxlint .",
 		"lint:fix": "oxlint --fix .",
-		"format": "oxfmt .",
+		"lint:check": "oxlint .",
+		"format:fix": "oxfmt .",
 		"format:check": "oxfmt --check .",
 		"test:types": "tsc -p packages/core/tests/types/tsconfig.json && tsc -p packages/browser/tests/types/tsconfig.json && tsc -p packages/qr/tests/types/tsconfig.json && tsc -p packages/svg/tests/types/tsconfig.json",
 		"test:consumer": "vitest run tests/consumer",
