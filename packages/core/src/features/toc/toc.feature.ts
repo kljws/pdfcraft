@@ -5,7 +5,6 @@ import type {
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
 import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
-import { layoutToc } from "./layout-toc";
 import { measureToc } from "./measure-toc";
 import {
 	preprocessToc,
@@ -49,8 +48,11 @@ export const tocFeature: TocFeature = {
 		});
 	},
 	layout(node, context): void {
-		layoutToc(node, {
-			processNode: (item) => context.processNode(item),
-		});
+		const toc = node.toc;
+		if (!toc) throw new Error("Internal layout error: expected a preprocessed TOC node");
+		if (!toc._table && toc.hideEmpty === true) return;
+
+		if (toc.title) context.processNode(toc.title);
+		if (toc._table) context.processNode(toc._table);
 	},
 };

@@ -1,4 +1,3 @@
-import { PAGE_BREAK_VALUES } from "./table-processor.constants";
 import { trackVectorInsertion } from "../../layout/vector-insertion";
 import type { ColumnWidth, PdfPage, PdfTable, Vector } from "../../types/internal";
 import type { LayoutTableCell, LayoutTableNode } from "./table.types";
@@ -8,6 +7,15 @@ import type {
 	TablePageVectorRegistry,
 	TableProcessorState,
 } from "./table-processor.types";
+
+const PAGE_BREAK_VALUES = new Set([
+	"before",
+	"beforeOdd",
+	"beforeEven",
+	"after",
+	"afterOdd",
+	"afterEven",
+]);
 
 export type TableVectorRole =
 	| "horizontal"

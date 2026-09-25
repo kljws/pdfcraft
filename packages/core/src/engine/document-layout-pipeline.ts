@@ -1,5 +1,4 @@
 import type { LayoutPdfNode, PageMargins, PdfPage } from "../types/internal";
-import { resetNodePositions } from "./reset-node-positions";
 
 const MAX_LAYOUT_PASSES = 10;
 
@@ -78,7 +77,7 @@ export function runDocumentLayoutPipeline(context: DocumentLayoutPipelineContext
 		}
 		bottomMarginOverrides = nextBottomMarginOverrides;
 
-		resetNodePositions(result.linearNodeList);
+		for (const node of result.linearNodeList) node.resetXY?.();
 		result = context.runPass(assumedPageCount, bottomMarginOverrides);
 		layoutPass++;
 	}

@@ -8,7 +8,7 @@ import {
 	type DocumentLayoutPassResult,
 } from "../engine/document-layout-pipeline";
 import PageElementWriter from "../layout/element-writer.page";
-import { createBuiltInElementPlacement } from "./built-in-element-placement";
+import { createBuiltInElementPlacement } from "./built-in-feature-registry";
 import { calculatePageHeight } from "../layout/page-item-geometry";
 import { createBuiltInMeasurement, type BuiltInMeasurement } from "./built-in-measurement";
 import { createBuiltInPreprocessing, type BuiltInPreprocessing } from "./built-in-preprocessing";

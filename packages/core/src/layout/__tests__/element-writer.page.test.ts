@@ -3,7 +3,7 @@ import DocumentContext from "../../document/document-context.ts";
 import PageElementWriter from "../element-writer.page.ts";
 import type { LayoutImageNode } from "../../features/image/image.types.ts";
 import type { LayoutExtensionNode } from "../../features/extension/extension.types.ts";
-import { createBuiltInElementPlacement } from "../../composition/built-in-element-placement.ts";
+import { createBuiltInElementPlacement } from "../../composition/built-in-feature-registry.ts";
 import type {
 	CurrentPosition,
 	LineLike,

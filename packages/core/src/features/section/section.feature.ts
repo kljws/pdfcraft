@@ -6,7 +6,6 @@ import type {
 } from "../../engine/contracts/node-feature";
 import type { PdfNode } from "../../types/internal";
 import { layoutSection } from "./layout-section";
-import { measureSection } from "./measure-section";
 import { preprocessSection, type SectionPreprocessContext } from "./preprocess-section";
 import type {
 	LayoutSectionNode,
@@ -41,9 +40,8 @@ export const sectionFeature: SectionFeature = {
 	},
 	preprocess: preprocessSection,
 	measure(node, context): MeasuredSectionNode {
-		return measureSection(node, {
-			measureNode: (item) => context.measureNode(item),
-		});
+		node.section = context.measureNode(node.section);
+		return node;
 	},
 	layout(node, context): void {
 		layoutSection(node, {

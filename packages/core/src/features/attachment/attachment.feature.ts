@@ -9,7 +9,7 @@ import type {
 import type { PageItem, PdfNode } from "../../types/internal";
 import type { PrinterDocumentDefinition, PrinterResourceReference } from "../../core/printer.types";
 import { layoutFeatureItem } from "../../layout/element-writer.helpers";
-import { measureAttachment } from "./measure-attachment";
+import { isNumber } from "../../utils/variable-type";
 import { placeAttachmentItem } from "./place-attachment";
 import { renderAttachment, type AttachmentRenderContext } from "./render-attachment";
 import { resolveAttachmentReferences } from "./attachment-resources";
@@ -68,7 +68,10 @@ export const attachmentFeature: AttachmentFeature = {
 		resolveAttachmentReferences(document, resolve);
 	},
 	measure(node): MeasuredAttachmentNode {
-		return measureAttachment(node);
+		const measuredNode = node as MeasuredAttachmentNode;
+		measuredNode._width = isNumber(node.width) ? node.width : 7;
+		measuredNode._height = isNumber(node.height) ? node.height : 18;
+		return measuredNode;
 	},
 	layout(node, context): void {
 		layoutFeatureItem("attachment", node, context.writer);

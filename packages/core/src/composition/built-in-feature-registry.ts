@@ -11,6 +11,7 @@ import { tableFeature } from "../features/table/table.feature";
 import { textFeature } from "../features/text/text.feature";
 import { tocFeature } from "../features/toc/toc.feature";
 import type { LayoutPdfNode, MeasurePdfNode, MeasuredPdfNode, PdfNode } from "../types/internal";
+import type { ElementPlacementAdapter } from "../layout/element-writer";
 import { stringifyNode } from "../utils/node";
 import type {
 	NodeLayoutContext,
@@ -134,6 +135,13 @@ export function placeFeatureItem(
 	}
 	const place = feature.place as NodePlaceHook;
 	return place(node, context);
+}
+
+export function createBuiltInElementPlacement(): ElementPlacementAdapter {
+	return {
+		placeFeatureItem: (featureKind, writer, node, index) =>
+			placeFeatureItem(featureKind, node, { writer, index }),
+	};
 }
 
 /** Renders a page item emitted by the feature registered under `featureKind`. */

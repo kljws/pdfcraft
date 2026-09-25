@@ -4,7 +4,7 @@ import DocumentContext from "../../../document/document-context.ts";
 import BaseLayoutBuilder from "../../../layout/layout-builder.ts";
 import ColumnCalculator from "../../../layout/column-calculator.ts";
 import PageElementWriter from "../../../layout/element-writer.page.ts";
-import { createBuiltInElementPlacement } from "../../../composition/built-in-element-placement.ts";
+import { createBuiltInElementPlacement } from "../../../composition/built-in-feature-registry.ts";
 import { createTestMeasurement } from "../../../__tests__/fixtures/measurement.ts";
 import { createBuiltInPreprocessing } from "../../../composition/built-in-preprocessing.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
