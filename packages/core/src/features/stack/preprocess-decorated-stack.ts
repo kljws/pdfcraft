@@ -33,9 +33,8 @@ export function preprocessDecoratedStack(
 	node: PdfNode,
 	context: DecoratedStackPreprocessContext,
 ): PreprocessedPdfNode {
-	const block = node as unknown as Record<string, unknown>;
 	for (const property of ["borderRadius", "borderWidth"] as const) {
-		const value = block[property];
+		const value: unknown = node[property];
 		if (value !== undefined && (!isNumber(value) || !Number.isFinite(value) || value < 0)) {
 			throw new Error(
 				`Invalid stack node: '${property}' must be a finite non-negative number, received ${stringifyNode(value)}`,
@@ -43,7 +42,7 @@ export function preprocessDecoratedStack(
 		}
 	}
 	for (const property of ["borderColor", "backgroundColor"] as const) {
-		const value = block[property];
+		const value: unknown = node[property];
 		if (value !== undefined && !isColor(value)) {
 			throw new Error(
 				`Invalid stack node: '${property}' must be a color, received ${stringifyNode(value)}`,
@@ -51,11 +50,11 @@ export function preprocessDecoratedStack(
 		}
 	}
 
-	const borderRadius = (block.borderRadius as number | undefined) ?? 0;
-	const borderWidth = (block.borderWidth as number | undefined) ?? 0;
-	const borderColor = block.borderColor ?? "black";
-	const backgroundColor = block.backgroundColor;
-	const padding = block.padding === undefined ? [0, 0, 0, 0] : resolveBlockPadding(block.padding);
+	const borderRadius = node.borderRadius ?? 0;
+	const borderWidth = node.borderWidth ?? 0;
+	const borderColor = node.borderColor ?? "black";
+	const backgroundColor = node.backgroundColor;
+	const padding = node.padding === undefined ? [0, 0, 0, 0] : resolveBlockPadding(node.padding);
 	const content = node.stack;
 	if (!content) throw new Error("Internal preprocessing error: expected a stack node");
 	const layout = {
@@ -88,8 +87,8 @@ export function preprocessDecoratedStack(
 		"borderColor",
 		"backgroundColor",
 		"padding",
-	]) {
-		delete block[property];
+	] as const) {
+		delete node[property];
 	}
 
 	return context.preprocessTable(node, context.allowSections);

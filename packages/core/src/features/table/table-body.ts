@@ -9,6 +9,10 @@ const isSpanPlaceholder = (value: unknown): boolean =>
 const getCellSpan = (cell: unknown): number =>
 	isObject(cell) && isPositiveInteger(cell.colSpan) ? cell.colSpan : 1;
 
+/** Cell slot covered by a row or column span; it has no `_kind` and is skipped by dispatch. */
+const createSpanPlaceholder = (): PreprocessedPdfNode =>
+	({ _span: true }) as unknown as PreprocessedPdfNode;
+
 export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
 	const columnCount = body[0].length;
 	if (columnCount === 0) {
@@ -30,7 +34,7 @@ export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
 		for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
 			if (activeRowSpans[columnIndex] > 0) {
 				if (usesExplicitSlots || isSpanPlaceholder(sourceRow[sourceIndex])) sourceIndex++;
-				normalizedRow.push({ _span: true } as unknown as PreprocessedPdfNode);
+				normalizedRow.push(createSpanPlaceholder());
 				continue;
 			}
 
@@ -62,7 +66,7 @@ export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
 			normalizedRow.push(cell);
 			for (let spanIndex = 1; spanIndex < colSpan; spanIndex++) {
 				if (usesExplicitSlots || isSpanPlaceholder(sourceRow[sourceIndex])) sourceIndex++;
-				normalizedRow.push({ _span: true } as unknown as PreprocessedPdfNode);
+				normalizedRow.push(createSpanPlaceholder());
 				columnIndex++;
 			}
 		}

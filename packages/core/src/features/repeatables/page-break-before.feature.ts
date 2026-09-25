@@ -38,7 +38,7 @@ export const pageBreakBeforeFeature = {
 		);
 		for (const node of nodes) {
 			const positions = node.positions!;
-			const publicNode = node as unknown as PdfNode;
+			const publicNode = node as PdfNode;
 			const nodeInfo = {} as PageBreakNodeInfo;
 			for (const key of NODE_INFO_KEYS) {
 				if (publicNode[key] !== undefined) nodeInfo[key] = publicNode[key];

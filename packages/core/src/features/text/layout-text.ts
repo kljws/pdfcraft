@@ -32,7 +32,7 @@ export function layoutText(node: LayoutTextNode, context: TextLayoutContext): vo
 	} else if (line && Array.isArray(node.text)) {
 		for (const item of node.text) {
 			if (isObject(item) && item.outline) {
-				const outlineNode = item as unknown as LayoutPdfNode;
+				const outlineNode = item as LayoutPdfNode;
 				line._outline = {
 					id: outlineNode.id,
 					parentId: outlineNode.outlineParentId,
