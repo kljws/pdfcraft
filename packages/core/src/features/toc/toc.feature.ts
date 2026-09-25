@@ -1,7 +1,7 @@
-import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
-import { layoutToc, type TocLayoutContext } from "./layout-toc";
-import { measureToc, type TocMeasureContext } from "./measure-toc";
+import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext } from "../../engine/contracts/node-feature";
+import type { LayoutPdfNode, MeasurePdfNode, PdfNode, PreprocessedPdfNode } from "../../types/internal";
+import { layoutToc } from "./layout-toc";
+import { measureToc } from "./measure-toc";
 import {
 	preprocessToc,
 	registerTocItem,
@@ -13,20 +13,22 @@ import type { LayoutTocNode, MeasuredTocNode, PreprocessedTocNode } from "./toc.
 interface TocFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTocNode;
+	measureNode: MeasurePdfNode;
 	measuredNode: MeasuredTocNode;
 	layoutNode: LayoutTocNode;
 	renderNode: never;
 	preprocessContext: TocPreprocessContext;
-	measureContext: TocMeasureContext;
-	layoutContext: TocLayoutContext;
+	measureContext: NodeMeasureContext;
+	layoutContext: NodeLayoutContext;
 	renderContext: never;
 }
 
 interface TocFeature extends NodeFeature<TocFeatureStages> {
+	readonly kind: "toc";
 	preprocess(node: PdfNode, context: TocPreprocessContext): PreprocessedTocNode;
 	registerItem(node: PreprocessedPdfNode, context: TocItemRegistrationContext): void;
-	measure(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode;
-	layout(node: LayoutTocNode, context: TocLayoutContext): void;
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredTocNode;
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
 }
 
 export const tocFeature: TocFeature = {
@@ -36,6 +38,14 @@ export const tocFeature: TocFeature = {
 	},
 	preprocess: preprocessToc,
 	registerItem: registerTocItem,
-	measure: measureToc,
-	layout: layoutToc,
+	measure(node, context): MeasuredTocNode {
+		return measureToc(node as MeasuredTocNode, {
+			measureNode: (item) => context.measureNode(item),
+		});
+	},
+	layout(node, context): void {
+		layoutToc(node as LayoutTocNode, {
+			processNode: (item) => context.processNode(item),
+		});
+	},
 };

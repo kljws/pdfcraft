@@ -6,8 +6,8 @@ export interface AcroFormLayoutContext {
 }
 
 export function layoutAcroForm(node: LayoutAcroFormNode, context: AcroFormLayoutContext): void {
-	const position = context.writer.addAcroForm(node);
-	if (position) {
+	const position = context.writer.addFeatureItem("acroform", node);
+	if (position && !Array.isArray(position)) {
 		node._position = position;
 		node.positions ??= [];
 		node.positions.push(position);

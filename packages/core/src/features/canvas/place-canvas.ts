@@ -1,19 +1,8 @@
-import type DocumentContext from "../../document/document-context";
+import type { NodePlaceContext } from "../../engine/contracts/node-feature";
 import { getAlignmentOffset } from "../../layout/element-writer.helpers";
-import type { CurrentPosition, Vector } from "../../types/internal";
+import type { CurrentPosition } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
 import type { LayoutCanvasNode } from "./canvas.types";
-
-export interface CanvasWriter {
-	context(): DocumentContext;
-	addVector(
-		vector: Vector,
-		ignoreContextX?: boolean,
-		ignoreContextY?: boolean,
-		index?: number,
-		forcePage?: number,
-	): CurrentPosition | undefined;
-}
 
 export function alignCanvas(node: LayoutCanvasNode, availableWidth: number): void {
 	const offset = getAlignmentOffset(node._alignment, availableWidth, node._minWidth ?? 0);
@@ -22,11 +11,11 @@ export function alignCanvas(node: LayoutCanvasNode, availableWidth: number): voi
 	}
 }
 
-export function placeCanvas(
-	writer: CanvasWriter,
+export function placeCanvasItem(
 	node: LayoutCanvasNode,
-	index?: number,
+	{ writer, index: initialIndex }: NodePlaceContext,
 ): false | Array<CurrentPosition | undefined> {
+	let index = initialIndex;
 	const context = writer.context();
 	const page = context.getCurrentPage();
 	const height = node._minHeight ?? 0;

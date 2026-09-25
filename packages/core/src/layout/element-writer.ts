@@ -12,11 +12,7 @@ import type {
 import { addPageItem, getAlignmentOffset } from "./element-writer.helpers";
 import { type ElementFragment, replayFragment } from "./element-writer.fragments";
 import { notifyVectorInsertion } from "./vector-insertion";
-import type { LayoutImageNode } from "../features/image/image.types";
-import type { LayoutCanvasNode } from "../features/canvas/canvas.types";
-import type { LayoutExtensionNode } from "../features/extension/extension.types";
-import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
-import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
+import type { NodePlaceResult } from "../engine/contracts/node-feature";
 
 type VectorPageItem = Extract<PageItem, { type: "vector" }>;
 
@@ -39,31 +35,12 @@ interface ElementPlacementWriter {
 }
 
 export interface ElementPlacementAdapter {
-	placeImage(
+	placeFeatureItem(
+		featureKind: string,
 		writer: ElementPlacementWriter,
-		node: LayoutImageNode,
+		node: LayoutPdfNode,
 		index?: number,
-	): CurrentPosition | false;
-	placeCanvas(
-		writer: ElementPlacementWriter,
-		node: LayoutCanvasNode,
-		index?: number,
-	): false | Array<CurrentPosition | undefined>;
-	placeExtension(
-		writer: ElementPlacementWriter,
-		node: LayoutExtensionNode,
-		index?: number,
-	): CurrentPosition | false;
-	placeAttachment(
-		writer: ElementPlacementWriter,
-		node: LayoutAttachmentNode,
-		index?: number,
-	): CurrentPosition | false;
-	placeAcroForm(
-		writer: ElementPlacementWriter,
-		node: LayoutAcroFormNode,
-		index?: number,
-	): CurrentPosition | false;
+	): NodePlaceResult;
 }
 
 /**
@@ -91,24 +68,14 @@ class ElementWriter {
 		return this._context;
 	}
 
-	addImage(image: LayoutImageNode, index?: number): CurrentPosition | false {
-		return this.getPlacement().placeImage(this, image, index);
-	}
-
-	addCanvas(node: LayoutCanvasNode, index?: number): false | Array<CurrentPosition | undefined> {
-		return this.getPlacement().placeCanvas(this, node, index);
-	}
-
-	addExtension(node: LayoutExtensionNode, index?: number): CurrentPosition | false {
-		return this.getPlacement().placeExtension(this, node, index);
-	}
-
-	addAttachment(attachment: LayoutAttachmentNode, index?: number): CurrentPosition | false {
-		return this.getPlacement().placeAttachment(this, attachment, index);
-	}
-
-	addAcroForm(node: LayoutAcroFormNode, index?: number): CurrentPosition | false {
-		return this.getPlacement().placeAcroForm(this, node, index);
+	addFeatureItem(
+		featureKind: "canvas",
+		node: LayoutPdfNode,
+		index?: number,
+	): false | Array<CurrentPosition | undefined>;
+	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): CurrentPosition | false;
+	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): NodePlaceResult {
+		return this.getPlacement().placeFeatureItem(featureKind, this, node, index);
 	}
 
 	private getPlacement(): ElementPlacementAdapter {

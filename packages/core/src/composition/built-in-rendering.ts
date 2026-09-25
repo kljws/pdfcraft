@@ -1,9 +1,7 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
-import { attachmentFeature } from "../features/attachment/attachment.feature";
 import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
 import { extensionFeature } from "../features/extension/extension.feature";
-import { imageFeature } from "../features/image/image.feature";
 import type { LayoutImageNode } from "../features/image/image.types";
 import type { LayoutExtensionNode } from "../features/extension/extension.types";
 import { watermarkFeature } from "../features/repeatables/watermark.feature";
@@ -12,6 +10,7 @@ import type PDFDocument from "../rendering/pdf-document";
 import type { RenderablePage } from "../rendering/renderer.types";
 import type { PdfCraftExtensions } from "../types";
 import type { Inline, LineLike } from "../types/internal";
+import { renderMigratedNodeFeature } from "./built-in-feature-registry";
 
 export interface BuiltInGraphicsRendering {
 	renderImage(node: LayoutImageNode, resetVectorState: () => void): void;
@@ -37,9 +36,9 @@ export function createBuiltInGraphicsRendering(
 ): BuiltInGraphicsRendering {
 	return {
 		renderImage: (node, resetVectorState) =>
-			imageFeature.render(node, { document, resetVectorState }),
+			void renderMigratedNodeFeature(node, document, resetVectorState),
 		renderExtension: (node) => extensionFeature.render(node, { document, extensions }),
-		renderAttachment: (node) => attachmentFeature.render(node, { document }),
+		renderAttachment: (node) => void renderMigratedNodeFeature(node, document, () => undefined),
 		renderWatermark: (page) => watermarkFeature.render(document, page),
 	};
 }

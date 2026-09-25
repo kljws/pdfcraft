@@ -10,16 +10,13 @@ import EventEmitter from "../utils/event-emitter";
 import type { EventArgs, EventKey, EventListener } from "../utils/event-emitter";
 import type {
 	CurrentPosition,
+	LayoutPdfNode,
 	LineLike,
 	PageItem,
 	PageMarginSource,
 } from "../types/internal";
+import type { NodePlaceResult } from "../engine/contracts/node-feature";
 import { getFragmentHeight } from "./element-writer.helpers";
-import type { LayoutImageNode } from "../features/image/image.types";
-import type { LayoutCanvasNode } from "../features/canvas/canvas.types";
-import type { LayoutExtensionNode } from "../features/extension/extension.types";
-import type { LayoutAttachmentNode } from "../features/attachment/attachment.types";
-import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
 
 interface ElementFragment {
 	items: PageItem[];
@@ -100,24 +97,14 @@ class PageElementWriter {
 		);
 	}
 
-	addImage(image: LayoutImageNode, index?: number): CurrentPosition | false {
-		return this._fitOnPage(() => this.writer.addImage(image, index));
-	}
-
-	addCanvas(image: LayoutCanvasNode, index?: number): false | Array<CurrentPosition | undefined> {
-		return this._fitOnPage(() => this.writer.addCanvas(image, index));
-	}
-
-	addExtension(node: LayoutExtensionNode, index?: number): CurrentPosition | false {
-		return this._fitOnPage(() => this.writer.addExtension(node, index));
-	}
-
-	addAttachment(attachment: LayoutAttachmentNode, index?: number): CurrentPosition | false {
-		return this._fitOnPage(() => this.writer.addAttachment(attachment, index));
-	}
-
-	addAcroForm(node: LayoutAcroFormNode, index?: number): CurrentPosition | false {
-		return this._fitOnPage(() => this.writer.addAcroForm(node, index));
+	addFeatureItem(
+		featureKind: "canvas",
+		node: LayoutPdfNode,
+		index?: number,
+	): false | Array<CurrentPosition | undefined>;
+	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): CurrentPosition | false;
+	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): NodePlaceResult {
+		return this._fitOnPage(() => this.writer.addFeatureItem(featureKind, node, index));
 	}
 
 	addVector(...parameters: Parameters<ElementWriter["addVector"]>): CurrentPosition | undefined {

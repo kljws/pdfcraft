@@ -1,32 +1,44 @@
-import type StyleContextStack from "../../services/styles/style-context-stack";
-import type PDFDocument from "../../rendering/pdf-document";
-import type { PdfNode } from "../../types/internal";
-import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
+import type { LayoutPdfNode, MeasurePdfNode, MeasuredPdfNode, PageItem, PdfNode } from "../../types/internal";
+import type {
+	NodeFeature,
+	NodeFeatureStages,
+	NodeLayoutContext,
+	NodeMeasureContext,
+	NodePlaceContext,
+} from "../../engine/contracts/node-feature";
 import type { LayoutImageNode, MeasuredImageNode, PreprocessedImageNode } from "./image.types";
 import ImageMeasurer from "./image-measurer";
-import { layoutImage, type ImageLayoutContext } from "./layout-image";
-import { placeImage, type ImageWriter } from "./place-image";
+import { layoutImage } from "./layout-image";
+import { placeImageItem } from "./place-image";
 import { preprocessImage } from "./preprocess-image";
 import { renderImage, type ImageRenderContext } from "./render-image";
 
 interface ImageFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedImageNode;
+	measureNode: MeasurePdfNode;
 	measuredNode: MeasuredImageNode;
 	layoutNode: LayoutImageNode;
 	renderNode: LayoutImageNode;
 	preprocessContext: undefined;
-	measureContext: ImageMeasurer;
-	layoutContext: ImageLayoutContext;
+	measureContext: NodeMeasureContext;
+	layoutContext: NodeLayoutContext;
 	renderContext: ImageRenderContext;
+	pageItem: Extract<PageItem, { type: "image" }>;
+	inline: ImageInlineCapabilities;
+}
+
+export interface ImageInlineCapabilities {
+	measure(node: MeasuredPdfNode, context: NodeMeasureContext): MeasuredPdfNode;
 }
 
 interface ImageFeature extends NodeFeature<ImageFeatureStages> {
+	readonly kind: "image";
+	readonly inline: ImageInlineCapabilities;
 	preprocess(node: PdfNode, context: undefined): PreprocessedImageNode;
-	createMeasurer(document: PDFDocument, styles: StyleContextStack): ImageMeasurer;
-	measure(node: MeasuredImageNode, context: ImageMeasurer): MeasuredImageNode;
-	place(writer: ImageWriter, node: LayoutImageNode, index?: number): ReturnType<typeof placeImage>;
-	layout(node: LayoutImageNode, context: ImageLayoutContext): void;
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredImageNode;
+	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem>;
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
 	render(node: LayoutImageNode, context: ImageRenderContext): void;
 }
 
@@ -38,19 +50,29 @@ export const imageFeature: ImageFeature = {
 	preprocess(node): PreprocessedImageNode {
 		return preprocessImage(node);
 	},
-	createMeasurer(document: PDFDocument, styles: StyleContextStack): ImageMeasurer {
-		return new ImageMeasurer(document, styles);
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredImageNode {
+		return getImageMeasurer(context).measureImage(node as MeasuredImageNode);
 	},
-	measure(node: MeasuredImageNode, measurer: ImageMeasurer): MeasuredImageNode {
-		return measurer.measureImage(node);
+	inline: {
+		measure(node, context): MeasuredPdfNode {
+			return getImageMeasurer(context).measureImage(node as MeasuredImageNode);
+		},
 	},
-	layout(node: LayoutImageNode, context: ImageLayoutContext): void {
-		layoutImage(node, context);
+	layout(node, context): void {
+		layoutImage(node as LayoutImageNode, { writer: context.writer });
 	},
-	place(writer: ImageWriter, node: LayoutImageNode, index?: number): ReturnType<typeof placeImage> {
-		return placeImage(writer, node, index);
+	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem> {
+		return placeImageItem(node, context);
 	},
 	render(node: LayoutImageNode, context: ImageRenderContext): void {
 		renderImage(node, context);
 	},
 };
+
+function getImageMeasurer(context: NodeMeasureContext): ImageMeasurer {
+	const existing = context.featureState.get("image.measurer");
+	if (existing instanceof ImageMeasurer) return existing;
+	const measurer = new ImageMeasurer(context.document, context.styles);
+	context.featureState.set("image.measurer", measurer);
+	return measurer;
+}

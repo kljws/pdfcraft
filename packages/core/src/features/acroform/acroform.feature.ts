@@ -1,13 +1,12 @@
-import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
+import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext, NodePlaceContext } from "../../engine/contracts/node-feature";
 import type PDFDocument from "../../rendering/pdf-document";
-import type { Inline, PdfNode } from "../../types/internal";
-import { layoutAcroForm, type AcroFormLayoutContext } from "./layout-acroform";
+import type { Inline, LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import { layoutAcroForm } from "./layout-acroform";
 import {
 	measureAcroForm,
 	measureInlineAcroForm,
-	type AcroFormMeasureContext,
 } from "./measure-acroform";
-import { placeAcroForm, type AcroFormWriter } from "./place-acroform";
+import { placeAcroFormItem } from "./place-acroform";
 import { preprocessAcroForm } from "./preprocess-acroform";
 import { AcroFormRenderer } from "./render-acroform";
 import type {
@@ -19,26 +18,24 @@ import type {
 interface AcroFormFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedAcroFormNode;
+	measureNode: MeasurePdfNode;
 	measuredNode: MeasuredAcroFormNode;
 	layoutNode: LayoutAcroFormNode;
 	renderNode: LayoutAcroFormNode | Inline;
 	preprocessContext: undefined;
-	measureContext: AcroFormMeasureContext;
-	layoutContext: AcroFormLayoutContext;
+	measureContext: NodeMeasureContext;
+	layoutContext: NodeLayoutContext;
 	renderContext: { renderer: AcroFormRenderer; x: number; y: number };
 }
 
 interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
+	readonly kind: "acroform";
 	preprocess(node: PdfNode, context: undefined): PreprocessedAcroFormNode;
 	createRenderer(document: PDFDocument): AcroFormRenderer;
-	measure(node: MeasuredAcroFormNode, context: AcroFormMeasureContext): MeasuredAcroFormNode;
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredAcroFormNode;
 	measureInline(inline: Inline): Inline;
-	place(
-		writer: AcroFormWriter,
-		node: LayoutAcroFormNode,
-		index?: number,
-	): ReturnType<typeof placeAcroForm>;
-	layout(node: LayoutAcroFormNode, context: AcroFormLayoutContext): void;
+	place(node: LayoutAcroFormNode, context: NodePlaceContext): ReturnType<typeof placeAcroFormItem>;
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
 	render(
 		node: LayoutAcroFormNode | Inline,
 		context: { renderer: AcroFormRenderer; x: number; y: number },
@@ -51,10 +48,17 @@ export const acroFormFeature: AcroFormFeature = {
 		return Boolean(node.acroform);
 	},
 	preprocess: preprocessAcroForm,
-	measure: measureAcroForm,
+	measure(node, context): MeasuredAcroFormNode {
+		return measureAcroForm(node as MeasuredAcroFormNode, {
+			document: context.document,
+			styles: context.styles,
+		});
+	},
 	measureInline: measureInlineAcroForm,
-	place: placeAcroForm,
-	layout: layoutAcroForm,
+	place: placeAcroFormItem,
+	layout(node, context): void {
+		layoutAcroForm(node as LayoutAcroFormNode, { writer: context.writer });
+	},
 	createRenderer(document): AcroFormRenderer {
 		return new AcroFormRenderer(document);
 	},

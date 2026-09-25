@@ -1,17 +1,11 @@
-import type DocumentContext from "../../document/document-context";
+import type { NodePlaceContext } from "../../engine/contracts/node-feature";
 import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
 import type { CurrentPosition } from "../../types/internal";
 import type { LayoutImageNode } from "./image.types";
 
-export interface ImageWriter {
-	context(): DocumentContext;
-	getCurrentPositionOnPage(): CurrentPosition;
-}
-
-export function placeImage(
-	writer: ImageWriter,
+export function placeImageItem(
 	image: LayoutImageNode,
-	index?: number,
+	{ writer, index }: NodePlaceContext,
 ): CurrentPosition | false {
 	const height = image._height ?? 0;
 	const context = writer.context();

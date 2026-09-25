@@ -1,7 +1,7 @@
-import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
-import { layoutStack, type StackLayoutContext } from "./layout-stack";
-import { measureStack, type StackMeasureContext } from "./measure-stack";
+import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext } from "../../engine/contracts/node-feature";
+import type { LayoutPdfNode, MeasurePdfNode, PdfNode, PreprocessedPdfNode } from "../../types/internal";
+import { layoutStack } from "./layout-stack";
+import { measureStack } from "./measure-stack";
 import {
 	preprocessDecoratedStack,
 	type DecoratedStackPreprocessContext,
@@ -12,20 +12,22 @@ import type { LayoutStackNode, MeasuredStackNode, PreprocessedStackNode } from "
 interface StackFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedStackNode;
+	measureNode: MeasurePdfNode;
 	measuredNode: MeasuredStackNode;
 	layoutNode: LayoutStackNode;
 	renderNode: never;
 	preprocessContext: StackPreprocessContext;
-	measureContext: StackMeasureContext;
-	layoutContext: StackLayoutContext;
+	measureContext: NodeMeasureContext;
+	layoutContext: NodeLayoutContext;
 	renderContext: never;
 }
 
 interface StackFeature extends NodeFeature<StackFeatureStages> {
+	readonly kind: "stack";
 	preprocess(node: PdfNode, context: StackPreprocessContext): PreprocessedStackNode;
 	preprocessDecorated(node: PdfNode, context: DecoratedStackPreprocessContext): PreprocessedPdfNode;
-	measure(node: MeasuredStackNode, context: StackMeasureContext): MeasuredStackNode;
-	layout(node: LayoutStackNode, context: StackLayoutContext): void;
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredStackNode;
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
 }
 
 export const stackFeature: StackFeature = {
@@ -35,6 +37,15 @@ export const stackFeature: StackFeature = {
 	},
 	preprocess: preprocessStack,
 	preprocessDecorated: preprocessDecoratedStack,
-	measure: measureStack,
-	layout: layoutStack,
+	measure(node, context): MeasuredStackNode {
+		return measureStack(node as MeasuredStackNode, {
+			measureChild: (item) => context.measureNode(item),
+		});
+	},
+	layout(node, context): void {
+		layoutStack(node as LayoutStackNode, {
+			processNode: (item) => context.processNode(item),
+			moveDownWithPageBreak: context.moveDownWithPageBreak,
+		});
+	},
 };

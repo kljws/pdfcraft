@@ -1,5 +1,6 @@
 import type { ExtensionNode, ExtensionResourceReference, PdfCraftExtensions } from "../../types";
-import type { LayoutPdfNode, PdfNode } from "../../types/internal";
+import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { NodeLayoutContext, NodeMeasureContext, NodePlaceContext } from "../../engine/contracts/node-feature";
 import type {
 	ExtensionMeasureNode,
 	LayoutExtensionNode,
@@ -8,9 +9,9 @@ import type {
 } from "./extension.types";
 import { copyExtensionPageBreakProperties } from "./extension-page-break";
 import { findExtensionForNode } from "./extension-registry";
-import { layoutExtension, type ExtensionLayoutContext } from "./layout-extension";
-import { measureExtension, type ExtensionMeasureHost } from "./measure-extension";
-import { placeExtension, type ExtensionWriter } from "./place-extension";
+import { layoutExtension } from "./layout-extension";
+import { measureExtension } from "./measure-extension";
+import { placeExtensionItem } from "./place-extension";
 import { renderExtension, type ExtensionRenderHost } from "./render-extension";
 import { resolveExtensionResources } from "./resolve-extension-resources";
 
@@ -31,20 +32,20 @@ export const extensionFeature = {
 		resolveExtensionResources(documentDefinition, extensions, resolve);
 	},
 	measure(
-		node: ExtensionMeasureNode,
-		host: ExtensionMeasureHost,
+		node: MeasurePdfNode,
+		context: NodeMeasureContext,
 	): MeasuredExtensionNode | undefined {
-		return measureExtension(node, host);
+		return measureExtension(node as ExtensionMeasureNode, {
+			document: context.document,
+			styles: context.styles,
+			extensions: context.extensions,
+		});
 	},
-	place(
-		writer: ExtensionWriter,
-		node: LayoutExtensionNode,
-		index?: number,
-	): ReturnType<typeof placeExtension> {
-		return placeExtension(writer, node, index);
+	place(node: LayoutExtensionNode, context: NodePlaceContext): ReturnType<typeof placeExtensionItem> {
+		return placeExtensionItem(node, context);
 	},
-	layout(node: LayoutExtensionNode, context: ExtensionLayoutContext): void {
-		layoutExtension(node, context);
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void {
+		layoutExtension(node as LayoutExtensionNode, { writer: context.writer });
 	},
 	render(node: LayoutExtensionNode, host: ExtensionRenderHost): void {
 		renderExtension(node, host);

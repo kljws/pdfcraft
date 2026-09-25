@@ -1,23 +1,117 @@
-export interface NodeFeatureStages {
-	preprocessNode: unknown;
-	preprocessedNode: unknown;
-	measuredNode: unknown;
-	layoutNode: unknown;
-	renderNode: unknown;
-	preprocessContext: unknown;
-	measureContext: unknown;
-	layoutContext: unknown;
-	renderContext: unknown;
+import type TextInlines from "../../features/text/text-inlines";
+import type { ProcessRowOptions, ProcessRowResult } from "../../features/table/layout-row";
+import type PageElementWriter from "../../layout/element-writer.page";
+import type PDFDocument from "../../rendering/pdf-document";
+import type StyleContextStack from "../../services/styles/style-context-stack";
+import type DocumentContext from "../../document/document-context";
+import type { Dictionary, PageOrientation, PdfCraftExtensions } from "../../types";
+import type {
+	MeasurePdfNode,
+	MeasuredPdfNode,
+	LayoutPdfNode,
+	PageMarginSource,
+	PageSize,
+	PreprocessedPdfNode,
+	TableLayout,
+	CurrentPosition,
+} from "../../types/internal";
+
+export interface FeatureItemWriter {
+	context(): DocumentContext;
+	getCurrentPositionOnPage(): CurrentPosition;
+	addVector(
+		vector: import("../../types/internal").Vector,
+		ignoreContextX?: boolean,
+		ignoreContextY?: boolean,
+		index?: number,
+		forcePage?: number,
+	): CurrentPosition | undefined;
 }
+
+export interface NodePlaceContext {
+	readonly writer: FeatureItemWriter;
+	readonly index?: number;
+}
+
+export type NodePlaceResult = CurrentPosition | false | Array<CurrentPosition | undefined>;
+export type NodePlaceHook = (
+	node: LayoutPdfNode,
+	context: NodePlaceContext,
+) => NodePlaceResult;
+
+export interface NodeMeasureContext {
+	readonly document: PDFDocument;
+	readonly styles: StyleContextStack;
+	readonly inlines: TextInlines;
+	readonly extensions: PdfCraftExtensions;
+	readonly tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
+	readonly featureState: Map<string, object>;
+	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
+}
+
+export type NodeMeasureHook = (
+	node: MeasurePdfNode,
+	context: NodeMeasureContext,
+) => MeasuredPdfNode | undefined;
+
+export interface NodeLayoutContext {
+	readonly writer: PageElementWriter;
+	readonly pageMargins: PageMarginSource;
+	readonly pageSize: PageSize;
+	readonly suppressLinearNodeList: boolean;
+	nestedLevel: number;
+	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
+	processRow(options: ProcessRowOptions): ProcessRowResult;
+	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
+	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
+}
+
+export type NodeLayoutHook = (node: LayoutPdfNode, context: NodeLayoutContext) => void;
+
+/** Type map carried by a feature through every node lifecycle stage. */
+export interface NodeFeatureStages {
+	preprocessNode: object;
+	preprocessedNode: object;
+	measuredNode: object;
+	layoutNode: object;
+	renderNode: object;
+	preprocessContext: object | undefined;
+	measureContext: object | undefined;
+	layoutContext: object | undefined;
+	renderContext: object | undefined;
+	resourceSource?: object;
+	resolvedResources?: object | undefined;
+	resolveResourcesContext?: object | undefined;
+	pageItem?: object;
+	inline?: object;
+}
+
+type OptionalStage<Stages, Name extends PropertyKey> = Name extends keyof Stages
+	? Stages[Name]
+	: never;
+type StageOr<Stages, Name extends PropertyKey, Fallback> = Name extends keyof Stages
+	? Stages[Name]
+	: Fallback;
 
 export interface NodeFeature<Stages extends NodeFeatureStages> {
 	readonly kind: string;
 	matches(node: Stages["preprocessNode"]): boolean;
-	preprocess(
+	preprocess?(
 		node: Stages["preprocessNode"],
 		context: Stages["preprocessContext"],
 	): Stages["preprocessedNode"];
-	measure(node: Stages["measuredNode"], context: Stages["measureContext"]): Stages["measuredNode"];
+	resolveResources?(
+		source: OptionalStage<Stages, "resourceSource">,
+		context: OptionalStage<Stages, "resolveResourcesContext">,
+	): OptionalStage<Stages, "resolvedResources">;
+	measure?(
+		node: StageOr<Stages, "measureNode", Stages["measuredNode"]>,
+		context: Stages["measureContext"],
+	): Stages["measuredNode"];
 	layout?(node: Stages["layoutNode"], context: Stages["layoutContext"]): void;
+	place?(node: Stages["layoutNode"], context: NodePlaceContext): NodePlaceResult;
 	render?(node: Stages["renderNode"], context: Stages["renderContext"]): void;
+	decorate?(node: LayoutPdfNode): void;
+	reset?(node: LayoutPdfNode): void;
+	readonly inline?: OptionalStage<Stages, "inline">;
 }

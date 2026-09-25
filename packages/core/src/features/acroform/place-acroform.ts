@@ -1,17 +1,11 @@
-import type DocumentContext from "../../document/document-context";
+import type { NodePlaceContext } from "../../engine/contracts/node-feature";
 import type { CurrentPosition } from "../../types/internal";
 import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
 import type { LayoutAcroFormNode } from "./acroform.types";
 
-export interface AcroFormWriter {
-	context(): DocumentContext;
-	getCurrentPositionOnPage(): CurrentPosition;
-}
-
-export function placeAcroForm(
-	writer: AcroFormWriter,
+export function placeAcroFormItem(
 	node: LayoutAcroFormNode,
-	index?: number,
+	{ writer, index }: NodePlaceContext,
 ): CurrentPosition | false {
 	const context = writer.context();
 	const page = context.getCurrentPage();

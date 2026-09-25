@@ -6,8 +6,8 @@ export interface ExtensionLayoutContext {
 }
 
 export function layoutExtension(node: LayoutExtensionNode, context: ExtensionLayoutContext): void {
-	const position = context.writer.addExtension(node);
-	if (position) {
+	const position = context.writer.addFeatureItem("extension", node);
+	if (position && !Array.isArray(position)) {
 		node._position = position;
 		node.positions ??= [];
 		node.positions.push(position);

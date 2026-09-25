@@ -1,7 +1,7 @@
-import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { PdfNode } from "../../types/internal";
-import { layoutColumns, type ColumnsLayoutContext } from "./layout-columns";
-import { measureColumns, type ColumnsMeasureContext } from "./measure-columns";
+import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext } from "../../engine/contracts/node-feature";
+import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import { layoutColumns } from "./layout-columns";
+import { measureColumns } from "./measure-columns";
 import { preprocessColumns, type ColumnsPreprocessContext } from "./preprocess-columns";
 import type {
 	LayoutColumnsNode,
@@ -12,19 +12,21 @@ import type {
 interface ColumnsFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedColumnsNode;
+	measureNode: MeasurePdfNode;
 	measuredNode: MeasuredColumnsNode;
 	layoutNode: LayoutColumnsNode;
 	renderNode: never;
 	preprocessContext: ColumnsPreprocessContext;
-	measureContext: ColumnsMeasureContext;
-	layoutContext: ColumnsLayoutContext;
+	measureContext: NodeMeasureContext;
+	layoutContext: NodeLayoutContext;
 	renderContext: never;
 }
 
 interface ColumnsFeature extends NodeFeature<ColumnsFeatureStages> {
+	readonly kind: "columns";
 	preprocess(node: PdfNode, context: ColumnsPreprocessContext): PreprocessedColumnsNode;
-	measure(node: MeasuredColumnsNode, context: ColumnsMeasureContext): MeasuredColumnsNode;
-	layout(node: LayoutColumnsNode, context: ColumnsLayoutContext): void;
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredColumnsNode;
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
 }
 
 export const columnsFeature: ColumnsFeature = {
@@ -33,6 +35,18 @@ export const columnsFeature: ColumnsFeature = {
 		return Boolean(node.columns);
 	},
 	preprocess: preprocessColumns,
-	measure: measureColumns,
-	layout: layoutColumns,
+	measure(node, context): MeasuredColumnsNode {
+		return measureColumns(node as MeasuredColumnsNode, {
+			styles: context.styles,
+			measureChild: (item) => context.measureNode(item),
+		});
+	},
+	layout(node, context): void {
+		layoutColumns(node as LayoutColumnsNode, {
+			writer: context.writer,
+			enterNestedLevel: () => ++context.nestedLevel,
+			leaveNestedLevel: () => --context.nestedLevel,
+			processRow: (options) => context.processRow(options),
+		});
+	},
 };

@@ -1,17 +1,11 @@
-import type DocumentContext from "../../document/document-context";
+import type { NodePlaceContext } from "../../engine/contracts/node-feature";
 import { addPageItem } from "../../layout/element-writer.helpers";
 import type { CurrentPosition } from "../../types/internal";
 import type { LayoutAttachmentNode } from "./attachment.types";
 
-export interface AttachmentWriter {
-	context(): DocumentContext;
-	getCurrentPositionOnPage(): CurrentPosition;
-}
-
-export function placeAttachment(
-	writer: AttachmentWriter,
+export function placeAttachmentItem(
 	attachment: LayoutAttachmentNode,
-	index?: number,
+	{ writer, index }: NodePlaceContext,
 ): CurrentPosition | false {
 	const height = attachment._height ?? 0;
 	const context = writer.context();

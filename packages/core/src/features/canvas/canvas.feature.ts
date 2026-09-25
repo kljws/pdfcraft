@@ -1,35 +1,32 @@
-import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type StyleContextStack from "../../services/styles/style-context-stack";
-import type { PdfNode } from "../../types/internal";
+import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext, NodePlaceContext } from "../../engine/contracts/node-feature";
+import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
 import { decorateCanvas, resetCanvas } from "./decorate-canvas";
-import { layoutCanvas, type CanvasLayoutContext } from "./layout-canvas";
+import { layoutCanvas } from "./layout-canvas";
 import { measureCanvas } from "./measure-canvas";
-import { placeCanvas, type CanvasWriter } from "./place-canvas";
+import { placeCanvasItem } from "./place-canvas";
 import type { LayoutCanvasNode, MeasuredCanvasNode, PreprocessedCanvasNode } from "./canvas.types";
 
 interface CanvasFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedCanvasNode;
+	measureNode: MeasurePdfNode;
 	measuredNode: MeasuredCanvasNode;
 	layoutNode: LayoutCanvasNode;
 	renderNode: never;
 	preprocessContext: undefined;
-	measureContext: StyleContextStack;
-	layoutContext: CanvasLayoutContext;
+	measureContext: NodeMeasureContext;
+	layoutContext: NodeLayoutContext;
 	renderContext: never;
 }
 
 interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {
+	readonly kind: "canvas";
 	preprocess(node: PdfNode, context: undefined): PreprocessedCanvasNode;
-	measure(node: MeasuredCanvasNode, context: StyleContextStack): MeasuredCanvasNode;
-	place(
-		writer: CanvasWriter,
-		node: LayoutCanvasNode,
-		index?: number,
-	): ReturnType<typeof placeCanvas>;
-	layout(node: LayoutCanvasNode, context: CanvasLayoutContext): void;
-	decorate(node: LayoutCanvasNode): void;
-	reset(node: LayoutCanvasNode): void;
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredCanvasNode;
+	place(node: LayoutCanvasNode, context: NodePlaceContext): ReturnType<typeof placeCanvasItem>;
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	decorate(node: LayoutPdfNode): void;
+	reset(node: LayoutPdfNode): void;
 }
 
 export const canvasFeature: CanvasFeature = {
@@ -41,9 +38,17 @@ export const canvasFeature: CanvasFeature = {
 		node._kind = "canvas";
 		return node as unknown as PreprocessedCanvasNode;
 	},
-	measure: measureCanvas,
-	layout: layoutCanvas,
-	place: placeCanvas,
-	decorate: decorateCanvas,
-	reset: resetCanvas,
+	measure(node, context): MeasuredCanvasNode {
+		return measureCanvas(node as MeasuredCanvasNode, context.styles);
+	},
+	layout(node, context): void {
+		layoutCanvas(node as LayoutCanvasNode, { writer: context.writer });
+	},
+	place: placeCanvasItem,
+	decorate(node): void {
+		decorateCanvas(node as LayoutCanvasNode);
+	},
+	reset(node): void {
+		resetCanvas(node as LayoutCanvasNode);
+	},
 };

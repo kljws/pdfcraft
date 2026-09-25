@@ -1,9 +1,19 @@
-import type { NodeFeature, NodeFeatureStages } from "../../engine/contracts/node-feature";
-import type { PdfNode } from "../../types/internal";
-import { layoutAttachment, type AttachmentLayoutContext } from "./layout-attachment";
+import type {
+	NodeFeature,
+	NodeFeatureStages,
+	NodeLayoutContext,
+	NodeMeasureContext, NodePlaceContext,
+} from "../../engine/contracts/node-feature";
+import type { LayoutPdfNode, MeasurePdfNode, PageItem, PdfNode } from "../../types/internal";
+import type {
+	PrinterDocumentDefinition,
+	PrinterResourceReference,
+} from "../../core/printer.types";
+import { layoutAttachment } from "./layout-attachment";
 import { measureAttachment } from "./measure-attachment";
-import { placeAttachment, type AttachmentWriter } from "./place-attachment";
+import { placeAttachmentItem } from "./place-attachment";
 import { renderAttachment, type AttachmentRenderContext } from "./render-attachment";
+import { resolveAttachmentReferences } from "./attachment-resources";
 import type {
 	LayoutAttachmentNode,
 	MeasuredAttachmentNode,
@@ -13,24 +23,30 @@ import type {
 interface AttachmentFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedAttachmentNode;
+	measureNode: MeasurePdfNode;
 	measuredNode: MeasuredAttachmentNode;
 	layoutNode: LayoutAttachmentNode;
 	renderNode: LayoutAttachmentNode;
 	preprocessContext: undefined;
-	measureContext: undefined;
-	layoutContext: AttachmentLayoutContext;
+	measureContext: NodeMeasureContext;
+	layoutContext: NodeLayoutContext;
 	renderContext: AttachmentRenderContext;
+	resourceSource: PrinterDocumentDefinition;
+	resolvedResources: undefined;
+	resolveResourcesContext: (resource: PrinterResourceReference) => string;
+	pageItem: Extract<PageItem, { type: "attachment" }>;
 }
 
 interface AttachmentFeature extends NodeFeature<AttachmentFeatureStages> {
+	readonly kind: "attachment";
 	preprocess(node: PdfNode, context: undefined): PreprocessedAttachmentNode;
-	measure(node: MeasuredAttachmentNode, context: undefined): MeasuredAttachmentNode;
-	place(
-		writer: AttachmentWriter,
-		node: LayoutAttachmentNode,
-		index?: number,
-	): ReturnType<typeof placeAttachment>;
-	layout(node: LayoutAttachmentNode, context: AttachmentLayoutContext): void;
+	resolveResources(
+		document: PrinterDocumentDefinition,
+		resolve: (resource: PrinterResourceReference) => string,
+	): undefined;
+	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredAttachmentNode;
+	place(node: LayoutAttachmentNode, context: NodePlaceContext): ReturnType<typeof placeAttachmentItem>;
+	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
 	render(node: LayoutAttachmentNode, context: AttachmentRenderContext): void;
 }
 
@@ -43,9 +59,16 @@ export const attachmentFeature: AttachmentFeature = {
 		node._kind = "attachment";
 		return node as unknown as PreprocessedAttachmentNode;
 	},
-	measure: measureAttachment,
-	layout: layoutAttachment,
-	place: placeAttachment,
+	resolveResources(document, resolve): undefined {
+		resolveAttachmentReferences(document, resolve);
+	},
+	measure(node): MeasuredAttachmentNode {
+		return measureAttachment(node as PreprocessedAttachmentNode);
+	},
+	layout(node, context): void {
+		layoutAttachment(node as LayoutAttachmentNode, { writer: context.writer });
+	},
+	place: placeAttachmentItem,
 	render(node, context): void {
 		renderAttachment(node, context);
 	},

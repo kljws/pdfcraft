@@ -1,17 +1,11 @@
-import type DocumentContext from "../../document/document-context";
+import type { NodePlaceContext } from "../../engine/contracts/node-feature";
 import type { CurrentPosition } from "../../types/internal";
 import { addPageItem, alignImage } from "../../layout/element-writer.helpers";
 import type { LayoutExtensionNode } from "./extension.types";
 
-export interface ExtensionWriter {
-	context(): DocumentContext;
-	getCurrentPositionOnPage(): CurrentPosition;
-}
-
-export function placeExtension(
-	writer: ExtensionWriter,
+export function placeExtensionItem(
 	node: LayoutExtensionNode,
-	index?: number,
+	{ writer, index }: NodePlaceContext,
 ): CurrentPosition | false {
 	const height = node._height ?? 0;
 	const context = writer.context();

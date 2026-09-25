@@ -201,12 +201,12 @@ describe("PageElementWriter", function () {
 		});
 	});
 
-	describe("addImage", function () {
+	describe("addFeatureItem", function () {
 		it("should add the image image if something else exists on the page and there's enough space left", function () {
 			var lineHeight = 400;
 			pew.addLine(buildLine(lineHeight));
 
-			var position = pew.addImage(buildImage(300));
+			var position = pew.addFeatureItem("image", buildImage(300));
 
 			assert.equal(ctx.pages.length, 1);
 			assert.deepEqual(position, {
@@ -225,7 +225,7 @@ describe("PageElementWriter", function () {
 			var lineHeight = 900;
 			pew.addLine(buildLine(lineHeight));
 
-			var position = pew.addImage(buildImage(300));
+			var position = pew.addFeatureItem("image", buildImage(300));
 
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(ctx.pages[0].items.length, 1);
@@ -243,7 +243,7 @@ describe("PageElementWriter", function () {
 		});
 
 		it("should write into the current page if it's a large image and nothing else exists on the page", function () {
-			var position = pew.addImage(buildImage(2000));
+			var position = pew.addFeatureItem("image", buildImage(2000));
 
 			assert.equal(ctx.pages.length, 1);
 			assert.equal(ctx.pages[0].items.length, 1);
@@ -261,7 +261,7 @@ describe("PageElementWriter", function () {
 
 		it("should write into the a new page page if it's a large image and something else does exist on the page", function () {
 			pew.addLine(buildLine(1));
-			var position = pew.addImage(buildImage(2000));
+			var position = pew.addFeatureItem("image", buildImage(2000));
 
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(ctx.pages[0].items.length, 1);
@@ -279,11 +279,11 @@ describe("PageElementWriter", function () {
 		});
 	});
 
-	describe("addExtension", function () {
+	describe("extension feature items", function () {
 		it("moves an extension to a new page under the same overflow rule as an image", function () {
 			pew.addLine(buildLine(900));
 
-			const position = pew.addExtension(buildExtension(300));
+			const position = pew.addFeatureItem("extension", buildExtension(300));
 
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(ctx.pages[0].items.length, 1);
@@ -293,7 +293,7 @@ describe("PageElementWriter", function () {
 		});
 
 		it("renders an oversized extension on an otherwise empty page", function () {
-			const position = pew.addExtension(buildExtension(2000));
+			const position = pew.addFeatureItem("extension", buildExtension(2000));
 
 			assert.equal(ctx.pages.length, 1);
 			assert.equal(ctx.pages[0].items.length, 1);
@@ -326,15 +326,15 @@ describe("PageElementWriter", function () {
 		});
 	});
 
-	describe("addCanvas", function () {
+	describe("canvas feature items", function () {
 		it("renders a canvas taller than a page once the canvas reaches an empty page", function () {
 			pew.addLine(buildLine(10));
-			const positions = pew.addCanvas({
+			const positions = pew.addFeatureItem("canvas", {
 				canvas: [{ type: "rect", x: 0, y: 0, w: 20, h: 1200 }],
 				_minHeight: 1200,
 				positions: [],
 			});
-			if (positions === false) throw new Error("Expected the oversized canvas to render");
+			if (!Array.isArray(positions)) throw new Error("Expected the oversized canvas to render");
 
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(ctx.pages[0].items.length, 1);
