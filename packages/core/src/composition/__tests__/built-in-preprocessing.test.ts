@@ -1,6 +1,7 @@
 import { assert, describe, it } from "vitest";
 import { createBuiltInPreprocessing } from "../built-in-preprocessing.ts";
 import type { PdfNode } from "../../types/internal.ts";
+import { expectPreprocessedKind } from "../../__tests__/fixtures/nodes.ts";
 
 type PreprocessedFixture = PdfNode & {
 	stack: PreprocessedFixture[];
@@ -88,24 +89,28 @@ describe("DocPreprocessor", function () {
 
 	describe("decorated stacks", function () {
 		it("normalizes a decorated stack through the rounded table container", function () {
-			const result = docPreprocessor.preprocessBlock({
-				stack: ["Payment details", "IBAN: FR14"],
-				borderRadius: 12,
-				borderWidth: 2,
-				borderColor: "#334155",
-				backgroundColor: "#f8fafc",
-				padding: [8, 10],
-			});
+			const result = expectPreprocessedKind(
+				docPreprocessor.preprocessBlock({
+					stack: ["Payment details", "IBAN: FR14"],
+					borderRadius: 12,
+					borderWidth: 2,
+					borderColor: "#334155",
+					backgroundColor: "#f8fafc",
+					padding: [8, 10],
+				}),
+				"table",
+			);
 			const layout = result.table!._bodyLayout as {
 				fillColor: string;
 				paddingLeft(): number;
 				paddingTop(): number;
 			};
 
-			assert.equal(result.stack, undefined);
+			assert.isUndefined(Reflect.get(result, "stack"));
 			assert.equal(result.table!.borderRadius, 12);
 			assert.equal(result.table!._blockContainer, true);
-			assert.equal(result.table!.body[0][0].stack![0].text, "Payment details");
+			const cellStack = expectPreprocessedKind(result.table.body[0][0], "stack").stack;
+			assert.equal(expectPreprocessedKind(cellStack[0], "text").text, "Payment details");
 			assert.equal(layout.fillColor, "#f8fafc");
 			assert.equal(layout.paddingLeft(), 8);
 			assert.equal(layout.paddingTop(), 10);
@@ -159,7 +164,7 @@ describe("DocPreprocessor", function () {
 				undefined,
 				"undefined",
 			];
-			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as unknown as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 22);
@@ -217,7 +222,7 @@ describe("DocPreprocessor", function () {
 				{ text: undefined },
 				{ text: "undefined" },
 			];
-			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as unknown as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 22);
@@ -260,7 +265,7 @@ describe("DocPreprocessor", function () {
 					text: ["A\tB", { text: "A\tB" }],
 				},
 			];
-			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as unknown as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 5);
@@ -282,7 +287,7 @@ describe("DocPreprocessor", function () {
 					},
 				},
 			];
-			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as unknown as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 1);
@@ -428,23 +433,26 @@ describe("DocPreprocessor", function () {
 			const headerLayout = { fillColor: "#e0e3fd" };
 			const bodyLayout = { vLineWidth: () => 0 };
 			const groupLayout = { paddingTop: () => 8 };
-			const result = docPreprocessor.preprocessBlock({
-				table: {
-					borderRadius: 8,
-					header: { rows: [["Header A", "Header B"]], layout: headerLayout },
-					body: {
-						layout: bodyLayout,
-						groups: [
-							{
-								keepTogether: true,
-								dontBreakRows: true,
-								layout: groupLayout,
-								rows: [["Product", "2"], [{ text: "Description", colSpan: 2 }]],
-							},
-						],
+			const result = expectPreprocessedKind(
+				docPreprocessor.preprocessBlock({
+					table: {
+						borderRadius: 8,
+						header: { rows: [["Header A", "Header B"]], layout: headerLayout },
+						body: {
+							layout: bodyLayout,
+							groups: [
+								{
+									keepTogether: true,
+									dontBreakRows: true,
+									layout: groupLayout,
+									rows: [["Product", "2"], [{ text: "Description", colSpan: 2 }]],
+								},
+							],
+						},
 					},
-				},
-			});
+				}),
+				"table",
+			);
 
 			assert.equal(result.table!.headerRows, 1);
 			assert.equal(result.table!.borderRadius, 8);
@@ -542,37 +550,40 @@ describe("DocPreprocessor", function () {
 				},
 			};
 
-			const result = docPreprocessor.preprocessBlock(node);
+			const result = expectPreprocessedKind(docPreprocessor.preprocessBlock(node), "table");
 			const row = result.table!.body[1];
 
 			assert.equal(row.length, 5);
 			assert.equal("_span" in row[1] && row[1]._span, true);
 			assert.equal("_span" in row[2] && row[2]._span, true);
 			assert.equal("_span" in row[3] && row[3]._span, true);
-			assert.equal(row[4].text, "2.85");
+			assert.equal(expectPreprocessedKind(row[4], "text").text, "2.85");
 		});
 
 		it("inserts compact row-span placeholders without overwriting following rows (#1814)", function () {
-			const result = docPreprocessor.preprocessBlock({
-				table: {
-					body: {
-						groups: [
-							{
-								rows: [
-									["A", "B", "C", "D"],
-									[{ text: "1", rowSpan: 2 }, { text: "2", colSpan: 2 }, { text: "3" }],
-									[{ text: "4", colSpan: 3 }],
-								],
-							},
-						],
+			const result = expectPreprocessedKind(
+				docPreprocessor.preprocessBlock({
+					table: {
+						body: {
+							groups: [
+								{
+									rows: [
+										["A", "B", "C", "D"],
+										[{ text: "1", rowSpan: 2 }, { text: "2", colSpan: 2 }, { text: "3" }],
+										[{ text: "4", colSpan: 3 }],
+									],
+								},
+							],
+						},
 					},
-				},
-			});
+				}),
+				"table",
+			);
 			const row = result.table!.body[2];
 
 			assert.equal(row.length, 4);
 			assert.equal("_span" in row[0] && row[0]._span, true);
-			assert.equal(row[1].text, "4");
+			assert.equal(expectPreprocessedKind(row[1], "text").text, "4");
 			assert.equal("_span" in row[2] && row[2]._span, true);
 			assert.equal("_span" in row[3] && row[3]._span, true);
 		});
@@ -593,7 +604,7 @@ describe("DocPreprocessor", function () {
 					tocItem: true,
 				},
 			];
-			var result = docPreprocessor.preprocessDocument(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessDocument(ddContent) as unknown as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 3);
@@ -618,7 +629,7 @@ describe("DocPreprocessor", function () {
 					toc: {},
 				},
 			];
-			var result = docPreprocessor.preprocessDocument(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessDocument(ddContent) as unknown as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 3);

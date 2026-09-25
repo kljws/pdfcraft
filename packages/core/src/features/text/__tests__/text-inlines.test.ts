@@ -135,13 +135,14 @@ describe("TextInlines", function () {
 	});
 
 	it("measures image fragments as part of a text line", function () {
-		const inlines = new TextInlines(sampleTestProvider, (node) => {
-			node._kind = "image";
-			node.image = "resolved-icon";
-			node._width = 24;
-			node._height = 16;
-			return node;
-		});
+		const inlines = new TextInlines(sampleTestProvider, (node) =>
+			Object.assign(node, {
+				_kind: "image" as const,
+				image: "resolved-icon",
+				_width: 24,
+				_height: 16,
+			}),
+		);
 		const result = inlines.buildInlines([
 			{ text: "before " },
 			{ image: "icon", width: 24, height: 16 },

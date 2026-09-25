@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Measurement tests share one fixture built on the composition functions instead of subclassing the former measurement and preprocessing classes.
 - The architecture test also fails when a shared node-state field is used by a single feature only.
 - Added table pagination snapshot tests covering repeated headers, row spans crossing page breaks and breaking inside their own content, column spans with borders and fills, `dontBreakRows`, `keepTogether` groups (including the first body group), fixed row heights, nested tables and vertical alignment across pages. The corpus was checked against targeted mutations of the header, unbreakable-row, keep-together and span logic.
+- Unit tests now type-check against the internal node lifecycle types: fixtures narrow nodes with `expectPreprocessedKind`/`expectMeasuredKind` assertions or build typed nodes instead of casting unrelated shapes, and the workspace `test` script runs `typecheck` so test typing errors fail the build.
 
 ### Documentation
 

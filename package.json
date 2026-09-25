@@ -8,7 +8,7 @@
 		"node": ">=22"
 	},
 	"scripts": {
-		"test": "pnpm run build && pnpm run test:types && pnpm run test:consumer && pnpm run test:unit && pnpm run test:integration && pnpm run test:browser && pnpm run lint && pnpm run format:check",
+		"test": "pnpm run build && pnpm run typecheck && pnpm run test:types && pnpm run test:consumer && pnpm run test:unit && pnpm run test:integration && pnpm run test:browser && pnpm run lint && pnpm run format:check",
 		"typecheck": "tsc --noEmit",
 		"typecheck:build": "pnpm --recursive --filter './packages/*' run typecheck",
 		"build": "pnpm --recursive --filter './packages/*' run build",

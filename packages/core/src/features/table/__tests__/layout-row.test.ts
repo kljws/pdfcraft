@@ -1,3 +1,4 @@
+import type { LayoutTableCell } from "../table.types.ts";
 import { assert, beforeEach, describe, it } from "vitest";
 import DocumentContext from "../../../document/document-context.ts";
 import BaseLayoutBuilder from "../../../layout/layout-builder.ts";
@@ -36,7 +37,7 @@ describe("Table row layout", function () {
 			table: {
 				headerRows: number;
 				widths: ColumnWidth[];
-				body: RowCellFixture[][];
+				body: LayoutTableCell[][];
 			};
 			metrics: { offsets: { offsets: number[] } };
 		}

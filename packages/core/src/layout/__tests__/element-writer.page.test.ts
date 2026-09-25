@@ -1,13 +1,14 @@
 import { assert, beforeEach, describe, it, vi, type MockInstance } from "vitest";
 import DocumentContext from "../../document/document-context.ts";
 import PageElementWriter from "../element-writer.page.ts";
+import type { LayoutImageNode } from "../../features/image/image.types.ts";
+import type { LayoutExtensionNode } from "../../features/extension/extension.types.ts";
 import { createBuiltInElementPlacement } from "../../composition/built-in-element-placement.ts";
 import type {
 	CurrentPosition,
 	LineLike,
 	PageItem,
 	PageSize,
-	PdfNode,
 	PdfPage,
 } from "../../types/internal.ts";
 
@@ -73,8 +74,9 @@ describe("PageElementWriter", function () {
 		return line as unknown as LineFixture;
 	}
 
-	function buildImage(height: number): PdfNode {
+	function buildImage(height: number): LayoutImageNode {
 		return {
+			_kind: "image",
 			image: INLINE_TEST_IMAGE,
 			_margin: null,
 			_maxWidth: 100,
@@ -85,8 +87,9 @@ describe("PageElementWriter", function () {
 		};
 	}
 
-	function buildExtension(height: number): PdfNode {
+	function buildExtension(height: number): LayoutExtensionNode {
 		return {
+			_kind: "extension",
 			_extension: "fixture",
 			_margin: null,
 			_maxWidth: 100,
@@ -331,6 +334,7 @@ describe("PageElementWriter", function () {
 		it("renders a canvas taller than a page once the canvas reaches an empty page", function () {
 			pew.addLine(buildLine(10));
 			const positions = pew.addFeatureItem("canvas", {
+				_kind: "canvas",
 				canvas: [{ type: "rect", x: 0, y: 0, w: 20, h: 1200 }],
 				_minHeight: 1200,
 				positions: [],

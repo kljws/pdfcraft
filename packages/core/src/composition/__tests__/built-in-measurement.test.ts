@@ -1,8 +1,9 @@
 import { assert, describe, it } from "vitest";
 import { createBuiltInPreprocessing } from "../built-in-preprocessing.ts";
 import { createTestMeasurement } from "../../__tests__/fixtures/measurement.ts";
+import { expectMeasuredKind } from "../../__tests__/fixtures/nodes.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
-import type { PdfFont, PreprocessedPdfNode } from "../../types/internal.ts";
+import type { PdfFont } from "../../types/internal.ts";
 
 var sampleTestProvider = {
 	provideFont: function (_familyName: string, bold: boolean, italics: boolean): PdfFont {
@@ -26,10 +27,7 @@ describe("DocMeasure", function () {
 	it("rejects content without a matching extension", function () {
 		const measure = createTestMeasurement(sampleTestProvider as unknown as PDFDocument, {}, {});
 
-		assert.throws(
-			() => measure.measureNode({ custom: "test" } as PreprocessedPdfNode),
-			/Unrecognized document structure/,
-		);
+		assert.throws(() => measure.measureNode({ custom: "test" }), /Unrecognized document structure/);
 	});
 
 	describe("measureNode", function () {
@@ -169,7 +167,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { ul: ["one", "two", { text: "three", style: "subLevel" }], style: "topLevel" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureNode(node);
+			var result = expectMeasuredKind(docMeasure.measureNode(node), "list");
 			assert.deepEqual(result._margin, [123, 3, 5, 6]);
 			assert(result.ul);
 			assert.equal(result.ul[0]._margin, null);
@@ -197,14 +195,15 @@ describe("DocMeasure", function () {
 				style: "topLevel",
 			};
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureNode(node);
+			var result = expectMeasuredKind(docMeasure.measureNode(node), "list");
 			assert.deepEqual(result._margin, [123, 3, 5, 6]);
 			assert(result.ul);
 			assert.equal(result.ul[0]._margin, null);
 			assert.equal(result.ul[1]._margin, null);
 			assert.deepEqual(result.ul[2]._margin, [5, 5, 5, 5]);
-			assert(result.ul[3].ol);
-			assert.deepEqual(result.ul[3].ol[0]._margin, [25, 25, 25, 25]);
+			const nestedList = expectMeasuredKind(result.ul[3], "list");
+			assert(nestedList.ol);
+			assert.deepEqual(nestedList.ol[0]._margin, [25, 25, 25, 25]);
 		});
 
 		it("should process marginLeft property if defined", function () {
@@ -263,7 +262,7 @@ describe("DocMeasure", function () {
 			);
 			var node = { ul: ["one", "two", { text: "three", style: "subLevel" }], style: "topLevel" };
 			docPreprocessor.preprocessDocument(node);
-			var result = docMeasure.measureNode(node);
+			var result = expectMeasuredKind(docMeasure.measureNode(node), "list");
 			assert.deepEqual(result._margin, [123, 3, 5, 6]);
 			assert(result.ul);
 			assert.deepEqual(result.ul[2]._margin, [5, 0, 0, 0]);

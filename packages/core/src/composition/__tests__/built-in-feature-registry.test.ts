@@ -43,8 +43,11 @@ describe("built-in feature registry", () => {
 			builtInFeatureRegistry.dispatch({ table: {}, text: "ambiguous" } as PdfNode),
 		).toThrow("Ambiguous document node matches 'table', 'text'");
 		expect(
-			builtInFeatureRegistry.dispatch({ _kind: "table", table: {}, text: "normalized" } as PdfNode)
-				?.kind,
+			builtInFeatureRegistry.dispatch({
+				_kind: "table",
+				table: { body: [], widths: [] },
+				text: "normalized",
+			} as PdfNode)?.kind,
 		).toBe("table");
 	});
 });
