@@ -4,8 +4,8 @@ import BaseLayoutBuilder from "../../../layout/layout-builder.ts";
 import ColumnCalculator from "../../../layout/column-calculator.ts";
 import PageElementWriter from "../../../layout/element-writer.page.ts";
 import { createBuiltInElementPlacement } from "../../../composition/built-in-element-placement.ts";
-import DocMeasure from "../../../composition/doc-measure.ts";
-import DocPreprocessor from "../../../composition/doc-preprocessor.ts";
+import { createTestMeasurement } from "../../../__tests__/fixtures/measurement.ts";
+import { createBuiltInPreprocessing } from "../../../composition/built-in-preprocessing.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
 import type { ColumnWidth, PageSize } from "../../../types/internal.ts";
 import TableRowLayout from "../layout-row.ts";
@@ -77,8 +77,8 @@ describe("Table row layout", function () {
 				},
 			};
 
-			const preprocessedTable = new DocPreprocessor().preprocessDocument(tableNode);
-			const measuredTable = new DocMeasure(
+			const preprocessedTable = createBuiltInPreprocessing().preprocessDocument(tableNode);
+			const measuredTable = createTestMeasurement(
 				sampleTestProvider as unknown as PDFDocument,
 				{},
 				{},

@@ -1,5 +1,5 @@
-import type DocMeasure from "./doc-measure";
-import type DocPreprocessor from "./doc-preprocessor";
+import type { BuiltInMeasurement } from "./built-in-measurement";
+import type { BuiltInPreprocessing } from "./built-in-preprocessing";
 import type PDFDocument from "../rendering/pdf-document";
 import type { Style } from "../types";
 import type { LayoutPdfNode } from "../types/internal";
@@ -11,8 +11,8 @@ import { watermarkFeature } from "../features/repeatables/watermark.feature";
 
 interface DocumentFeatureCompositionHost {
 	writer: PageElementWriter;
-	docPreprocessor: DocPreprocessor;
-	docMeasure: DocMeasure;
+	preprocessing: BuiltInPreprocessing;
+	measurement: BuiltInMeasurement;
 	suppressLinearNodeList: boolean;
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
 }
@@ -45,8 +45,8 @@ export function createBuiltInDocumentFeatures(
 						host.writer.beginUnbreakableBlock(width, height),
 					commitUnbreakableBlock: (forcedX, forcedY) =>
 						host.writer.commitUnbreakableBlock(forcedX, forcedY),
-					preprocessNode: (node) => host.docPreprocessor.preprocessBlock(node),
-					measureNode: (node) => host.docMeasure.measureNode(node) as LayoutPdfNode,
+					preprocessNode: (node) => host.preprocessing.preprocessBlock(node),
+					measureNode: (node) => host.measurement.measureNode(node) as LayoutPdfNode,
 					layoutNode: layoutRepeatableNode,
 					recordBackgroundItems: (count) => {
 						context.backgroundLength[context.page] += count;
@@ -65,8 +65,8 @@ export function createBuiltInDocumentFeatures(
 						host.writer.beginUnbreakableBlock(width, height),
 					commitUnbreakableBlock: (forcedX, forcedY, detachedOverflowMessage) =>
 						host.writer.commitUnbreakableBlock(forcedX, forcedY, detachedOverflowMessage),
-					preprocessNode: (node) => host.docPreprocessor.preprocessBlock(node),
-					measureNode: (node) => host.docMeasure.measureNode(node) as LayoutPdfNode,
+					preprocessNode: (node) => host.preprocessing.preprocessBlock(node),
+					measureNode: (node) => host.measurement.measureNode(node) as LayoutPdfNode,
 					layoutNode: layoutRepeatableNode,
 				});
 			},

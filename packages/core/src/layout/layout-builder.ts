@@ -1,5 +1,5 @@
-import type DocMeasure from "../composition/doc-measure";
-import type DocPreprocessor from "../composition/doc-preprocessor";
+import type { BuiltInMeasurement } from "../composition/built-in-measurement";
+import type { BuiltInPreprocessing } from "../composition/built-in-preprocessing";
 import type PageElementWriter from "./element-writer.page";
 import { pack } from "../utils/tools";
 import type { LayoutPdfNode, MeasuredPdfNode } from "../types/internal";
@@ -38,8 +38,8 @@ class LayoutBuilder {
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>> = {};
 	nestedLevel = 0;
 	verticalAlignmentItemStack: VerticalAlignmentStackEntry[] = [];
-	docPreprocessor!: DocPreprocessor;
-	docMeasure!: DocMeasure;
+	preprocessing!: BuiltInPreprocessing;
+	measurement!: BuiltInMeasurement;
 	linearNodeList: LayoutPdfNode[] = [];
 	suppressLinearNodeList = false;
 	writer!: PageElementWriter;
@@ -111,8 +111,8 @@ class LayoutBuilder {
 			this.extensions,
 			this.tableLayouts,
 		);
-		this.docPreprocessor = processors.preprocessor;
-		this.docMeasure = processors.measure;
+		this.preprocessing = processors.preprocessing;
+		this.measurement = processors.measurement;
 
 		return runBuiltInDocumentPipeline({
 			extensions: this.extensions,

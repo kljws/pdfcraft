@@ -1,39 +1,12 @@
 import { assert, describe, it } from "vitest";
-import BaseDocPreprocessor from "../../../composition/doc-preprocessor.ts";
-import BaseDocMeasure from "../../../composition/doc-measure.ts";
-import type PDFDocument from "../../../rendering/pdf-document.ts";
-import type { Dictionary, PdfCraftExtensions, Style } from "../../../types/index.ts";
-import type {
-	ColumnNode,
-	MeasuredPdfNode,
-	PdfFont,
-	PdfNode,
-	PreprocessedPdfNode,
-	TableLayout,
-} from "../../../types/internal.ts";
+import { createBuiltInPreprocessing } from "../../../composition/built-in-preprocessing.ts";
+import { createTestMeasurement } from "../../../__tests__/fixtures/measurement.ts";
+import type { ColumnNode, PdfFont, PdfNode } from "../../../types/internal.ts";
 
 interface MeasuredFixture extends PdfNode {
 	_minWidth: number;
 	_maxWidth: number;
 	columns: Array<ColumnNode & MeasuredFixture>;
-}
-
-const measured = (node: MeasuredPdfNode): MeasuredFixture => node as MeasuredFixture;
-
-class DocMeasure extends BaseDocMeasure {
-	constructor(
-		pdfDocument: unknown,
-		styleDictionary: Dictionary<Style> = {},
-		defaultStyle: Style = {},
-		extensions: PdfCraftExtensions = [],
-		tableLayouts: Dictionary<Partial<TableLayout>> = {},
-	) {
-		super(pdfDocument as PDFDocument, styleDictionary, defaultStyle, extensions, tableLayouts);
-	}
-
-	override measureNode(node: unknown): MeasuredFixture {
-		return measured(super.measureNode(node as PreprocessedPdfNode));
-	}
 }
 
 var sampleTestProvider = {
@@ -51,14 +24,14 @@ var sampleTestProvider = {
 	},
 };
 
-const docMeasure = new DocMeasure(sampleTestProvider);
-const docPreprocessor = new BaseDocPreprocessor();
+const docMeasure = createTestMeasurement<MeasuredFixture>(sampleTestProvider);
+const docPreprocessor = createBuiltInPreprocessing();
 
 describe("Columns measurement", function () {
 	describe("measureColumns", function () {
 		it("should extend document-definition-object if text columns are used", function () {
 			var node = { columns: ["asdasd", "bbbb"] };
-			docPreprocessor.preprocessNode(node);
+			docPreprocessor.preprocessBlock(node);
 			var result = docMeasure.measureNode(node);
 
 			assert(result.columns[0]._minWidth);
@@ -67,7 +40,7 @@ describe("Columns measurement", function () {
 
 		it("should calculate _minWidth and _maxWidth of all columns", function () {
 			var node = { columns: ["this is a test", "another one"] };
-			docPreprocessor.preprocessNode(node);
+			docPreprocessor.preprocessBlock(node);
 			var result = docMeasure.measureNode(node);
 
 			assert.equal(result.columns[0]._minWidth, 4 * 12);
@@ -84,7 +57,7 @@ describe("Columns measurement", function () {
 				],
 				columnGap: 0,
 			};
-			docPreprocessor.preprocessNode(node);
+			docPreprocessor.preprocessBlock(node);
 			var result = docMeasure.measureNode(node);
 
 			assert.equal(result._minWidth, 4 * 12 + 7 * 12);
@@ -93,7 +66,7 @@ describe("Columns measurement", function () {
 
 		it("should set _minWidth and _maxWidth properly when star columns are defined", function () {
 			var node = { columns: ["this is a test", "another one"], columnGap: 0 };
-			docPreprocessor.preprocessNode(node);
+			docPreprocessor.preprocessBlock(node);
 			var result = docMeasure.measureNode(node);
 
 			assert.equal(result._minWidth, 7 * 12 + 7 * 12);

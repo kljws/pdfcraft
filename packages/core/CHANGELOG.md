@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The internal preprocessed, measured and layout node unions are now built from an open `NodeKindRegistry` that each feature augments from its own types file, so shared types no longer import any feature.
 - Node-feature measure, layout, decorate and reset hooks now receive the node type of their own kind; the registry narrows by `_kind` once instead of every feature descriptor casting the lifecycle union.
 - The page element writer no longer builds its own feature placement: composition injects the placement port, so layout writers and document context stay independent of features and composition.
-- Moved the `DocMeasure` and `DocPreprocessor` facades into composition, removing the single-file `measurement/` and `preprocessing/` layers, and merged the `measureDocument`/`measureBlock` aliases into `measureNode`.
+- Replaced the `DocMeasure` and `DocPreprocessor` classes with the `createBuiltInMeasurement` and `createBuiltInPreprocessing` composition functions, removing the single-file `measurement/` and `preprocessing/` layers. Preprocessing now creates fresh reference and table-of-contents state for every document or block pass instead of resetting shared instance state, and measurement accepts its inline text engine as an option instead of a mutable field.
 
 ### Fixed
 
@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Added feature-level layout tests for canvas, columns, extension, image, list, stack, table, text and page breaks, and registry tests for matching order, kind dispatch and duplicate kinds.
 - Added an architecture test that fails when a feature imports another feature or when document context, layout writers, engine, services, types or utilities import features or composition.
+- Measurement tests share one fixture built on the composition functions instead of subclassing the former measurement and preprocessing classes.
 
 ### Documentation
 

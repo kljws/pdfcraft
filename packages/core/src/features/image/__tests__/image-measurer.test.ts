@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
-import BaseDocPreprocessor from "../../../composition/doc-preprocessor.ts";
-import BaseDocMeasure from "../../../composition/doc-measure.ts";
+import { createBuiltInPreprocessing } from "../../../composition/built-in-preprocessing.ts";
+import { createTestMeasurement } from "../../../__tests__/fixtures/measurement.ts";
 import type PDFDocument from "../../../rendering/pdf-document.ts";
 import StyleContextStack from "../../../services/styles/style-context-stack.ts";
 import type { PreprocessedPdfNode } from "../../../types/internal.ts";
@@ -10,7 +10,7 @@ import type { MeasuredTextNode } from "../../text/text.types.ts";
 
 describe("Image measurement", function () {
 	it("measures registered images embedded in text", function () {
-		const measure = new BaseDocMeasure(
+		const measure = createTestMeasurement(
 			{
 				images: {},
 				provideImage: () => ({ width: 40, height: 20, orientation: 0 }),
@@ -25,7 +25,7 @@ describe("Image measurement", function () {
 			{},
 		);
 		const node = { text: ["before ", { image: "logo", width: 20 }, " after"] };
-		new BaseDocPreprocessor().preprocessDocument(node);
+		createBuiltInPreprocessing().preprocessDocument(node);
 
 		const result = measure.measureNode(node as PreprocessedPdfNode) as MeasuredTextNode;
 		const image = result.metrics.inlines.find((inline) => inline.image !== undefined)!;

@@ -1,15 +1,11 @@
 import { assert, beforeEach, describe, it } from "vitest";
-import BaseDocPreprocessor from "../../../composition/doc-preprocessor.ts";
-import BaseDocMeasure from "../../../composition/doc-measure.ts";
-import type PDFDocument from "../../../rendering/pdf-document.ts";
-import type { Dictionary, PdfCraftExtensions, Style } from "../../../types/index.ts";
+import { createBuiltInPreprocessing } from "../../../composition/built-in-preprocessing.ts";
+import { createTestMeasurement } from "../../../__tests__/fixtures/measurement.ts";
 import type {
 	ColumnWidth,
-	MeasuredPdfNode,
 	PdfFont,
 	PdfNode,
 	PdfTable,
-	PreprocessedPdfNode,
 	TableLayout,
 } from "../../../types/internal.ts";
 import type { MeasuredTableNode } from "../table.types.ts";
@@ -31,24 +27,6 @@ interface TableNodeFixture extends Omit<PdfNode, "layout" | "table"> {
 		widths: ColumnWidth[];
 		headerLines?: number;
 	};
-}
-
-const measured = (node: MeasuredPdfNode): MeasuredFixture => node as MeasuredFixture;
-
-class DocMeasure extends BaseDocMeasure {
-	constructor(
-		pdfDocument: unknown,
-		styleDictionary: Dictionary<Style> = {},
-		defaultStyle: Style = {},
-		extensions: PdfCraftExtensions = [],
-		tableLayouts: Dictionary<Partial<TableLayout>> = {},
-	) {
-		super(pdfDocument as PDFDocument, styleDictionary, defaultStyle, extensions, tableLayouts);
-	}
-
-	override measureNode(node: unknown): MeasuredFixture {
-		return measured(super.measureNode(node as PreprocessedPdfNode));
-	}
 }
 
 var sampleTestProvider = {
@@ -100,8 +78,8 @@ var emptyTableLayout: TableLayout = {
 	},
 };
 
-const docMeasure = new DocMeasure(sampleTestProvider);
-const docPreprocessor = new BaseDocPreprocessor();
+const docMeasure = createTestMeasurement<MeasuredFixture>(sampleTestProvider);
+const docPreprocessor = createBuiltInPreprocessing();
 
 describe("Table measurement", function () {
 	describe("measureTable", function () {
@@ -147,7 +125,7 @@ describe("Table measurement", function () {
 		});
 
 		it("should extend document-definition-object", function () {
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			var result = docMeasure.measureNode(tableNode);
 			const measuredTable = result as unknown as MeasuredTableNode;
 
@@ -165,7 +143,7 @@ describe("Table measurement", function () {
 		});
 
 		it("inherits table-cell borders and fills from named styles", function () {
-			const styledMeasure = new DocMeasure(sampleTestProvider, {
+			const styledMeasure = createTestMeasurement<MeasuredFixture>(sampleTestProvider, {
 				cell: {
 					border: [true, false, true, false],
 					borderColor: ["red", "green", "blue", "black"],
@@ -177,7 +155,7 @@ describe("Table measurement", function () {
 				table: { body: { groups: [{ rows: [[{ text: "Styled", style: "cell" }]] }] } },
 			};
 
-			docPreprocessor.preprocessNode(node);
+			docPreprocessor.preprocessBlock(node);
 			const cell = styledMeasure.measureNode(node).table.body[0][0];
 
 			assert.deepEqual(cell.border, [true, false, true, false]);
@@ -187,7 +165,7 @@ describe("Table measurement", function () {
 		});
 
 		it("should not spoil widths if measureTable has been called before", function () {
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			var result = docMeasure.measureNode(tableNode);
 			result = docMeasure.measureNode(result);
 
@@ -198,7 +176,7 @@ describe("Table measurement", function () {
 		});
 
 		it("should calculate _minWidth and _maxWidth for all columns", function () {
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			var result = docMeasure.measureNode(tableNode);
 
 			result.table.widths.forEach(function (width) {
@@ -209,7 +187,7 @@ describe("Table measurement", function () {
 		});
 
 		it("should set _minWidth and _maxWidth of each column to min/max width or the largest cell", function () {
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			assert.equal(tableNode.table.widths[0]._minWidth, 6 * 12);
@@ -240,7 +218,7 @@ describe("Table measurement", function () {
 				},
 			};
 
-			docPreprocessor.preprocessNode(node);
+			docPreprocessor.preprocessBlock(node);
 			var result = docMeasure.measureNode(node);
 
 			assert(result.table.widths instanceof Array);
@@ -251,7 +229,7 @@ describe("Table measurement", function () {
 		});
 
 		it("should set _minWidth and _maxWidth to the sum of column min/max widths", function () {
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			assert.equal(tableNode._minWidth, 150 + 6 * 12 + 6 * 12 + 4 * 20);
@@ -263,7 +241,7 @@ describe("Table measurement", function () {
 				tableNode.table.body as unknown as { groups: Array<{ rows: unknown[][] }> }
 			).groups[0].rows.push([{ text: "Column 1", colSpan: 2 }, {}, "Column 3", "Column 4"]);
 
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 		});
 
@@ -271,7 +249,7 @@ describe("Table measurement", function () {
 			(
 				tableNode.table.body as unknown as { groups: Array<{ rows: unknown[][] }> }
 			).groups[0].rows.push([{ text: "Col 1", colSpan: 3 }, {}, {}, "Col 4"]);
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			var rows = tableNode.table.body.length;
@@ -287,7 +265,7 @@ describe("Table measurement", function () {
 		it("spanning cells should not influence min/max column widths if their min/max widths are lower or equal", function () {
 			(tableNode.table.body as unknown as { layout: unknown }).layout = emptyTableLayout;
 
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 			var col0min = tableNode.table.widths[0]._minWidth;
 			var col0max = tableNode.table.widths[0]._maxWidth;
@@ -296,7 +274,7 @@ describe("Table measurement", function () {
 
 			tableNode.table.body.push([{ text: "Co1", colSpan: 2 }, {}, "Column 3", "Column 4"]);
 			tableNode.table.body.push([{ text: "123456789012", colSpan: 2 }, {}, "Column 3", "Column 4"]);
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			assert.equal(tableNode.table.widths[0]._minWidth, col0min);
@@ -308,7 +286,7 @@ describe("Table measurement", function () {
 		it("assigns spanning-cell minimum growth to star columns before fixed columns", function () {
 			(tableNode.table.body as unknown as { layout: unknown }).layout = emptyTableLayout;
 
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 			var col0min = tableNode.table.widths[0]._minWidth;
 			var col1min = tableNode.table.widths[1]._minWidth;
@@ -324,7 +302,7 @@ describe("Table measurement", function () {
 				"Column 3",
 				"Column 4",
 			]);
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			assert(tableNode.table.widths[0]._minWidth > col0min);
@@ -336,7 +314,7 @@ describe("Table measurement", function () {
 		it("assigns spanning-cell maximum growth to star columns before fixed columns", function () {
 			(tableNode.table.body as unknown as { layout: unknown }).layout = emptyTableLayout;
 
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 			var col0max = tableNode.table.widths[0]._maxWidth;
 			var col1max = tableNode.table.widths[1]._maxWidth;
@@ -350,7 +328,7 @@ describe("Table measurement", function () {
 				"Column 3",
 				"Column 4",
 			]);
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			assert.equal(tableNode.table.widths[0]._maxWidth, col0max + 1 * 12);
@@ -372,7 +350,7 @@ describe("Table measurement", function () {
 				},
 			};
 
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 			var col0min = tableNode.table.widths[0]._minWidth;
 			var col1min = tableNode.table.widths[1]._minWidth;
@@ -386,7 +364,7 @@ describe("Table measurement", function () {
 				"Column 3",
 				"Column 4",
 			]);
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			assert.equal(tableNode.table.widths[0]._minWidth, col0min);
@@ -400,7 +378,7 @@ describe("Table measurement", function () {
 			rawRows.push([{}, "Col2", "Col 3", "Col 4"]);
 			rawRows.push([{}, "Col2", "Col 3", "Col 4"]);
 			rawRows.push(["Another", "Col2", "Col 3", "Col 4"]);
-			docPreprocessor.preprocessNode(tableNode);
+			docPreprocessor.preprocessBlock(tableNode);
 			docMeasure.measureNode(tableNode);
 
 			var rows = tableNode.table.body.length;

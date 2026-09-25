@@ -9,8 +9,8 @@ import {
 import PageElementWriter from "../layout/element-writer.page";
 import { createBuiltInElementPlacement } from "./built-in-element-placement";
 import { calculatePageHeight } from "../layout/page-item-geometry";
-import DocMeasure from "./doc-measure";
-import DocPreprocessor from "./doc-preprocessor";
+import { createBuiltInMeasurement, type BuiltInMeasurement } from "./built-in-measurement";
+import { createBuiltInPreprocessing, type BuiltInPreprocessing } from "./built-in-preprocessing";
 import type PDFDocument from "../rendering/pdf-document";
 import type { Dictionary, PdfCraftExtensions, Style } from "../types";
 import type {
@@ -32,8 +32,8 @@ interface BuiltInDocumentPipelineContext {
 interface BuiltInDocumentPassHost {
 	readonly pageSize: PageSize;
 	readonly pageMargins: PageMarginSource;
-	docPreprocessor: DocPreprocessor;
-	docMeasure: DocMeasure;
+	preprocessing: BuiltInPreprocessing;
+	measurement: BuiltInMeasurement;
 	linearNodeList: LayoutPdfNode[];
 	suppressLinearNodeList: boolean;
 	writer: PageElementWriter;
@@ -61,8 +61,14 @@ export function createBuiltInDocumentProcessors(
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
 ) {
 	return {
-		preprocessor: new DocPreprocessor(extensions),
-		measure: new DocMeasure(pdfDocument, styleDictionary, defaultStyle, extensions, tableLayouts),
+		preprocessing: createBuiltInPreprocessing(extensions),
+		measurement: createBuiltInMeasurement({
+			document: pdfDocument,
+			styleDictionary,
+			defaultStyle,
+			extensions,
+			tableLayouts,
+		}),
 	};
 }
 
@@ -87,8 +93,8 @@ export function runBuiltInDocumentPass(
 	input: BuiltInDocumentPassInput,
 ): DocumentLayoutPassResult {
 	host.linearNodeList = [];
-	const processedDocument = host.docPreprocessor.preprocessDocument(input.docStructure);
-	const layoutDocument = host.docMeasure.measureNode(processedDocument) as LayoutPdfNode;
+	const processedDocument = host.preprocessing.preprocessDocument(input.docStructure);
+	const layoutDocument = host.measurement.measureNode(processedDocument) as LayoutPdfNode;
 
 	const documentContext = new DocumentContext();
 	documentContext.pageMarginSource = host.pageMargins;

@@ -1,30 +1,8 @@
 import { assert, describe, it } from "vitest";
-import BaseDocPreprocessor from "../doc-preprocessor.ts";
-import BaseDocMeasure from "../doc-measure.ts";
+import { createBuiltInPreprocessing } from "../built-in-preprocessing.ts";
+import { createTestMeasurement } from "../../__tests__/fixtures/measurement.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
-import type { Dictionary, PdfCraftExtensions, Style } from "../../types/index.ts";
-import type {
-	MeasuredPdfNode,
-	PdfFont,
-	PreprocessedPdfNode,
-	TableLayout,
-} from "../../types/internal.ts";
-
-class DocMeasure extends BaseDocMeasure {
-	constructor(
-		pdfDocument: unknown,
-		styleDictionary: Dictionary<Style> = {},
-		defaultStyle: Style = {},
-		extensions: PdfCraftExtensions = [],
-		tableLayouts: Dictionary<Partial<TableLayout>> = {},
-	) {
-		super(pdfDocument as PDFDocument, styleDictionary, defaultStyle, extensions, tableLayouts);
-	}
-
-	override measureNode(node: unknown): MeasuredPdfNode {
-		return super.measureNode(node as PreprocessedPdfNode);
-	}
-}
+import type { PdfFont, PreprocessedPdfNode } from "../../types/internal.ts";
 
 var sampleTestProvider = {
 	provideFont: function (_familyName: string, bold: boolean, italics: boolean): PdfFont {
@@ -41,12 +19,12 @@ var sampleTestProvider = {
 	},
 };
 
-var docMeasure = new DocMeasure(sampleTestProvider);
-var docPreprocessor = new BaseDocPreprocessor();
+var docMeasure = createTestMeasurement(sampleTestProvider);
+var docPreprocessor = createBuiltInPreprocessing();
 
 describe("DocMeasure", function () {
 	it("rejects content without a matching extension", function () {
-		const measure = new BaseDocMeasure(sampleTestProvider as unknown as PDFDocument, {}, {});
+		const measure = createTestMeasurement(sampleTestProvider as unknown as PDFDocument, {}, {});
 
 		assert.throws(
 			() => measure.measureNode({ custom: "test" } as PreprocessedPdfNode),
@@ -56,7 +34,7 @@ describe("DocMeasure", function () {
 
 	describe("measureNode", function () {
 		it("should treat margin in styling properties with higher priority", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { marginStyle: { margin: 10 } }, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, { marginStyle: { margin: 10 } }, {});
 			var node = { text: "test", style: "marginStyle", margin: [5, 5, 5, 5] };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -64,7 +42,11 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply margins defined in the styles", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { topLevel: { margin: [123, 3, 5, 6] } }, {});
+			docMeasure = createTestMeasurement(
+				sampleTestProvider,
+				{ topLevel: { margin: [123, 3, 5, 6] } },
+				{},
+			);
 			var node = { text: "test", style: "topLevel" };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -72,7 +54,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply marginLeft: 10, margin: 20", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, {}, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, {}, {});
 			var node = { text: "test", marginLeft: 10, margin: 20 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -80,7 +62,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply marginLeft: 10, margin: 0", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, {}, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, {}, {});
 			var node = { text: "test", marginLeft: 10, margin: 0 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -88,7 +70,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply margin: 20 from style - overridden with margin: 10", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", margin: 10 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -96,7 +78,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply margin: 20 from style - marginLeft: 10, margin: 0", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", margin: 0 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -104,7 +86,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply margin: 20 from style - overridden with marginLeft: 10", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", marginLeft: 10 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -112,7 +94,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply margin: 20 from style - overridden with marginLeft: 0", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { margin: { margin: 20 } }, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, { margin: { margin: 20 } }, {});
 			var node = { text: "test", style: "margin", marginLeft: 0 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -120,7 +102,11 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply marginLeft: 20 from style - overridden with 10", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
+			docMeasure = createTestMeasurement(
+				sampleTestProvider,
+				{ marginLeft: { marginLeft: 20 } },
+				{},
+			);
 			var node = { text: "test", style: "marginLeft", marginLeft: 10 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -128,7 +114,11 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply marginLeft: 20 from style - overridden with 0", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
+			docMeasure = createTestMeasurement(
+				sampleTestProvider,
+				{ marginLeft: { marginLeft: 20 } },
+				{},
+			);
 			var node = { text: "test", style: "marginLeft", marginLeft: 0 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -136,7 +126,11 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply marginLeft: 20 from style - overridden with margin: 10", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
+			docMeasure = createTestMeasurement(
+				sampleTestProvider,
+				{ marginLeft: { marginLeft: 20 } },
+				{},
+			);
 			var node = { text: "test", style: "marginLeft", margin: 10 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -144,7 +138,11 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply marginLeft: 20 from style - overridden with margin: 0", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { marginLeft: { marginLeft: 20 } }, {});
+			docMeasure = createTestMeasurement(
+				sampleTestProvider,
+				{ marginLeft: { marginLeft: 20 } },
+				{},
+			);
 			var node = { text: "test", style: "marginLeft", margin: 0 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -152,7 +150,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply margin override from multiple styles", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{ quote: { margin: [20, 0, 20, 0] }, small: { margin: [0, 0, 0, 5] } },
 				{},
@@ -164,7 +162,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply sublevel styles not to parent", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{ topLevel: { margin: [123, 3, 5, 6] }, subLevel: { margin: 5 } },
 				{},
@@ -180,7 +178,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should apply subsublevel styles not to parent", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					topLevel: { margin: [123, 3, 5, 6] },
@@ -238,7 +236,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should combine all single margins defined in style dict ", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{ style1: { marginLeft: 5 }, style2: { marginTop: 10 } },
 				{},
@@ -250,7 +248,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should combine the single margin defined in style dict and the object itself", function () {
-			docMeasure = new DocMeasure(sampleTestProvider, { style1: { marginLeft: 5 } }, {});
+			docMeasure = createTestMeasurement(sampleTestProvider, { style1: { marginLeft: 5 } }, {});
 			var node = { text: "some text", style: ["style1"], marginRight: 15 };
 			docPreprocessor.preprocessDocument(node);
 			var result = docMeasure.measureNode(node);
@@ -258,7 +256,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should override only left margin if marginLeft is defined", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{ topLevel: { margin: [123, 3, 5, 6] }, subLevel: { marginLeft: 5 } },
 				{},
@@ -272,7 +270,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in extends styles", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					header: {
@@ -292,7 +290,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in multiple extends styles", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					styleTop: {
@@ -315,7 +313,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in multiple extends styles from styles 1", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					marginLeft: {
@@ -348,7 +346,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in multiple extends styles from styles 2", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					marginLeft: {
@@ -381,7 +379,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in multiple extends styles from styles 3", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					marginLeft: {
@@ -414,7 +412,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in multiple extends styles from styles 4", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					marginLeft: {
@@ -447,7 +445,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in extends styles with infinite loop 1", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					header: {
@@ -468,7 +466,7 @@ describe("DocMeasure", function () {
 		});
 
 		it("should process margin in extends styles with infinite loop 2", function () {
-			docMeasure = new DocMeasure(
+			docMeasure = createTestMeasurement(
 				sampleTestProvider,
 				{
 					subheader: {

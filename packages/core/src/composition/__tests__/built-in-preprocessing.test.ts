@@ -1,5 +1,5 @@
 import { assert, describe, it } from "vitest";
-import DocPreprocessor from "../doc-preprocessor.ts";
+import { createBuiltInPreprocessing } from "../built-in-preprocessing.ts";
 import type { PdfNode } from "../../types/internal.ts";
 
 type PreprocessedFixture = PdfNode & {
@@ -9,27 +9,27 @@ type PreprocessedFixture = PdfNode & {
 };
 
 describe("DocPreprocessor", function () {
-	const docPreprocessor = new DocPreprocessor();
+	const docPreprocessor = createBuiltInPreprocessing();
 
 	describe("internal kind", function () {
 		it("tags nodes after public-shape dispatch", function () {
-			assert.equal(docPreprocessor.preprocessNode({ text: "Invoice" })._kind, "text");
-			assert.equal(docPreprocessor.preprocessNode({ image: "logo" })._kind, "image");
-			assert.equal(docPreprocessor.preprocessNode({ canvas: [] })._kind, "canvas");
-			assert.equal(docPreprocessor.preprocessNode({ stack: [] })._kind, "stack");
-			assert.equal(docPreprocessor.preprocessNode({ columns: [] })._kind, "columns");
-			assert.equal(docPreprocessor.preprocessNode({ ul: [] })._kind, "list");
-			assert.equal(docPreprocessor.preprocessNode({ toc: {} })._kind, "toc");
+			assert.equal(docPreprocessor.preprocessBlock({ text: "Invoice" })._kind, "text");
+			assert.equal(docPreprocessor.preprocessBlock({ image: "logo" })._kind, "image");
+			assert.equal(docPreprocessor.preprocessBlock({ canvas: [] })._kind, "canvas");
+			assert.equal(docPreprocessor.preprocessBlock({ stack: [] })._kind, "stack");
+			assert.equal(docPreprocessor.preprocessBlock({ columns: [] })._kind, "columns");
+			assert.equal(docPreprocessor.preprocessBlock({ ul: [] })._kind, "list");
+			assert.equal(docPreprocessor.preprocessBlock({ toc: {} })._kind, "toc");
 			assert.equal(
-				docPreprocessor.preprocessNode({ attachment: "invoice.xml" })._kind,
+				docPreprocessor.preprocessBlock({ attachment: "invoice.xml" })._kind,
 				"attachment",
 			);
 			assert.equal(
-				docPreprocessor.preprocessNode({ acroform: { type: "text", id: "field" } })._kind,
+				docPreprocessor.preprocessBlock({ acroform: { type: "text", id: "field" } })._kind,
 				"acroform",
 			);
 			assert.equal(
-				docPreprocessor.preprocessNode({
+				docPreprocessor.preprocessBlock({
 					table: { body: { groups: [{ rows: [["Cell"]] }] } },
 				})._kind,
 				"table",
@@ -41,7 +41,7 @@ describe("DocPreprocessor", function () {
 		});
 
 		it("tags the normalized feature when preprocessing changes the node shape", function () {
-			const result = docPreprocessor.preprocessNode({
+			const result = docPreprocessor.preprocessBlock({
 				stack: ["Decorated"],
 				borderWidth: 1,
 			});
@@ -50,17 +50,17 @@ describe("DocPreprocessor", function () {
 		});
 
 		it("tags page and text references without text as text", function () {
-			assert.equal(docPreprocessor.preprocessNode({ pageReference: "intro" })._kind, "text");
-			assert.equal(docPreprocessor.preprocessNode({ textReference: "intro" })._kind, "text");
+			assert.equal(docPreprocessor.preprocessBlock({ pageReference: "intro" })._kind, "text");
+			assert.equal(docPreprocessor.preprocessBlock({ textReference: "intro" })._kind, "text");
 		});
 
 		it("rejects public nodes recognized by several features", function () {
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ image: "logo", canvas: [] }),
+				() => docPreprocessor.preprocessBlock({ image: "logo", canvas: [] }),
 				"Ambiguous document node matches 'image', 'canvas'",
 			);
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ stack: [], ul: [] }),
+				() => docPreprocessor.preprocessBlock({ stack: [], ul: [] }),
 				"Ambiguous document node matches 'stack', 'list'",
 			);
 		});
@@ -69,18 +69,18 @@ describe("DocPreprocessor", function () {
 	describe("AcroForms", function () {
 		it("accepts valid fields and rejects incomplete definitions", function () {
 			assert.doesNotThrow(() =>
-				docPreprocessor.preprocessNode({
+				docPreprocessor.preprocessBlock({
 					acroform: { type: "text", id: "customer-name" },
 					width: "*",
 					height: 20,
 				}),
 			);
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ acroform: { type: "text", id: "" } }),
+				() => docPreprocessor.preprocessBlock({ acroform: { type: "text", id: "" } }),
 				/non-empty string/,
 			);
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ acroform: { type: "radio", id: "choice" } }),
+				() => docPreprocessor.preprocessBlock({ acroform: { type: "radio", id: "choice" } }),
 				/unsupported field type/,
 			);
 		});
@@ -88,7 +88,7 @@ describe("DocPreprocessor", function () {
 
 	describe("decorated stacks", function () {
 		it("normalizes a decorated stack through the rounded table container", function () {
-			const result = docPreprocessor.preprocessNode({
+			const result = docPreprocessor.preprocessBlock({
 				stack: ["Payment details", "IBAN: FR14"],
 				borderRadius: 12,
 				borderWidth: 2,
@@ -113,11 +113,11 @@ describe("DocPreprocessor", function () {
 
 		it("rejects invalid stack decoration dimensions", function () {
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ stack: ["Invalid"], borderWidth: -1 }),
+				() => docPreprocessor.preprocessBlock({ stack: ["Invalid"], borderWidth: -1 }),
 				/'borderWidth' must be a finite non-negative number/,
 			);
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ stack: ["Invalid"], padding: [4, -2] }),
+				() => docPreprocessor.preprocessBlock({ stack: ["Invalid"], padding: [4, -2] }),
 				/'padding' must be a finite non-negative number/,
 			);
 		});
@@ -130,7 +130,7 @@ describe("DocPreprocessor", function () {
 			};
 
 			assert.doesNotThrow(function () {
-				docPreprocessor.preprocessNode(ddContent);
+				docPreprocessor.preprocessBlock(ddContent);
 			});
 		});
 
@@ -159,7 +159,7 @@ describe("DocPreprocessor", function () {
 				undefined,
 				"undefined",
 			];
-			var result = docPreprocessor.preprocessNode(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 22);
@@ -217,7 +217,7 @@ describe("DocPreprocessor", function () {
 				{ text: undefined },
 				{ text: "undefined" },
 			];
-			var result = docPreprocessor.preprocessNode(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 22);
@@ -260,7 +260,7 @@ describe("DocPreprocessor", function () {
 					text: ["A\tB", { text: "A\tB" }],
 				},
 			];
-			var result = docPreprocessor.preprocessNode(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 5);
@@ -282,7 +282,7 @@ describe("DocPreprocessor", function () {
 					},
 				},
 			];
-			var result = docPreprocessor.preprocessNode(ddContent) as PreprocessedFixture;
+			var result = docPreprocessor.preprocessBlock(ddContent) as PreprocessedFixture;
 
 			assert.equal(Array.isArray(result.stack), true);
 			assert.equal(result.stack.length, 1);
@@ -295,37 +295,37 @@ describe("DocPreprocessor", function () {
 
 		it("should report an invalid text value at preprocessing time", function () {
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ text: { value: "not text" } }),
+				() => docPreprocessor.preprocessBlock({ text: { value: "not text" } }),
 				/Invalid text value: expected a string, number, boolean, array or nested text node/,
 			);
 		});
 
 		it("should report unsupported document values with their structure", function () {
 			assert.throws(
-				() => docPreprocessor.preprocessNode(Symbol("unsupported")),
+				() => docPreprocessor.preprocessBlock(Symbol("unsupported")),
 				/Unrecognized document structure: Symbol\(unsupported\)/,
 			);
 		});
 
 		it("should identify invalid container and table structures", function () {
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ stack: "not-an-array" }),
+				() => docPreprocessor.preprocessBlock({ stack: "not-an-array" }),
 				/Invalid stack node: 'stack' must be an array/,
 			);
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ table: { body: { groups: [{ rows: [] }] } } }),
+				() => docPreprocessor.preprocessBlock({ table: { body: { groups: [{ rows: [] }] } } }),
 				/Invalid table node: 'table\.body\.groups\[0\]\.rows' must contain at least one row/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { body: { groups: [{ rows: [[{ text: "Invalid", colSpan: "2" }]] }] } },
 					}),
 				/Invalid table cell at row 0, column 0: 'colSpan' must be a positive integer, received "2"/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { body: { groups: [{ rows: [[{ text: "Invalid", rowSpan: 0 }]] }] } },
 					}),
 				/Invalid table cell at row 0, column 0: 'rowSpan' must be a positive integer, received 0/,
@@ -335,42 +335,42 @@ describe("DocPreprocessor", function () {
 		it("rejects table geometry that cannot produce a rectangular layout grid", function () {
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { widths: [], body: { groups: [{ rows: [["Cell"]] }] } },
 					}),
 				/'table\.widths' must not be an empty array/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { widths: ["auto", {}], body: { groups: [{ rows: [["A", "B"]] }] } },
 					}),
 				/'table\.widths\[1\]' must be/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { heights: -1, body: { groups: [{ rows: [["Cell"]] }] } },
 					}),
 				/'table\.heights' must contain only/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { body: { groups: [{ rows: [[]] }] } },
 					}),
 				/table rows must contain at least one cell/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { body: { groups: [{ rows: [["A", "B"], ["A"]] }] } },
 					}),
 				/row 1: resolves to fewer than 2 columns/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: {
 							body: {
 								groups: [
@@ -388,7 +388,7 @@ describe("DocPreprocessor", function () {
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: {
 							body: { groups: [{ rows: [["A", "B"], [{ text: "Invalid", colSpan: 3 }]] }] },
 						},
@@ -397,7 +397,7 @@ describe("DocPreprocessor", function () {
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: {
 							body: { groups: [{ rows: [[{ text: "Invalid", rowSpan: 2 }]] }] },
 						},
@@ -406,7 +406,7 @@ describe("DocPreprocessor", function () {
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: {
 							body: {
 								groups: [
@@ -428,7 +428,7 @@ describe("DocPreprocessor", function () {
 			const headerLayout = { fillColor: "#e0e3fd" };
 			const bodyLayout = { vLineWidth: () => 0 };
 			const groupLayout = { paddingTop: () => 8 };
-			const result = docPreprocessor.preprocessNode({
+			const result = docPreprocessor.preprocessBlock({
 				table: {
 					borderRadius: 8,
 					header: { rows: [["Header A", "Header B"]], layout: headerLayout },
@@ -468,14 +468,14 @@ describe("DocPreprocessor", function () {
 		it("rejects invalid or unsupported row-group layouts", function () {
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { body: { groups: [{ rows: [["A"]], layout: "noBorders" }] } },
 					}),
 				/'layout' must be an object/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: {
 							body: { groups: [{ rows: [["A"]], layout: { fillColor: "red" } }] },
 						},
@@ -486,19 +486,19 @@ describe("DocPreprocessor", function () {
 
 		it("rejects the replaced flat table API with migration guidance", function () {
 			assert.throws(
-				() => docPreprocessor.preprocessNode({ table: { body: [["Legacy row"]] } }),
+				() => docPreprocessor.preprocessBlock({ table: { body: [["Legacy row"]] } }),
 				/table\.body.*object with a 'groups' array/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { headerRows: 1, body: { groups: [{ rows: [["Legacy header"]] }] } },
 					}),
 				/'headerRows' is no longer supported/,
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { body: { groups: [{ rows: [["Legacy layout"]] }] } },
 						layout: "noBorders",
 					}),
@@ -506,7 +506,7 @@ describe("DocPreprocessor", function () {
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: {
 							header: { rows: [["Header"]], layout: 42 },
 							body: { groups: [] },
@@ -516,7 +516,7 @@ describe("DocPreprocessor", function () {
 			);
 			assert.throws(
 				() =>
-					docPreprocessor.preprocessNode({
+					docPreprocessor.preprocessBlock({
 						table: { borderRadius: -1, body: { groups: [{ rows: [["Invalid radius"]] }] } },
 					}),
 				/'table\.borderRadius' must be a finite non-negative number/,
@@ -542,7 +542,7 @@ describe("DocPreprocessor", function () {
 				},
 			};
 
-			const result = docPreprocessor.preprocessNode(node);
+			const result = docPreprocessor.preprocessBlock(node);
 			const row = result.table!.body[1];
 
 			assert.equal(row.length, 5);
@@ -553,7 +553,7 @@ describe("DocPreprocessor", function () {
 		});
 
 		it("inserts compact row-span placeholders without overwriting following rows (#1814)", function () {
-			const result = docPreprocessor.preprocessNode({
+			const result = docPreprocessor.preprocessBlock({
 				table: {
 					body: {
 						groups: [

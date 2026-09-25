@@ -36,11 +36,10 @@ type BuiltInPreprocessContext = ColumnsPreprocessContext &
 	TextPreprocessContext &
 	TocPreprocessContext;
 
-interface BuiltInPreprocessingHost {
+interface PreprocessingState {
 	parentNode: PreprocessedPdfNode | null;
-	tocs: Record<string, PreprocessedPdfNode>;
-	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
-	nodeReferences: Record<string, NodeReference<PreprocessedPdfNode>>;
+	readonly tocs: Record<string, PreprocessedPdfNode>;
+	readonly nodeReferences: Record<string, NodeReference<PreprocessedPdfNode>>;
 }
 
 const normalizeNode = (input: unknown): PdfNode => {
@@ -72,41 +71,57 @@ const normalizeNode = (input: unknown): PdfNode => {
 	return node;
 };
 
-export function createBuiltInPreprocessing(
-	host: BuiltInPreprocessingHost,
-	extensions: PdfCraftExtensions = [],
-) {
+/**
+ * Preprocesses a document or an independent block. Each call starts from fresh reference and
+ * table-of-contents state, so no pass leaks into the next one.
+ */
+export function createBuiltInPreprocessing(extensions: PdfCraftExtensions = []) {
 	const registry = createNodeFeatureRegistry([
 		...builtInFeatures,
 		{ ...extensionFeature, matches: (node: PdfNode) => extensionFeature.matches(node, extensions) },
 	]);
-	const createContext = (allowSections: boolean): BuiltInPreprocessContext => ({
-		allowSections,
-		get parentNode() {
-			return host.parentNode;
-		},
-		set parentNode(parentNode: PreprocessedPdfNode | null) {
-			host.parentNode = parentNode;
-		},
-		get tocs() {
-			return host.tocs;
-		},
-		preprocessNode: (item: unknown, isSectionAllowed?: boolean) =>
-			host.preprocessNode(item, isSectionAllowed),
-		preprocessReferences: (item) =>
-			preprocessNodeReferences(item, {
-				parentNode: host.parentNode,
-				nodeReferences: host.nodeReferences,
-			}),
-		preprocessTable: (item, isSectionAllowed) =>
-			tableFeature.preprocess(item, createContext(isSectionAllowed)),
-		registerTocItem: (item) =>
-			tocFeature.registerItem(item, { parentNode: host.parentNode, tocs: host.tocs }),
-	});
+
+	const preprocessTree = (input: unknown, allowSections: boolean): PreprocessedPdfNode => {
+		const state: PreprocessingState = { parentNode: null, tocs: {}, nodeReferences: {} };
+		const createContext = (allowSections: boolean): BuiltInPreprocessContext => ({
+			allowSections,
+			get parentNode() {
+				return state.parentNode;
+			},
+			set parentNode(parentNode: PreprocessedPdfNode | null) {
+				state.parentNode = parentNode;
+			},
+			get tocs() {
+				return state.tocs;
+			},
+			preprocessNode,
+			preprocessReferences: (item) =>
+				preprocessNodeReferences(item, {
+					parentNode: state.parentNode,
+					nodeReferences: state.nodeReferences,
+				}),
+			preprocessTable: (item, isSectionAllowed) =>
+				tableFeature.preprocess(item, createContext(isSectionAllowed)),
+			registerTocItem: (item) =>
+				tocFeature.registerItem(item, { parentNode: state.parentNode, tocs: state.tocs }),
+		});
+
+		function preprocessNode(item: unknown, isSectionAllowed = false): PreprocessedPdfNode {
+			const node = normalizeNode(item);
+			const result = registry.dispatch(node)?.preprocess(node, createContext(isSectionAllowed));
+			if (result) return result;
+			throw new Error(`Unrecognized document structure: ${stringifyNode(node)}`);
+		}
+
+		return preprocessNode(input, allowSections);
+	};
 
 	return {
-		normalizeNode,
-		processNode: (node: PdfNode, isSectionAllowed: boolean): PreprocessedPdfNode | undefined =>
-			registry.dispatch(node)?.preprocess(node, createContext(isSectionAllowed)),
+		/** Preprocesses a whole document, where top-level sections are allowed. */
+		preprocessDocument: (input: unknown) => preprocessTree(input, true),
+		/** Preprocesses a standalone block such as a header, footer or background. */
+		preprocessBlock: (input: unknown) => preprocessTree(input, false),
 	};
 }
+
+export type BuiltInPreprocessing = ReturnType<typeof createBuiltInPreprocessing>;
