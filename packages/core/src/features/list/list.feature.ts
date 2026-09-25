@@ -1,5 +1,13 @@
-import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type {
+	NodeFeature,
+	NodeFeatureStages,
+	NodeLayoutContext,
+	NodeMeasureContext,
+} from "../../engine/contracts/node-feature";
+import type StyleContextStack from "../../services/styles/style-context-stack";
+import type { TextSize } from "../../services/typography/text-metrics";
+import type { Color } from "../../types";
+import type { Inline, LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
 import { layoutList } from "./layout-list";
 import type {
 	LayoutListNode,
@@ -10,6 +18,19 @@ import type {
 import { measureOrderedList, measureUnorderedList, type ListMeasureContext } from "./measure-list";
 import { preprocessList, type ListPreprocessContext } from "./preprocess-list";
 
+/** Marker text measurement supplied by the inline text pipeline through composition. */
+export interface ListMeasureCapabilities {
+	readonly inlines: {
+		sizeOfText(text: string, styles: StyleContextStack): TextSize;
+		buildInlines(
+			text: { text: string; color: Color },
+			styles: StyleContextStack,
+		): { items: Inline[] };
+	};
+}
+
+type ListMeasureFeatureContext = NodeMeasureContext & ListMeasureCapabilities;
+
 interface ListFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedListNode;
@@ -18,7 +39,7 @@ interface ListFeatureStages extends NodeFeatureStages {
 	layoutNode: LayoutListNode;
 	renderNode: never;
 	preprocessContext: ListPreprocessContext;
-	measureContext: NodeMeasureContext;
+	measureContext: ListMeasureFeatureContext;
 	layoutContext: NodeLayoutContext;
 	renderContext: never;
 }
@@ -26,7 +47,7 @@ interface ListFeatureStages extends NodeFeatureStages {
 interface ListFeature extends NodeFeature<ListFeatureStages> {
 	readonly kind: "list";
 	preprocess(node: PdfNode, context: ListPreprocessContext): PreprocessedListNode;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredListNode;
+	measure(node: MeasurePdfNode, context: ListMeasureFeatureContext): MeasuredListNode;
 	measureUnordered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
 	measureOrdered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
 	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;

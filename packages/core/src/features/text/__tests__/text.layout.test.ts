@@ -1,6 +1,9 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
-import { createLayoutBuilder, sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
+import {
+	createLayoutBuilder,
+	sampleTestProvider,
+} from "../../../../tests/helpers/layout-builder.ts";
 
 describe("text layout", function () {
 	let builder: LayoutBuilder;
@@ -182,7 +185,6 @@ describe("text layout", function () {
 		assert.equal(pages[0].items[0].item.getWidth(), 4 * 50);
 	});
 
-
 	it("should use the absolutePosition attribute to position in absolute coordinates", function () {
 		var desc = [
 			{
@@ -326,4 +328,3 @@ describe("text layout", function () {
 		assert.equal(pages[0].items[1].item.inlines[1].text, "line.");
 	});
 });
-

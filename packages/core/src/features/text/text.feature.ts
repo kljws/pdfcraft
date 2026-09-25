@@ -5,6 +5,7 @@ import type {
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
 import type { LayoutPdfNode, LineLike, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type TextInlines from "./text-inlines";
 import { buildTextLine } from "./build-text-line";
 import { layoutText } from "./layout-text";
 import { measureText } from "./measure-text";
@@ -17,6 +18,13 @@ import type {
 	TextMeasureNode,
 } from "./text.types";
 
+/** Inline shaping owned by text and injected by measurement composition. */
+export interface TextMeasureCapabilities {
+	readonly inlines: TextInlines;
+}
+
+type TextMeasureFeatureContext = NodeMeasureContext & TextMeasureCapabilities;
+
 interface TextFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTextNode;
@@ -25,7 +33,7 @@ interface TextFeatureStages extends NodeFeatureStages {
 	layoutNode: LayoutTextNode;
 	renderNode: LineLike;
 	preprocessContext: TextPreprocessContext;
-	measureContext: NodeMeasureContext;
+	measureContext: TextMeasureFeatureContext;
 	layoutContext: NodeLayoutContext;
 	renderContext: TextRenderContext;
 }
@@ -33,7 +41,7 @@ interface TextFeatureStages extends NodeFeatureStages {
 interface TextFeature extends NodeFeature<TextFeatureStages> {
 	readonly kind: "text";
 	preprocess(node: PdfNode, context: TextPreprocessContext): PreprocessedTextNode;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredTextNode;
+	measure(node: MeasurePdfNode, context: TextMeasureFeatureContext): MeasuredTextNode;
 	buildLine(node: LayoutTextNode, availableWidth: number): ReturnType<typeof buildTextLine>;
 	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
 	render(line: LineLike, context: TextRenderContext): void;

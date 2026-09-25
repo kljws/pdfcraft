@@ -1,6 +1,11 @@
-import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext } from "../../engine/contracts/node-feature";
+import type {
+	NodeFeature,
+	NodeFeatureStages,
+	NodeLayoutContext,
+	NodeMeasureContext,
+} from "../../engine/contracts/node-feature";
 import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
-import { layoutColumns } from "./layout-columns";
+import { layoutColumns, type ColumnsLayoutContext } from "./layout-columns";
 import { measureColumns } from "./measure-columns";
 import { preprocessColumns, type ColumnsPreprocessContext } from "./preprocess-columns";
 import type {
@@ -8,6 +13,11 @@ import type {
 	MeasuredColumnsNode,
 	PreprocessedColumnsNode,
 } from "./columns.types";
+
+/** Shared row layout supplied by composition to columns. */
+export type ColumnsLayoutCapabilities = Pick<ColumnsLayoutContext, "processRow">;
+
+type ColumnsLayoutFeatureContext = NodeLayoutContext & ColumnsLayoutCapabilities;
 
 interface ColumnsFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
@@ -18,7 +28,7 @@ interface ColumnsFeatureStages extends NodeFeatureStages {
 	renderNode: never;
 	preprocessContext: ColumnsPreprocessContext;
 	measureContext: NodeMeasureContext;
-	layoutContext: NodeLayoutContext;
+	layoutContext: ColumnsLayoutFeatureContext;
 	renderContext: never;
 }
 
@@ -26,7 +36,7 @@ interface ColumnsFeature extends NodeFeature<ColumnsFeatureStages> {
 	readonly kind: "columns";
 	preprocess(node: PdfNode, context: ColumnsPreprocessContext): PreprocessedColumnsNode;
 	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredColumnsNode;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	layout(node: LayoutPdfNode, context: ColumnsLayoutFeatureContext): void;
 }
 
 export const columnsFeature: ColumnsFeature = {

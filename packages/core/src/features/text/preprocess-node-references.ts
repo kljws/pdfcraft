@@ -1,5 +1,5 @@
 import type { NodeReference, PreprocessedPdfNode } from "../../types/internal";
-import type { PreprocessedTextNode } from "../../features/text/text.types";
+import type { PreprocessedTextNode } from "./text.types";
 
 export interface NodeReferencePreprocessContext {
 	parentNode: PreprocessedPdfNode | null;

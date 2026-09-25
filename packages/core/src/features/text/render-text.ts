@@ -1,7 +1,6 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import type { EmbeddedFont } from "../../rendering/renderer.types";
 import type { Inline, LayoutPdfNode, LineLike, MeasuredPdfNode } from "../../types/internal";
-import type { LayoutAcroFormNode } from "../acroform/acroform.types";
 import { isNumber } from "../../utils/variable-type";
 import TextDecorator from "./text-decorator";
 import TextInlines from "./text-inlines";
@@ -11,7 +10,8 @@ export interface TextRenderContext {
 	outlineMap: Record<string, PDFKit.PDFOutline>;
 	x: number;
 	y: number;
-	renderAcroForm(node: LayoutAcroFormNode | Inline, x: number, y: number): void;
+	/** Renders an inline form field owned by another feature. */
+	renderAcroForm(inline: Inline, x: number, y: number): void;
 }
 
 interface TextOptions extends PDFKit.Mixins.TextOptions {

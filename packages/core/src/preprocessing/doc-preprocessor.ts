@@ -1,9 +1,7 @@
 import { stringifyNode } from "../utils/node";
 import type { NodeReference, PreprocessedPdfNode } from "../types/internal";
 import type { PdfCraftExtensions } from "../types";
-import { preprocessNodeReferences } from "../services/references/preprocess-node-references";
 import { createBuiltInPreprocessing } from "../composition/built-in-preprocessing";
-import type { PreprocessedTextNode } from "../features/text/text.types";
 
 class DocPreprocessor {
 	declare parentNode: PreprocessedPdfNode | null;
@@ -37,13 +35,6 @@ class DocPreprocessor {
 		const result = this.preprocessing.processNode(node, isSectionAllowed);
 		if (result) return result;
 		throw new Error(`Unrecognized document structure: ${stringifyNode(node)}`);
-	}
-
-	preprocessReferences(node: PreprocessedTextNode): void {
-		preprocessNodeReferences(node, {
-			parentNode: this.parentNode,
-			nodeReferences: this.nodeReferences,
-		});
 	}
 }
 

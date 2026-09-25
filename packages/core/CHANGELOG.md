@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Measurement composition now builds its shared context without deferred assignment.
 - Resource resolution and page-item rendering now go through the node-feature registry. Features with document resources share one `resolveResources(document, context)` hook, the renderer dispatches image, attachment, AcroForm and extension page items by feature kind while keeping vectors, lines, clipping and vertical alignment as shared primitives, and block and inline AcroForm fields share one lazily initialized form renderer.
 - Feature-emitted page items now share one internal `FeaturePageItem` type whose `type` is the emitting feature kind. Page-height geometry and cloned-fragment replay handle them generically instead of listing image, extension, attachment and AcroForm items.
+- Engine node-feature contracts no longer reference feature internals. Text and list declare their inline-measurement ports, table and columns declare their shared row-layout ports, and composition injects them through composed stage contexts. Text renders inline form fields through a port instead of importing AcroForm types.
+- Moved node-reference preprocessing from a shared service into the text feature, its only consumer; `DocPreprocessor` now keeps only reference state and no longer depends on text types.
 - Registered extensions are now resolved by `_kind` like built-in features during measurement, layout, placement and rendering, removing the remaining extension-specific branches and the attachment/image-specific registry helpers.
 
 ### Fixed
@@ -26,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Tests
 
 - Added feature-level layout tests for canvas, columns, extension, image, list, stack, table, text and page breaks, and registry tests for matching order, kind dispatch and duplicate kinds.
+- Added an architecture test that fails when a feature imports another feature or when engine, services, types or utilities import features or composition. The internal node lifecycle unions in `types/document.types.ts` remain an explicitly allowed exception until node typing is reworked.
 
 ### Documentation
 

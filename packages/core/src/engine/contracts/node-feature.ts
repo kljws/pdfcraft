@@ -1,5 +1,3 @@
-import type TextInlines from "../../features/text/text-inlines";
-import type { ProcessRowOptions, ProcessRowResult } from "../../features/table/layout-row";
 import type PageElementWriter from "../../layout/element-writer.page";
 import type PDFDocument from "../../rendering/pdf-document";
 import type StyleContextStack from "../../services/styles/style-context-stack";
@@ -14,13 +12,14 @@ import type {
 	PreprocessedPdfNode,
 	TableLayout,
 	CurrentPosition,
+	Vector,
 } from "../../types/internal";
 
 export interface FeatureItemWriter {
 	context(): DocumentContext;
 	getCurrentPositionOnPage(): CurrentPosition;
 	addVector(
-		vector: import("../../types/internal").Vector,
+		vector: Vector,
 		ignoreContextX?: boolean,
 		ignoreContextY?: boolean,
 		index?: number,
@@ -34,24 +33,20 @@ export interface NodePlaceContext {
 }
 
 export type NodePlaceResult = CurrentPosition | false | Array<CurrentPosition | undefined>;
-export type NodePlaceHook = (
-	node: LayoutPdfNode,
-	context: NodePlaceContext,
-) => NodePlaceResult;
+export type NodePlaceHook = (node: LayoutPdfNode, context: NodePlaceContext) => NodePlaceResult;
 
 export interface NodeMeasureContext {
 	readonly document: PDFDocument;
 	readonly styles: StyleContextStack;
-	readonly inlines: TextInlines;
 	readonly extensions: PdfCraftExtensions;
 	readonly tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
 	readonly featureState: Map<string, object>;
 	measureNode(node: PreprocessedPdfNode): MeasuredPdfNode;
 }
 
-export type NodeMeasureHook = (
+export type NodeMeasureHook<Context extends NodeMeasureContext = NodeMeasureContext> = (
 	node: MeasurePdfNode,
-	context: NodeMeasureContext,
+	context: Context,
 ) => MeasuredPdfNode | undefined;
 
 export interface NodeLayoutContext {
@@ -61,12 +56,14 @@ export interface NodeLayoutContext {
 	readonly suppressLinearNodeList: boolean;
 	nestedLevel: number;
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
-	processRow(options: ProcessRowOptions): ProcessRowResult;
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
 }
 
-export type NodeLayoutHook = (node: LayoutPdfNode, context: NodeLayoutContext) => void;
+export type NodeLayoutHook<Context extends NodeLayoutContext = NodeLayoutContext> = (
+	node: LayoutPdfNode,
+	context: Context,
+) => void;
 
 /** Type map carried by a feature through every node lifecycle stage. */
 export interface NodeFeatureStages {

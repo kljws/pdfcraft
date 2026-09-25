@@ -89,19 +89,25 @@ export function getBuiltInFeatureByKind(kind: string): NodeFeatureDescriptor | u
 	return nodeFeaturesByKind.get(kind);
 }
 
-export function measureRegisteredNodeFeature(
+/**
+ * Stage hooks receive the composed context; each feature declares the subset it consumes, so
+ * the hook is invoked with the composition's concrete context type.
+ */
+export function measureRegisteredNodeFeature<Context extends NodeMeasureContext>(
 	node: MeasurePdfNode,
-	context: NodeMeasureContext,
+	context: Context,
 ): MeasuredPdfNode | undefined {
-	const measure: NodeMeasureHook | undefined = getBuiltInFeatureByKind(node._kind)?.measure;
+	const measure = getBuiltInFeatureByKind(node._kind)?.measure as
+		| NodeMeasureHook<Context>
+		| undefined;
 	return measure?.(node, context);
 }
 
-export function layoutRegisteredNodeFeature(
+export function layoutRegisteredNodeFeature<Context extends NodeLayoutContext>(
 	node: LayoutPdfNode,
-	context: NodeLayoutContext,
+	context: Context,
 ): boolean {
-	const layout: NodeLayoutHook | undefined = getBuiltInFeatureByKind(node._kind)?.layout;
+	const layout = getBuiltInFeatureByKind(node._kind)?.layout as NodeLayoutHook<Context> | undefined;
 	if (!layout) return false;
 	layout(node, context);
 	return true;

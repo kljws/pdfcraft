@@ -9,10 +9,16 @@ import type { TocPreprocessContext } from "../features/toc/preprocess-toc";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { tableFeature } from "../features/table/table.feature";
 import { asRawText, normalizeTextProperty } from "../features/text/preprocess-text";
-import type { PreprocessedTextNode } from "../features/text/text.types";
+import { preprocessNodeReferences } from "../features/text/preprocess-node-references";
 import { tocFeature } from "../features/toc/toc.feature";
 import type { PdfCraftExtensions } from "../types";
-import type { NodeText, PdfNode, PreprocessedPdfNode, RawPdfNode } from "../types/internal";
+import type {
+	NodeReference,
+	NodeText,
+	PdfNode,
+	PreprocessedPdfNode,
+	RawPdfNode,
+} from "../types/internal";
 import { stringifyNode } from "../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../utils/variable-type";
 import { builtInFeatures, createNodeFeatureRegistry } from "./built-in-feature-registry";
@@ -34,7 +40,7 @@ interface BuiltInPreprocessingHost {
 	parentNode: PreprocessedPdfNode | null;
 	tocs: Record<string, PreprocessedPdfNode>;
 	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
-	preprocessReferences(node: PreprocessedTextNode): void;
+	nodeReferences: Record<string, NodeReference<PreprocessedPdfNode>>;
 }
 
 const normalizeNode = (input: unknown): PdfNode => {
@@ -87,7 +93,11 @@ export function createBuiltInPreprocessing(
 		},
 		preprocessNode: (item: unknown, isSectionAllowed?: boolean) =>
 			host.preprocessNode(item, isSectionAllowed),
-		preprocessReferences: (item) => host.preprocessReferences(item),
+		preprocessReferences: (item) =>
+			preprocessNodeReferences(item, {
+				parentNode: host.parentNode,
+				nodeReferences: host.nodeReferences,
+			}),
 		preprocessTable: (item, isSectionAllowed) =>
 			tableFeature.preprocess(item, createContext(isSectionAllowed)),
 		registerTocItem: (item) =>

@@ -1,3 +1,5 @@
+import type { ColumnsLayoutCapabilities } from "../features/columns/columns.feature";
+import type { TableLayoutCapabilities } from "../features/table/table.feature";
 import TableRowLayout, { type TableRowLayoutHost } from "../features/table/layout-row";
 import type { NodeLayoutContext } from "../engine/contracts/node-feature";
 import type { PageOrientation } from "../types";
@@ -8,6 +10,8 @@ import {
 	layoutRegisteredNodeFeature,
 	resetRegisteredNodeFeature,
 } from "./built-in-feature-registry";
+
+type BuiltInLayoutContext = NodeLayoutContext & ColumnsLayoutCapabilities & TableLayoutCapabilities;
 
 interface BuiltInLayoutHost extends TableRowLayoutHost {
 	readonly pageMargins: PageMarginSource;
@@ -22,7 +26,7 @@ export function createBuiltInLayout(
 	},
 ) {
 	const rows = new TableRowLayout(host);
-	const context: NodeLayoutContext = {
+	const context: BuiltInLayoutContext = {
 		get writer() {
 			return host.writer;
 		},

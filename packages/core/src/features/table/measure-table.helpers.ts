@@ -21,9 +21,7 @@ export function resolveTableLayout(
 	const layout = isString(layoutDefinition) ? tableLayouts[layoutDefinition] : layoutDefinition;
 	return pack<TableLayout<MeasuredPdfNode>>(
 		defaultTableLayout as unknown as Partial<TableLayout<MeasuredPdfNode>>,
-		isObject(layout)
-			? (layout as unknown as Partial<TableLayout<MeasuredPdfNode>>)
-			: undefined,
+		isObject(layout) ? (layout as unknown as Partial<TableLayout<MeasuredPdfNode>>) : undefined,
 	);
 }
 

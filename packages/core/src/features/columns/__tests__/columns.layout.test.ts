@@ -1,6 +1,9 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
-import { createLayoutBuilder, sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
+import {
+	createLayoutBuilder,
+	sampleTestProvider,
+} from "../../../../tests/helpers/layout-builder.ts";
 
 describe("columns layout", function () {
 	let builder: LayoutBuilder;
@@ -350,4 +353,3 @@ describe("columns layout", function () {
 		assert.equal(pages[0].items[4].item.inlines[0].width, 12 * 50);
 	});
 });
-

@@ -1,6 +1,11 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
-import type { LayoutPdfNode, PdfPage, TableOffsets, TableRowGroupRange } from "../../types/internal";
+import type {
+	LayoutPdfNode,
+	PdfPage,
+	TableOffsets,
+	TableRowGroupRange,
+} from "../../types/internal";
 import { isPositiveInteger } from "../../utils/variable-type";
 import {
 	createRowSpanData,

@@ -1,5 +1,7 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import { imageFeature } from "../features/image/image.feature";
+import type { ListMeasureCapabilities } from "../features/list/list.feature";
+import type { TextMeasureCapabilities } from "../features/text/text.feature";
 import TextInlines from "../features/text/text-inlines";
 import type { NodeMeasureContext } from "../engine/contracts/node-feature";
 import type PDFDocument from "../rendering/pdf-document";
@@ -14,6 +16,8 @@ import type {
 import { getNodeMargin, stringifyNode } from "../utils/node";
 import { measureRegisteredNodeFeature } from "./built-in-feature-registry";
 
+type BuiltInMeasureContext = NodeMeasureContext & ListMeasureCapabilities & TextMeasureCapabilities;
+
 interface BuiltInMeasurementHost {
 	readonly pdfDocument: PDFDocument;
 	readonly textInlines: TextInlines;
@@ -24,7 +28,7 @@ interface BuiltInMeasurementHost {
 }
 
 export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
-	const context: NodeMeasureContext = {
+	const context: BuiltInMeasureContext = {
 		document: host.pdfDocument,
 		styles: host.styleStack,
 		get inlines() {
