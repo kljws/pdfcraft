@@ -1,5 +1,32 @@
-import type { LayoutPdfNode, PageItem, PdfPage } from "../types/internal";
+import type {
+	CurrentPosition,
+	FeaturePageItem,
+	LayoutPdfNode,
+	PageItem,
+	PdfPage,
+} from "../types/internal";
 import { getPageItemBottom } from "./page-item-geometry";
+
+interface FeatureItemLayoutWriter {
+	addFeatureItem(
+		featureKind: FeaturePageItem["type"],
+		node: LayoutPdfNode,
+	): CurrentPosition | false | Array<CurrentPosition | undefined>;
+}
+
+export function layoutFeatureItem(
+	featureKind: FeaturePageItem["type"],
+	node: LayoutPdfNode,
+	writer: FeatureItemLayoutWriter,
+): void {
+	const position = writer.addFeatureItem(featureKind, node);
+	if (position && !Array.isArray(position)) {
+		node._position = position;
+		node.positions ??= [];
+		node.positions.push(position);
+	}
+	node._node = node;
+}
 
 export function getAlignmentOffset(
 	alignment: string | undefined,

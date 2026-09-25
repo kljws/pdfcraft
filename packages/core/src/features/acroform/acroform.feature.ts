@@ -5,9 +5,9 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
+import { layoutFeatureItem } from "../../layout/element-writer.helpers";
 import type PDFDocument from "../../rendering/pdf-document";
 import type { Inline, PdfNode } from "../../types/internal";
-import { layoutAcroForm } from "./layout-acroform";
 import { measureAcroForm, measureInlineAcroForm } from "./measure-acroform";
 import { placeAcroFormItem } from "./place-acroform";
 import { preprocessAcroForm } from "./preprocess-acroform";
@@ -63,7 +63,7 @@ export const acroFormFeature: AcroFormFeature = {
 	measureInline: measureInlineAcroForm,
 	place: placeAcroFormItem,
 	layout(node, context): void {
-		layoutAcroForm(node, { writer: context.writer });
+		layoutFeatureItem("acroform", node, context.writer);
 	},
 	createRenderer(document): AcroFormRenderer {
 		return new AcroFormRenderer(document);

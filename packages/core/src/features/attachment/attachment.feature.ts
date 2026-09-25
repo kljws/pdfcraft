@@ -8,7 +8,7 @@ import type {
 } from "../../engine/contracts/node-feature";
 import type { PageItem, PdfNode } from "../../types/internal";
 import type { PrinterDocumentDefinition, PrinterResourceReference } from "../../core/printer.types";
-import { layoutAttachment } from "./layout-attachment";
+import { layoutFeatureItem } from "../../layout/element-writer.helpers";
 import { measureAttachment } from "./measure-attachment";
 import { placeAttachmentItem } from "./place-attachment";
 import { renderAttachment, type AttachmentRenderContext } from "./render-attachment";
@@ -71,7 +71,7 @@ export const attachmentFeature: AttachmentFeature = {
 		return measureAttachment(node);
 	},
 	layout(node, context): void {
-		layoutAttachment(node, { writer: context.writer });
+		layoutFeatureItem("attachment", node, context.writer);
 	},
 	place: placeAttachmentItem,
 	render(node, context): void {

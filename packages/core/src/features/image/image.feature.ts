@@ -6,9 +6,9 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
+import { layoutFeatureItem } from "../../layout/element-writer.helpers";
 import type { LayoutImageNode, MeasuredImageNode, PreprocessedImageNode } from "./image.types";
 import ImageMeasurer from "./image-measurer";
-import { layoutImage } from "./layout-image";
 import { placeImageItem } from "./place-image";
 import { preprocessImage } from "./preprocess-image";
 import { renderImage, type ImageRenderContext } from "./render-image";
@@ -59,7 +59,7 @@ export const imageFeature: ImageFeature = {
 		},
 	},
 	layout(node, context): void {
-		layoutImage(node, { writer: context.writer });
+		layoutFeatureItem("image", node, context.writer);
 	},
 	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem> {
 		return placeImageItem(node, context);

@@ -6,6 +6,7 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
+import { layoutFeatureItem } from "../../layout/element-writer.helpers";
 import type {
 	ExtensionMeasureNode,
 	LayoutExtensionNode,
@@ -14,7 +15,6 @@ import type {
 } from "./extension.types";
 import { copyExtensionPageBreakProperties } from "./extension-page-break";
 import { findExtensionForNode } from "./extension-registry";
-import { layoutExtension } from "./layout-extension";
 import { measureExtension } from "./measure-extension";
 import { placeExtensionItem } from "./place-extension";
 import { renderExtension, type ExtensionRenderHost } from "./render-extension";
@@ -50,7 +50,7 @@ export const extensionFeature = {
 		return placeExtensionItem(node, context);
 	},
 	layout(node: LayoutExtensionNode, context: NodeLayoutContext): void {
-		layoutExtension(node, { writer: context.writer });
+		layoutFeatureItem("extension", node, context.writer);
 	},
 	render(node: LayoutExtensionNode, host: ExtensionRenderHost): void {
 		renderExtension(node, host);
