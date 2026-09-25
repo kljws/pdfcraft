@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-25
+
 ### Changed
 
 - Replaced the stage-specific node dispatcher with a single ordered node-feature registry. Each built-in `kind` is registered once, duplicate kinds are rejected, public nodes are matched in the established order before preprocessing and preprocessed nodes are dispatched directly by `_kind`.
@@ -703,7 +705,9 @@ The starting baseline already included, and PDFCraft 0.4.0 retains, the followin
 - browser `SVGElement` support and SVG validation;
 - promise-based output methods.
 
-[Unreleased]: https://github.com/kljws/pdfcraft/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/kljws/pdfcraft/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/kljws/pdfcraft/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/kljws/pdfcraft/compare/v0.7.3...v0.8.0
 [0.7.3]: https://github.com/kljws/pdfcraft/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/kljws/pdfcraft/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/kljws/pdfcraft/compare/v0.7.0...v0.7.1
