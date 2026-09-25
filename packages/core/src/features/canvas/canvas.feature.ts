@@ -1,4 +1,10 @@
-import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext, NodePlaceContext } from "../../engine/contracts/node-feature";
+import type {
+	NodeFeature,
+	NodeFeatureStages,
+	NodeLayoutContext,
+	NodeMeasureContext,
+	NodePlaceContext,
+} from "../../engine/contracts/node-feature";
 import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
 import { decorateCanvas, resetCanvas } from "./decorate-canvas";
 import { layoutCanvas } from "./layout-canvas";
@@ -21,7 +27,7 @@ interface CanvasFeatureStages extends NodeFeatureStages {
 
 interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {
 	readonly kind: "canvas";
-	preprocess(node: PdfNode, context: undefined): PreprocessedCanvasNode;
+	preprocess(node: PdfNode): PreprocessedCanvasNode;
 	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredCanvasNode;
 	place(node: LayoutCanvasNode, context: NodePlaceContext): ReturnType<typeof placeCanvasItem>;
 	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;

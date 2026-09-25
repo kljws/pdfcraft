@@ -37,10 +37,7 @@ describe("DocPreprocessor", function () {
 		});
 
 		it("tags section document roots", function () {
-			assert.equal(
-				docPreprocessor.preprocessDocument({ section: "chapter" })._kind,
-				"section",
-			);
+			assert.equal(docPreprocessor.preprocessDocument({ section: "chapter" })._kind, "section");
 		});
 
 		it("tags the normalized feature when preprocessing changes the node shape", function () {
@@ -50,6 +47,22 @@ describe("DocPreprocessor", function () {
 			});
 
 			assert.equal(result._kind, "table");
+		});
+
+		it("tags page and text references without text as text", function () {
+			assert.equal(docPreprocessor.preprocessNode({ pageReference: "intro" })._kind, "text");
+			assert.equal(docPreprocessor.preprocessNode({ textReference: "intro" })._kind, "text");
+		});
+
+		it("rejects public nodes recognized by several features", function () {
+			assert.throws(
+				() => docPreprocessor.preprocessNode({ image: "logo", canvas: [] }),
+				"Ambiguous document node matches 'image', 'canvas'",
+			);
+			assert.throws(
+				() => docPreprocessor.preprocessNode({ stack: [], ul: [] }),
+				"Ambiguous document node matches 'stack', 'list'",
+			);
 		});
 	});
 

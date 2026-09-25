@@ -20,10 +20,7 @@ export function preprocessStack(
 	node._kind = "stack";
 	const stackNode = node as unknown as PreprocessedStackNode;
 	for (let index = 0; index < stackNode.stack.length; index++) {
-		stackNode.stack[index] = context.preprocessNode(
-			stackNode.stack[index],
-			context.allowSections,
-		);
+		stackNode.stack[index] = context.preprocessNode(stackNode.stack[index], context.allowSections);
 	}
 	return stackNode;
 }

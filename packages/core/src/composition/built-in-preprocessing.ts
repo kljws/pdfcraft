@@ -1,6 +1,13 @@
+import type { ColumnsPreprocessContext } from "../features/columns/preprocess-columns";
+import type { ListPreprocessContext } from "../features/list/preprocess-list";
+import type { SectionPreprocessContext } from "../features/section/preprocess-section";
+import type { DecoratedStackPreprocessContext } from "../features/stack/preprocess-decorated-stack";
+import type { StackPreprocessContext } from "../features/stack/preprocess-stack";
+import type { TablePreprocessContext } from "../features/table/preprocess-table";
+import type { TextPreprocessContext } from "../features/text/preprocess-text";
+import type { TocPreprocessContext } from "../features/toc/preprocess-toc";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { tableFeature } from "../features/table/table.feature";
-import { textFeature } from "../features/text/text.feature";
 import { asRawText, normalizeTextProperty } from "../features/text/preprocess-text";
 import type { PreprocessedTextNode } from "../features/text/text.types";
 import { tocFeature } from "../features/toc/toc.feature";
@@ -8,7 +15,20 @@ import type { PdfCraftExtensions } from "../types";
 import type { NodeText, PdfNode, PreprocessedPdfNode, RawPdfNode } from "../types/internal";
 import { stringifyNode } from "../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../utils/variable-type";
-import { getBuiltInFeature } from "./built-in-feature-registry";
+import { builtInFeatures, createNodeFeatureRegistry } from "./built-in-feature-registry";
+
+/**
+ * Every capability a built-in feature may request while preprocessing. Each feature declares
+ * the narrow subset it needs; composition supplies them all through one context.
+ */
+type BuiltInPreprocessContext = ColumnsPreprocessContext &
+	ListPreprocessContext &
+	SectionPreprocessContext &
+	StackPreprocessContext &
+	DecoratedStackPreprocessContext &
+	TablePreprocessContext &
+	TextPreprocessContext &
+	TocPreprocessContext;
 
 interface BuiltInPreprocessingHost {
 	parentNode: PreprocessedPdfNode | null;
@@ -16,13 +36,6 @@ interface BuiltInPreprocessingHost {
 	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
 	preprocessReferences(node: PreprocessedTextNode): void;
 }
-
-const hasBlockDecoration = (node: PdfNode): boolean => {
-	const block = node as unknown as Record<string, unknown>;
-	return ["borderRadius", "borderWidth", "backgroundColor", "padding"].some(
-		(property) => block[property] !== undefined,
-	);
-};
 
 const normalizeNode = (input: unknown): PdfNode => {
 	let rawNode: RawPdfNode;
@@ -57,80 +70,33 @@ export function createBuiltInPreprocessing(
 	host: BuiltInPreprocessingHost,
 	extensions: PdfCraftExtensions = [],
 ) {
-	const preprocessTable = (node: PdfNode, isSectionAllowed = false): PreprocessedPdfNode =>
-		tableFeature.preprocess(node, {
-			allowSections: isSectionAllowed,
-			preprocessNode: (item, allowSections) => host.preprocessNode(item, allowSections),
-		});
-	const registerTocItem = (node: PreprocessedPdfNode): void =>
-		tocFeature.registerItem(node, {
-			parentNode: host.parentNode,
-			tocs: host.tocs,
-		});
-	const preprocessText = (node: PdfNode): PreprocessedPdfNode =>
-		textFeature.preprocess(node, {
-			get parentNode() {
-				return host.parentNode;
-			},
-			set parentNode(parentNode: PreprocessedPdfNode | null) {
-				host.parentNode = parentNode;
-			},
-			registerTocItem,
-			preprocessReferences: (item) => host.preprocessReferences(item),
-			preprocessNode: (item) => host.preprocessNode(item),
-		});
-	const preprocessBuiltIn = (
-		node: PdfNode,
-		allowSections: boolean,
-	): PreprocessedPdfNode | undefined => {
-		const feature = getBuiltInFeature(node);
-		if (!feature) return undefined;
-		switch (feature.kind) {
-			case "section":
-				return feature.preprocess(node, {
-					allowSections,
-					preprocessNode: (item) => host.preprocessNode(item),
-				});
-			case "columns":
-				return feature.preprocess(node, host);
-			case "stack":
-				return hasBlockDecoration(node)
-					? feature.preprocessDecorated(node, {
-							allowSections,
-							preprocessTable,
-						})
-					: feature.preprocess(node, {
-							allowSections,
-							preprocessNode: (item, allow) => host.preprocessNode(item, allow),
-						});
-			case "list":
-				return feature.preprocess(node, host);
-			case "table":
-				return preprocessTable(node);
-			case "text":
-				return preprocessText(node);
-			case "toc":
-				return feature.preprocess(node, {
-					tocs: host.tocs,
-					preprocessNode: (item) => host.preprocessNode(item),
-				});
-			case "image":
-			case "canvas":
-			case "attachment":
-			case "acroform":
-				return feature.preprocess(node, undefined);
-		}
-	};
+	const registry = createNodeFeatureRegistry([
+		...builtInFeatures,
+		{ ...extensionFeature, matches: (node: PdfNode) => extensionFeature.matches(node, extensions) },
+	]);
+	const createContext = (allowSections: boolean): BuiltInPreprocessContext => ({
+		allowSections,
+		get parentNode() {
+			return host.parentNode;
+		},
+		set parentNode(parentNode: PreprocessedPdfNode | null) {
+			host.parentNode = parentNode;
+		},
+		get tocs() {
+			return host.tocs;
+		},
+		preprocessNode: (item: unknown, isSectionAllowed?: boolean) =>
+			host.preprocessNode(item, isSectionAllowed),
+		preprocessReferences: (item) => host.preprocessReferences(item),
+		preprocessTable: (item, isSectionAllowed) =>
+			tableFeature.preprocess(item, createContext(isSectionAllowed)),
+		registerTocItem: (item) =>
+			tocFeature.registerItem(item, { parentNode: host.parentNode, tocs: host.tocs }),
+	});
 
 	return {
 		normalizeNode,
-		processNode: (node: PdfNode, isSectionAllowed: boolean) => {
-			const builtIn = preprocessBuiltIn(node, isSectionAllowed);
-			if (builtIn) return builtIn;
-			if (typeof node._kind === "string") return undefined;
-			if (textFeature.matchesReference(node)) return preprocessText(node);
-			if (extensionFeature.matches(node, extensions)) return extensionFeature.preprocess(node);
-			return undefined;
-		},
+		processNode: (node: PdfNode, isSectionAllowed: boolean): PreprocessedPdfNode | undefined =>
+			registry.dispatch(node)?.preprocess(node, createContext(isSectionAllowed)),
 	};
 }

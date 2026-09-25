@@ -26,13 +26,7 @@ interface BuiltInMeasurementHost {
 }
 
 export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
-	let context!: NodeMeasureContext;
-	const textInlines = new TextInlines(
-		host.pdfDocument,
-		(node) => measureInlineImageFeature(node, context),
-		(inline) => acroFormFeature.measureInline(inline),
-	);
-	context = {
+	const context: NodeMeasureContext = {
 		document: host.pdfDocument,
 		styles: host.styleStack,
 		get inlines() {
@@ -43,6 +37,11 @@ export function createBuiltInMeasurement(host: BuiltInMeasurementHost) {
 		featureState: new Map(),
 		measureNode: (node) => host.measureNode(node),
 	};
+	const textInlines = new TextInlines(
+		host.pdfDocument,
+		(node) => measureInlineImageFeature(node, context),
+		(inline) => acroFormFeature.measureInline(inline),
+	);
 
 	return {
 		textInlines,

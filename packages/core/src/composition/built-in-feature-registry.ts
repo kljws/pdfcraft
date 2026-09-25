@@ -7,6 +7,7 @@ import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
 import type { LayoutImageNode } from "../features/image/image.types";
 import type PDFDocument from "../rendering/pdf-document";
+import { stringifyNode } from "../utils/node";
 import { listFeature } from "../features/list/list.feature";
 import { sectionFeature } from "../features/section/section.feature";
 import { stackFeature } from "../features/stack/stack.feature";
@@ -43,10 +44,18 @@ export function createNodeFeatureRegistry<const Features extends readonly Regist
 
 	return {
 		byKind: byKind as ReadonlyMap<string, Features[number]>,
+		/**
+		 * Resolves preprocessed nodes by `_kind` and public nodes by matcher. A public node
+		 * recognized by several features is rejected instead of depending on registry order.
+		 */
 		dispatch(node: PdfNode): Features[number] | undefined {
-			return typeof node._kind === "string"
-				? byKind.get(node._kind)
-				: features.find((feature) => feature.matches(node));
+			if (typeof node._kind === "string") return byKind.get(node._kind);
+			const matches = features.filter((feature) => feature.matches(node));
+			if (matches.length > 1) {
+				const kinds = matches.map((feature) => `'${feature.kind}'`).join(", ");
+				throw new Error(`Ambiguous document node matches ${kinds}: ${stringifyNode(node)}`);
+			}
+			return matches[0];
 		},
 	};
 }
@@ -69,14 +78,6 @@ export type BuiltInFeature = (typeof builtInFeatures)[number];
 export type BuiltInFeatureName = BuiltInFeature["kind"];
 
 export const builtInFeatureRegistry = createNodeFeatureRegistry(builtInFeatures);
-
-export function getBuiltInFeature(node: PdfNode): BuiltInFeature | undefined {
-	return builtInFeatureRegistry.dispatch(node);
-}
-
-export function getBuiltInFeatureKind(node: PdfNode): BuiltInFeatureName | undefined {
-	return getBuiltInFeature(node)?.kind;
-}
 
 export function getBuiltInFeatureByKind(kind: string): BuiltInFeature | undefined {
 	return builtInFeatureRegistry.byKind.get(kind);

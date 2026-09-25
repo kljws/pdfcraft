@@ -1,4 +1,10 @@
-import type { LayoutPdfNode, MeasurePdfNode, MeasuredPdfNode, PageItem, PdfNode } from "../../types/internal";
+import type {
+	LayoutPdfNode,
+	MeasurePdfNode,
+	MeasuredPdfNode,
+	PageItem,
+	PdfNode,
+} from "../../types/internal";
 import type {
 	NodeFeature,
 	NodeFeatureStages,
@@ -35,7 +41,7 @@ export interface ImageInlineCapabilities {
 interface ImageFeature extends NodeFeature<ImageFeatureStages> {
 	readonly kind: "image";
 	readonly inline: ImageInlineCapabilities;
-	preprocess(node: PdfNode, context: undefined): PreprocessedImageNode;
+	preprocess(node: PdfNode): PreprocessedImageNode;
 	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredImageNode;
 	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem>;
 	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;

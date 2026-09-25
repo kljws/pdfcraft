@@ -1,6 +1,9 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
-import { createLayoutBuilder, sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
+import {
+	createLayoutBuilder,
+	sampleTestProvider,
+} from "../../../../tests/helpers/layout-builder.ts";
 
 describe("stack layout", function () {
 	let builder: LayoutBuilder;
@@ -35,6 +38,4 @@ describe("stack layout", function () {
 		const second = pages[0].items[1].item;
 		assert.equal(second.y, first.y + first.getHeight() + 15);
 	});
-
 });
-

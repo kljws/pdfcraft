@@ -1,4 +1,9 @@
-import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext } from "../../engine/contracts/node-feature";
+import type {
+	NodeFeature,
+	NodeFeatureStages,
+	NodeLayoutContext,
+	NodeMeasureContext,
+} from "../../engine/contracts/node-feature";
 import type { LayoutPdfNode, LineLike, MeasurePdfNode, PdfNode } from "../../types/internal";
 import { buildTextLine } from "./build-text-line";
 import { layoutText } from "./layout-text";
@@ -27,7 +32,6 @@ interface TextFeatureStages extends NodeFeatureStages {
 
 interface TextFeature extends NodeFeature<TextFeatureStages> {
 	readonly kind: "text";
-	matchesReference(node: PdfNode): boolean;
 	preprocess(node: PdfNode, context: TextPreprocessContext): PreprocessedTextNode;
 	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredTextNode;
 	buildLine(node: LayoutTextNode, availableWidth: number): ReturnType<typeof buildTextLine>;
@@ -38,10 +42,7 @@ interface TextFeature extends NodeFeature<TextFeatureStages> {
 export const textFeature: TextFeature = {
 	kind: "text",
 	matches(node): boolean {
-		return node.text !== undefined;
-	},
-	matchesReference(node): boolean {
-		return Boolean(node.pageReference || node.textReference);
+		return node.text !== undefined || Boolean(node.pageReference || node.textReference);
 	},
 	preprocess: preprocessText,
 	measure(node, context): MeasuredTextNode {

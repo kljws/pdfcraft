@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Built-in measurement, layout, decoration/reset and page-item placement now go through the registry with shared `NodeMeasureContext`, `NodeLayoutContext` and `NodePlaceContext` engine contracts, removing the per-feature `switch` from layout composition and the canvas-specific decoration branches.
 - Made every node-feature lifecycle hook except matching optional and introduced explicit preprocessed, measured and layout node types for built-in features.
 - Removed unused registry introspection helpers.
+- Built-in preprocessing now dispatches through the node-feature registry with one composed context instead of a per-feature `switch`. Registered extensions are matched by the same registry after built-in features, standalone `pageReference`/`textReference` nodes are recognized by the text matcher, and the stack feature selects decorated-stack lowering itself.
+- A public content node recognized by several features, such as `{ image, canvas }` or `{ stack, ul }`, is now rejected with an `Ambiguous document node` error instead of being handled by whichever feature was registered first.
+- Measurement composition now builds its shared context without deferred assignment.
 
 ### Fixed
 

@@ -1,11 +1,14 @@
-import type { NodeFeature, NodeFeatureStages, NodeLayoutContext, NodeMeasureContext, NodePlaceContext } from "../../engine/contracts/node-feature";
+import type {
+	NodeFeature,
+	NodeFeatureStages,
+	NodeLayoutContext,
+	NodeMeasureContext,
+	NodePlaceContext,
+} from "../../engine/contracts/node-feature";
 import type PDFDocument from "../../rendering/pdf-document";
 import type { Inline, LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
 import { layoutAcroForm } from "./layout-acroform";
-import {
-	measureAcroForm,
-	measureInlineAcroForm,
-} from "./measure-acroform";
+import { measureAcroForm, measureInlineAcroForm } from "./measure-acroform";
 import { placeAcroFormItem } from "./place-acroform";
 import { preprocessAcroForm } from "./preprocess-acroform";
 import { AcroFormRenderer } from "./render-acroform";
@@ -30,7 +33,7 @@ interface AcroFormFeatureStages extends NodeFeatureStages {
 
 interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
 	readonly kind: "acroform";
-	preprocess(node: PdfNode, context: undefined): PreprocessedAcroFormNode;
+	preprocess(node: PdfNode): PreprocessedAcroFormNode;
 	createRenderer(document: PDFDocument): AcroFormRenderer;
 	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredAcroFormNode;
 	measureInline(inline: Inline): Inline;
