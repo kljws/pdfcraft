@@ -21,3 +21,14 @@ export type LayoutImageNode = LayoutNodeBase & {
 	_kind: "image";
 	image: ImageSource;
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		image: {
+			preprocessed: PreprocessedImageNode;
+			measure: MeasuredImageNode;
+			measured: MeasuredImageNode;
+			layout: LayoutImageNode;
+		};
+	}
+}

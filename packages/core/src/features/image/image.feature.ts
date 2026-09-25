@@ -1,10 +1,4 @@
-import type {
-	LayoutPdfNode,
-	MeasurePdfNode,
-	MeasuredPdfNode,
-	PageItem,
-	PdfNode,
-} from "../../types/internal";
+import type { MeasuredPdfNode, PageItem, PdfNode } from "../../types/internal";
 import type {
 	NodeFeature,
 	NodeFeatureStages,
@@ -22,7 +16,7 @@ import { renderImage, type ImageRenderContext } from "./render-image";
 interface ImageFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedImageNode;
-	measureNode: MeasurePdfNode;
+	measureNode: MeasuredImageNode;
 	measuredNode: MeasuredImageNode;
 	layoutNode: LayoutImageNode;
 	renderNode: LayoutImageNode;
@@ -42,9 +36,9 @@ interface ImageFeature extends NodeFeature<ImageFeatureStages> {
 	readonly kind: "image";
 	readonly inline: ImageInlineCapabilities;
 	preprocess(node: PdfNode): PreprocessedImageNode;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredImageNode;
+	measure(node: MeasuredImageNode, context: NodeMeasureContext): MeasuredImageNode;
 	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem>;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	layout(node: LayoutImageNode, context: NodeLayoutContext): void;
 	render(node: LayoutImageNode, context: ImageRenderContext): void;
 }
 
@@ -56,8 +50,8 @@ export const imageFeature: ImageFeature = {
 	preprocess(node): PreprocessedImageNode {
 		return preprocessImage(node);
 	},
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredImageNode {
-		return getImageMeasurer(context).measureImage(node as MeasuredImageNode);
+	measure(node: MeasuredImageNode, context: NodeMeasureContext): MeasuredImageNode {
+		return getImageMeasurer(context).measureImage(node);
 	},
 	inline: {
 		measure(node, context): MeasuredPdfNode {
@@ -65,7 +59,7 @@ export const imageFeature: ImageFeature = {
 		},
 	},
 	layout(node, context): void {
-		layoutImage(node as LayoutImageNode, { writer: context.writer });
+		layoutImage(node, { writer: context.writer });
 	},
 	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem> {
 		return placeImageItem(node, context);

@@ -5,7 +5,10 @@ export interface AttachmentLayoutContext {
 	writer: Pick<PageElementWriter, "addFeatureItem">;
 }
 
-export function layoutAttachment(node: LayoutAttachmentNode, context: AttachmentLayoutContext): void {
+export function layoutAttachment(
+	node: LayoutAttachmentNode,
+	context: AttachmentLayoutContext,
+): void {
 	const position = context.writer.addFeatureItem("attachment", node);
 	if (position && !Array.isArray(position)) {
 		node._position = position;

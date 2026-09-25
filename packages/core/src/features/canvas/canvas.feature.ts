@@ -5,7 +5,7 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { decorateCanvas, resetCanvas } from "./decorate-canvas";
 import { layoutCanvas } from "./layout-canvas";
 import { measureCanvas } from "./measure-canvas";
@@ -15,7 +15,7 @@ import type { LayoutCanvasNode, MeasuredCanvasNode, PreprocessedCanvasNode } fro
 interface CanvasFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedCanvasNode;
-	measureNode: MeasurePdfNode;
+	measureNode: MeasuredCanvasNode;
 	measuredNode: MeasuredCanvasNode;
 	layoutNode: LayoutCanvasNode;
 	renderNode: never;
@@ -28,11 +28,11 @@ interface CanvasFeatureStages extends NodeFeatureStages {
 interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {
 	readonly kind: "canvas";
 	preprocess(node: PdfNode): PreprocessedCanvasNode;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredCanvasNode;
+	measure(node: MeasuredCanvasNode, context: NodeMeasureContext): MeasuredCanvasNode;
 	place(node: LayoutCanvasNode, context: NodePlaceContext): ReturnType<typeof placeCanvasItem>;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
-	decorate(node: LayoutPdfNode): void;
-	reset(node: LayoutPdfNode): void;
+	layout(node: LayoutCanvasNode, context: NodeLayoutContext): void;
+	decorate(node: LayoutCanvasNode): void;
+	reset(node: LayoutCanvasNode): void;
 }
 
 export const canvasFeature: CanvasFeature = {
@@ -45,16 +45,16 @@ export const canvasFeature: CanvasFeature = {
 		return node as unknown as PreprocessedCanvasNode;
 	},
 	measure(node, context): MeasuredCanvasNode {
-		return measureCanvas(node as MeasuredCanvasNode, context.styles);
+		return measureCanvas(node, context.styles);
 	},
 	layout(node, context): void {
-		layoutCanvas(node as LayoutCanvasNode, { writer: context.writer });
+		layoutCanvas(node, { writer: context.writer });
 	},
 	place: placeCanvasItem,
 	decorate(node): void {
-		decorateCanvas(node as LayoutCanvasNode);
+		decorateCanvas(node);
 	},
 	reset(node): void {
-		resetCanvas(node as LayoutCanvasNode);
+		resetCanvas(node);
 	},
 };

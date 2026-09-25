@@ -4,12 +4,7 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type {
-	LayoutPdfNode,
-	MeasurePdfNode,
-	PdfNode,
-	PreprocessedPdfNode,
-} from "../../types/internal";
+import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { layoutStack } from "./layout-stack";
 import { measureStack } from "./measure-stack";
 import {
@@ -31,7 +26,7 @@ function hasBlockDecoration(node: PdfNode): boolean {
 interface StackFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedPdfNode;
-	measureNode: MeasurePdfNode;
+	measureNode: MeasuredStackNode;
 	measuredNode: MeasuredStackNode;
 	layoutNode: LayoutStackNode;
 	renderNode: never;
@@ -44,8 +39,8 @@ interface StackFeatureStages extends NodeFeatureStages {
 interface StackFeature extends NodeFeature<StackFeatureStages> {
 	readonly kind: "stack";
 	preprocess(node: PdfNode, context: StackFeaturePreprocessContext): PreprocessedPdfNode;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredStackNode;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	measure(node: MeasuredStackNode, context: NodeMeasureContext): MeasuredStackNode;
+	layout(node: LayoutStackNode, context: NodeLayoutContext): void;
 }
 
 export const stackFeature: StackFeature = {
@@ -59,12 +54,12 @@ export const stackFeature: StackFeature = {
 			: preprocessStack(node, context);
 	},
 	measure(node, context): MeasuredStackNode {
-		return measureStack(node as MeasuredStackNode, {
+		return measureStack(node, {
 			measureChild: (item) => context.measureNode(item),
 		});
 	},
 	layout(node, context): void {
-		layoutStack(node as LayoutStackNode, {
+		layoutStack(node, {
 			processNode: (item) => context.processNode(item),
 			moveDownWithPageBreak: context.moveDownWithPageBreak,
 		});

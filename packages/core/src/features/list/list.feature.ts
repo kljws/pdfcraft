@@ -7,7 +7,7 @@ import type {
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { TextSize } from "../../services/typography/text-metrics";
 import type { Color } from "../../types";
-import type { Inline, LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { Inline, MeasurePdfNode, PdfNode } from "../../types/internal";
 import { layoutList } from "./layout-list";
 import type {
 	LayoutListNode,
@@ -50,7 +50,7 @@ interface ListFeature extends NodeFeature<ListFeatureStages> {
 	measure(node: MeasurePdfNode, context: ListMeasureFeatureContext): MeasuredListNode;
 	measureUnordered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
 	measureOrdered(node: ListMeasureNode, context: ListMeasureContext): MeasuredListNode;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	layout(node: LayoutListNode, context: NodeLayoutContext): void;
 }
 
 export const listFeature: ListFeature = {
@@ -75,7 +75,7 @@ export const listFeature: ListFeature = {
 	measureUnordered: measureUnorderedList,
 	measureOrdered: measureOrderedList,
 	layout(node, context): void {
-		const listNode = node as LayoutListNode;
+		const listNode = node;
 		layoutList(listNode, {
 			writer: context.writer,
 			ordered: !listNode.ul,

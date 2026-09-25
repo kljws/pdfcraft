@@ -6,7 +6,7 @@ import type {
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
 import type PDFDocument from "../../rendering/pdf-document";
-import type { Inline, LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { Inline, PdfNode } from "../../types/internal";
 import { layoutAcroForm } from "./layout-acroform";
 import { measureAcroForm, measureInlineAcroForm } from "./measure-acroform";
 import { placeAcroFormItem } from "./place-acroform";
@@ -21,7 +21,7 @@ import type {
 interface AcroFormFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedAcroFormNode;
-	measureNode: MeasurePdfNode;
+	measureNode: MeasuredAcroFormNode;
 	measuredNode: MeasuredAcroFormNode;
 	layoutNode: LayoutAcroFormNode;
 	renderNode: LayoutAcroFormNode | Inline;
@@ -41,10 +41,10 @@ interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
 	readonly kind: "acroform";
 	preprocess(node: PdfNode): PreprocessedAcroFormNode;
 	createRenderer(document: PDFDocument): AcroFormRenderer;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredAcroFormNode;
+	measure(node: MeasuredAcroFormNode, context: NodeMeasureContext): MeasuredAcroFormNode;
 	measureInline(inline: Inline): Inline;
 	place(node: LayoutAcroFormNode, context: NodePlaceContext): ReturnType<typeof placeAcroFormItem>;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	layout(node: LayoutAcroFormNode, context: NodeLayoutContext): void;
 	render(node: LayoutAcroFormNode | Inline, context: AcroFormRenderContext): void;
 }
 
@@ -55,7 +55,7 @@ export const acroFormFeature: AcroFormFeature = {
 	},
 	preprocess: preprocessAcroForm,
 	measure(node, context): MeasuredAcroFormNode {
-		return measureAcroForm(node as MeasuredAcroFormNode, {
+		return measureAcroForm(node, {
 			document: context.document,
 			styles: context.styles,
 		});
@@ -63,7 +63,7 @@ export const acroFormFeature: AcroFormFeature = {
 	measureInline: measureInlineAcroForm,
 	place: placeAcroFormItem,
 	layout(node, context): void {
-		layoutAcroForm(node as LayoutAcroFormNode, { writer: context.writer });
+		layoutAcroForm(node, { writer: context.writer });
 	},
 	createRenderer(document): AcroFormRenderer {
 		return new AcroFormRenderer(document);

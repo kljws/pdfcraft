@@ -4,12 +4,7 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type {
-	LayoutPdfNode,
-	MeasurePdfNode,
-	PdfNode,
-	PreprocessedPdfNode,
-} from "../../types/internal";
+import type { MeasurePdfNode, PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { layoutTable, type TableLayoutHost } from "./layout-table";
 import { measureTable } from "./measure-table";
 import { preprocessTable, type TablePreprocessContext } from "./preprocess-table";
@@ -42,7 +37,7 @@ interface TableFeature extends NodeFeature<TableFeatureStages> {
 	readonly kind: "table";
 	preprocess(node: PdfNode, context: TablePreprocessContext): PreprocessedTableNode;
 	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredTableNode;
-	layout(node: LayoutPdfNode, context: TableLayoutFeatureContext): void;
+	layout(node: LayoutTableNode, context: TableLayoutFeatureContext): void;
 }
 
 export const tableFeature: TableFeature = {
@@ -70,6 +65,6 @@ export const tableFeature: TableFeature = {
 			processRow: (options) => context.processRow(options),
 			snakingAwarePageBreak: () => context.snakingAwarePageBreak(),
 		};
-		layoutTable(node as LayoutTableNode, tableHost);
+		layoutTable(node, tableHost);
 	},
 };

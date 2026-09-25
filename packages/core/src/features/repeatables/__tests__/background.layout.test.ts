@@ -1,7 +1,10 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
 import type { Dictionary, Style } from "../../../types/index.ts";
 import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
-import { createLayoutBuilder, sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
+import {
+	createLayoutBuilder,
+	sampleTestProvider,
+} from "../../../../tests/helpers/layout-builder.ts";
 
 describe("LayoutBuilder", function () {
 	let builder: LayoutBuilder;
@@ -74,5 +77,4 @@ describe("LayoutBuilder", function () {
 			assert.deepEqual(background.mock.calls.at(-1)?.[2], pages[1].pageSize);
 		});
 	});
-
 });

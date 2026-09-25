@@ -22,3 +22,14 @@ export type LayoutColumnsNode = LayoutNodeBase & {
 	_kind: "columns";
 	columns: ColumnNode<LayoutPdfNode>[];
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		columns: {
+			preprocessed: PreprocessedColumnsNode;
+			measure: MeasuredColumnsNode;
+			measured: MeasuredColumnsNode;
+			layout: LayoutColumnsNode;
+		};
+	}
+}

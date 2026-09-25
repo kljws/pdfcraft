@@ -21,3 +21,14 @@ export type LayoutSectionNode = LayoutNodeBase & {
 	_kind: "section";
 	section: LayoutPdfNode;
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		section: {
+			preprocessed: PreprocessedSectionNode;
+			measure: MeasuredSectionNode;
+			measured: MeasuredSectionNode;
+			layout: LayoutSectionNode;
+		};
+	}
+}

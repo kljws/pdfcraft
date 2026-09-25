@@ -11,3 +11,14 @@ export type MeasuredExtensionNode = ExtensionMeasureNode &
 
 export type LayoutExtensionNode = LayoutNodeBase &
 	ExtensionNode & { _kind: "extension"; _extension: string };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		extension: {
+			preprocessed: PreprocessedExtensionNode;
+			measure: ExtensionMeasureNode;
+			measured: MeasuredExtensionNode;
+			layout: LayoutExtensionNode;
+		};
+	}
+}

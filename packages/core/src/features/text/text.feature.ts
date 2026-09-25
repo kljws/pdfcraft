@@ -4,7 +4,7 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, LineLike, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { LineLike, MeasurePdfNode, PdfNode } from "../../types/internal";
 import type TextInlines from "./text-inlines";
 import { buildTextLine } from "./build-text-line";
 import { layoutText } from "./layout-text";
@@ -43,7 +43,7 @@ interface TextFeature extends NodeFeature<TextFeatureStages> {
 	preprocess(node: PdfNode, context: TextPreprocessContext): PreprocessedTextNode;
 	measure(node: MeasurePdfNode, context: TextMeasureFeatureContext): MeasuredTextNode;
 	buildLine(node: LayoutTextNode, availableWidth: number): ReturnType<typeof buildTextLine>;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	layout(node: LayoutTextNode, context: NodeLayoutContext): void;
 	render(line: LineLike, context: TextRenderContext): void;
 }
 
@@ -61,7 +61,7 @@ export const textFeature: TextFeature = {
 	},
 	buildLine: buildTextLine,
 	layout(node, context): void {
-		layoutText(node as LayoutTextNode, {
+		layoutText(node, {
 			writer: context.writer,
 			snakingAwarePageBreak: (orientation) => context.snakingAwarePageBreak(orientation),
 		});

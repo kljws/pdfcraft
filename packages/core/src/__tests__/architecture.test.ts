@@ -12,7 +12,7 @@ const NEUTRAL_LAYERS = ["engine", "services", "types", "utils"];
  * Known exceptions, each to be removed by a planned refactor step. The internal node lifecycle
  * unions still aggregate every feature's node types until node typing is reworked.
  */
-const ALLOWED_VIOLATIONS = new Set(["types/document.types.ts -> features/"]);
+const ALLOWED_VIOLATIONS = new Set<string>();
 
 const IMPORT_PATTERN = /(?:from\s+|import\s*\(\s*)["'](\.{1,2}\/[^"']+)["']/g;
 

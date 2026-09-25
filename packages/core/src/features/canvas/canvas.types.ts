@@ -19,3 +19,14 @@ export type LayoutCanvasNode = LayoutNodeBase & {
 	_kind: "canvas";
 	canvas: NonNullable<PdfNode["canvas"]>;
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		canvas: {
+			preprocessed: PreprocessedCanvasNode;
+			measure: MeasuredCanvasNode;
+			measured: MeasuredCanvasNode;
+			layout: LayoutCanvasNode;
+		};
+	}
+}

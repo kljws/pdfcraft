@@ -116,5 +116,3 @@ describe("page break layout", function () {
 		assert.equal(pages[1].items.length, 53);
 	});
 });
-
-

@@ -66,3 +66,14 @@ export interface DecorationGroup {
 	decorationThickness: number | null;
 	inlines: Inline[];
 }
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		text: {
+			preprocessed: PreprocessedTextNode;
+			measure: TextMeasureNode;
+			measured: MeasuredTextNode;
+			layout: LayoutTextNode;
+		};
+	}
+}

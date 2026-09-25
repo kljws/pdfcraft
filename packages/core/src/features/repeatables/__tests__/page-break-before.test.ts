@@ -1,8 +1,10 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
 import type { Dictionary, Style } from "../../../types/index.ts";
 import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
-import { createLayoutBuilder, sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
-
+import {
+	createLayoutBuilder,
+	sampleTestProvider,
+} from "../../../../tests/helpers/layout-builder.ts";
 
 function isArray(variable: unknown): boolean {
 	return Array.isArray(variable);
@@ -459,5 +461,4 @@ describe("LayoutBuilder", function () {
 			assert.notInclude(ids, "footer");
 		});
 	});
-
 });

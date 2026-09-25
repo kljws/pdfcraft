@@ -36,3 +36,14 @@ export type LayoutTableNode = LayoutNodeBase & {
 	table: PdfTable<LayoutPdfNode, ColumnWidth[]>;
 	metrics: TableMetrics<LayoutPdfNode>;
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		table: {
+			preprocessed: PreprocessedTableNode;
+			measure: TableMeasureNode;
+			measured: MeasuredTableNode;
+			layout: LayoutTableNode;
+		};
+	}
+}

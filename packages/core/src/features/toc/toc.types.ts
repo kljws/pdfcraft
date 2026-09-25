@@ -22,3 +22,14 @@ export type LayoutTocNode = LayoutNodeBase & {
 	_kind: "toc";
 	toc: TocDefinition<LayoutPdfNode>;
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		toc: {
+			preprocessed: PreprocessedTocNode;
+			measure: MeasuredTocNode;
+			measured: MeasuredTocNode;
+			layout: LayoutTocNode;
+		};
+	}
+}

@@ -4,7 +4,7 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasurePdfNode, PdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { layoutColumns, type ColumnsLayoutContext } from "./layout-columns";
 import { measureColumns } from "./measure-columns";
 import { preprocessColumns, type ColumnsPreprocessContext } from "./preprocess-columns";
@@ -22,7 +22,7 @@ type ColumnsLayoutFeatureContext = NodeLayoutContext & ColumnsLayoutCapabilities
 interface ColumnsFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedColumnsNode;
-	measureNode: MeasurePdfNode;
+	measureNode: MeasuredColumnsNode;
 	measuredNode: MeasuredColumnsNode;
 	layoutNode: LayoutColumnsNode;
 	renderNode: never;
@@ -35,8 +35,8 @@ interface ColumnsFeatureStages extends NodeFeatureStages {
 interface ColumnsFeature extends NodeFeature<ColumnsFeatureStages> {
 	readonly kind: "columns";
 	preprocess(node: PdfNode, context: ColumnsPreprocessContext): PreprocessedColumnsNode;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredColumnsNode;
-	layout(node: LayoutPdfNode, context: ColumnsLayoutFeatureContext): void;
+	measure(node: MeasuredColumnsNode, context: NodeMeasureContext): MeasuredColumnsNode;
+	layout(node: LayoutColumnsNode, context: ColumnsLayoutFeatureContext): void;
 }
 
 export const columnsFeature: ColumnsFeature = {
@@ -46,13 +46,13 @@ export const columnsFeature: ColumnsFeature = {
 	},
 	preprocess: preprocessColumns,
 	measure(node, context): MeasuredColumnsNode {
-		return measureColumns(node as MeasuredColumnsNode, {
+		return measureColumns(node, {
 			styles: context.styles,
 			measureChild: (item) => context.measureNode(item),
 		});
 	},
 	layout(node, context): void {
-		layoutColumns(node as LayoutColumnsNode, {
+		layoutColumns(node, {
 			writer: context.writer,
 			enterNestedLevel: () => ++context.nestedLevel,
 			leaveNestedLevel: () => --context.nestedLevel,

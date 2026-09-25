@@ -21,3 +21,14 @@ export type LayoutStackNode = LayoutNodeBase & {
 	_kind: "stack";
 	stack: LayoutPdfNode[];
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		stack: {
+			preprocessed: PreprocessedStackNode;
+			measure: MeasuredStackNode;
+			measured: MeasuredStackNode;
+			layout: LayoutStackNode;
+		};
+	}
+}

@@ -5,7 +5,7 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
-import type { LayoutPdfNode, MeasurePdfNode, PageItem, PdfNode } from "../../types/internal";
+import type { PageItem, PdfNode } from "../../types/internal";
 import type { PrinterDocumentDefinition, PrinterResourceReference } from "../../core/printer.types";
 import { layoutAttachment } from "./layout-attachment";
 import { measureAttachment } from "./measure-attachment";
@@ -25,7 +25,7 @@ export interface AttachmentResourceContext {
 interface AttachmentFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedAttachmentNode;
-	measureNode: MeasurePdfNode;
+	measureNode: PreprocessedAttachmentNode;
 	measuredNode: MeasuredAttachmentNode;
 	layoutNode: LayoutAttachmentNode;
 	renderNode: LayoutAttachmentNode;
@@ -46,12 +46,12 @@ interface AttachmentFeature extends NodeFeature<AttachmentFeatureStages> {
 		document: PrinterDocumentDefinition,
 		context: AttachmentResourceContext,
 	): undefined;
-	measure(node: MeasurePdfNode, context: NodeMeasureContext): MeasuredAttachmentNode;
+	measure(node: PreprocessedAttachmentNode, context: NodeMeasureContext): MeasuredAttachmentNode;
 	place(
 		node: LayoutAttachmentNode,
 		context: NodePlaceContext,
 	): ReturnType<typeof placeAttachmentItem>;
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void;
+	layout(node: LayoutAttachmentNode, context: NodeLayoutContext): void;
 	render(node: LayoutAttachmentNode, context: AttachmentRenderContext): void;
 }
 
@@ -68,10 +68,10 @@ export const attachmentFeature: AttachmentFeature = {
 		resolveAttachmentReferences(document, resolve);
 	},
 	measure(node): MeasuredAttachmentNode {
-		return measureAttachment(node as PreprocessedAttachmentNode);
+		return measureAttachment(node);
 	},
 	layout(node, context): void {
-		layoutAttachment(node as LayoutAttachmentNode, { writer: context.writer });
+		layoutAttachment(node, { writer: context.writer });
 	},
 	place: placeAttachmentItem,
 	render(node, context): void {

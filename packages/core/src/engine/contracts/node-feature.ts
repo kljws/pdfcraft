@@ -108,7 +108,7 @@ export interface NodeFeature<Stages extends NodeFeatureStages> {
 	layout?(node: Stages["layoutNode"], context: Stages["layoutContext"]): void;
 	place?(node: Stages["layoutNode"], context: NodePlaceContext): NodePlaceResult;
 	render?(node: Stages["renderNode"], context: Stages["renderContext"]): void;
-	decorate?(node: LayoutPdfNode): void;
-	reset?(node: LayoutPdfNode): void;
+	decorate?(node: Stages["layoutNode"]): void;
+	reset?(node: Stages["layoutNode"]): void;
 	readonly inline?: OptionalStage<Stages, "inline">;
 }

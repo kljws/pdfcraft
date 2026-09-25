@@ -90,8 +90,9 @@ export function getBuiltInFeatureByKind(kind: string): NodeFeatureDescriptor | u
 }
 
 /**
- * Stage hooks receive the composed context; each feature declares the subset it consumes, so
- * the hook is invoked with the composition's concrete context type.
+ * Stage hooks receive the composed context and the node of their own kind; each feature declares
+ * the context subset and node shape it consumes. Dispatch by `_kind` guarantees the node shape,
+ * so the hook is invoked with the lifecycle union and the composition's concrete context type.
  */
 export function measureRegisteredNodeFeature<Context extends NodeMeasureContext>(
 	node: MeasurePdfNode,
@@ -113,14 +114,16 @@ export function layoutRegisteredNodeFeature<Context extends NodeLayoutContext>(
 	return true;
 }
 
+type NodeStateHook = (node: LayoutPdfNode) => void;
+
 export function decorateRegisteredNodeFeature(node: LayoutPdfNode): void {
 	const feature = getBuiltInFeatureByKind(node._kind);
-	if (feature && "decorate" in feature) feature.decorate?.(node);
+	if (feature && "decorate" in feature) (feature.decorate as NodeStateHook | undefined)?.(node);
 }
 
 export function resetRegisteredNodeFeature(node: LayoutPdfNode): void {
 	const feature = getBuiltInFeatureByKind(node._kind);
-	if (feature && "reset" in feature) feature.reset?.(node);
+	if (feature && "reset" in feature) (feature.reset as NodeStateHook | undefined)?.(node);
 }
 
 export function placeFeatureItem(

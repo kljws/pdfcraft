@@ -11,70 +11,6 @@ import type {
 import type { Vector } from "./rendering.types";
 import type { ColumnNode, PdfTable, RawTableWidths, TableLayout } from "./table.types";
 import type { Inline, ListMarker, PdfFont, TextMeasurement } from "./text.types";
-import type {
-	PreprocessedTextNode,
-	MeasuredTextNode,
-	LayoutTextNode,
-} from "../features/text/text.types";
-import type {
-	PreprocessedImageNode,
-	MeasuredImageNode,
-	LayoutImageNode,
-} from "../features/image/image.types";
-import type {
-	PreprocessedAttachmentNode,
-	MeasuredAttachmentNode,
-	LayoutAttachmentNode,
-} from "../features/attachment/attachment.types";
-import type {
-	PreprocessedTableNode,
-	MeasuredTableNode,
-	LayoutTableNode,
-	TableMeasureNode,
-} from "../features/table/table.types";
-import type {
-	PreprocessedListNode,
-	MeasuredListNode,
-	LayoutListNode,
-	ListMeasureNode,
-} from "../features/list/list.types";
-import type {
-	PreprocessedStackNode,
-	MeasuredStackNode,
-	LayoutStackNode,
-} from "../features/stack/stack.types";
-import type {
-	PreprocessedColumnsNode,
-	MeasuredColumnsNode,
-	LayoutColumnsNode,
-} from "../features/columns/columns.types";
-import type {
-	PreprocessedSectionNode,
-	MeasuredSectionNode,
-	LayoutSectionNode,
-} from "../features/section/section.types";
-import type {
-	PreprocessedTocNode,
-	MeasuredTocNode,
-	LayoutTocNode,
-} from "../features/toc/toc.types";
-import type {
-	PreprocessedCanvasNode,
-	MeasuredCanvasNode,
-	LayoutCanvasNode,
-} from "../features/canvas/canvas.types";
-import type {
-	PreprocessedAcroFormNode,
-	MeasuredAcroFormNode,
-	LayoutAcroFormNode,
-} from "../features/acroform/acroform.types";
-import type {
-	PreprocessedExtensionNode,
-	ExtensionMeasureNode,
-	MeasuredExtensionNode,
-	LayoutExtensionNode,
-} from "../features/extension/extension.types";
-import type { TextMeasureNode } from "../features/text/text.types";
 
 export type Metadata = Record<string, unknown>;
 export type Nullable<T> = T | null;
@@ -418,61 +354,29 @@ export interface LayoutNodeBase
 		MeasuredNodeState<LayoutPdfNode>,
 		LayoutNodeState<LayoutPdfNode> {}
 
-export type PreprocessedPdfNode =
-	| PreprocessedTextNode
-	| PreprocessedImageNode
-	| PreprocessedAttachmentNode
-	| PreprocessedTableNode
-	| PreprocessedListNode
-	| PreprocessedStackNode
-	| PreprocessedColumnsNode
-	| PreprocessedSectionNode
-	| PreprocessedTocNode
-	| PreprocessedCanvasNode
-	| PreprocessedAcroFormNode
-	| PreprocessedExtensionNode;
+/**
+ * Open registry of node kinds. Each feature augments it from its own `*.types.ts` with the node
+ * shape of every lifecycle stage, so these unions never import a feature.
+ */
+export interface NodeKindRegistry {}
 
-export type MeasurePdfNode =
-	| TextMeasureNode
-	| TableMeasureNode
-	| ListMeasureNode
-	| MeasuredImageNode
-	| MeasuredAttachmentNode
-	| MeasuredStackNode
-	| MeasuredColumnsNode
-	| MeasuredSectionNode
-	| MeasuredTocNode
-	| MeasuredCanvasNode
-	| MeasuredAcroFormNode
-	| ExtensionMeasureNode;
+interface NodeKindStages {
+	preprocessed: unknown;
+	measure: unknown;
+	measured: unknown;
+	layout: unknown;
+}
 
-export type MeasuredPdfNode =
-	| MeasuredTextNode
-	| MeasuredImageNode
-	| MeasuredAttachmentNode
-	| MeasuredTableNode
-	| MeasuredListNode
-	| MeasuredStackNode
-	| MeasuredColumnsNode
-	| MeasuredSectionNode
-	| MeasuredTocNode
-	| MeasuredCanvasNode
-	| MeasuredAcroFormNode
-	| MeasuredExtensionNode;
+type NodeOfStage<Stage extends keyof NodeKindStages> = {
+	[Kind in keyof NodeKindRegistry]: NodeKindRegistry[Kind] extends NodeKindStages
+		? NodeKindRegistry[Kind][Stage]
+		: never;
+}[keyof NodeKindRegistry];
 
-export type LayoutPdfNode =
-	| LayoutTextNode
-	| LayoutImageNode
-	| LayoutAttachmentNode
-	| LayoutTableNode
-	| LayoutListNode
-	| LayoutStackNode
-	| LayoutColumnsNode
-	| LayoutSectionNode
-	| LayoutTocNode
-	| LayoutCanvasNode
-	| LayoutAcroFormNode
-	| LayoutExtensionNode;
+export type PreprocessedPdfNode = NodeOfStage<"preprocessed">;
+export type MeasurePdfNode = NodeOfStage<"measure">;
+export type MeasuredPdfNode = NodeOfStage<"measured">;
+export type LayoutPdfNode = NodeOfStage<"layout">;
 
 export interface ImageCover {
 	width: number;

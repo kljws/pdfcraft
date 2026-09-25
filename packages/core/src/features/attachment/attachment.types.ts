@@ -21,3 +21,14 @@ export type LayoutAttachmentNode = LayoutNodeBase & {
 	_kind: "attachment";
 	attachment: AttachmentSource;
 };
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		attachment: {
+			preprocessed: PreprocessedAttachmentNode;
+			measure: MeasuredAttachmentNode;
+			measured: MeasuredAttachmentNode;
+			layout: LayoutAttachmentNode;
+		};
+	}
+}

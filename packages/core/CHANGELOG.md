@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Engine node-feature contracts no longer reference feature internals. Text and list declare their inline-measurement ports, table and columns declare their shared row-layout ports, and composition injects them through composed stage contexts. Text renders inline form fields through a port instead of importing AcroForm types.
 - Moved node-reference preprocessing from a shared service into the text feature, its only consumer; `DocPreprocessor` now keeps only reference state and no longer depends on text types.
 - Registered extensions are now resolved by `_kind` like built-in features during measurement, layout, placement and rendering, removing the remaining extension-specific branches and the attachment/image-specific registry helpers.
+- The internal preprocessed, measured and layout node unions are now built from an open `NodeKindRegistry` that each feature augments from its own types file, so shared types no longer import any feature.
+- Node-feature measure, layout, decorate and reset hooks now receive the node type of their own kind; the registry narrows by `_kind` once instead of every feature descriptor casting the lifecycle union.
 
 ### Fixed
 
@@ -28,7 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Tests
 
 - Added feature-level layout tests for canvas, columns, extension, image, list, stack, table, text and page breaks, and registry tests for matching order, kind dispatch and duplicate kinds.
-- Added an architecture test that fails when a feature imports another feature or when engine, services, types or utilities import features or composition. The internal node lifecycle unions in `types/document.types.ts` remain an explicitly allowed exception until node typing is reworked.
+- Added an architecture test that fails when a feature imports another feature or when engine, services, types or utilities import features or composition.
 
 ### Documentation
 

@@ -65,5 +65,3 @@ describe("layout pipeline", function () {
 		});
 	});
 });
-
-

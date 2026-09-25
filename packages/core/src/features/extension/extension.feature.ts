@@ -49,8 +49,8 @@ export const extensionFeature = {
 	): ReturnType<typeof placeExtensionItem> {
 		return placeExtensionItem(node, context);
 	},
-	layout(node: LayoutPdfNode, context: NodeLayoutContext): void {
-		layoutExtension(node as LayoutExtensionNode, { writer: context.writer });
+	layout(node: LayoutExtensionNode, context: NodeLayoutContext): void {
+		layoutExtension(node, { writer: context.writer });
 	},
 	render(node: LayoutExtensionNode, host: ExtensionRenderHost): void {
 		renderExtension(node, host);

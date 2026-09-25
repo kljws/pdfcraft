@@ -34,3 +34,14 @@ export interface LayoutListNode extends LayoutNodeBase {
 	ol?: LayoutPdfNode[];
 	metrics: ListMetrics;
 }
+
+declare module "../../types/document.types" {
+	interface NodeKindRegistry {
+		list: {
+			preprocessed: PreprocessedListNode;
+			measure: ListMeasureNode;
+			measured: MeasuredListNode;
+			layout: LayoutListNode;
+		};
+	}
+}
