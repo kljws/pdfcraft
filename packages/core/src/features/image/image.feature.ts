@@ -1,4 +1,6 @@
 import type { MeasuredPdfNode, PageItem, PdfNode } from "../../types/internal";
+import { markNodeKind } from "../../utils/node";
+import { isObject } from "../../utils/variable-type";
 import type {
 	NodeFeature,
 	NodeFeatureStages,
@@ -10,7 +12,6 @@ import { layoutFeatureItem } from "../../layout/element-writer.helpers";
 import type { LayoutImageNode, MeasuredImageNode, PreprocessedImageNode } from "./image.types";
 import ImageMeasurer from "./image-measurer";
 import { placeImageItem } from "./place-image";
-import { preprocessImage } from "./preprocess-image";
 import { renderImage, type ImageRenderContext } from "./render-image";
 
 interface ImageFeatureStages extends NodeFeatureStages {
@@ -48,7 +49,11 @@ export const imageFeature = {
 		return Boolean(node.image);
 	},
 	preprocess(node): PreprocessedImageNode {
-		return preprocessImage(node);
+		const image = node.image;
+		if (isObject(image) && image.type === "Buffer" && Array.isArray(image.data)) {
+			node.image = Uint8Array.from(image.data);
+		}
+		return markNodeKind(node, "image");
 	},
 	measure(node: MeasuredImageNode, context: NodeMeasureContext): MeasuredImageNode {
 		return getImageMeasurer(context).measureImage(node);

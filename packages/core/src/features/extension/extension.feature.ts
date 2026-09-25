@@ -19,7 +19,6 @@ import type {
 	MeasuredExtensionNode,
 	PreprocessedExtensionNode,
 } from "./extension.types";
-import { findExtensionByName, findExtensionForNode } from "./extension-registry";
 import { renderExtension, type ExtensionRenderContext } from "./render-extension";
 
 export interface ExtensionResourceContext {
@@ -30,7 +29,7 @@ export interface ExtensionResourceContext {
 export const extensionFeature = {
 	kind: "extension",
 	matches(node: PdfNode, extensions: PdfCraftExtensions): boolean {
-		return Boolean(findExtensionForNode(node, extensions));
+		return extensions.some((extension) => extension.test(node));
 	},
 	preprocess(node: PdfNode): PreprocessedExtensionNode {
 		return markNodeKind(node, "extension");
@@ -44,7 +43,7 @@ export const extensionFeature = {
 		node: ExtensionMeasureNode,
 		context: NodeMeasureContext,
 	): MeasuredExtensionNode | undefined {
-		const extension = findExtensionForNode(node, context.extensions);
+		const extension = context.extensions.find((extension) => extension.test(node));
 		if (!extension) return undefined;
 
 		node._extension = extension.name;
@@ -84,7 +83,7 @@ export const extensionFeature = {
 		extensions: PdfCraftExtensions,
 	): void {
 		if (node._kind !== "extension") return;
-		const extension = findExtensionByName(node._extension, extensions);
+		const extension = extensions.find((extension) => extension.name === node._extension);
 		for (const key of extension?.pageBreakKeys ?? []) {
 			if (node[key] !== undefined) target[key] = node[key];
 		}
