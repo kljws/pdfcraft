@@ -9,7 +9,7 @@ Roboto font files.
 pnpm playground:server
 ```
 
-Open <http://localhost:1234>. The editor posts the document definition to `/pdf`,
+Open <http://localhost:1234> (override with `PORT`). The editor posts the document definition to `/pdf`,
 where Node.js generates the preview.
 
 ## React browser
@@ -18,5 +18,5 @@ where Node.js generates the preview.
 pnpm playground:react
 ```
 
-Open <http://localhost:1235>. React imports `@pdfcraft/browser`; PDF generation
+Open <http://localhost:1235> (override with `PORT`). React imports `@pdfcraft/browser`; PDF generation
 runs entirely in the browser.

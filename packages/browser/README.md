@@ -19,4 +19,6 @@ budget in `size-budget.json`, checked by the repository test suite.
 
 Install and register `@pdfcraft/qr` or `@pdfcraft/svg` only when those document nodes are needed.
 
-See the [PDFCraft repository](https://github.com/kljws/pdfcraft) for documentation.
+See the [PDFCraft repository](https://github.com/kljws/pdfcraft) for documentation, the
+[styling guide](https://github.com/kljws/pdfcraft/blob/main/docs/STYLING-GUIDE.md) and the
+[changelog](./CHANGELOG.md).

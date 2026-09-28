@@ -1,6 +1,6 @@
 # PDFCraft Styling Guide
 
-This guide documents the styling and layout controls exposed by PDFCraft's TypeScript API. It has been reviewed against the latest supplied production sources.
+This guide documents the styling and layout controls exposed by PDFCraft's TypeScript API, as implemented in this repository.
 
 > QR and SVG nodes require the optional `@pdfcraft/qr` and `@pdfcraft/svg` packages. Importing each package adds its public node types; registering its extension adds runtime behavior.
 
@@ -25,7 +25,7 @@ This guide documents the styling and layout controls exposed by PDFCraft's TypeS
 17. [Forms](#forms)
 18. [Fonts](#fonts)
 19. [Style property reference](#style-property-reference)
-20. [Compatibility with the latest supplied source](#compatibility-with-the-latest-supplied-source)
+20. [Validation and layout guarantees](#validation-and-layout-guarantees)
 21. [Practical patterns](#practical-patterns)
 
 ---
@@ -499,9 +499,21 @@ Keep a node together when possible:
 
 You can also provide a document-level `pageBreakBefore` callback for content-aware pagination.
 
-### Oversized content on an empty page
+### Oversized content
 
-When a text line or QR code is taller than the available page area, PDFCraft first tries normal pagination. If the destination page is empty, the engine permits that item to overflow rather than repeatedly creating new pages. This is an internal fallback, not a clipping or scaling option. Use `fit`, smaller font sizes, or explicit dimensions when the content must remain inside the page bounds.
+Content that is taller than a page is never dropped:
+
+- A text line, image, canvas, QR code, SVG, attachment or form field first moves to the next page
+  or column. If it still does not fit there, it is placed at the top of that fresh page and
+  overflows, even when the page already has a background.
+- An image that overflows the area where it is placed logs one warning with its source and size.
+  Set `shrinkToFit: true` on the image to scale it down instead (see [Images](#images)).
+- An `unbreakable` block, a table group with `dontBreakRows` or `keepTogether`, and a repeated table
+  header that are taller than a page are split like ordinary content.
+- A header or footer that leaves no usable page area is rejected with an explicit error.
+
+Overflowing content is not clipped. Use `fit`, `shrinkToFit`, smaller font sizes or explicit
+dimensions when content must stay inside the page bounds.
 
 ---
 
@@ -515,11 +527,17 @@ Use a named page size:
 pageSize: "A4"
 ```
 
-Or custom dimensions:
+Or custom dimensions, in points:
 
 ```ts
 pageSize: { width: 720, height: 1080 }
+pageSize: { width: 300, height: "auto" }
 ```
+
+Custom dimensions must be finite positive numbers; numeric strings such as `"300"` are rejected.
+`height: "auto"` sizes each page to its content. It cannot be combined with a landscape
+`pageOrientation`, at document or node level, because the swap would turn the automatic height into
+an infinite width.
 
 Supported named families include:
 
@@ -561,6 +579,12 @@ Dynamic margins are supported:
 pageMargins: (currentPage, pageCount, pageSize) =>
   currentPage === 1 ? [60, 80, 60, 60] : [40, 50]
 ```
+
+Margins must be finite non-negative numbers and must leave a usable width and height. Invalid
+margins fail before pagination with the input path in the message, for example
+`Invalid pageMargins.left` or `Invalid pageMargins for page 3 (returned by the pageMargins function)`.
+A margin function that depends on `pageCount` is re-evaluated until the page count is stable; if it
+keeps changing after 10 layout passes, generation fails with `Layout did not converge`.
 
 ### Sections
 
@@ -980,6 +1004,9 @@ Image sizing controls:
 - `cover: { width, height, align, valign }`
 - `minWidth`, `maxWidth`
 - `minHeight`, `maxHeight`
+- `shrinkToFit: true` — when the sized image cannot fit the content area of a fresh page or
+  column, scale it down proportionally to fit. It never enlarges an image, applies after the
+  options above, and is ignored for `cover` and `absolutePosition`.
 
 Image appearance controls:
 
@@ -1284,6 +1311,11 @@ A watermark may be a string or an object. Because the object extends `Style`, no
 }
 ```
 
+References may point forward in the document. Page numbers are laid out with their final value,
+including numbers wrapped across lines and table-of-contents numbers. A `pageReference` whose id
+matches no node fails with `Unresolved pageReference '<id>'`; a missing `textReference` target
+renders empty text and logs one warning.
+
 ### Table of contents
 
 Mark content for a TOC:
@@ -1522,17 +1554,18 @@ pdf.addFontContainer({
 
 ---
 
-## Compatibility with the latest supplied source
+## Validation and layout guarantees
 
-The latest code update changes internal pagination behavior rather than the public styling API:
-
-- text lines may overflow when the current page is empty and no valid page fit exists;
-- QR codes use the same empty-page overflow fallback;
-- QR insertion no longer depends on the page already containing another item;
-- an internal table row result field was removed, with no change to `TableLayout`, table cells, row groups, or document styling syntax;
-- an SVG path parser line was reformatted without changing its supported styling controls.
-
-No migration is required for the style properties documented in this guide.
+- Definitions are validated before layout: page sizes and margins (see [Pages and sections](#pages-and-sections)),
+  table structure, and nodes that contain themselves (`Cyclic document structure`). The same node
+  object may be used several times.
+- A layout that depends on its own result (footer heights, page-count-dependent margins or
+  backgrounds, page references) is repeated until it is stable, or fails with
+  `Layout did not converge` and the unresolved reasons. An unstable layout is never returned.
+- `pageBreakBefore` can request any number of breaks; each node is evaluated once.
+- `maxPagesNumber` writes an excerpt; page totals and references still describe the complete
+  document. `getPageInfo()` on the output reports `pageCount`, `totalPageCount` and `truncated`.
+- Arrays in the definition types are `readonly`, so definitions declared `as const` type-check.
 
 ---
 
@@ -1637,7 +1670,7 @@ Before considering a PDF design complete, review:
 - heading hierarchy and paragraph spacing
 - text wrapping and long-token behavior
 - table widths, row breaks, borders, and padding
-- image fit/crop and opacity
+- image fit/crop, opacity, and `shrinkToFit` for images that may exceed a page
 - headers, footers, page numbering, and watermark
 - section-level page changes
 - links, bookmarks, and TOC

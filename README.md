@@ -4,7 +4,7 @@ Modern PDF document generation for Node.js and browsers, written in TypeScript.
 
 PDFCraft starts from the [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake) codebase. It preserves the familiar document-definition model while delivering separate Node.js and browser packages, first-class TypeScript declarations, explicit ESM and CommonJS exports, isolated instances, and a Vitest test suite.
 
-Numerous pull requests and issues from pdfmake have been fixed or incorporated in this package. See the [CHANGELOG.md](./CHANGELOG.md) for detailed information. 
+Numerous pull requests and issues from pdfmake have been fixed or incorporated in this package. See the changelogs of [`@pdfcraft/core`](./packages/core/CHANGELOG.md) and [`@pdfcraft/browser`](./packages/browser/CHANGELOG.md) for detailed information.
 
 ## Highlights
 
@@ -18,7 +18,10 @@ Numerous pull requests and issues from pdfmake have been fixed or incorporated i
 - Columns, lists, optional QR/SVG extensions, vectors, sections, attachments and AcroForm fields
 - Headers, footers, backgrounds, page breaks and page metadata
 - Table of contents, outlines and bookmarks
-- Configurable local-file and URL access policies
+- Configurable local-file and URL access policies, with download timeouts, size limits and cancellation
+- Early validation of page geometry and document structure, with the input path in every error
+- Stable layout: page references, dynamic margins and footers are resolved before rendering, never returned half-converged
+- Oversized content is never dropped; images can opt in to `shrinkToFit`
 - Node and React playgrounds with live PDF previews
 - Tested in Node.js and Chromium
 
@@ -147,6 +150,43 @@ await pdf.download("document.pdf");
 
 Font files and images can be supplied through URLs or the browser virtual file system.
 
+## Output documents
+
+`createPdf()` returns an output document. The data methods finalize the PDF and can be called any
+number of times:
+
+| Package | Methods |
+|---|---|
+| `@pdfcraft/core` | `getBuffer()`, `getBase64()`, `getDataUrl()`, `write(filename)` |
+| `@pdfcraft/browser` | `getBuffer()`, `getBase64()`, `getDataUrl()`, `getBlob()`, `download(filename)`, `open(window)`, `print(window)` |
+| both | `getPageInfo()`, `getStream()` |
+
+`getPageInfo()` reports `pageCount`, `totalPageCount` and `truncated`, so an excerpt produced by
+`maxPagesNumber` can be told apart from a complete document. Page totals and page references always
+describe the complete document.
+
+`getStream()` returns the underlying PDFKit stream. It may be configured and then collected with the
+data methods, or consumed and ended by the caller. Collecting data after the caller started reading
+the stream, or calling `getStream()` after collection started, rejects with an explicit error instead
+of returning an incomplete PDF.
+
+## Validation and errors
+
+Definitions are checked before layout, and errors name the offending input:
+
+- page sizes and margins, including margins returned by a `pageMargins` function
+  (`Invalid pageMargins for page 3 (returned by the pageMargins function)`);
+- a node that contains itself (`Cyclic document structure`); the same node may still be reused;
+- a `pageReference` whose id matches no node (`Unresolved pageReference 'details'`);
+- a layout that never stabilizes (`Layout did not converge after 10 layout passes: …`).
+
+Content taller than a page is never silently dropped. An image that cannot fit logs one warning;
+set `shrinkToFit: true` on it to scale it down instead:
+
+```ts
+{ image: "poster", width: 500, shrinkToFit: true }
+```
+
 ## TypeScript
 
 Public contracts are available from the package and from the dedicated types export.
@@ -245,7 +285,28 @@ pdfcraft.setUrlAccessPolicy((url) => {
 });
 ```
 
-URL policies are checked around redirects where the runtime permits it.
+URL policies are checked around redirects where the runtime permits it. In Node.js, each
+`createPdf()` call warns when an instance has no URL or local access policy.
+
+### Resource loading limits
+
+Remote fonts, images and files can be bounded per instance or per document, and cancelled:
+
+```ts
+const instance = pdfcraft.createPdfCraft({
+	resourceLoading: { timeout: 10_000, maxSize: 5_000_000 },
+});
+
+const controller = new AbortController();
+const pdf = instance.createPdf(documentDefinition, {
+	resourceLoading: { timeout: 2_000 },
+	signal: controller.signal,
+});
+```
+
+`timeout` is in milliseconds per resource, including redirects and the body; `maxSize` is in bytes.
+The first failed download cancels the others and is the error reported. Without these options,
+loading is unbounded.
 
 ## Development
 

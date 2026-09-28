@@ -4,12 +4,14 @@ Ce document décrit comment le package est organisé et comment un `DocumentDefi
 Il indique où placer un comportement et quelles dépendances sont autorisées. Les règles de dépendance
 sont vérifiées par `src/__tests__/architecture.test.ts`.
 
+Sauf mention contraire, les chemins sont relatifs à `packages/core/src/`.
+
 ## Vue d'ensemble
 
 `@pdfcraft/core` reçoit un `DocumentDefinition` complet et produit un PDF avec PDFKit.
 
 ```text
-PdfCraft.createPdf(docDefinition)                    core/pdfcraft.ts
+PdfCraftBase.createPdf(docDefinition)                core/pdfcraft.ts
   └─ clone du DocumentDefinition                     utils/clone-document-definition.ts
      └─ Printer.createPdfKitDocument                 core/printer.ts
         ├─ résolution des URL et ressources          core/printer.resources.ts, resources/
@@ -238,7 +240,11 @@ Chaque feature possède les décisions propres à sa structure :
 - `image` et les autres éléments atomiques passent à la page suivante lorsqu'ils ne tiennent pas.
 
 Le moteur ne connaît pas les lignes ou cellules d'une table, et `table` ne réimplémente pas le
-changement de page générique.
+changement de page générique. Les cellules fantômes créées par une fusion n'ont pas de `_kind` et sont
+ignorées par le dispatch.
+
+`DocumentContext.getCurrentPage()` renvoie `undefined` avant la première page ; le code qui place du
+contenu utilise `requireCurrentPage()`, qui lève une erreur explicite si aucune page n'existe.
 
 ### Contenu trop grand
 
@@ -259,8 +265,7 @@ changement de page générique.
 | Document | `pageBreakCalculated`, `pageBreak` ajouté par `pageBreakBefore`, `_x` (x relatif d'origine) | jamais |
 | Passe | `positions`, `_position`, `nodeInfo`, x/y absolus, état de `LayoutBuilder` (`linearNodeList`, `nestedLevel`, pile d'alignement vertical, writer) | `decorateNode`, `resetXY`, `startLayoutPass` |
 | Passe, état de feature | état privé d'une feature (tables, listes…) | hook `reset` de la feature, appelé par `resetXY` |
-| Preprocessing | références, table des matières, cycle en cours | nouvel état à chaque `preprocessDocument`/`preprocessBlock` | Les cellules fantômes créées par une fusion n'ont pas de `_kind` et sont
-ignorées par le dispatch.
+| Preprocessing | références, table des matières, cycle en cours | nouvel état à chaque `preprocessDocument`/`preprocessBlock` |
 
 ## Contenu inline
 
@@ -328,9 +333,27 @@ Le test d'architecture échoue si l'une de ces règles est violée.
   `expectPreprocessedKind` et `expectMeasuredKind`, `layout-builder.ts` un `LayoutBuilder` de test,
   `integration.helpers.ts` le rendu de pages d'intégration, et `reference-render.ts` le rendu et la
   lecture pdf.js des documents de référence.
-- **Typage :** `pnpm run typecheck` (lancé par `pnpm test`) vérifie aussi le typage des tests.
+- **Projets Vitest :** la configuration racine (`vitest.config.mts`) définit les projets `unit`
+  (`*.test.ts`), `integration` (`*.integ.ts`) et `consumer` (`tests/consumer/`, après le build).
+  Les tests navigateur utilisent `vitest-browser.config.mts`.
+- **Typage :** `pnpm typecheck` à la racine vérifie aussi le typage des tests.
 
 Les tests se lancent depuis la racine du dépôt, car les chemins des polices sont relatifs à la racine.
+
+## Conventions TypeScript
+
+- `packages/core/tsconfig.build.json` active `exactOptionalPropertyTypes` et
+  `noUncheckedIndexedAccess` pour le code source (pas pour les tests). Une propriété optionnelle
+  qui peut valoir `undefined` le déclare (`foo?: string | undefined`) ; une lecture indexée est
+  réduite avant usage (`for…of`, garde, invariant explicite).
+- Les options transmises à PDFKit passent par `withoutUndefined` (`utils/defined.ts`), car les types
+  de PDFKit refusent `undefined`.
+- Les formes sont des alias `type`. Restent des `interface` : les registres augmentés par déclaration
+  (`NodeKindRegistry`, `PdfCraftContentExtensionRegistry`, `PdfCraftDocumentExtensionRegistry`),
+  `PdfDocumentStream` (type `this`) et les types qui cassent le cycle des nœuds récursifs
+  (`PreprocessedNodeBase`, `MeasuredNodeBase`, `LayoutNodeBase`, `NodeHierarchy`,
+  `TextReferenceState`, `TableNodeState`), chacun commenté.
+- Les tableaux des types publics de définition sont `readonly`.
 
 ## Ajouter une feature
 

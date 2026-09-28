@@ -17,6 +17,16 @@ import pdfcraft from "@pdfcraft/core";
 
 Browser applications should install `@pdfcraft/browser`, which bundles PDFKit's standalone build.
 
+## Output and options
+
+All output documents also provide `getPageInfo()` (page counts and whether `maxPagesNumber`
+truncated the PDF) and `getStream()`. Data methods finalize the stream themselves; a stream taken
+with `getStream()` may be configured first, but collecting after the caller consumed it is rejected.
+
+`createPdf(definition, options)` accepts `resourceLoading: { timeout, maxSize }` and an abort
+`signal` to bound or cancel remote resource downloads; the same limits can be set per instance with
+`createPdfCraft({ resourceLoading })`.
+
 ## Platform integrations
 
 A platform supplies its output document through an output factory:
@@ -45,4 +55,6 @@ build, as `@pdfcraft/browser` does with a build alias.
 Install and register `@pdfcraft/qr` or `@pdfcraft/svg` only when those document nodes are needed.
 Core exposes a generic extension lifecycle and contains no QR/SVG-specific contract or behavior.
 
-See the [PDFCraft repository](https://github.com/kljws/pdfcraft) for documentation.
+See the [PDFCraft repository](https://github.com/kljws/pdfcraft) for documentation, the
+[styling guide](https://github.com/kljws/pdfcraft/blob/main/docs/STYLING-GUIDE.md) and the
+[changelog](./CHANGELOG.md).
