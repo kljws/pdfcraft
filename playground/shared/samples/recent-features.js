@@ -147,7 +147,7 @@ export default {
 		},
 	},
 	images: {
-		"sample-photo": "examples/images/sampleImage.jpg",
+		"sample-photo": "../images/sampleImage.jpg",
 	},
 	svgs: {
 		"status-mark":

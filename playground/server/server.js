@@ -14,9 +14,9 @@ import {
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const publicDirectory = path.join(directory, "public");
 const sampleDirectory = path.resolve(directory, "../shared/samples");
+const sharedImageDirectory = path.resolve(directory, "../shared/images");
 const robotoFontDirectory = path.resolve(directory, "../../fonts/Roboto");
 const figtreeFontDirectory = path.resolve(directory, "../../fonts/Figtree");
-const exampleImageDirectory = path.resolve(directory, "../../examples/images");
 const playgroundLogo = path.resolve(directory, "../logo.jpg");
 const port = Number(process.env.PORT) || 1234;
 const requestLimit = 2 * 1024 * 1024;
@@ -55,7 +55,7 @@ pdfcraft.setLocalAccessPolicy((filename) => {
 		isWithin(robotoFontDirectory, resolved) ||
 		isWithin(figtreeFontDirectory, resolved) ||
 		isWithin(sampleDirectory, resolved) ||
-		isWithin(exampleImageDirectory, resolved) ||
+		isWithin(sharedImageDirectory, resolved) ||
 		resolved === playgroundLogo
 	);
 });
@@ -66,7 +66,7 @@ pdfcraft.setUrlAccessPolicy((resource) => {
 });
 
 const resourcePaths = new Map([
-	["examples/images/sampleImage.jpg", path.join(exampleImageDirectory, "sampleImage.jpg")],
+	["../images/sampleImage.jpg", path.join(sharedImageDirectory, "sampleImage.jpg")],
 	["playground/logo.jpg", playgroundLogo],
 ]);
 

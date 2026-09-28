@@ -2,7 +2,7 @@ import pdfcraft from "@pdfcraft/browser";
 import { qrExtension } from "@pdfcraft/qr";
 import { svgExtension } from "@pdfcraft/svg";
 import { Roboto, Figtree } from "./fonts";
-import sampleImage from "../../../examples/images/sampleImage.jpg?url";
+import sampleImage from "../../shared/images/sampleImage.jpg?url";
 import playgroundLogo from "../../logo.jpg?url";
 import testXml from "../../shared/samples/test.xml?raw";
 import { parseDocumentDefinition, resolveDocumentResources } from "../../shared/editor";
@@ -48,7 +48,7 @@ pdfcraft.setUrlAccessPolicy((resource) => {
 const sampleImageUrl = resolveAsset(sampleImage);
 const playgroundLogoUrl = resolveAsset(playgroundLogo);
 const resourceUrls = new Map([
-	["examples/images/sampleImage.jpg", sampleImageUrl],
+	["../images/sampleImage.jpg", sampleImageUrl],
 	["playground/logo.jpg", playgroundLogoUrl],
 ]);
 

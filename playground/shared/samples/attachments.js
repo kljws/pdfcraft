@@ -30,7 +30,7 @@ export default {
 		},
 		"For better customization, add an image and attach a file to it with linkToFile:",
 		{
-			image: "examples/images/sampleImage.jpg",
+			image: "../images/sampleImage.jpg",
 			width: 150,
 			linkToFile: "sampleImage",
 		},
@@ -46,7 +46,7 @@ export default {
 	],
 	attachments: {
 		sampleImage: {
-			src: "examples/images/sampleImage.jpg",
+			src: "../images/sampleImage.jpg",
 			name: "sampleImage.png",
 		},
 	},

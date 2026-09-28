@@ -4,10 +4,11 @@ export const createSampleSource = (sample) => {
 
 export const parseDocumentDefinition = (source) => {
 	const trimmedSource = source.trim();
-	if (trimmedSource.startsWith("export default")) {
-		const expression = trimmedSource.slice("export default".length).trim().replace(/;$/, "");
+	const exportDefaultIndex = trimmedSource.indexOf("export default");
+	if (exportDefaultIndex !== -1) {
+		const executableSource = `${trimmedSource.slice(0, exportDefaultIndex)}const __pdfcraftSample =${trimmedSource.slice(exportDefaultIndex + "export default".length)}`;
 		// The playground intentionally executes locally edited document definitions.
-		return new Function(`"use strict";\nreturn (${expression});`)();
+		return new Function(`"use strict";\n${executableSource}\nreturn __pdfcraftSample;`)();
 	}
 
 	// Support source saved by playground versions older than the module-based samples.
