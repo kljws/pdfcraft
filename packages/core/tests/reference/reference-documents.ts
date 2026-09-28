@@ -12,7 +12,7 @@ const rows = (count: number, columns: number): string[][] =>
 		Array.from({ length: columns }, (_, column) => `r${row}c${column}`),
 	);
 
-export const SAMPLE_IMAGE = "examples/images/sampleImage.jpg";
+export const SAMPLE_IMAGE = "playground/shared/images/sampleImage.jpg";
 
 export interface ReferenceDocument {
 	/** Text that must appear in the extracted PDF text, in reading order. */

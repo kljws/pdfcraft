@@ -282,13 +282,37 @@ Both provide a live editor, shared examples and a PDF.js canvas preview.
 
 ## Package architecture
 
-The repository is a pnpm workspace with separate packages:
+The repository is a pnpm workspace. Document generation lives in `@pdfcraft/core`; each platform
+entry adds only its output and platform setup.
 
-- `@pdfcraft/core` - Node.js ESM and CommonJS package;
-- `@pdfcraft/browser` - modern browser ESM package;
-- `@pdfcraft/core/types` - public TypeScript contracts.
+| Entry | For | Contents |
+|---|---|---|
+| `@pdfcraft/core` | Node.js applications (ESM and CommonJS) | Document engine, server output (`getBuffer`, `write`), local access policy and the missing-policy warnings. Loads the regular Node.js build of PDFKit. |
+| `@pdfcraft/core/adapter` | Platform integrations | `PdfCraftBase`, `OutputDocument` and the `OutputFactory` type. Runtime-neutral: no Node.js built-ins, no server output, no environment detection. |
+| `@pdfcraft/core/types` | TypeScript | Public contracts only. |
+| `@pdfcraft/browser` | Browsers with a modern bundler (ESM) | One self-contained bundle: core, the browser output (`getBlob`, `download`, `open`, `print`) and PDFKit's standalone build. No runtime dependencies. |
 
-The Node.js bundles and declarations are produced with `tsdown`. Browser-specific output is kept separate from the core document-generation code.
+The browser package builds on the adapter entry. The shared code imports `pdfkit`, and the
+browser build aliases that import to `pdfkit/js/pdfkit.standalone.js`
+(`packages/browser/tsdown.config.mts`). This alias is intentional: it is the only place the
+standalone build is selected, and Node.js users never load it.
+
+**Runtime bundle size is not installed size.** The browser bundle is kept separate so that
+Node.js applications never load the large standalone build. PDFKit's npm package still ships all
+of its builds, including the standalone file, so installing `@pdfcraft/core` puts that file on
+disk even though nothing loads it.
+
+These boundaries are checked by the test suite:
+
+- the adapter's runtime import graph may reach only `pdfkit` and `linebreak`, never a Node.js
+  built-in or the server output (`packages/core/src/__tests__/adapter-boundary.test.ts`);
+- the built artifacts, declared dependencies and `npm pack` file lists are verified after the
+  build, including which PDFKit build each entry actually loads (`tests/consumer/artifacts.test.ts`);
+- the minified browser bundle has a byte budget in `packages/browser/size-budget.json`, raised
+  only in a deliberate, reviewed change (`tests/consumer/bundle-size.test.ts`);
+- reference documents generated through the Node.js entry and the browser bundle must produce the
+  same pages, text layout and drawing operations (`tests/consumer/cross-platform.test.ts` and
+  `packages/browser/tests/cross-platform.test.ts`).
 
 ## Credits
 

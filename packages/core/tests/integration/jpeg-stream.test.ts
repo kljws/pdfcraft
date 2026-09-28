@@ -12,7 +12,7 @@ describe("Integration test: JPEG streams", () => {
 		const buffer = await instance
 			.createPdf({
 				content: ["JPEG image", { image: "sample", fit: [200, 200] }],
-				images: { sample: "examples/images/sampleImage.jpg" },
+				images: { sample: "playground/shared/images/sampleImage.jpg" },
 			})
 			.getBuffer();
 

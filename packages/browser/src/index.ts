@@ -1,10 +1,10 @@
-import { PdfCraftBase, type FontContainer, type PdfDocumentStream } from "@pdfcraft/core/adapter";
+import { PdfCraftBase, type FontContainer } from "@pdfcraft/core/adapter";
 import type { PdfCraftOptions, VfsEncoding } from "@pdfcraft/core/types";
 import OutputDocumentBrowser from "./output-document.browser";
 
 class PdfCraft extends PdfCraftBase<OutputDocumentBrowser> {
 	constructor(options: PdfCraftOptions = {}) {
-		super(options);
+		super(options, (document) => new OutputDocumentBrowser(document));
 	}
 
 	addFontContainer(fontContainer: FontContainer): void {
@@ -19,10 +19,6 @@ class PdfCraft extends PdfCraftBase<OutputDocumentBrowser> {
 				typeof value === "object" ? (value.encoding ?? "base64") : "base64";
 			this.virtualfs.writeFileSync(key, data, encoding);
 		}
-	}
-
-	override _transformToDocument(doc: Promise<PdfDocumentStream>): OutputDocumentBrowser {
-		return new OutputDocumentBrowser(doc);
 	}
 }
 

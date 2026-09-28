@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Tests
+
+- Added a bundle-size budget for the minified production bundle (`dist/index.js`, in bytes, without source maps or declarations) in `size-budget.json`: baseline 819906 bytes, limit 860000 bytes. The consumer check reports the measured size, the limit and the excess; the limit is raised only in a deliberate, reviewed change.
+
 ## [0.8.0] - 2026-09-05
 
 ### Added

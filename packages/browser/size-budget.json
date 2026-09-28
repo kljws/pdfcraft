@@ -1,0 +1,6 @@
+{
+	"$comment": "Budget for the minified production browser bundle (dist/index.js only; no source maps or declarations). Raise maxBytes only deliberately, in its own reviewed change, and update baselineBytes with the measured size.",
+	"file": "dist/index.js",
+	"baselineBytes": 819906,
+	"maxBytes": 860000
+}

@@ -41,6 +41,12 @@ function validateResourceLoading(options: ResourceLoadingOptions): ResourceLoadi
 	};
 }
 
+/**
+ * Wraps the generated PDF stream into the output document of a platform, such as the server or
+ * browser output. Supplied by platform entry points; document authors never need it.
+ */
+export type OutputFactory<Output> = (document: Promise<PdfDocumentStream>) => Output;
+
 class PdfCraftBase<Output = unknown> {
 	protected virtualfs: VirtualFileSystem;
 	protected fonts: FontDescriptors;
@@ -51,7 +57,15 @@ class PdfCraftBase<Output = unknown> {
 	protected extensions: PdfCraftExtensions;
 	protected resourceLoading: ResourceLoadingOptions;
 
-	constructor(options: PdfCraftOptions = {}) {
+	private readonly outputFactory?: OutputFactory<Output>;
+
+	/**
+	 * @param options Instance options.
+	 * @param outputFactory Builds the output document of the platform. Without it, `createPdf`
+	 * returns the PDF stream promise, as before.
+	 */
+	constructor(options: PdfCraftOptions = {}, outputFactory?: OutputFactory<Output>) {
+		this.outputFactory = outputFactory;
 		this.virtualfs = options.virtualfs ?? new DefaultVirtualFileSystem();
 		this.fonts = options.fonts || {};
 		this.tableLayouts = options.tableLayouts || {};
@@ -77,19 +91,6 @@ class PdfCraftBase<Output = unknown> {
 			progressCallback: validatedOptions.progressCallback ?? this.progressCallback,
 			tableLayouts: pack(this.tableLayouts, validatedOptions.tableLayouts),
 		};
-
-		const runtime = globalThis as { process?: { versions?: { node?: string } } };
-		const isServer = Boolean(runtime.process?.versions?.node);
-		if (typeof this.urlAccessPolicy === "undefined" && isServer) {
-			console.warn(
-				"No URL access policy defined. Consider using setUrlAccessPolicy() to restrict external resource downloads.",
-			);
-		}
-		if (typeof this.localAccessPolicy === "undefined" && isServer) {
-			console.warn(
-				"No local access policy defined. Consider using setLocalAccessPolicy() to restrict local file system access.",
-			);
-		}
 
 		const urlResolver = new URLResolver(this.virtualfs, {
 			...this.resourceLoading,
@@ -176,8 +177,14 @@ class PdfCraftBase<Output = unknown> {
 		this.extensions = [...extensions];
 	}
 
+	/**
+	 * Builds the output document returned by `createPdf`. The default uses the output factory
+	 * given to the constructor; a subclass override still takes precedence.
+	 *
+	 * @deprecated Pass an output factory to the constructor instead of overriding this method.
+	 */
 	_transformToDocument(doc: Promise<PdfDocumentStream>): Output {
-		return doc as Output;
+		return this.outputFactory ? this.outputFactory(doc) : (doc as Output);
 	}
 }
 

@@ -38,7 +38,16 @@
 	"scripts": {
 		"typecheck": "tsc --noEmit -p tsconfig.build.json",
 		"build": "pnpm run typecheck && tsdown",
-		"prepack": "pnpm run build"
+		"prepack": "pnpm run build",
+		"lint:fix": "oxlint --fix .",
+		"lint:check": "oxlint .",
+		"format:fix": "oxfmt .",
+		"format:check": "oxfmt --check .",
+		"test:types": "tsc -p tests/types/tsconfig.json",
+		"test:unit": "vitest run packages/core/src",
+		"test:integration": "vitest run packages/core/tests/integration",
+		"test:coverage": "vitest run packages/core/src packages/core/tests/integration --coverage",
+		"test:watch": "vitest packages/core/src packages/core/tests/integration"
 	},
 	"dependencies": {
 		"linebreak": "^1.1.0",

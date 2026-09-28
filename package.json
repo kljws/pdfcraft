@@ -20,7 +20,7 @@
 		"lint:check": "oxlint .",
 		"format:fix": "oxfmt .",
 		"format:check": "oxfmt --check .",
-		"test:types": "tsc -p packages/core/tests/types/tsconfig.json && tsc -p packages/browser/tests/types/tsconfig.json && tsc -p packages/qr/tests/types/tsconfig.json && tsc -p packages/svg/tests/types/tsconfig.json",
+		"test:types": "tsc -p packages/core/tests/types/tsconfig.json && tsc -p packages/core/tests/types/adapter/tsconfig.json && tsc -p packages/browser/tests/types/tsconfig.json && tsc -p packages/qr/tests/types/tsconfig.json && tsc -p packages/svg/tests/types/tsconfig.json",
 		"test:consumer": "vitest run tests/consumer",
 		"test:unit": "vitest run packages/*/src",
 		"test:integration": "vitest run packages/*/tests/integration",

@@ -65,6 +65,23 @@ d'un nœud survivent jusqu'à sa prochaine mise en page. La première passe mesu
   complet sont rejetées explicitement. `getPageInfo()` indique si `maxPagesNumber` a tronqué le
   document ; les totaux de pages et les références décrivent toujours le document complet.
 
+### Points d'entrée et plateformes
+
+| Entrée | Rôle |
+|---|---|
+| `src/index.ts` (`@pdfcraft/core`) | Entrée Node.js : sortie serveur (`output/output-document.server.ts`), politique d'accès local et avertissements de politiques manquantes |
+| `src/adapter.ts` (`@pdfcraft/core/adapter`) | Base neutre pour les plateformes : `PdfCraftBase`, `OutputDocument`, `OutputFactory` |
+| `@pdfcraft/browser` | Paquet séparé construit sur l'adaptateur, avec PDFKit standalone |
+
+- Une plateforme fournit sa sortie par une `OutputFactory` passée au constructeur de
+  `PdfCraftBase`. Surcharger `_transformToDocument` reste possible et prioritaire, mais ce hook
+  est déprécié.
+- Le code partagé ne détecte pas l'environnement : la plateforme vient de l'entrée utilisée.
+- Tout ce que l'adaptateur atteint à l'exécution ne peut importer que `pdfkit` et `linebreak`,
+  jamais un module intégré de Node.js ni la sortie serveur
+  (`src/__tests__/adapter-boundary.test.ts`). Le paquet navigateur redirige `pdfkit` vers la
+  version standalone par un alias de build ; ce choix est volontaire.
+
 ## Organisation des dossiers
 
 | Dossier | Rôle |
