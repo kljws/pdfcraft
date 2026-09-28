@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Documentation: the READMEs describe output documents (`getPageInfo()`, `getStream()` ownership), input validation errors, `shrinkToFit`, resource loading limits and the Node.js policy warnings; `docs/STYLING-GUIDE.md` documents page geometry validation, oversized content, reference errors and layout guarantees; `docs/ARCHITECTURE.md` states its path base and documents the TypeScript conventions, page accessors and Vitest projects.
 - Documented the entry points (`@pdfcraft/core` for Node.js, `@pdfcraft/core/adapter` for platform integrations with the output factory, `@pdfcraft/core/types`), the browser package's intentional PDFKit standalone build alias, and the difference between runtime bundle size and PDFKit files installed on disk.
 - The missing URL and local access policy warnings are emitted by the Node entry (`@pdfcraft/core`) instead of the shared base, which no longer detects the runtime through `globalThis.process`. Text, order, timing and frequency are unchanged for Node users. Using `PdfCraftBase` from `@pdfcraft/core/adapter` directly no longer emits these Node-specific warnings, even when running under Node.js.
 - A layout that does not stabilize now throws `Layout did not converge after 10 layout passes: …` naming the unresolved reasons (footer height, page margins function, background page count, page references) instead of warning and returning the last pass. Previously only unstable footer heights threw.

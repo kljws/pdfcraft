@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Bundles the unreleased `@pdfcraft/core` changes listed in its changelog, including the layout, validation, output and resource-loading fixes and the public type updates.
+- The browser entry builds its output through `PdfCraftBase`'s required output factory. The README links the styling guide and changelog.
+
 ### Tests
 
 - Added a bundle-size budget for the minified production bundle (`dist/index.js`, in bytes, without source maps or declarations) in `size-budget.json`: baseline 819906 bytes, limit 860000 bytes. The consumer check reports the measured size, the limit and the excess; the limit is raised only in a deliberate, reviewed change.
