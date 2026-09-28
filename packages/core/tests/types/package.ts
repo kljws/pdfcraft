@@ -173,7 +173,7 @@ document.getBuffer().then((buffer) => buffer.byteLength);
 document.write("document.pdf");
 instance.setUrlAccessPolicy((url) => url.startsWith("https://"));
 
-// Platform integration through the adapter entry: output factory and deprecated hook.
+// Platform integration through the adapter entry: the output factory is required.
 import { OutputDocument, PdfCraftBase, type OutputFactory } from "@pdfcraft/core/adapter";
 
 class AdapterOutput extends OutputDocument {
@@ -183,16 +183,9 @@ class AdapterOutput extends OutputDocument {
 }
 
 const adapterFactory: OutputFactory<AdapterOutput> = (document) => new AdapterOutput(document);
-const adapterInstance = new PdfCraftBase<AdapterOutput>({}, adapterFactory);
+const adapterInstance = new PdfCraftBase<AdapterOutput>(adapterFactory, {});
 const adapterMarker: string = adapterInstance.createPdf({ content: [] }).marker();
 void adapterMarker;
 
-class LegacyAdapter extends PdfCraftBase<AdapterOutput> {
-	override _transformToDocument(
-		document: Parameters<OutputFactory<AdapterOutput>>[0],
-	): AdapterOutput {
-		return new AdapterOutput(document);
-	}
-}
-const legacyMarker: string = new LegacyAdapter().createPdf({ content: [] }).marker();
-void legacyMarker;
+// @ts-expect-error A platform integration must supply its output factory.
+void new PdfCraftBase<AdapterOutput>();

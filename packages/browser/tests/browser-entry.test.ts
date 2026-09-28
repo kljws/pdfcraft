@@ -43,21 +43,20 @@ const createOutput = (): { output: OutputDocumentBrowser; stream: FakePdfStream 
 
 describe("browser package entry", function () {
 	async function assertBrowserOutput(pdfcraft: typeof pdfcraftEntry) {
-		const instance = pdfcraft.createPdfCraft();
-		const transform = instance as unknown as {
-			_transformToDocument(document: Promise<PdfDocumentStream>): OutputDocumentBrowser;
-		};
-		const output = transform._transformToDocument(
-			Promise.resolve(new FakePdfStream() as unknown as PdfDocumentStream),
-		);
+		const output = pdfcraft
+			.createPdfCraft({ fonts: { Helvetica: { normal: "Helvetica" } } })
+			.createPdf({ content: [{ text: "Browser output", font: "Helvetica" }] });
 
 		assert.equal(typeof output.getBlob, "function");
 		assert.equal(typeof output.download, "function");
 		assert.equal(typeof output.open, "function");
 		assert.equal(typeof output.print, "function");
 		assert.equal("write" in output, false);
-		assert.deepEqual(await output.getBuffer(), new Uint8Array([1, 2, 3]));
-		assert.equal(await output.getBase64(), "AQID");
+		const bytes = await output.getBuffer();
+		assert.equal(new TextDecoder().decode(bytes.subarray(0, 5)), "%PDF-");
+		let binary = "";
+		for (const byte of bytes) binary += String.fromCharCode(byte);
+		assert.equal(await output.getBase64(), btoa(binary));
 	}
 
 	it("exposes browser-specific output methods from the modern ESM entry", async function () {

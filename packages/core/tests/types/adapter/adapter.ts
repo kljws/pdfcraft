@@ -9,7 +9,7 @@ class BrowserOutput extends OutputDocument {
 }
 
 const factory: OutputFactory<BrowserOutput> = (document) => new BrowserOutput(document);
-const instance = new PdfCraftBase<BrowserOutput>({}, factory);
+const instance = new PdfCraftBase<BrowserOutput>(factory, {});
 const signal: PdfAbortSignal = new AbortController().signal;
 const definition: DocumentDefinition = { content: ["Browser"] };
 const output: BrowserOutput = instance.createPdf(definition, { signal });

@@ -65,7 +65,7 @@ describe("access policy warnings", () => {
 	});
 
 	it("does not warn through the platform-neutral base used by adapters", async () => {
-		await new PdfCraftBase({ fonts }).createPdf(definition);
+		await new PdfCraftBase((document) => document, { fonts }).createPdf(definition);
 		expect(warnings()).toEqual([]);
 	});
 });

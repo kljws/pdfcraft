@@ -8,15 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- `PdfCraftBase` accepts an optional output factory as a second constructor argument, exported as the `OutputFactory` type from `@pdfcraft/core/adapter`. Platform integrations can build their output document without subclassing. Overriding `_transformToDocument` still works and takes precedence; that hook is now deprecated. Existing constructor calls and default output are unchanged.
 - `shrinkToFit: true` on a block image scales it down proportionally when it cannot fit the content area of a fresh page or column, instead of letting it overflow. It never enlarges an image, is applied after `width`, `height`, `fit` and the min/max options, and is ignored for `cover` and `absolutePosition`. Default output is unchanged.
 - `getPageInfo()` on the output document reports `pageCount`, `totalPageCount` and `truncated`, so callers can tell a complete PDF from an excerpt produced by `maxPagesNumber`.
 - `resourceLoading: { timeout, maxSize }` on `createPdfCraft()` and per document on `createPdf()` bounds each remote resource download (milliseconds including redirects and body, and bytes). `createPdf(definition, { signal })` cancels outstanding downloads. The first failed download cancels the others and is the error reported. Without these options, loading is unbounded as before.
 
 ### Changed
 
-- Documented the entry points (`@pdfcraft/core` for Node.js, `@pdfcraft/core/adapter` for platform integrations with the output factory and the deprecated `_transformToDocument` hook, `@pdfcraft/core/types`), the browser package's intentional PDFKit standalone build alias, and the difference between runtime bundle size and PDFKit files installed on disk.
-- The missing URL and local access policy warnings are emitted by the Node entry (`@pdfcraft/core`) instead of the shared base, which no longer detects the runtime through `globalThis.process`. Text, order, timing and frequency are unchanged for Node users. Using `PdfCraftBase` from `@pdfcraft/core/adapter` directly no longer emits these Node-specific warnings, even when running under Node.js. The Node and browser entries now build their output through the output factory instead of overriding `_transformToDocument`.
+- Documented the entry points (`@pdfcraft/core` for Node.js, `@pdfcraft/core/adapter` for platform integrations with the output factory, `@pdfcraft/core/types`), the browser package's intentional PDFKit standalone build alias, and the difference between runtime bundle size and PDFKit files installed on disk.
+- The missing URL and local access policy warnings are emitted by the Node entry (`@pdfcraft/core`) instead of the shared base, which no longer detects the runtime through `globalThis.process`. Text, order, timing and frequency are unchanged for Node users. Using `PdfCraftBase` from `@pdfcraft/core/adapter` directly no longer emits these Node-specific warnings, even when running under Node.js.
 - A layout that does not stabilize now throws `Layout did not converge after 10 layout passes: …` naming the unresolved reasons (footer height, page margins function, background page count, page references) instead of warning and returning the last pass. Previously only unstable footer heights threw.
 - Custom page sizes and page margins are validated before pagination, with the input path in the message (for example `Invalid pageSize.width` or `Invalid pageMargins for page 3 (returned by the pageMargins function)`). Non-finite, negative or non-numeric values, including numeric strings, and margins that leave no usable width or height are rejected. `height: "auto"` is unchanged.
 - A node that contains itself is rejected with `Cyclic document structure` and the chain of node kinds instead of overflowing the call stack. The same node used several times is still accepted.
@@ -24,6 +23,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Output stream ownership is defined: data methods finalize the stream themselves; a stream taken with `getStream()` may be configured and then collected, or consumed and ended by the caller. Collecting after the caller ever consumed the stream (a data listener, `pipe()`, `resume()`, async iteration or a `read()` that returned bytes, even if the stream was paused again) or ended it, or calling `getStream()` after collection started, now rejects with an explicit error instead of hanging or silently ignoring changes. Stream errors emitted before collection are reported.
 - An image that cannot fit the content area where it is placed logs one warning with its source and dimensions. Ordinary moves to the next page do not warn.
 - Internal: atomic feature placement (image, attachment, AcroForm, extension) shares one `placeAtomicItem` helper; the attachment and AcroForm placement modules were merged into their feature descriptors; registry stage dispatch uses one typed hook lookup; features omit stage types identical to the defaults; per-pass layout state is reset in one place; the move-down-with-page-break relay through `LayoutBuilder` was removed. Output is unchanged.
+
+### Removed
+
+- `PdfCraftBase._transformToDocument`. A platform now supplies its output document through an `OutputFactory` (exported from `@pdfcraft/core/adapter`), the required first argument of `new PdfCraftBase(createOutput, options)`. Without a factory the base class used to return the raw PDF stream promise; that fallback is removed too. The Node.js and browser entries pass their own factories, so `createPdfCraft()` and `createPdf()` are unchanged.
 
 ### Fixed
 

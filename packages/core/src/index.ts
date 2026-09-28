@@ -12,7 +12,7 @@ class PdfCraft extends PdfCraftBase<OutputDocumentServer> {
 	declare localAccessPolicy: LocalAccessPolicy | undefined;
 
 	constructor(options: PdfCraftOptions = {}) {
-		super(options, (document) => new OutputDocumentServer(document));
+		super((document) => new OutputDocumentServer(document), options);
 	}
 
 	/**

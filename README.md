@@ -255,9 +255,27 @@ pnpm build
 pnpm test
 ```
 
-Useful validation commands include TypeScript checks, ESLint, Prettier, Node tests, browser tests and package verification. See `package.json` for the exact scripts available in the current repository.
+`pnpm test` builds the packages and runs every check below. They can also be run separately:
 
-Unit tests are colocated under `packages/*/src/**/__tests__/*.test.ts`. Integration, browser, consumer and public type-contract tests remain under `tests/`.
+| Command | Checks |
+|---|---|
+| `pnpm typecheck` | TypeScript across the workspace |
+| `pnpm test:types` | Public type contracts, including a Node.js-free consumer of `@pdfcraft/core/adapter` |
+| `pnpm test:unit` | Unit tests |
+| `pnpm test:integration` | Integration tests, including the reference documents |
+| `pnpm test:consumer` | Built packages: exports, artifacts, dependencies, bundle size and Node.js output of the cross-platform check (run after `pnpm build`) |
+| `pnpm test:browser` | The built browser bundle in Chromium through Playwright |
+| `pnpm lint:check` / `pnpm lint:fix` | Oxlint |
+| `pnpm format:check` / `pnpm format:fix` | Oxfmt |
+| `pnpm visual:generate` | PDFs for manual visual review (see `tests/visual/README.md`) |
+
+Test locations:
+
+- unit tests are colocated under `packages/*/src/**/__tests__/`;
+- integration tests are under `packages/*/tests/integration/`, and the shared reference documents under `packages/core/tests/reference/`;
+- browser tests are under `packages/browser/tests/`;
+- public type-contract tests are under `packages/*/tests/types/`;
+- tests of the built packages are under `tests/consumer/`, and manual visual checks under `tests/visual/`.
 
 ### Performance benchmarks
 

@@ -73,9 +73,8 @@ d'un nœud survivent jusqu'à sa prochaine mise en page. La première passe mesu
 | `src/adapter.ts` (`@pdfcraft/core/adapter`) | Base neutre pour les plateformes : `PdfCraftBase`, `OutputDocument`, `OutputFactory` |
 | `@pdfcraft/browser` | Paquet séparé construit sur l'adaptateur, avec PDFKit standalone |
 
-- Une plateforme fournit sa sortie par une `OutputFactory` passée au constructeur de
-  `PdfCraftBase`. Surcharger `_transformToDocument` reste possible et prioritaire, mais ce hook
-  est déprécié.
+- Une plateforme fournit sa sortie par une `OutputFactory`, premier argument obligatoire du
+  constructeur de `PdfCraftBase`.
 - Le code partagé ne détecte pas l'environnement : la plateforme vient de l'entrée utilisée.
 - Tout ce que l'adaptateur atteint à l'exécution ne peut importer que `pdfkit` et `linebreak`,
   jamais un module intégré de Node.js ni la sortie serveur

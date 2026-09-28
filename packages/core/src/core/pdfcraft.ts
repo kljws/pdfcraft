@@ -57,15 +57,14 @@ class PdfCraftBase<Output = unknown> {
 	protected extensions: PdfCraftExtensions;
 	protected resourceLoading: ResourceLoadingOptions;
 
-	private readonly outputFactory?: OutputFactory<Output>;
+	private readonly createOutput: OutputFactory<Output>;
 
 	/**
+	 * @param createOutput Builds the platform's output document around the PDF stream.
 	 * @param options Instance options.
-	 * @param outputFactory Builds the output document of the platform. Without it, `createPdf`
-	 * returns the PDF stream promise, as before.
 	 */
-	constructor(options: PdfCraftOptions = {}, outputFactory?: OutputFactory<Output>) {
-		this.outputFactory = outputFactory;
+	constructor(createOutput: OutputFactory<Output>, options: PdfCraftOptions = {}) {
+		this.createOutput = createOutput;
 		this.virtualfs = options.virtualfs ?? new DefaultVirtualFileSystem();
 		this.fonts = options.fonts || {};
 		this.tableLayouts = options.tableLayouts || {};
@@ -126,7 +125,7 @@ class PdfCraftBase<Output = unknown> {
 			createOptions,
 		);
 
-		return this._transformToDocument(pdfDocumentPromise);
+		return this.createOutput(pdfDocumentPromise);
 	}
 
 	setUrlAccessPolicy(callback?: AccessPolicy): void {
@@ -175,16 +174,6 @@ class PdfCraftBase<Output = unknown> {
 
 	setExtensions(extensions: PdfCraftExtensions): void {
 		this.extensions = [...extensions];
-	}
-
-	/**
-	 * Builds the output document returned by `createPdf`. The default uses the output factory
-	 * given to the constructor; a subclass override still takes precedence.
-	 *
-	 * @deprecated Pass an output factory to the constructor instead of overriding this method.
-	 */
-	_transformToDocument(doc: Promise<PdfDocumentStream>): Output {
-		return this.outputFactory ? this.outputFactory(doc) : (doc as Output);
 	}
 }
 

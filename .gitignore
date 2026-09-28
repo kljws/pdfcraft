@@ -1,4 +1,5 @@
 .vitest-attachments/
+.vitest/
 .cursor/
 .DS_Store
 .idea

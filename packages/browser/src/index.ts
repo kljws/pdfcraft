@@ -4,7 +4,7 @@ import OutputDocumentBrowser from "./output-document.browser";
 
 class PdfCraft extends PdfCraftBase<OutputDocumentBrowser> {
 	constructor(options: PdfCraftOptions = {}) {
-		super(options, (document) => new OutputDocumentBrowser(document));
+		super((document) => new OutputDocumentBrowser(document), options);
 	}
 
 	addFontContainer(fontContainer: FontContainer): void {

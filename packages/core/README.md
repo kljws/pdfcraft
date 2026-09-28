@@ -31,12 +31,11 @@ class BytesOutput extends OutputDocument {
 }
 
 const createOutput: OutputFactory<BytesOutput> = (stream) => new BytesOutput(stream);
-const pdfcraft = new PdfCraftBase<BytesOutput>({ fonts }, createOutput);
+const pdfcraft = new PdfCraftBase<BytesOutput>(createOutput, { fonts });
 const bytes = await pdfcraft.createPdf({ content: ["Hello"] }).bytes();
 ```
 
-Without a factory, `createPdf` returns the PDF stream promise. Overriding `_transformToDocument`
-in a subclass still works and takes precedence over the factory, but that hook is deprecated.
+The factory is required: it is the only way a platform chooses its output document.
 
 The adapter code imports `pdfkit`. A browser integration must resolve it to PDFKit's standalone
 build, as `@pdfcraft/browser` does with a build alias.
