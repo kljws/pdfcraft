@@ -11,7 +11,7 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const regularFont = path.join(packageRoot, "fonts/Roboto/Roboto-Regular.ttf");
 const mediumFont = path.join(packageRoot, "fonts/Roboto/Roboto-Medium.ttf");
 const figtreeFontDirectory = path.join(packageRoot, "fonts/Figtree");
-const sampleImage = path.join(packageRoot, "examples/images/sampleImage.jpg");
+const sampleImage = path.join(packageRoot, "playground/shared/images/sampleImage.jpg");
 const quoteSampleDirectory = path.join(packageRoot, "playground/shared/samples");
 const playgroundLogo = path.join(packageRoot, "playground/logo.jpg");
 
