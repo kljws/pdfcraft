@@ -19,13 +19,19 @@ export interface PdfDocumentStream {
  *   example `setOpenActionAsPrint()`) and then either use the data methods, or consume the
  *   stream and call `end()` itself.
  * - Mixing is rejected when it cannot produce a complete PDF: collecting data after the caller
- *   started consuming or ended the stream, or taking the stream after collection started.
+ *   ever started consuming the stream (a data listener, `pipe()`, `resume()`, async iteration
+ *   or a `read()` that returned bytes) or ended it, or taking the stream after collection
+ *   started. A `read()` that returned `null` consumed nothing and is allowed.
  * - A stream error is reported by the data methods even if it happened before they were called.
  */
 class OutputDocument {
 	private readonly pdfDocumentPromise: Promise<PdfDocumentStream>;
 	private dataPromise: Promise<Uint8Array> | null = null;
 	private endedByCaller = false;
+	/** Set permanently once the caller consumes bytes or starts streaming; pausing does not clear it. */
+	private consumedByCaller = false;
+	/** True while this document collects the data, so its own stream calls are not recorded. */
+	private collecting = false;
 	/** The stream's own `end`, kept when `getStream()` wraps it to notice a caller finalizing. */
 	private libraryEnd: (() => void) | null = null;
 	private streamError: { error: unknown } | null = null;
@@ -61,8 +67,43 @@ class OutputDocument {
 				this.endedByCaller = true;
 				end();
 			};
+			this.trackConsumption(stream);
 		}
 		return stream;
+	}
+
+	/**
+	 * Wraps the stream's consumption methods so that any caller consumption is recorded, even if
+	 * the stream is paused again afterwards. Configuration methods are left untouched.
+	 */
+	private trackConsumption(stream: PdfDocumentStream): void {
+		const target = stream as unknown as Record<string | symbol, unknown>;
+		const record = () => {
+			if (!this.collecting) this.consumedByCaller = true;
+		};
+		const wrap = (
+			name: string | symbol,
+			recordsCall: (args: unknown[], result: unknown) => boolean,
+		) => {
+			const original = target[name];
+			if (typeof original !== "function") return;
+			target[name] = (...args: unknown[]) => {
+				const result = (original as (...args: unknown[]) => unknown).apply(stream, args);
+				if (recordsCall(args, result)) record();
+				return result;
+			};
+		};
+
+		const startsStreaming = (args: unknown[]) => args[0] === "data";
+		wrap("on", startsStreaming);
+		wrap("addListener", startsStreaming);
+		wrap("prependListener", startsStreaming);
+		wrap("once", startsStreaming);
+		wrap("prependOnceListener", startsStreaming);
+		wrap("pipe", () => true);
+		wrap("resume", () => true);
+		wrap(Symbol.asyncIterator, () => true);
+		wrap("read", (_args, chunk) => chunk !== null && chunk !== undefined);
 	}
 
 	/** Reports how many pages were written and whether `maxPagesNumber` omitted any. */
@@ -84,12 +125,18 @@ class OutputDocument {
 	private async collectData(): Promise<Uint8Array> {
 		const stream = await this.pdfDocumentPromise;
 		if (this.streamError) throw this.streamError.error;
-		if (this.endedByCaller || stream.readableEnded || stream.readableFlowing === true) {
+		if (
+			this.consumedByCaller ||
+			this.endedByCaller ||
+			stream.readableEnded ||
+			stream.readableFlowing === true
+		) {
 			throw new Error(
 				"Cannot collect the PDF data: the stream returned by getStream() is already being consumed or was ended by the caller. Read the data from that stream instead.",
 			);
 		}
 
+		this.collecting = true;
 		return new Promise<Uint8Array>((resolve, reject) => {
 			const chunks: Uint8Array[] = [];
 

@@ -129,7 +129,10 @@ class TextBreaker {
 			);
 			if (isObject(item)) {
 				const node = item as PdfNode & TextReferenceState<PdfNode>;
-				if (isObject(node._pageRef)) node.text = getPageReferenceText(node._pageRef);
+				if (isObject(node._pageRef)) {
+					node.text = getPageReferenceText(node._pageRef);
+					node._pageReferenceText = node.text;
+				}
 				const textReference = node._textRef;
 				if (isObject(textReference) && isObject(textReference._textNodeRef)) {
 					const referencedText = textReference._textNodeRef.text;

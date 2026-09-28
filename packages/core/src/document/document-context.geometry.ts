@@ -1,3 +1,4 @@
+import { assertOrientationSupported } from "../configuration/page-size";
 import type { PageOrientation } from "../types";
 import type { PageSize, PdfPage } from "../types/internal";
 import type { ContextCoordinates } from "./document-context.types";
@@ -17,6 +18,7 @@ export function resolvePageOrientation(
 export function getPageSize(currentPage: PdfPage, orientation: unknown): PageSize {
 	const nextOrientation = resolvePageOrientation(orientation, currentPage.pageSize.orientation);
 	if (nextOrientation !== currentPage.pageSize.orientation) {
+		assertOrientationSupported(currentPage.pageSize.height, nextOrientation);
 		return {
 			orientation: nextOrientation,
 			width: currentPage.pageSize.height,

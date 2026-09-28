@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderReference } from "../reference/reference-render.ts";
 
 const render = (definition: Record<string, unknown>) =>
-	renderReference({ ...definition, content: ["hello", "world"] });
+	renderReference({ content: ["hello", "world"], ...definition });
 
 describe("document geometry validation", () => {
 	beforeEach(() => {
@@ -35,6 +35,17 @@ describe("document geometry validation", () => {
 			/Invalid pageMargins for page 1: top \(900\) and bottom \(10\) margins leave no usable height/,
 		],
 		[
+			{ pageSize: { width: 300, height: "auto" }, pageOrientation: "landscape" },
+			/Invalid pageOrientation: 'landscape' cannot be combined with pageSize\.height 'auto'/,
+		],
+		[
+			{
+				pageSize: { width: 300, height: "auto" },
+				content: ["a", { text: "b", pageBreak: "before", pageOrientation: "landscape" }],
+			},
+			/Invalid pageOrientation: 'landscape' cannot be combined/,
+		],
+		[
 			{ pageMargins: () => "x" },
 			/Invalid pageMargins for page 1 \(returned by the pageMargins function\)/,
 		],
@@ -44,6 +55,8 @@ describe("document geometry validation", () => {
 
 	it.each([
 		[{ pageSize: { width: 300, height: "auto" } }],
+		[{ pageSize: { width: 300, height: "auto" }, pageOrientation: "portrait" }],
+		[{ pageSize: "A5", pageOrientation: "landscape" }],
 		[{ pageSize: "A6", pageMargins: 0 }],
 		[{ pageMargins: [20, 30] }],
 		[{ pageMargins: { left: 10, top: 10, right: 10, bottom: 10 } }],

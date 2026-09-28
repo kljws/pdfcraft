@@ -39,6 +39,11 @@ export interface InlineMeasurement {
 export interface TextReferenceState<Node> {
 	_pageRef?: NodeReference<Node>;
 	_textRef?: NodeReference<Node>;
+	/**
+	 * Complete page number measured for a page reference or TOC number. Inline fragments copy it,
+	 * so a number wrapped across lines is still compared as a whole.
+	 */
+	_pageReferenceText?: string;
 }
 
 export type PreprocessedTextNode = PreprocessedNodeBase &

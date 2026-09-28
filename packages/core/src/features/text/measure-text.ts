@@ -10,6 +10,7 @@ export interface TextMeasureContext {
 
 export function measureText(node: TextMeasureNode, context: TextMeasureContext): MeasuredTextNode {
 	if (node._pageRef) node.text = getPageReferenceText(node._pageRef);
+	if (node._pageRef || node._tocItemRef) node._pageReferenceText = String(node.text);
 	const referencedNode = node._textRef?._textNodeRef;
 	if (referencedNode?._kind === "text" && referencedNode.text) node.text = referencedNode.text;
 

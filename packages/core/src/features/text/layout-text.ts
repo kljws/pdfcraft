@@ -11,8 +11,26 @@ export interface TextLayoutContext {
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
 }
 
+type BuiltLine = NonNullable<ReturnType<typeof buildTextLine>>;
+
+function linkPageReferences(line: BuiltLine, node: LayoutTextNode): void {
+	if (node._tocItemRef) line._pageNodeRef = node._tocItemRef;
+	if (node._pageRef) line._pageNodeRef = node._pageRef._nodeRef;
+	if (line._pageNodeRef) line._pageReferenceText = node._pageReferenceText;
+	for (const inline of line.inlines) {
+		if (inline._tocItemRef) inline._pageNodeRef = inline._tocItemRef;
+		if (inline._pageRef) inline._pageNodeRef = inline._pageRef._nodeRef;
+	}
+}
+
 export function layoutText(node: LayoutTextNode, context: TextLayoutContext): void {
-	const nextLine = () => buildTextLine(node, context.writer.context().availableWidth);
+	// Every constructed or rebuilt line links its page numbers to their targets, which the
+	// convergence check and the renderer rely on.
+	const nextLine = () => {
+		const built = buildTextLine(node, context.writer.context().availableWidth);
+		if (built) linkPageReferences(built, node);
+		return built;
+	};
 	let line = nextLine();
 	let currentHeight = line ? line.getHeight() : 0;
 	const maxHeight = node.maxHeight || -1;
@@ -42,16 +60,6 @@ export function layoutText(node: LayoutTextNode, context: TextLayoutContext): vo
 					expanded: outlineNode.outlineExpanded || false,
 				};
 			}
-		}
-	}
-
-	if (line && node._tocItemRef) line._pageNodeRef = node._tocItemRef;
-	if (line && node._pageRef) line._pageNodeRef = node._pageRef._nodeRef;
-
-	if (line && Array.isArray(line.inlines)) {
-		for (const inline of line.inlines) {
-			if (inline._tocItemRef) inline._pageNodeRef = inline._tocItemRef;
-			if (inline._pageRef) inline._pageNodeRef = inline._pageRef._nodeRef;
 		}
 	}
 

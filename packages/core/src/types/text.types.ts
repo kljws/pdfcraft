@@ -58,6 +58,8 @@ export interface Inline {
 	_position?: Position;
 	_tocItemRef?: MeasuredPdfNode | LayoutPdfNode;
 	_pageNodeRef?: MeasuredPdfNode | LayoutPdfNode;
+	/** Complete page number this fragment belongs to, as measured. */
+	_pageReferenceText?: string;
 	_pageRef?: NodeReference<MeasuredPdfNode | LayoutPdfNode>;
 	justifyShift?: number;
 	_outline?: OutlineDefinition;
@@ -80,5 +82,6 @@ export interface LineLike {
 	clone(): LineLike;
 	_outline?: OutlineDefinition;
 	_pageNodeRef?: MeasuredPdfNode | LayoutPdfNode;
+	_pageReferenceText?: string;
 	id?: string;
 }

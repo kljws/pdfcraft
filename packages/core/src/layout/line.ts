@@ -21,6 +21,7 @@ class Line {
 	_position?: Position;
 	_outline?: OutlineDefinition;
 	_pageNodeRef?: MeasuredPdfNode | LayoutPdfNode;
+	_pageReferenceText?: string;
 
 	/**
 	 * @param maxWidth Maximum width this line can have

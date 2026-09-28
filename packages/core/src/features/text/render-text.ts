@@ -4,7 +4,6 @@ import type { EmbeddedFont } from "../../rendering/renderer.types";
 import type { Inline, LayoutPdfNode, LineLike, MeasuredPdfNode } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
 import TextDecorator from "./text-decorator";
-import TextInlines from "./text-inlines";
 
 export interface TextRenderContext {
 	document: PDFDocument;
@@ -26,22 +25,16 @@ const offsetText = (y: number, inline: Inline): number => {
 	return y;
 };
 
-const preparePageNodeRefLine = (
-	pageNodeRef: MeasuredPdfNode | LayoutPdfNode,
-	inline: Inline,
-): void => {
+/**
+ * Page numbers are measured with their final value before layout converges, so each fragment is
+ * rendered as laid out. A reference whose target was never placed is still an error.
+ */
+const assertPageReferenceResolved = (pageNodeRef: MeasuredPdfNode | LayoutPdfNode): void => {
 	const positions = "positions" in pageNodeRef ? pageNodeRef.positions : undefined;
 	if (!Array.isArray(positions)) throw new Error("Page reference id not found");
-
-	const pageNumber = positions[0]?.pageNumber;
-	if (pageNumber === undefined) throw new Error("Page reference position not found");
-	inline.text = pageNumber.toString();
-	const newWidth = new TextInlines(null).widthOfText(inline.text, inline);
-	const diffWidth = inline.width - newWidth;
-	inline.width = newWidth;
-
-	if (inline.alignment === "right") inline.x += diffWidth;
-	else if (inline.alignment === "center") inline.x += diffWidth / 2;
+	if (positions[0]?.pageNumber === undefined) {
+		throw new Error("Page reference position not found");
+	}
 };
 
 export function renderTextLine(line: LineLike, context: TextRenderContext): void {
@@ -60,7 +53,7 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 		if (line._outline.id) context.outlineMap[line._outline.id] = outline;
 	}
 
-	if (line._pageNodeRef) preparePageNodeRefLine(line._pageNodeRef, line.inlines[0]);
+	if (line._pageNodeRef) assertPageReferenceResolved(line._pageNodeRef);
 
 	x ||= 0;
 	y ||= 0;
@@ -79,7 +72,7 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 			continue;
 		}
 
-		if (inline._pageNodeRef) preparePageNodeRefLine(inline._pageNodeRef, inline);
+		if (inline._pageNodeRef) assertPageReferenceResolved(inline._pageNodeRef);
 
 		const options: TextOptions = {
 			lineBreak: false,

@@ -5,6 +5,18 @@ import type { Dimensions, PageMarginDefinition, PageMargins, PageSize } from "..
 
 export type PageSizeDefinition = string | { width: number; height: number | "auto" };
 
+/**
+ * Rejects a landscape page whose height is automatic: swapping the dimensions would turn the
+ * automatic height into an infinite width. Portrait orientation keeps the automatic height.
+ */
+export function assertOrientationSupported(height: number, orientation: unknown): void {
+	if (height === Infinity && orientation === "landscape") {
+		throw new Error(
+			"Invalid pageOrientation: 'landscape' cannot be combined with pageSize.height 'auto'; set pageSize.width to the landscape width instead",
+		);
+	}
+}
+
 export function normalizePageSize(
 	pageSize?: PageSizeDefinition,
 	pageOrientation?: PageOrientation,
@@ -47,9 +59,18 @@ export function normalizePageSize(
 	}
 
 	let size: PageSize = { ...pageSizeToWidthAndHeight(pageSize || "A4"), orientation: "portrait" };
+	assertOrientationSupported(size.height, pageOrientation);
 	if (isNeedSwapPageSizes(pageOrientation)) {
 		// swap page sizes
 		size = { width: size.height, height: size.width, orientation: size.orientation };
+	}
+	if (
+		!isValidDimension(size.width) ||
+		!(size.height === Infinity || isValidDimension(size.height))
+	) {
+		throw new Error(
+			`Invalid page size after applying pageOrientation: ${describe(size.width)} x ${describe(size.height)}`,
+		);
 	}
 	size.orientation = size.width > size.height ? "landscape" : "portrait";
 	return size;

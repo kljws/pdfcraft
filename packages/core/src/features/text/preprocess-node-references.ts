@@ -104,9 +104,19 @@ export function hasStalePageReferences(pages: readonly PdfPage[]): boolean {
 		for (const entry of page.items) {
 			if (entry.type !== "line") continue;
 			const line = entry.item as LineLike;
-			if (line._pageNodeRef && isStale(line._pageNodeRef, line.inlines[0]?.text)) return true;
+			if (
+				line._pageNodeRef &&
+				isStale(line._pageNodeRef, line._pageReferenceText ?? line.inlines[0]?.text)
+			)
+				return true;
 			for (const inline of line.inlines) {
-				if (inline._pageNodeRef && isStale(inline._pageNodeRef, inline.text)) return true;
+				// A number wrapped across lines is split into fragments; compare the complete value.
+				if (
+					inline._pageNodeRef &&
+					isStale(inline._pageNodeRef, inline._pageReferenceText ?? inline.text)
+				) {
+					return true;
+				}
 			}
 		}
 	}

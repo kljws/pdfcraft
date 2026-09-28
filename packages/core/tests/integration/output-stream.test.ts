@@ -1,3 +1,4 @@
+import { PassThrough, type Readable } from "node:stream";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createReferenceInstance, extractPdfText } from "../reference/reference-render.ts";
 import type { DocumentDefinition } from "../../src/types/index.ts";
@@ -35,5 +36,54 @@ describe("output stream ownership with PDFKit", () => {
 		const pdf = Buffer.from(await output.getBuffer()).toString("latin1");
 		expect(pdf).toContain("/OpenAction");
 		expect(await output.getBase64()).toBe(Buffer.from(pdf, "latin1").toString("base64"));
+	});
+
+	describe("caller consumption is tracked permanently", () => {
+		const take = async () => {
+			const output = createReferenceInstance().createPdf(definition);
+			const stream = (await output.getStream()) as unknown as Readable;
+			return { output, stream };
+		};
+
+		it("rejects collection after partial consumption followed by a pause", async () => {
+			const { output, stream } = await take();
+			const onData = () => undefined;
+			stream.on("data", onData);
+			stream.pause();
+			stream.removeListener("data", onData);
+			expect(stream.readableFlowing).toBe(false);
+			await expect(output.getBuffer()).rejects.toThrow("already being consumed");
+		});
+
+		it("rejects collection after a manual read returned bytes", async () => {
+			const { output, stream } = await take();
+			expect(stream.read()).not.toBeNull();
+			expect(stream.readableFlowing).toBeNull();
+			await expect(output.getBuffer()).rejects.toThrow("already being consumed");
+		});
+
+		it("rejects collection after the caller piped the stream", async () => {
+			const { output, stream } = await take();
+			stream.pipe(new PassThrough());
+			await expect(output.getBuffer()).rejects.toThrow("already being consumed");
+		});
+
+		it("allows collection after a manual read that returned nothing", async () => {
+			const { output, stream } = await take();
+			expect(stream.read(1e9)).toBeNull();
+			const pdf = await output.getBuffer();
+			expect(Buffer.from(pdf.subarray(0, 5)).toString()).toBe("%PDF-");
+			expect(await extractPdfText(new Uint8Array(pdf))).toEqual([
+				expect.stringContaining("Streamed"),
+			]);
+		});
+
+		it("keeps repeated buffer calls working after configuration-only access", async () => {
+			const { output, stream } = await take();
+			(stream as unknown as { setOpenActionAsPrint(): void }).setOpenActionAsPrint();
+			const first = await output.getBuffer();
+			expect(await output.getBuffer()).toEqual(first);
+			expect(Buffer.from(first.subarray(0, 5)).toString()).toBe("%PDF-");
+		});
 	});
 });
