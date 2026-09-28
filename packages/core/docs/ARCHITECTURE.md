@@ -315,14 +315,19 @@ Le test d'architecture échoue si l'une de ces règles est violée.
 - **Pagination des tables :** `features/table/__tests__/table.pagination.snapshot.test.ts` met en page
   un corpus de tables et compare chaque élément de page à un snapshot. Toute modification de la
   pagination des tables apparaît comme une différence de snapshot.
-- **Documents de référence :** `tests/reference/` décrit des documents couvrant texte, images,
-  tables, colonnes, listes, en-têtes, pieds de page, références et table des matières.
-  `tests/integration/reference-documents.test.ts` les génère par l'API publique, relit le PDF avec
+- **Organisation :** les tests unitaires (`*.test.ts`) et d'intégration (`*.integ.ts`) sont
+  placés dans un dossier `__tests__/` à côté du code testé ; les tests transverses et les helpers
+  partagés sont dans `src/__tests__/`. `packages/core/tests/types/` ne contient que les tests de
+  contrat de types, compilés par `tsc` contre le paquet construit.
+- **Documents de référence :** `src/__tests__/fixtures/reference-documents.ts` décrit des documents
+  couvrant texte, images, tables, colonnes, listes, en-têtes, pieds de page, références et table
+  des matières. `src/__tests__/reference-documents.integ.ts` les génère par l'API publique, relit le PDF avec
   pdf.js, vérifie le texte attendu et compare les éléments de page finaux à un snapshot. Une
   simplification ne doit changer aucun snapshot.
 - **Fixtures :** `src/__tests__/fixtures/` fournit `createTestMeasurement` et les assertions typées
-  `expectPreprocessedKind` et `expectMeasuredKind`. `tests/helpers/layout-builder.ts` fournit un
-  `LayoutBuilder` de test.
+  `expectPreprocessedKind` et `expectMeasuredKind`, `layout-builder.ts` un `LayoutBuilder` de test,
+  `integration.helpers.ts` le rendu de pages d'intégration, et `reference-render.ts` le rendu et la
+  lecture pdf.js des documents de référence.
 - **Typage :** `pnpm run typecheck` (lancé par `pnpm test`) vérifie aussi le typage des tests.
 
 Les tests se lancent depuis la racine du dépôt, car les chemins des polices sont relatifs à la racine.

@@ -3,10 +3,10 @@ import type TextInlines from "./text-inlines";
 import { getPageReferenceText } from "./preprocess-node-references";
 import type { MeasuredTextNode, TextFragment, TextMeasureNode } from "./text.types";
 
-export interface TextMeasureContext {
+export type TextMeasureContext = {
 	inlines: TextInlines;
 	styles: StyleContextStack;
-}
+};
 
 export function measureText(node: TextMeasureNode, context: TextMeasureContext): MeasuredTextNode {
 	if (node._pageRef) node.text = getPageReferenceText(node._pageRef);

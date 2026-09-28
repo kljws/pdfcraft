@@ -53,12 +53,12 @@ export function getPageSpanHeight(
 	if (startPageIndex < 0 || endPageIndex >= pages.length || endPageIndex < startPageIndex) return 0;
 
 	const firstPage = pages[startPageIndex];
+	const lastPage = pages[endPageIndex];
+	if (!firstPage || !lastPage) return 0;
 	let height = firstPage.pageSize.height - firstPage.pageMargins.bottom - start.top;
-	for (let pageIndex = startPageIndex + 1; pageIndex < endPageIndex; pageIndex++) {
-		const page = pages[pageIndex];
+	for (const page of pages.slice(startPageIndex + 1, endPageIndex)) {
 		height += page.pageSize.height - page.pageMargins.top - page.pageMargins.bottom;
 	}
-	const lastPage = pages[endPageIndex];
 	height += end.top - lastPage.pageMargins.top;
 	return Math.max(0, height);
 }

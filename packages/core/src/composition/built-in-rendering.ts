@@ -17,13 +17,13 @@ type BuiltInRenderContext = AcroFormRenderContext &
 	ExtensionRenderContext &
 	ImageRenderContext;
 
-export interface BuiltInGraphicsRendering {
+export type BuiltInGraphicsRendering = {
 	renderFeatureItem(kind: string, node: LayoutPdfNode, resetVectorState: () => void): void;
 	renderAcroForm(node: LayoutAcroFormNode | Inline, x: number, y: number): void;
 	renderWatermark(page: RenderablePage): void;
-}
+};
 
-export interface BuiltInRendering {
+export type BuiltInRendering = {
 	graphics: BuiltInGraphicsRendering;
 	renderLine(
 		line: LineLike,
@@ -31,7 +31,7 @@ export interface BuiltInRendering {
 		x: number,
 		y: number,
 	): void;
-}
+};
 
 export function createBuiltInGraphicsRendering(
 	document: PDFDocument,

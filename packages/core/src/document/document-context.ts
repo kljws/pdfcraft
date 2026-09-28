@@ -91,7 +91,7 @@ class DocumentContext {
 	}
 
 	resetSnakingColumnsForNewPage(): void {
-		resetSnakingColumnsForNewPage(this, () => this.getCurrentPage());
+		resetSnakingColumnsForNewPage(this, () => this.requireCurrentPage());
 	}
 
 	beginColumnGroup(
@@ -156,7 +156,7 @@ class DocumentContext {
 		pageMargins: PageMargins;
 	}): void {
 		if (this.snapshots.length === 0) return;
-		const currentMargins = this.getCurrentPage().pageMargins;
+		const currentMargins = this.requireCurrentPage().pageMargins;
 		const translateX = (x: number): number => currentMargins.left + (x - previous.pageMargins.left);
 		const currentState = {
 			x: translateX(previous.x),
@@ -178,13 +178,13 @@ class DocumentContext {
 	}
 
 	initializePage(): void {
-		this.pageMargins = this.getCurrentPage().pageMargins ?? this.pageMargins;
+		this.pageMargins = this.requireCurrentPage().pageMargins ?? this.pageMargins;
 		this.y = this.pageMargins.top;
 		this.availableHeight =
-			this.getCurrentPage().pageSize.height - this.pageMargins.top - this.pageMargins.bottom;
+			this.requireCurrentPage().pageSize.height - this.pageMargins.top - this.pageMargins.bottom;
 		const { pageCtx, isSnapshot } = this.pageSnapshot();
 		pageCtx.availableWidth =
-			this.getCurrentPage().pageSize.width - this.pageMargins.left - this.pageMargins.right;
+			this.requireCurrentPage().pageSize.width - this.pageMargins.left - this.pageMargins.right;
 		if (isSnapshot && this.marginXTopParent) {
 			pageCtx.availableWidth -= this.marginXTopParent[0] + this.marginXTopParent[1];
 		}
@@ -197,14 +197,14 @@ class DocumentContext {
 	}
 
 	moveTo(x: number, y: number): void {
-		const margins = this.getCurrentPage().pageMargins;
+		const margins = this.requireCurrentPage().pageMargins;
 		if (x != null) {
 			this.x = x;
-			this.availableWidth = this.getCurrentPage().pageSize.width - x - margins.right;
+			this.availableWidth = this.requireCurrentPage().pageSize.width - x - margins.right;
 		}
 		if (y != null) {
 			this.y = y;
-			this.availableHeight = this.getCurrentPage().pageSize.height - y - margins.bottom;
+			this.availableHeight = this.requireCurrentPage().pageSize.height - y - margins.bottom;
 		}
 	}
 
@@ -240,7 +240,7 @@ class DocumentContext {
 		this.availableWidth = saved.availableWidth;
 		this.availableHeight = saved.availableHeight;
 		this.page = saved.page;
-		this.pageMargins = this.getCurrentPage().pageMargins;
+		this.pageMargins = this.requireCurrentPage().pageMargins;
 		this.lastColumnWidth = saved.lastColumnWidth;
 	}
 
@@ -260,13 +260,13 @@ class DocumentContext {
 
 		const createNewPage = nextPageIndex >= this.pages.length;
 		if (createNewPage) {
-			const currentPage = this.getCurrentPage();
+			const currentPage = this.requireCurrentPage();
 			const leftOffset = this.x - currentPage.pageMargins.left;
 			const rightOffset =
 				currentPage.pageSize.width - currentPage.pageMargins.right - (this.x + this.availableWidth);
 			const pageSize = getPageSize(currentPage, pageOrientation);
-			this.addPage(pageSize, null, this.getCurrentPage().customProperties);
-			const nextPage = this.getCurrentPage();
+			this.addPage(pageSize, null, this.requireCurrentPage().customProperties);
+			const nextPage = this.requireCurrentPage();
 			this.x = nextPage.pageMargins.left + leftOffset;
 			this.availableWidth =
 				nextPage.pageSize.width -
@@ -323,12 +323,20 @@ class DocumentContext {
 		return page;
 	}
 
-	getCurrentPage(): PdfPage {
+	/** The page being written, or `undefined` before the first page is added. */
+	getCurrentPage(): PdfPage | undefined {
 		return this.pages[this.page];
 	}
 
-	getCurrentPosition(): PagePosition {
+	/** The page being written; positioning content requires one. */
+	requireCurrentPage(): PdfPage {
 		const page = this.getCurrentPage();
+		if (!page) throw new Error("No current page: content is placed before any page was added");
+		return page;
+	}
+
+	getCurrentPosition(): PagePosition {
+		const page = this.requireCurrentPage();
 		return getPagePosition(page, this.page, page.pageMargins, this.x, this.y);
 	}
 }

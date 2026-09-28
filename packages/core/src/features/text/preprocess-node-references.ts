@@ -1,18 +1,18 @@
 import type { LineLike, NodeReference, PdfPage, PreprocessedPdfNode } from "../../types/internal";
-import { getLaidOutPageText, UNRESOLVED_PAGE_NUMBER_TEXT } from "../../utils/node";
+import { getLaidOutPageText, unresolvedPageNumberText } from "../../utils/node";
 import type { PreprocessedTextNode } from "./text.types";
 
-export interface NodeReferenceRequest {
+export type NodeReferenceRequest = {
 	id: string;
 	kind: "pageReference" | "textReference";
-}
+};
 
-export interface NodeReferencePreprocessContext {
+export type NodeReferencePreprocessContext = {
 	parentNode: PreprocessedPdfNode | null;
 	nodeReferences: Record<string, NodeReference<PreprocessedPdfNode>>;
 	/** Receives every reference made in the tree, checked once the whole tree is preprocessed. */
-	requests?: NodeReferenceRequest[];
-}
+	requests?: NodeReferenceRequest[] | undefined;
+};
 
 export function preprocessNodeReferences(
 	node: PreprocessedTextNode,
@@ -40,7 +40,7 @@ export function preprocessNodeReferences(
 			_textNodeRef: {} as PreprocessedPdfNode,
 			_pseudo: true,
 		};
-		node.text = UNRESOLVED_PAGE_NUMBER_TEXT;
+		node.text = unresolvedPageNumberText;
 		node.linkToDestination = node.pageReference;
 		node._pageRef = context.nodeReferences[node.pageReference];
 	}
@@ -86,7 +86,7 @@ export function checkNodeReferences(
 
 /** Text to measure for a page reference: the page found by the previous pass, when there is one. */
 export function getPageReferenceText(reference: NodeReference<object> | undefined): string {
-	return getLaidOutPageText(reference?._nodeRef) ?? UNRESOLVED_PAGE_NUMBER_TEXT;
+	return getLaidOutPageText(reference?._nodeRef) ?? unresolvedPageNumberText;
 }
 
 const isStale = (target: unknown, measuredText: string | undefined): boolean => {

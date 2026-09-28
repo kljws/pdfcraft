@@ -1,10 +1,10 @@
 import { assert, beforeEach, describe, it } from "vitest";
-import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
+import type { LayoutBuilder } from "../../../__tests__/fixtures/layout-builder.ts";
 import {
 	createLayoutBuilder,
 	emptyTableLayout,
 	sampleTestProvider,
-} from "../../../../tests/helpers/layout-builder.ts";
+} from "../../../__tests__/fixtures/layout-builder.ts";
 import type { PageControlItem, PdfPage } from "../../../types/internal.ts";
 
 type VerticalAlignmentFixture = PageControlItem & {

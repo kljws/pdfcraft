@@ -3,10 +3,10 @@ import { addPageLink, findFont } from "../../rendering/renderer.helpers";
 import type { PdfCraftExtensions } from "../../types";
 import type { LayoutExtensionNode } from "./extension.types";
 
-export interface ExtensionRenderContext {
+export type ExtensionRenderContext = {
 	document: PDFDocument;
 	extensions: PdfCraftExtensions;
-}
+};
 
 export function renderExtension(node: LayoutExtensionNode, context: ExtensionRenderContext): void {
 	const extension = context.extensions.find((extension) => extension.name === node._extension);

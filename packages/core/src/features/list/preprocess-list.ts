@@ -2,9 +2,9 @@ import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { stringifyNode, markNodeKind } from "../../utils/node";
 import type { PreprocessedListNode } from "./list.types";
 
-export interface ListPreprocessContext {
+export type ListPreprocessContext = {
 	preprocessNode(input: unknown): PreprocessedPdfNode;
-}
+};
 
 export function preprocessList(
 	node: PdfNode,

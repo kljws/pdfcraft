@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	createLayoutBuilder,
 	sampleTestProvider,
-} from "../../../../tests/helpers/layout-builder.ts";
+} from "../../../__tests__/fixtures/layout-builder.ts";
 
 /**
  * Regression net for table pagination: each document is laid out end to end and every page
@@ -10,8 +10,8 @@ import {
  * breaks, repeated headers, spans or borders shows up as a snapshot diff.
  */
 
-const GEOMETRY_KEYS = ["x", "y", "x1", "y1", "x2", "y2", "w", "h", "r", "width", "height"];
-const STYLE_KEYS = ["type", "lineColor", "color", "lineWidth"];
+const geometryKeys = ["x", "y", "x1", "y1", "x2", "y2", "w", "h", "r", "width", "height"];
+const styleKeys = ["type", "lineColor", "color", "lineWidth"];
 
 function round(value: number): number {
 	return Math.round(value * 100) / 100;
@@ -20,7 +20,7 @@ function round(value: number): number {
 function serializeItem(entry: { type: string; item: Record<string, unknown> }): unknown {
 	const { item } = entry;
 	const result: Record<string, unknown> = { kind: entry.type };
-	for (const key of [...STYLE_KEYS, ...GEOMETRY_KEYS]) {
+	for (const key of [...styleKeys, ...geometryKeys]) {
 		const value = item[key];
 		if (typeof value === "number") result[key] = round(value);
 		else if (typeof value === "string") result[key] = value;

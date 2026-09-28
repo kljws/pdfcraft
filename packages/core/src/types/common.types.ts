@@ -21,14 +21,14 @@ export type PdfSubset =
 	| `PDF/A-2${"" | "a" | "b"}`
 	| `PDF/A-3${"" | "a" | "b"}`;
 
-export interface PageSize {
+export type PageSize = {
 	width: number;
 	height: number;
-}
+};
 
-export interface ResolvedPageSize extends PageSize {
+export type ResolvedPageSize = PageSize & {
 	orientation: PageOrientation;
-}
+};
 
 export type PageSizeName =
 	| "4A0"

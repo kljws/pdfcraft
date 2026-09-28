@@ -12,32 +12,32 @@ import {
 import type { VerticalAlignmentStackEntry } from "../../engine/layout-node-lifecycle";
 import type { LayoutTableCell } from "./table.types";
 
-export interface ProcessRowOptions {
-	marginX?: [number, number];
-	dontBreakRows?: boolean;
-	rowsWithoutPageBreak?: number;
+export type ProcessRowOptions = {
+	marginX?: [number, number] | undefined;
+	dontBreakRows?: boolean | undefined;
+	rowsWithoutPageBreak?: number | undefined;
 	cells: LayoutTableCell[];
 	widths: ColumnWidth[];
 	gaps: number[] | null;
-	tableNode?: LayoutTableCell;
-	tableBody?: LayoutTableCell[][];
-	rowIndex?: number;
-	height?: number;
-	snakingColumns?: boolean;
-}
+	tableNode?: LayoutTableCell | undefined;
+	tableBody?: LayoutTableCell[][] | undefined;
+	rowIndex?: number | undefined;
+	height?: number | undefined;
+	snakingColumns?: boolean | undefined;
+};
 
-export interface ProcessRowResult {
+export type ProcessRowResult = {
 	pageBreaks: TablePageBreak[];
 	positions: Position[];
-}
+};
 
-export interface TableRowLayoutHost {
+export type TableRowLayoutHost = {
 	writer: PageElementWriter;
 	nestedLevel: number;
 	verticalAlignmentItemStack: VerticalAlignmentStackEntry[];
 	processNode(node: LayoutTableCell, isVerticalAlignmentAllowed?: boolean): void;
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
-}
+};
 
 class TableRowLayout {
 	constructor(private readonly host: TableRowLayoutHost) {}
@@ -97,6 +97,8 @@ class TableRowLayout {
 		// skipForSnaking below, but the column structure must still be established.
 		for (let i = 0, l = cells.length; i < l; i++) {
 			const cell = cells[i];
+			// The loop advances `i` past spanned columns itself, so it stays index-based.
+			if (!cell) continue;
 			const cellIndexBegin = i;
 
 			// Page change handler
@@ -253,10 +255,11 @@ class TableRowLayout {
 		}
 
 		const rowHeight = this.host.writer.context().height;
-		for (let i = 0, l = cells.length; i < l; i++) {
-			const cell = cells[i];
+		for (const [i, cell] of cells.entries()) {
 			if (!cell._span && cell.verticalAlignment) {
-				const alignmentEntry = this.host.verticalAlignmentItemStack[verticalAlignmentCells[i]];
+				const stackIndex = verticalAlignmentCells[i];
+				const alignmentEntry =
+					stackIndex === undefined ? undefined : this.host.verticalAlignmentItemStack[stackIndex];
 				if (!alignmentEntry) {
 					throw new Error(
 						`Internal layout error: missing vertical-alignment controls for table cell ${i}`,

@@ -4,10 +4,10 @@ export interface PdfDocumentStream {
 	end(): void;
 	setOpenActionAsPrint(): void;
 	on(event: string, listener: (...args: unknown[]) => void): this;
-	readonly pdfCraftPageInfo?: PdfPageInfo;
+	readonly pdfCraftPageInfo?: PdfPageInfo | undefined;
 	/** Present on Node.js readable streams; `true` once someone consumes the data. */
-	readonly readableFlowing?: boolean | null;
-	readonly readableEnded?: boolean;
+	readonly readableFlowing?: boolean | null | undefined;
+	readonly readableEnded?: boolean | undefined;
 }
 
 /**

@@ -16,13 +16,13 @@ import type { LayoutStackNode, MeasuredStackNode } from "./stack.types";
 
 type StackFeaturePreprocessContext = StackPreprocessContext & DecoratedStackPreprocessContext;
 
-const BLOCK_DECORATION_PROPERTIES = ["borderRadius", "borderWidth", "backgroundColor", "padding"];
+const blockDecorationProperties = ["borderRadius", "borderWidth", "backgroundColor", "padding"];
 
 function hasBlockDecoration(node: PdfNode): boolean {
-	return BLOCK_DECORATION_PROPERTIES.some((property) => node[property] !== undefined);
+	return blockDecorationProperties.some((property) => node[property] !== undefined);
 }
 
-interface StackFeatureStages extends NodeFeatureStages {
+type StackFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedPdfNode;
 	measuredNode: MeasuredStackNode;
@@ -30,14 +30,14 @@ interface StackFeatureStages extends NodeFeatureStages {
 	preprocessContext: StackFeaturePreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-}
+};
 
-interface StackFeature extends NodeFeature<StackFeatureStages> {
+type StackFeature = NodeFeature<StackFeatureStages> & {
 	readonly kind: "stack";
 	preprocess(node: PdfNode, context: StackFeaturePreprocessContext): PreprocessedPdfNode;
 	measure(node: MeasuredStackNode, context: NodeMeasureContext): MeasuredStackNode;
 	layout(node: LayoutStackNode, context: NodeLayoutContext): void;
-}
+};
 
 export const stackFeature = {
 	kind: "stack",

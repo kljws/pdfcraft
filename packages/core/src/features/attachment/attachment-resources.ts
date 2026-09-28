@@ -1,5 +1,6 @@
 import type { ResolvedAttachmentDefinition } from "../../rendering/renderer.types";
 import type { Dictionary } from "../../types";
+import { withoutUndefined } from "../../utils/defined";
 import { isResourceReference } from "../../services/resources/resource-reference";
 import type { PrinterDocumentDefinition, PrinterResourceReference } from "../../core/printer.types";
 
@@ -37,7 +38,7 @@ export function getResolvedAttachments(
 		) {
 			throw new Error(`Attachment '${name}' contains an unresolved URL`);
 		}
-		result[name] = { ...attachment, src: attachment.src };
+		result[name] = withoutUndefined({ ...attachment, src: attachment.src });
 	}
 	return result;
 }

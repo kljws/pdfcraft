@@ -1,28 +1,28 @@
 import type { LayoutPdfNode, PageMargins, PdfPage } from "../types/internal";
 
-const MAX_LAYOUT_PASSES = 10;
+const maxLayoutPasses = 10;
 
-export interface DocumentLayoutPassResult {
+export type DocumentLayoutPassResult = {
 	pages: PdfPage[];
 	linearNodeList: LayoutPdfNode[];
-	pageMarginFunctionUsed?: boolean;
-	dynamicBackgroundUsesPageCount?: boolean;
+	pageMarginFunctionUsed?: boolean | undefined;
+	dynamicBackgroundUsesPageCount?: boolean | undefined;
 	basePageMargins: PageMargins[];
 	footerHeights: Array<number | undefined>;
 	/** A page number was measured with a value that differs from its target's final page. */
-	pageReferencesChanged?: boolean;
-}
+	pageReferencesChanged?: boolean | undefined;
+};
 
-export interface DocumentLayoutPipelineContext {
+export type DocumentLayoutPipelineContext = {
 	runPass(pageCount: number, bottomMarginOverrides: readonly number[]): DocumentLayoutPassResult;
 	requiresPageBreakRelayout(result: DocumentLayoutPassResult): boolean;
-}
+};
 
 const getFooterBottomMargins = (result: DocumentLayoutPassResult): number[] => {
-	const needsExpandedMargin = result.footerHeights.some(
-		(height, pageIndex) =>
-			height !== undefined && height > result.basePageMargins[pageIndex].bottom,
-	);
+	const needsExpandedMargin = result.footerHeights.some((height, pageIndex) => {
+		const base = result.basePageMargins[pageIndex];
+		return height !== undefined && base !== undefined && height > base.bottom;
+	});
 	if (!needsExpandedMargin) return [];
 	return result.basePageMargins.map((margins, pageIndex) =>
 		Math.max(margins.bottom, result.footerHeights[pageIndex] ?? 0),
@@ -31,7 +31,10 @@ const getFooterBottomMargins = (result: DocumentLayoutPassResult): number[] => {
 
 const equalMargins = (current: readonly number[], next: readonly number[]): boolean =>
 	current.length === next.length &&
-	current.every((margin, pageIndex) => Math.abs(margin - next[pageIndex]) < 0.001);
+	current.every((margin, pageIndex) => {
+		const other = next[pageIndex];
+		return other !== undefined && Math.abs(margin - other) < 0.001;
+	});
 
 /** Reasons a pass result depends on assumptions that the pass itself invalidated. */
 function getUnstableReasons(
@@ -56,7 +59,7 @@ function getUnstableReasons(
  *
  * Two kinds of progress have separate bounds:
  * - dynamic layout (footer heights, page-count-dependent margins and backgrounds) must stabilize
- *   within `MAX_LAYOUT_PASSES` consecutive passes, otherwise it is considered oscillating;
+ *   within `maxLayoutPasses` consecutive passes, otherwise it is considered oscillating;
  * - each `pageBreakBefore` break is permanent progress, since a node is evaluated only once, so
  *   breaks are bounded by the number of laid-out nodes and restart the dynamic budget.
  *
@@ -85,9 +88,9 @@ export function runDocumentLayoutPipeline(context: DocumentLayoutPipelineContext
 				);
 			}
 			dynamicPasses = 0;
-		} else if (dynamicPasses >= MAX_LAYOUT_PASSES) {
+		} else if (dynamicPasses >= maxLayoutPasses) {
 			throw new Error(
-				`Layout did not converge after ${MAX_LAYOUT_PASSES} layout passes: ${unstableReasons.join(", ")} still changed the layout`,
+				`Layout did not converge after ${maxLayoutPasses} layout passes: ${unstableReasons.join(", ")} still changed the layout`,
 			);
 		}
 

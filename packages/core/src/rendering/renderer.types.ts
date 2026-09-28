@@ -3,52 +3,54 @@ import type { AttachmentSource, MeasuredWatermark, PdfPage } from "../types/inte
 
 export type { EmbeddedFont, FontFile, FontStyle } from "../services/typography/font.types";
 
-export interface EmbeddedImage {
+export type EmbeddedImage = {
 	width: number;
 	height: number;
 	orientation: number;
 	embed(document: PDFKit.PDFDocument): void;
-}
+};
 
 export type { PatternDefinition } from "../types";
 
-export interface ResolvedAttachmentDefinition extends PDFKit.Mixins.PDFAttachmentOptions {
+export type ResolvedAttachmentDefinition = PDFKit.Mixins.PDFAttachmentOptions & {
 	src: AttachmentSource["src"];
-}
-
-export type PdfDocumentOptions = Omit<PDFKit.PDFDocumentOptions, "font"> & {
-	font?: string | null;
 };
 
-export interface RenderablePage extends PdfPage {
-	watermark?: MeasuredWatermark;
-}
+export type PdfDocumentOptions = Omit<PDFKit.PDFDocumentOptions, "font"> & {
+	font?: string | null | undefined;
+};
 
-export interface ClipRectangle {
+export type RenderablePage = PdfPage & {
+	watermark?: MeasuredWatermark | undefined;
+};
+
+export type ClipRectangle = {
 	x: number;
 	y: number;
 	width: number;
 	height: number;
-}
+};
 
-export interface VerticalAlignmentItem {
+export type VerticalAlignmentItem = {
 	isCellContentMultiPage: boolean;
-	verticalAlignment?: "top" | "middle" | "bottom";
+	verticalAlignment?: "top" | "middle" | "bottom" | undefined;
 	getNodeHeight(): number;
 	getViewHeight(): number;
-}
+};
 
-export interface FileAnnotationOptions {
-	Name?: string;
-	AP?: {
-		N: {
-			Type: "XObject";
-			Subtype: "Form";
-			FormType: 1;
-			BBox: [number, number, number, number];
-		};
-	};
-}
+export type FileAnnotationOptions = {
+	Name?: string | undefined;
+	AP?:
+		| {
+				N: {
+					Type: "XObject";
+					Subtype: "Form";
+					FormType: 1;
+					BBox: [number, number, number, number];
+				};
+		  }
+		| undefined;
+};
 
 export type ResolvedColor = PDFKit.Mixins.ColorValue;
 export type PatternColor = [PDFKit.PDFTilingPattern, PDFKit.Mixins.TilingPatternColorValue];

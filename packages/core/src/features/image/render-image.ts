@@ -3,10 +3,10 @@ import { addPageLink } from "../../rendering/renderer.helpers";
 import { isNumber } from "../../utils/variable-type";
 import type { LayoutImageNode } from "./image.types";
 
-export interface ImageRenderContext {
+export type ImageRenderContext = {
 	document: PDFDocument;
 	resetVectorState(): void;
-}
+};
 
 export function renderImage(image: LayoutImageNode, context: ImageRenderContext): void {
 	const document = context.document;

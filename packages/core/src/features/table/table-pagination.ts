@@ -9,9 +9,10 @@ export function findStartingRowSpanCell(
 ): LayoutTableCell | null {
 	let requiredColspan = 1;
 	for (let index = columnIndex - 1; index >= 0; index--) {
-		if (!cells[index]?._span) {
-			return (cells[index]?.rowSpan ?? 0) > 1 && (cells[index]?.colSpan || 1) === requiredColspan
-				? cells[index]
+		const cell = cells[index];
+		if (!cell?._span) {
+			return cell && (cell.rowSpan ?? 0) > 1 && (cell.colSpan || 1) === requiredColspan
+				? cell
 				: null;
 		}
 		requiredColspan++;
@@ -75,9 +76,11 @@ export function updatePageBreaksData(
 	const bottomByPage = tableNode._bottomByPage ?? {};
 	for (const pageKey of Object.keys(bottomByPage)) {
 		const page = Number(pageKey);
+		const bottom = bottomByPage[page];
+		if (bottom === undefined) continue;
 		const pageBreak = getPageBreak(pageBreaks, page);
 		if (pageBreak) {
-			pageBreak.prevY = Math.max(pageBreak.prevY, bottomByPage[page]);
+			pageBreak.prevY = Math.max(pageBreak.prevY, bottom);
 		}
 
 		const spanBreaks = tableNode._breaksBySpan?.filter(
@@ -87,7 +90,7 @@ export function updatePageBreaksData(
 				rowIndex <= candidate.rowIndexOfSpanEnd,
 		);
 		for (const spanBreak of spanBreaks ?? []) {
-			spanBreak.prevY = Math.max(spanBreak.prevY, bottomByPage[page]);
+			spanBreak.prevY = Math.max(spanBreak.prevY, bottom);
 		}
 	}
 }
@@ -153,5 +156,5 @@ export function getRowSpanEndingCell(
 			`Row span for column ${columnIndex} (with indexes starting from 0) exceeded row count`,
 		);
 	}
-	return tableBody[endingRow][columnIndex];
+	return tableBody[endingRow]?.[columnIndex] ?? null;
 }

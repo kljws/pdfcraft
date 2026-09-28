@@ -14,7 +14,7 @@ import ImageMeasurer from "./image-measurer";
 import { placeImageItem } from "./place-image";
 import { renderImage, type ImageRenderContext } from "./render-image";
 
-interface ImageFeatureStages extends NodeFeatureStages {
+type ImageFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedImageNode;
 	measuredNode: MeasuredImageNode;
@@ -26,13 +26,13 @@ interface ImageFeatureStages extends NodeFeatureStages {
 	renderContext: ImageRenderContext;
 	pageItem: Extract<PageItem, { type: "image" }>;
 	inline: ImageInlineCapabilities;
-}
+};
 
-export interface ImageInlineCapabilities {
+export type ImageInlineCapabilities = {
 	measure(node: MeasuredPdfNode, context: NodeMeasureContext): MeasuredPdfNode;
-}
+};
 
-interface ImageFeature extends NodeFeature<ImageFeatureStages> {
+type ImageFeature = NodeFeature<ImageFeatureStages> & {
 	readonly kind: "image";
 	readonly inline: ImageInlineCapabilities;
 	preprocess(node: PdfNode): PreprocessedImageNode;
@@ -40,7 +40,7 @@ interface ImageFeature extends NodeFeature<ImageFeatureStages> {
 	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem>;
 	layout(node: LayoutImageNode, context: NodeLayoutContext): void;
 	render(node: LayoutImageNode, context: ImageRenderContext): void;
-}
+};
 
 export const imageFeature = {
 	kind: "image",

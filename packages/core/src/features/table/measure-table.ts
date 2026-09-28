@@ -16,11 +16,11 @@ import {
 } from "./measure-table.helpers";
 import type { MeasuredTableCell, MeasuredTableNode, TableMeasureNode } from "./table.types";
 
-export interface TableMeasureContext {
+export type TableMeasureContext = {
 	styles: StyleContextStack;
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredTableCell>>>;
 	measureNode(node: MeasuredTableCell): MeasuredTableCell;
-}
+};
 
 export function measureTable(
 	node: TableMeasureNode,
@@ -50,18 +50,15 @@ export function measureTable(
 	};
 
 	const colSpans: Array<{ col: number; span: number; minWidth: number; maxWidth: number }> = [];
-	let col;
-	let row;
-	let cols;
-	let rows;
-
-	for (col = 0, cols = table.body[0].length; col < cols; col++) {
+	const columnCount = table.body[0]?.length ?? 0;
+	for (let col = 0; col < columnCount; col++) {
 		const column = table.widths[col];
+		if (!column)
+			throw new Error(`Internal measurement error: missing table width for column ${col}`);
 		column._minWidth = 0;
 		column._maxWidth = 0;
 
-		for (row = 0, rows = table.body.length; row < rows; row++) {
-			const rowData = table.body[row];
+		for (const [row, rowData] of table.body.entries()) {
 			let data = rowData[col];
 			if (data === undefined) {
 				throw new Error(

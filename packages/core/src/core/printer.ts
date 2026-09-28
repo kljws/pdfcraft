@@ -1,3 +1,4 @@
+import { withoutUndefined } from "../utils/defined";
 import PDFDocument from "../rendering/pdf-document";
 import LayoutBuilder from "../layout/layout-builder";
 import {
@@ -30,7 +31,7 @@ class PdfPrinter {
 	readonly fontDescriptors: FontDescriptors;
 	readonly virtualfs: VirtualFileSystem;
 	readonly urlResolver: URLResolver;
-	readonly localAccessPolicy?: LocalAccessPolicy;
+	readonly localAccessPolicy?: LocalAccessPolicy | undefined;
 	readonly extensions: PdfCraftExtensions;
 	pdfKitDoc!: PDFDocument;
 
@@ -44,7 +45,7 @@ class PdfPrinter {
 		fontDescriptors: FontDescriptors,
 		virtualfs: VirtualFileSystem,
 		urlResolver: URLResolver,
-		localAccessPolicy?: LocalAccessPolicy,
+		localAccessPolicy?: LocalAccessPolicy | undefined,
 		extensions: PdfCraftExtensions = [],
 	) {
 		this.fontDescriptors = fontDescriptors;
@@ -90,8 +91,8 @@ class PdfPrinter {
 
 		const pageSize = normalizePageSize(docDefinition.pageSize, docDefinition.pageOrientation);
 
-		const pdfOptions: PdfKitCreationOptions = {
-			size: [pageSize.width, pageSize.height],
+		const pdfOptions: PdfKitCreationOptions = withoutUndefined({
+			size: [pageSize.width, pageSize.height] satisfies [number, number],
 			pdfVersion: docDefinition.version,
 			subset: docDefinition.subset,
 			tagged: docDefinition.tagged,
@@ -107,7 +108,7 @@ class PdfPrinter {
 			autoFirstPage: false,
 			info: createMetadata(docDefinition),
 			font: null,
-		};
+		});
 
 		this.pdfKitDoc = new PDFDocument(
 			this.fontDescriptors,

@@ -6,7 +6,7 @@ import type {
 	VirtualFileSystem,
 } from "../types";
 
-const MAX_REDIRECTS = 30;
+const maxRedirects = 30;
 
 const normalizeHeaders = (headers: ResourceHeaders): string => {
 	const entries: Array<[string, string]> = [];
@@ -103,8 +103,8 @@ async function fetchUrl(
 			if (!location) {
 				throw new Error("Redirect response missing Location header");
 			}
-			if (redirectCount >= MAX_REDIRECTS) {
-				throw new Error(`Too many redirects (maximum: ${MAX_REDIRECTS})`);
+			if (redirectCount >= maxRedirects) {
+				throw new Error(`Too many redirects (maximum: ${maxRedirects})`);
 			}
 			redirectCount++;
 			url = new URL(location, url).href;
@@ -173,10 +173,10 @@ async function readBody(
 	return data.buffer;
 }
 
-export interface URLResolverOptions extends ResourceLoadingOptions {
+export type URLResolverOptions = ResourceLoadingOptions & {
 	/** Cancels every outstanding download when aborted. */
-	signal?: PdfAbortSignal;
-}
+	signal?: PdfAbortSignal | undefined;
+};
 
 type ResolvingResource = {
 	failed: boolean;
@@ -186,7 +186,7 @@ type ResolvingResource = {
 class URLResolver {
 	private readonly fs: VirtualFileSystem;
 	private readonly resolving: Record<string, ResolvingResource> = {};
-	private urlAccessPolicy?: AccessPolicy;
+	private urlAccessPolicy?: AccessPolicy | undefined;
 	private readonly options: URLResolverOptions;
 	/** Aborted by the first failure, so that sibling downloads stop instead of running on. */
 	private readonly failure = new AbortController();

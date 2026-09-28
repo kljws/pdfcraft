@@ -30,7 +30,7 @@ const removeExistingPageBottomLines = (
 
 	for (let index = page.items.length - 1; index >= 0; index--) {
 		const entry = page.items[index];
-		if (entry.type === "vector" && removed.has(entry)) page.items.splice(index, 1);
+		if (entry?.type === "vector" && removed.has(entry)) page.items.splice(index, 1);
 	}
 	for (const item of removed) registry.horizontalItems.delete(item);
 };
@@ -81,14 +81,14 @@ const roundExistingPageBottom = (
 };
 
 const hasCellBorder = (
-	cell: { border?: [boolean, boolean, boolean, boolean] } | undefined,
+	cell: { border?: [boolean, boolean, boolean, boolean] | undefined } | undefined,
 	side: 0 | 1 | 2 | 3,
 	defaultBorder: boolean,
 ): boolean => (cell?.border ? cell.border[side] : defaultBorder);
 
 const getHorizontalBorderColor = (
 	processor: TableProcessor,
-	cell: { borderColor?: [Color, Color, Color, Color] } | undefined,
+	cell: { borderColor?: [Color, Color, Color, Color] | undefined } | undefined,
 	side: 1 | 3,
 	lineIndex: number,
 	columnIndex: number,
@@ -108,7 +108,7 @@ const addRoundedCorner = (
 	radius: number,
 	lineWidth: number,
 	lineColor: Color,
-	dash: { length: number; space?: number; phase?: number } | undefined,
+	dash: { length: number; space?: number | undefined; phase?: number | undefined } | undefined,
 	ignoreContextY: boolean,
 	forcePage: number | undefined,
 ): void => {
@@ -136,18 +136,18 @@ const addRoundedCorner = (
 	);
 };
 
-export interface HorizontalLineOptions {
+export type HorizontalLineOptions = {
 	/** Draws the line at this y instead of the current cursor position. */
-	overrideY?: number;
+	overrideY?: number | undefined;
 	/** Moves the cursor below the line once drawn (default `true`). */
-	moveDown?: boolean;
+	moveDown?: boolean | undefined;
 	/** Page index receiving the line vectors. */
-	forcePage?: number;
+	forcePage?: number | undefined;
 	/** Line index used to resolve the layout width, style and color (default: `lineIndex`). */
-	styleLineIndex?: number;
+	styleLineIndex?: number | undefined;
 	/** Which adjacent cell borders decide whether each segment is drawn (default `"both"`). */
-	borderSide?: "both" | "top" | "bottom";
-}
+	borderSide?: "both" | "top" | "bottom" | undefined;
+};
 
 export function drawHorizontalLine(
 	processor: TableProcessor,
@@ -222,6 +222,7 @@ export function drawHorizontalLine(
 			currentCell = undefined;
 			rowCellAbove = undefined;
 			const data = processor.rowSpanData[i];
+			if (!data) continue;
 			let shouldDrawLine = !data.rowSpan;
 			let borderColor = null;
 
@@ -234,23 +235,27 @@ export function drawHorizontalLine(
 
 				// the cell in the row above
 				if (lineIndex > 0 && borderSide !== "top") {
-					cellAbove = body[lineIndex - 1][i];
-					bottomBorder = cellAbove.border ? cellAbove.border[3] : processor.layout.defaultBorder;
-					if (bottomBorder && cellAbove.borderColor) {
-						borderColor = cellAbove.borderColor[3];
+					cellAbove = body[lineIndex - 1]?.[i];
+					if (cellAbove) {
+						bottomBorder = cellAbove.border ? cellAbove.border[3] : processor.layout.defaultBorder;
+						if (bottomBorder && cellAbove.borderColor) {
+							borderColor = cellAbove.borderColor[3];
+						}
 					}
 				}
 
 				// the current cell
 				if (lineIndex < body.length && borderSide !== "bottom") {
-					currentCell = body[lineIndex][i];
-					topBorder = currentCell.border
-						? currentCell.border[1]
-						: cellAbove?.border
-							? false
-							: processor.layout.defaultBorder;
-					if (topBorder && borderColor == null && currentCell.borderColor) {
-						borderColor = currentCell.borderColor[1];
+					currentCell = body[lineIndex]?.[i];
+					if (currentCell) {
+						topBorder = currentCell.border
+							? currentCell.border[1]
+							: cellAbove?.border
+								? false
+								: processor.layout.defaultBorder;
+						if (topBorder && borderColor == null && currentCell.borderColor) {
+							borderColor = currentCell.borderColor[1];
+						}
 					}
 				}
 
@@ -258,7 +263,7 @@ export function drawHorizontalLine(
 			}
 
 			if (cellAbove && cellAbove._rowSpanCurrentOffset) {
-				rowCellAbove = body[lineIndex - 1 - cellAbove._rowSpanCurrentOffset][i];
+				rowCellAbove = body[lineIndex - 1 - cellAbove._rowSpanCurrentOffset]?.[i];
 				rowBottomBorder =
 					rowCellAbove && rowCellAbove.border
 						? rowCellAbove.border[3]
@@ -288,11 +293,11 @@ export function drawHorizontalLine(
 				let colSpanIndex = 0;
 				if (spanningCell?.colSpan) {
 					while (spanningCell.colSpan > colSpanIndex) {
-						currentLine.width += processor.rowSpanData[i + colSpanIndex++].width || 0;
+						currentLine.width += processor.rowSpanData[i + colSpanIndex++]?.width || 0;
 					}
 					i += colSpanIndex - 1;
 				} else {
-					currentLine.width += processor.rowSpanData[i].width || 0;
+					currentLine.width += data.width || 0;
 				}
 			}
 
@@ -412,7 +417,7 @@ export function drawVerticalLine(
 
 	// the cell in the col before
 	if (vLineColIndex > 0) {
-		cellBefore = body[vLineRowIndex][beforeIndex];
+		cellBefore = body[vLineRowIndex]?.[beforeIndex];
 		if (cellBefore && cellBefore.borderColor) {
 			if (cellBefore.border ? cellBefore.border[2] : processor.layout.defaultBorder) {
 				borderColor = cellBefore.borderColor[2];
@@ -432,8 +437,9 @@ export function drawVerticalLine(
 	}
 
 	if (borderColor == null && cellBefore && cellBefore._rowSpanCurrentOffset) {
-		const rowCellBeforeAbove = body[vLineRowIndex - cellBefore._rowSpanCurrentOffset][beforeIndex];
-		if (rowCellBeforeAbove.borderColor) {
+		const rowCellBeforeAbove =
+			body[vLineRowIndex - cellBefore._rowSpanCurrentOffset]?.[beforeIndex];
+		if (rowCellBeforeAbove?.borderColor) {
 			if (
 				rowCellBeforeAbove.border ? rowCellBeforeAbove.border[2] : processor.layout.defaultBorder
 			) {
@@ -444,8 +450,8 @@ export function drawVerticalLine(
 
 	if (borderColor == null && currentCell && currentCell._rowSpanCurrentOffset) {
 		const rowCurrentCellAbove =
-			body[vLineRowIndex - currentCell._rowSpanCurrentOffset][vLineColIndex];
-		if (rowCurrentCellAbove.borderColor) {
+			body[vLineRowIndex - currentCell._rowSpanCurrentOffset]?.[vLineColIndex];
+		if (rowCurrentCellAbove?.borderColor) {
 			if (
 				rowCurrentCellAbove.border ? rowCurrentCellAbove.border[2] : processor.layout.defaultBorder
 			) {

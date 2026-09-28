@@ -6,14 +6,15 @@ import { getNodeId } from "../../utils/node";
 import { buildTextLine } from "./build-text-line";
 import type { LayoutTextNode } from "./text.types";
 
-export interface TextLayoutContext {
+export type TextLayoutContext = {
 	writer: PageElementWriter;
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
-}
+};
 
-type BuiltLine = NonNullable<ReturnType<typeof buildTextLine>>;
-
-function linkPageReferences(line: BuiltLine, node: LayoutTextNode): void {
+function linkPageReferences(
+	line: NonNullable<ReturnType<typeof buildTextLine>>,
+	node: LayoutTextNode,
+): void {
 	if (node._tocItemRef) line._pageNodeRef = node._tocItemRef;
 	if (node._pageRef) line._pageNodeRef = node._pageRef._nodeRef;
 	if (line._pageNodeRef) line._pageReferenceText = node._pageReferenceText;

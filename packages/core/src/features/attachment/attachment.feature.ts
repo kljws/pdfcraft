@@ -18,11 +18,11 @@ import type {
 	PreprocessedAttachmentNode,
 } from "./attachment.types";
 
-export interface AttachmentResourceContext {
+export type AttachmentResourceContext = {
 	resolve(resource: PrinterResourceReference): string;
-}
+};
 
-interface AttachmentFeatureStages extends NodeFeatureStages {
+type AttachmentFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedAttachmentNode;
 	measureNode: PreprocessedAttachmentNode;
@@ -37,9 +37,9 @@ interface AttachmentFeatureStages extends NodeFeatureStages {
 	resolvedResources: undefined;
 	resolveResourcesContext: AttachmentResourceContext;
 	pageItem: Extract<PageItem, { type: "attachment" }>;
-}
+};
 
-interface AttachmentFeature extends NodeFeature<AttachmentFeatureStages> {
+type AttachmentFeature = NodeFeature<AttachmentFeatureStages> & {
 	readonly kind: "attachment";
 	preprocess(node: PdfNode): PreprocessedAttachmentNode;
 	resolveResources(
@@ -50,7 +50,7 @@ interface AttachmentFeature extends NodeFeature<AttachmentFeatureStages> {
 	place(node: LayoutAttachmentNode, context: NodePlaceContext): CurrentPosition | false;
 	layout(node: LayoutAttachmentNode, context: NodeLayoutContext): void;
 	render(node: LayoutAttachmentNode, context: AttachmentRenderContext): void;
-}
+};
 
 export const attachmentFeature = {
 	kind: "attachment",

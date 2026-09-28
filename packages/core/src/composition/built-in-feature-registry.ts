@@ -23,10 +23,10 @@ import type {
 	NodePlaceResult,
 } from "../engine/contracts/node-feature";
 
-interface RegistryFeature {
+type RegistryFeature = {
 	readonly kind: string;
 	matches(node: PdfNode): boolean;
-}
+};
 
 export function createNodeFeatureRegistry<const Features extends readonly RegistryFeature[]>(
 	features: Features,
@@ -87,7 +87,6 @@ export function getBuiltInFeatureByKind(kind: string): NodeFeatureDescriptor | u
 	return nodeFeaturesByKind.get(kind);
 }
 
-type StageHookName = "measure" | "layout" | "decorate" | "reset" | "place" | "render";
 type NodeStateHook = (node: LayoutPdfNode) => void;
 
 /**
@@ -95,7 +94,10 @@ type NodeStateHook = (node: LayoutPdfNode) => void;
  * the context subset and node shape it consumes. Dispatch by `_kind` guarantees the node shape,
  * so the hook is returned with the lifecycle union and the composition's concrete context type.
  */
-function getStageHook<Hook>(kind: string, name: StageHookName): Hook | undefined {
+function getStageHook<Hook>(
+	kind: string,
+	name: "measure" | "layout" | "decorate" | "reset" | "place" | "render",
+): Hook | undefined {
 	const feature = getBuiltInFeatureByKind(kind);
 	return feature && name in feature ? (feature[name as keyof typeof feature] as Hook) : undefined;
 }

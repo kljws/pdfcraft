@@ -176,12 +176,12 @@ export function combineTableLayouts(
 	};
 }
 
-export interface ColumnSpanMeasurement {
+export type ColumnSpanMeasurement = {
 	col: number;
 	span: number;
 	minWidth: number;
 	maxWidth: number;
-}
+};
 
 export function getTableOffsets(
 	node: MeasuredTableNode,
@@ -251,21 +251,27 @@ function getMinMax(
 	const table = node.table!;
 	const result = { minWidth: 0, maxWidth: 0 };
 	for (let index = 0; index < span; index++) {
-		result.minWidth +=
-			table.widths[column + index]._minWidth + (index ? offsets.offsets[column + index] : 0);
-		result.maxWidth +=
-			table.widths[column + index]._maxWidth + (index ? offsets.offsets[column + index] : 0);
+		const width = table.widths[column + index];
+		if (!width) {
+			throw new Error(
+				`Internal measurement error: missing table width for column ${column + index}`,
+			);
+		}
+		const offset = index ? (offsets.offsets[column + index] ?? 0) : 0;
+		result.minWidth += width._minWidth + offset;
+		result.maxWidth += width._maxWidth + offset;
 	}
 	return result;
 }
 
 export function markColumnSpans(row: MeasuredTableCell[], column: number, span: number): void {
+	const rowSpan = row[column]?.rowSpan;
 	for (let index = 1; index < span; index++) {
 		row[column + index] = {
 			_span: true,
 			_minWidth: 0,
 			_maxWidth: 0,
-			rowSpan: row[column].rowSpan,
+			rowSpan,
 		} as MeasuredTableCell;
 	}
 }
@@ -276,13 +282,17 @@ export function markRowSpans(
 	column: number,
 	span: number,
 ): void {
+	const source = table.body[row]?.[column];
 	for (let index = 1; index < span; index++) {
-		table.body[row + index][column] = {
+		const target = table.body[row + index];
+		if (!target)
+			throw new Error(`Internal measurement error: row span exceeds the table at row ${row}`);
+		target[column] = {
 			_span: true,
 			_minWidth: 0,
 			_maxWidth: 0,
-			fillColor: table.body[row][column].fillColor,
-			fillOpacity: table.body[row][column].fillOpacity,
+			fillColor: source?.fillColor,
+			fillOpacity: source?.fillOpacity,
 		} as MeasuredTableCell;
 	}
 }
@@ -291,8 +301,10 @@ export function extendTableWidths(node: TableMeasureNode): void {
 	const table = node.table!;
 	const rawWidths = table.widths ?? "auto";
 	const widths = Array.isArray(rawWidths) ? [...rawWidths] : [rawWidths];
-	while (widths.length < table.body[0].length) {
-		widths.push(widths[widths.length - 1]);
+	const columnCount = table.body[0]?.length ?? 0;
+	const lastWidth = widths.at(-1);
+	while (lastWidth !== undefined && widths.length < columnCount) {
+		widths.push(lastWidth);
 	}
 	table.widths = widths.map((width: RawColumnWidth): ColumnWidth => {
 		if (isNumber(width) || isString(width)) {

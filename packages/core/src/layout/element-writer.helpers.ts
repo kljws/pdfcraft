@@ -8,12 +8,12 @@ import type {
 import { getPageItemBottom } from "./page-item-geometry";
 import type { NodePlaceContext } from "../engine/contracts/node-feature";
 
-interface FeatureItemLayoutWriter {
+type FeatureItemLayoutWriter = {
 	addFeatureItem(
 		featureKind: FeaturePageItem["type"],
 		node: LayoutPdfNode,
 	): CurrentPosition | false | Array<CurrentPosition | undefined>;
-}
+};
 
 export function layoutFeatureItem(
 	featureKind: FeaturePageItem["type"],
@@ -29,12 +29,12 @@ export function layoutFeatureItem(
 	node._node = node;
 }
 
-interface PlacementContext {
+type PlacementContext = {
 	readonly page: number;
 	readonly availableHeight: number;
 	readonly backgroundLength: readonly number[];
 	getCurrentPage(): PdfPage | undefined;
-}
+};
 
 /**
  * Returns the page on which an atomic item of `height` may be placed now, or `undefined` when the
@@ -57,15 +57,15 @@ export function findPlacementPage(
 	return page.items.length > backgroundItems ? undefined : page;
 }
 
-interface AtomicPlacementOptions {
+type AtomicPlacementOptions = {
 	/** Aligns the item horizontally from its `_alignment` and `_minWidth`. Defaults to `true`. */
-	align?: boolean;
+	align?: boolean | undefined;
 	/**
 	 * Runs once the item is accepted on the page and before it is positioned; returns the height
 	 * that the cursor advances by. Feature-specific sizing belongs here.
 	 */
 	prepare?(area: { availableWidth: number; availableHeight: number }): number;
-}
+};
 
 /**
  * Places an atomic feature item at the cursor: checks the page, positions and aligns the item,

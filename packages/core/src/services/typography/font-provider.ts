@@ -3,11 +3,11 @@ import { toArrayBuffer } from "../../utils/bytes";
 import { isString } from "../../utils/variable-type";
 import type { EmbeddedFont, FontFile, FontStyle } from "./font.types";
 
-export interface FontEmbeddingHost {
+export type FontEmbeddingHost = {
 	_font: EmbeddedFont;
 	font(source: PDFKit.Mixins.PDFFontSource, family?: string): unknown;
 	validateLocalFile(path: unknown): void;
-}
+};
 
 const resolveFontStyle = (bold: boolean, italics: boolean): FontStyle => {
 	if (bold && italics) return "bolditalics";
@@ -28,16 +28,13 @@ export default class FontProvider {
 		fonts: FontDescriptors = {},
 		private readonly virtualfs: VirtualFileSystem | null = null,
 	) {
-		for (const familyName in fonts) {
-			if (fonts.hasOwnProperty(familyName)) {
-				const definition = fonts[familyName];
-				this.fonts[familyName] = {
-					normal: definition.normal,
-					bold: definition.bold,
-					italics: definition.italics,
-					bolditalics: definition.bolditalics,
-				};
-			}
+		for (const [familyName, definition] of Object.entries(fonts)) {
+			this.fonts[familyName] = {
+				normal: definition.normal,
+				bold: definition.bold,
+				italics: definition.italics,
+				bolditalics: definition.bolditalics,
+			};
 		}
 	}
 

@@ -8,12 +8,12 @@ import { describe, expect, it } from "vitest";
  * The adapter entry (`@pdfcraft/core/adapter`) is the platform-neutral contract used by the
  * browser package. Everything it reaches at runtime must run without Node.js.
  */
-const SOURCE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** External runtime dependencies the shared code may use. The browser build aliases `pdfkit`. */
-const ALLOWED_EXTERNALS = new Set(["pdfkit", "linebreak"]);
+const allowedExternals = new Set(["pdfkit", "linebreak"]);
 
-const NODE_BUILTINS = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
+const nodeBuiltins = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
 
 /**
  * Module specifiers of the statements that exist at runtime. Type-only imports and exports are
@@ -41,14 +41,14 @@ function resolveSource(fromFile: string, specifier: string): string {
 	for (const candidate of [base, `${base}.ts`, resolve(base, "index.ts")]) {
 		if (candidate.endsWith(".ts") && existsSync(candidate)) return candidate;
 	}
-	throw new Error(`Cannot resolve ${specifier} from ${relative(SOURCE_ROOT, fromFile)}`);
+	throw new Error(`Cannot resolve ${specifier} from ${relative(sourceRoot, fromFile)}`);
 }
 
 /** Walks the runtime import graph from `entry` and returns reached sources and externals. */
 function walk(entry: string): { files: Set<string>; externals: Map<string, string> } {
 	const files = new Set<string>();
 	const externals = new Map<string, string>();
-	const pending = [resolve(SOURCE_ROOT, entry)];
+	const pending = [resolve(sourceRoot, entry)];
 	while (pending.length > 0) {
 		const file = pending.pop()!;
 		if (files.has(file)) continue;
@@ -57,11 +57,11 @@ function walk(entry: string): { files: Set<string>; externals: Map<string, strin
 			if (specifier.startsWith(".")) {
 				pending.push(resolveSource(file, specifier));
 			} else if (!externals.has(specifier)) {
-				externals.set(specifier, relative(SOURCE_ROOT, file));
+				externals.set(specifier, relative(sourceRoot, file));
 			}
 		}
 	}
-	return { files: new Set([...files].map((file) => relative(SOURCE_ROOT, file))), externals };
+	return { files: new Set([...files].map((file) => relative(sourceRoot, file))), externals };
 }
 
 describe("adapter entry boundary", () => {
@@ -69,17 +69,17 @@ describe("adapter entry boundary", () => {
 
 	it("reaches no Node.js built-in module at runtime", () => {
 		const builtins = [...adapter.externals]
-			.filter(([specifier]) => NODE_BUILTINS.has(specifier))
+			.filter(([specifier]) => nodeBuiltins.has(specifier))
 			.map(([specifier, from]) => `${from} -> ${specifier}`);
 		expect(builtins).toEqual([]);
 	});
 
 	it("reaches only the intended external dependencies", () => {
 		const unexpected = [...adapter.externals]
-			.filter(([specifier]) => !ALLOWED_EXTERNALS.has(specifier))
+			.filter(([specifier]) => !allowedExternals.has(specifier))
 			.map(([specifier, from]) => `${from} -> ${specifier}`);
 		expect(unexpected).toEqual([]);
-		expect([...adapter.externals.keys()].sort()).toEqual([...ALLOWED_EXTERNALS].sort());
+		expect([...adapter.externals.keys()].sort()).toEqual([...allowedExternals].sort());
 	});
 
 	it("cannot reach the server output or the Node entry", () => {

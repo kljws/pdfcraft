@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
 import { SVGMeasure, svgExtension } from "../../src/index.ts";
-import IntegrationTestHelper from "../../../core/tests/integration/integration-test.helpers.ts";
+import IntegrationTestHelper from "../../../core/src/__tests__/fixtures/integration.helpers.ts";
 import pdfcraft from "../../../core/src/index.ts";
 
 // NOTE: more tests for SVGMeasure in src/__tests__/svg-measure.test.ts
@@ -134,10 +134,10 @@ describe("Integration Test: svg's", function () {
 			var svg = pages[0].items[0].item;
 			var someElementAfterSvg = pages[0].items[1].item;
 
-			assert.equal(svg.x, testHelper.MARGINS.left);
-			assert.equal(svg.y, testHelper.MARGINS.top);
-			assert.equal(someElementAfterSvg.x, testHelper.MARGINS.left);
-			assert.equal(someElementAfterSvg.y, testHelper.MARGINS.top + svgHeight);
+			assert.equal(svg.x, testHelper.margins.left);
+			assert.equal(svg.y, testHelper.margins.top);
+			assert.equal(someElementAfterSvg.x, testHelper.margins.left);
+			assert.equal(someElementAfterSvg.y, testHelper.margins.top + svgHeight);
 		});
 
 		it("renders svg below text", function () {
@@ -159,11 +159,11 @@ describe("Integration Test: svg's", function () {
 			var someElementBeforeSvg = pages[0].items[0].item;
 			var image = pages[0].items[1].item;
 
-			assert.equal(someElementBeforeSvg.x, testHelper.MARGINS.left);
-			assert.equal(someElementBeforeSvg.y, testHelper.MARGINS.top);
+			assert.equal(someElementBeforeSvg.x, testHelper.margins.left);
+			assert.equal(someElementBeforeSvg.y, testHelper.margins.top);
 
-			assert.equal(image.x, testHelper.MARGINS.left);
-			assert.equal(image.y, testHelper.MARGINS.top + testHelper.LINE_HEIGHT);
+			assert.equal(image.x, testHelper.margins.left);
+			assert.equal(image.y, testHelper.margins.top + testHelper.lineHeight);
 		});
 	});
 

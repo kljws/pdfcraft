@@ -2,9 +2,9 @@ import type PDFDocument from "../../rendering/pdf-document";
 import type { FileAnnotationOptions } from "../../rendering/renderer.types";
 import type { LayoutAttachmentNode } from "./attachment.types";
 
-export interface AttachmentRenderContext {
+export type AttachmentRenderContext = {
 	document: PDFDocument;
-}
+};
 
 export function renderAttachment(
 	attachment: LayoutAttachmentNode,

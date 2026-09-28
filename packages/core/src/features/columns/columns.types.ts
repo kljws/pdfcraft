@@ -17,13 +17,13 @@ export type MeasuredColumnsNode = MeasuredNodeBase & {
 	_kind: "columns";
 	columns: ColumnNode<MeasuredPdfNode>[];
 	/** Horizontal gap between columns, resolved at measurement. */
-	_gap?: number;
+	_gap?: number | undefined;
 };
 
 export type LayoutColumnsNode = LayoutNodeBase & {
 	_kind: "columns";
 	columns: ColumnNode<LayoutPdfNode>[];
-	_gap?: number;
+	_gap?: number | undefined;
 };
 
 declare module "../../types/document.types" {

@@ -18,35 +18,36 @@ import type {
  * State the table feature attaches to the table node and to each of its cells, whatever the
  * cell's own kind. It covers span bookkeeping, row placement and cross-page cell tracking.
  */
+// Kept as an interface: it takes part in the recursive node types and breaks the cycle.
 export interface TableNodeState<Node> {
-	_tableAlignment?: "left" | "center" | "right";
-	_headerLayout?: TableLayout<Node>;
-	_bodyLayout?: TableLayout<Node>;
-	_span?: boolean;
-	_colSpan?: number;
-	_bottomY?: number;
-	_originalXOffset?: number;
-	_columnEndingContext?: ContextSnapshot;
-	_endingCell?: EndingCell;
-	_leftEndingCell?: EndingCell;
-	_startingRowSpanY?: number;
-	_startingRowSpanPage?: number;
-	_rowTopPageY?: number;
-	_breaksBySpan?: PageBreak[];
-	_willBreak?: boolean;
-	_isUnbreakableContext?: boolean;
-	_bottomByPage?: Record<number, number>;
+	_tableAlignment?: "left" | "center" | "right" | undefined;
+	_headerLayout?: TableLayout<Node> | undefined;
+	_bodyLayout?: TableLayout<Node> | undefined;
+	_span?: boolean | undefined;
+	_colSpan?: number | undefined;
+	_bottomY?: number | undefined;
+	_originalXOffset?: number | undefined;
+	_columnEndingContext?: ContextSnapshot | undefined;
+	_endingCell?: EndingCell | undefined;
+	_leftEndingCell?: EndingCell | undefined;
+	_startingRowSpanY?: number | undefined;
+	_startingRowSpanPage?: number | undefined;
+	_rowTopPageY?: number | undefined;
+	_breaksBySpan?: PageBreak[] | undefined;
+	_willBreak?: boolean | undefined;
+	_isUnbreakableContext?: boolean | undefined;
+	_bottomByPage?: Record<number, number> | undefined;
 	// Vertical-alignment inputs recorded on the aligned cell box.
-	viewHeight?: number;
-	bottomY?: number;
-	_rowTopPageYPadding?: number;
-	_lastPageNumber?: number;
-	_rowSpanCurrentOffset?: number;
+	viewHeight?: number | undefined;
+	bottomY?: number | undefined;
+	_rowTopPageYPadding?: number | undefined;
+	_lastPageNumber?: number | undefined;
+	_rowSpanCurrentOffset?: number | undefined;
 }
 
 export type EndingCell = LayoutTableCell & {
-	_endContext?: ContextSnapshot;
-	_endingContext?: ContextSnapshot;
+	_endContext?: ContextSnapshot | undefined;
+	_endingContext?: ContextSnapshot | undefined;
 };
 
 export type MeasuredTableCell = MeasuredPdfNode & TableNodeState<MeasuredPdfNode>;
@@ -63,10 +64,10 @@ export type TableMeasureNode = MeasuredNodeBase &
 		table: PdfTable<MeasuredTableCell, ColumnWidth[]>;
 	};
 
-export interface TableMetrics<Node> {
+export type TableMetrics<Node> = {
 	offsets: TableOffsets;
 	layout: TableLayout<Node>;
-}
+};
 
 export type MeasuredTableNode = TableMeasureNode & {
 	metrics: TableMetrics<MeasuredPdfNode>;

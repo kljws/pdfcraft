@@ -1,4 +1,4 @@
-import { assert, beforeEach, describe, it, vi, type MockInstance } from "vitest";
+import { assert, beforeEach, describe, it } from "vitest";
 import DocumentContext from "../../document/document-context.ts";
 import PageElementWriter from "../element-writer.page.ts";
 import type { LayoutImageNode } from "../../features/image/image.types.ts";
@@ -14,35 +14,36 @@ import type {
 
 type LineFixture = LineLike & { marker?: unknown };
 
-interface RepeatableFixture {
+type RepeatableFixture = {
 	items: PageItem[];
 	height: number;
 	insertedOnPages: boolean[];
-}
+};
 
 describe("PageElementWriter", function () {
 	var pew: PageElementWriter;
 	var ctx: DocumentContext;
 	var pageSize: PageSize;
-	var emitSpy: MockInstance;
+	/** Events observed through the writer's public listeners, in order. */
+	var events: Array<[string, unknown]>;
 	const itemAt = (page: number, item: number): LineFixture =>
 		ctx.pages[page].items[item].item as LineFixture;
 
-	var DOCUMENT_WIDTH = 600;
-	var DOCUMENT_HEIGHT = 1100;
-	var DOCUMENT_ORIENTATION = "portrait" as const;
-	var INLINE_TEST_IMAGE =
+	var documentWidth = 600;
+	var documentHeight = 1100;
+	var documentOrientation = "portrait" as const;
+	var inlineTestImage =
 		"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAGAQMAAADNIO3CAAAAA1BMVEUAAN7GEcIJAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98DBREbA3IZ3d8AAAALSURBVAjXY2BABwAAEgAB74lUpAAAAABJRU5ErkJggg==";
 
-	var MARGINS = {
+	var margins = {
 		left: 40,
 		right: 60,
 		top: 30,
 		bottom: 70,
 	};
 
-	var AVAILABLE_HEIGHT = 1000;
-	var AVAILABLE_WIDTH = 500;
+	var availableHeight = 1000;
+	var availableWidth = 500;
 
 	function buildLine(height: number, alignment?: string, x?: number, y?: number): LineFixture {
 		const line = {
@@ -77,7 +78,7 @@ describe("PageElementWriter", function () {
 	function buildImage(height: number): LayoutImageNode {
 		return {
 			_kind: "image",
-			image: INLINE_TEST_IMAGE,
+			image: inlineTestImage,
 			_margin: null,
 			_maxWidth: 100,
 			_minWidth: 100,
@@ -103,7 +104,7 @@ describe("PageElementWriter", function () {
 	function addOneTenthLines(count: number): CurrentPosition | false | undefined {
 		var lastPosition: CurrentPosition | false | undefined;
 		for (var i = 0; i < count; i++) {
-			var line = buildLine(AVAILABLE_HEIGHT / 10);
+			var line = buildLine(availableHeight / 10);
 			lastPosition = pew.addLine(line);
 		}
 		return lastPosition;
@@ -125,16 +126,18 @@ describe("PageElementWriter", function () {
 
 	beforeEach(function () {
 		pageSize = {
-			width: DOCUMENT_WIDTH,
-			height: DOCUMENT_HEIGHT,
-			orientation: DOCUMENT_ORIENTATION,
+			width: documentWidth,
+			height: documentHeight,
+			orientation: documentOrientation,
 		};
 		ctx = new DocumentContext();
-		ctx.addPage(pageSize, MARGINS);
-
-		emitSpy = vi.spyOn(PageElementWriter.prototype, "emit");
+		ctx.addPage(pageSize, margins);
 
 		pew = new PageElementWriter(ctx, createBuiltInElementPlacement());
+		events = [];
+		for (const name of ["lineAdded", "pageChanged", "columnChanged"] as const) {
+			pew.addListener(name, (payload: unknown) => events.push([name, payload]));
+		}
 	});
 
 	describe("addLine", function () {
@@ -144,8 +147,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages.length, 1);
 			assert.deepEqual(position, {
 				pageNumber: 1,
-				left: MARGINS.left,
-				top: (9 / 10) * AVAILABLE_HEIGHT + MARGINS.top,
+				left: margins.left,
+				top: (9 / 10) * availableHeight + margins.top,
 				verticalRatio: 0.9,
 				horizontalRatio: 0,
 				pageOrientation: "portrait",
@@ -162,8 +165,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages[1].items.length, 1);
 			assert.deepEqual(position, {
 				pageNumber: 2,
-				left: MARGINS.left,
-				top: MARGINS.top,
+				left: margins.left,
+				top: margins.top,
 				verticalRatio: 0,
 				horizontalRatio: 0,
 				pageOrientation: "portrait",
@@ -175,8 +178,8 @@ describe("PageElementWriter", function () {
 		it("should subtract line height from availableHeight when adding a line and update current y position", function () {
 			pew.addLine(buildLine(40));
 
-			assert.equal(ctx.y, MARGINS.top + 40);
-			assert.equal(ctx.availableHeight, AVAILABLE_HEIGHT - 40);
+			assert.equal(ctx.y, margins.top + 40);
+			assert.equal(ctx.availableHeight, availableHeight - 40);
 		});
 
 		it("renders a line taller than an otherwise empty page", function () {
@@ -215,8 +218,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages.length, 1);
 			assert.deepEqual(position, {
 				pageNumber: 1,
-				left: MARGINS.left,
-				top: lineHeight + MARGINS.top,
+				left: margins.left,
+				top: lineHeight + margins.top,
 				verticalRatio: 0.4,
 				horizontalRatio: 0,
 				pageOrientation: "portrait",
@@ -236,8 +239,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages[1].items.length, 1);
 			assert.deepEqual(position, {
 				pageNumber: 2,
-				left: MARGINS.left,
-				top: MARGINS.top,
+				left: margins.left,
+				top: margins.top,
 				verticalRatio: 0,
 				horizontalRatio: 0,
 				pageOrientation: "portrait",
@@ -253,8 +256,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages[0].items.length, 1);
 			assert.deepEqual(position, {
 				pageNumber: 1,
-				left: MARGINS.left,
-				top: MARGINS.top,
+				left: margins.left,
+				top: margins.top,
 				verticalRatio: 0,
 				horizontalRatio: 0,
 				pageOrientation: "portrait",
@@ -272,8 +275,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages[1].items.length, 1);
 			assert.deepEqual(position, {
 				pageNumber: 2,
-				left: MARGINS.left,
-				top: MARGINS.top,
+				left: margins.left,
+				top: margins.top,
 				verticalRatio: 0,
 				horizontalRatio: 0,
 				pageOrientation: "portrait",
@@ -293,7 +296,7 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages[0].items.length, 1);
 			assert.equal(ctx.pages[1].items[0].type, "extension");
 			assert.equal(position && position.pageNumber, 2);
-			assert.equal(position && position.top, MARGINS.top);
+			assert.equal(position && position.top, margins.top);
 		});
 
 		it("renders an oversized extension on an otherwise empty page", function () {
@@ -345,8 +348,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages[0].items.length, 1);
 			assert.equal(ctx.pages[1].items.length, 1);
 			assert.equal(positions.length, 1);
-			assert.equal(ctx.y, MARGINS.top + 1200);
-			assert.equal(ctx.availableHeight, AVAILABLE_HEIGHT - 1200);
+			assert.equal(ctx.y, margins.top + 1200);
+			assert.equal(ctx.availableHeight, availableHeight - 1200);
 		});
 	});
 
@@ -399,10 +402,10 @@ describe("PageElementWriter", function () {
 
 			pew.commitUnbreakableBlock();
 
-			assert.equal(itemAt(1, 0).x, MARGINS.left);
-			assert.equal(itemAt(1, 0).y, MARGINS.top);
-			assert.equal(itemAt(1, 1).x, MARGINS.left);
-			assert.equal(itemAt(1, 1).y, MARGINS.top + AVAILABLE_HEIGHT / 10);
+			assert.equal(itemAt(1, 0).x, margins.left);
+			assert.equal(itemAt(1, 0).y, margins.top);
+			assert.equal(itemAt(1, 1).x, margins.left);
+			assert.equal(itemAt(1, 1).y, margins.top + availableHeight / 10);
 		});
 
 		it("should add lines below any repeatable fragments if they exist and a new page is created", function () {
@@ -420,8 +423,8 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(itemAt(1, 0).marker, "rep");
 			assert.equal(itemAt(1, 1).marker, "another");
-			assert.equal(itemAt(1, 1).x, MARGINS.left);
-			assert.equal(itemAt(1, 1).y, MARGINS.top + 50);
+			assert.equal(itemAt(1, 1).x, margins.left);
+			assert.equal(itemAt(1, 1).y, margins.top + 50);
 		});
 
 		it("should make all further calls to addLine add lines again to the page when transaction finishes", function () {
@@ -438,8 +441,8 @@ describe("PageElementWriter", function () {
 			pew.addVector({ type: "rect", x: 0, y: 0, w: 20, h: 75 });
 			pew.commitUnbreakableBlock();
 
-			assert.equal(ctx.y, MARGINS.top + 75);
-			assert.equal(ctx.availableHeight, AVAILABLE_HEIGHT - 75);
+			assert.equal(ctx.y, margins.top + 75);
+			assert.equal(ctx.availableHeight, availableHeight - 75);
 		});
 
 		it("commits oversized unbreakable blocks across every generated page", function () {
@@ -454,10 +457,10 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages[1].items.length, 10);
 			assert.equal(ctx.pages[2].items.length, 10);
 			assert.equal(ctx.pages[3].items.length, 5);
-			assert.equal(itemAt(1, 0).y, MARGINS.top);
-			assert.equal(itemAt(2, 0).y, MARGINS.top);
-			assert.equal(itemAt(3, 0).y, MARGINS.top);
-			assert.equal(ctx.y, MARGINS.top + AVAILABLE_HEIGHT / 2);
+			assert.equal(itemAt(1, 0).y, margins.top);
+			assert.equal(itemAt(2, 0).y, margins.top);
+			assert.equal(itemAt(3, 0).y, margins.top);
+			assert.equal(ctx.y, margins.top + availableHeight / 2);
 		});
 	});
 
@@ -512,14 +515,14 @@ describe("PageElementWriter", function () {
 			assert.equal(itemAt(1, 0).marker, "rep");
 			assert.equal(itemAt(1, 1).marker, "rep");
 			assert.equal(itemAt(1, 2).marker, "rep");
-			assert.equal(itemAt(1, 2).y, MARGINS.top + (2 * AVAILABLE_HEIGHT) / 10);
+			assert.equal(itemAt(1, 2).y, margins.top + (2 * availableHeight) / 10);
 			assert(!itemAt(1, 3).marker);
-			assert.equal(itemAt(1, 3).y, itemAt(1, 2).y! + AVAILABLE_HEIGHT / 10);
+			assert.equal(itemAt(1, 3).y, itemAt(1, 2).y! + availableHeight / 10);
 		});
 
 		it("should add a repeatable fragment to the top when reusing page only once", function () {
 			pew.repeatables.push(createRepeatable("rep", 50));
-			ctx.addPage(pageSize, MARGINS);
+			ctx.addPage(pageSize, margins);
 			ctx.page = 0;
 			ctx.initializePage();
 
@@ -531,7 +534,7 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(ctx.pages[1].items.length, 1);
 			assert.equal(itemAt(1, 0).marker, "rep");
-			assert.equal(ctx.y, MARGINS.top + 50);
+			assert.equal(ctx.y, margins.top + 50);
 		});
 
 		it("should add repeatable fragments in the same order they have been added to the repeatable fragments collection", function () {
@@ -543,39 +546,39 @@ describe("PageElementWriter", function () {
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(ctx.pages[1].items.length, 3);
 			assert.equal(itemAt(1, 0).marker, "rep1");
-			assert.equal(itemAt(1, 0).y, MARGINS.top);
+			assert.equal(itemAt(1, 0).y, margins.top);
 			assert.equal(itemAt(1, 1).marker, "rep2");
-			assert.equal(itemAt(1, 1).y, MARGINS.top + 50);
+			assert.equal(itemAt(1, 1).y, margins.top + 50);
 			assert(!itemAt(1, 2).marker);
-			assert.equal(itemAt(1, 2).y, MARGINS.top + 50 + 60);
+			assert.equal(itemAt(1, 2).y, margins.top + 50 + 60);
 		});
 
 		it("should switch width and height if page changes from portrait to landscape", function () {
 			addOneTenthLines(6);
-			assert.equal(ctx.getCurrentPage().pageSize.width, DOCUMENT_WIDTH);
-			assert.equal(ctx.getCurrentPage().pageSize.height, DOCUMENT_HEIGHT);
-			assert.equal(ctx.getCurrentPage().pageSize.orientation, DOCUMENT_ORIENTATION);
+			assert.equal(ctx.requireCurrentPage().pageSize.width, documentWidth);
+			assert.equal(ctx.requireCurrentPage().pageSize.height, documentHeight);
+			assert.equal(ctx.requireCurrentPage().pageSize.orientation, documentOrientation);
 
 			pew.moveToNextPage("landscape");
 
 			assert.equal(ctx.pages.length, 2);
-			assert.equal(ctx.getCurrentPage().pageSize.width, DOCUMENT_HEIGHT);
-			assert.equal(ctx.getCurrentPage().pageSize.height, DOCUMENT_WIDTH);
-			assert.equal(ctx.getCurrentPage().pageSize.orientation, "landscape");
+			assert.equal(ctx.requireCurrentPage().pageSize.width, documentHeight);
+			assert.equal(ctx.requireCurrentPage().pageSize.height, documentWidth);
+			assert.equal(ctx.requireCurrentPage().pageSize.orientation, "landscape");
 		});
 
 		it("should switch width and height if page changes from landscape to portrait", function () {
-			ctx.getCurrentPage().pageSize.orientation = "landscape";
-			ctx.getCurrentPage().pageSize.width = DOCUMENT_WIDTH;
-			ctx.getCurrentPage().pageSize.height = DOCUMENT_HEIGHT;
+			ctx.requireCurrentPage().pageSize.orientation = "landscape";
+			ctx.requireCurrentPage().pageSize.width = documentWidth;
+			ctx.requireCurrentPage().pageSize.height = documentHeight;
 
 			addOneTenthLines(6);
 			pew.moveToNextPage("portrait");
 
 			assert.equal(ctx.pages.length, 2);
-			assert.equal(ctx.getCurrentPage().pageSize.width, DOCUMENT_HEIGHT);
-			assert.equal(ctx.getCurrentPage().pageSize.height, DOCUMENT_WIDTH);
-			assert.equal(ctx.getCurrentPage().pageSize.orientation, "portrait");
+			assert.equal(ctx.requireCurrentPage().pageSize.width, documentHeight);
+			assert.equal(ctx.requireCurrentPage().pageSize.height, documentWidth);
+			assert.equal(ctx.requireCurrentPage().pageSize.orientation, "portrait");
 		});
 
 		it("should not switch width and height if page changes from landscape to landscape", function () {
@@ -584,9 +587,9 @@ describe("PageElementWriter", function () {
 			pew.moveToNextPage("landscape");
 
 			assert.equal(ctx.pages.length, 3);
-			assert.equal(ctx.getCurrentPage().pageSize.width, DOCUMENT_HEIGHT);
-			assert.equal(ctx.getCurrentPage().pageSize.height, DOCUMENT_WIDTH);
-			assert.equal(ctx.getCurrentPage().pageSize.orientation, "landscape");
+			assert.equal(ctx.requireCurrentPage().pageSize.width, documentHeight);
+			assert.equal(ctx.requireCurrentPage().pageSize.height, documentWidth);
+			assert.equal(ctx.requireCurrentPage().pageSize.orientation, "landscape");
 		});
 
 		it("should create new page", function () {
@@ -594,13 +597,13 @@ describe("PageElementWriter", function () {
 			pew.moveToNextPage();
 
 			assert.equal(ctx.pages.length, 2);
-			assert.equal(ctx.y, MARGINS.top);
-			assert.equal(ctx.availableHeight, AVAILABLE_HEIGHT);
-			assert.equal(ctx.availableWidth, AVAILABLE_WIDTH);
-			assert.equal(emitSpy.mock.calls.length, 2); // move to first page to write a line, and then move to next page
-			assert.deepEqual(emitSpy.mock.calls[1], [
+			assert.equal(ctx.y, margins.top);
+			assert.equal(ctx.availableHeight, availableHeight);
+			assert.equal(ctx.availableWidth, availableWidth);
+			assert.equal(events.length, 2); // a line was added, then the writer moved to the next page
+			assert.deepEqual(events[1], [
 				"pageChanged",
-				{ prevPage: 0, prevY: MARGINS.top + AVAILABLE_HEIGHT / 10, y: MARGINS.top },
+				{ prevPage: 0, prevY: margins.top + availableHeight / 10, y: margins.top },
 			]);
 		});
 
@@ -613,13 +616,13 @@ describe("PageElementWriter", function () {
 			pew.moveToNextPage();
 
 			assert.equal(ctx.page, 1);
-			assert.equal(ctx.y, MARGINS.top);
-			assert.equal(ctx.availableHeight, AVAILABLE_HEIGHT);
-			assert.equal(ctx.availableWidth, AVAILABLE_WIDTH);
-			assert.equal(emitSpy.mock.calls.length, 2);
-			assert.deepEqual(emitSpy.mock.calls[1], [
+			assert.equal(ctx.y, margins.top);
+			assert.equal(ctx.availableHeight, availableHeight);
+			assert.equal(ctx.availableWidth, availableWidth);
+			assert.equal(events.length, 2);
+			assert.deepEqual(events[1], [
 				"pageChanged",
-				{ prevPage: 0, prevY: MARGINS.top + AVAILABLE_HEIGHT / 10, y: MARGINS.top },
+				{ prevPage: 0, prevY: margins.top + availableHeight / 10, y: margins.top },
 			]);
 		});
 	});

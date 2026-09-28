@@ -1,20 +1,20 @@
 import type { Inline, PdfFont } from "../../types/internal";
 import type StyleContextStack from "../styles/style-context-stack";
 
-export interface TextSize {
+export type TextSize = {
 	width: number;
 	height: number;
 	fontSize: number;
 	lineHeight: number;
 	ascender: number;
 	descender: number;
-}
+};
 
-export interface TextFontProvider {
+export type TextFontProvider = {
 	provideFont(familyName: string, bold: boolean, italics: boolean): PdfFont;
-}
+};
 
-export interface ResolvedTextStyle {
+export type ResolvedTextStyle = {
 	fontName: string;
 	fontSize: number;
 	fontFeatures: unknown;
@@ -22,7 +22,7 @@ export interface ResolvedTextStyle {
 	italics: boolean;
 	lineHeight: number;
 	characterSpacing: number;
-}
+};
 
 export default class TextMetrics {
 	constructor(private readonly fontProvider: TextFontProvider | null) {}
@@ -31,7 +31,7 @@ export default class TextMetrics {
 		text: string,
 		inline: Pick<Inline, "font" | "fontSize"> & {
 			fontFeatures?: unknown;
-			characterSpacing?: number;
+			characterSpacing?: number | undefined;
 		},
 	): number {
 		return (

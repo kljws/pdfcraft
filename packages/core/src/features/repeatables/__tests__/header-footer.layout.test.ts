@@ -5,7 +5,7 @@ import {
 	emptyTableLayout,
 	LayoutBuilder,
 	sampleTestProvider,
-} from "../../../../tests/helpers/layout-builder.ts";
+} from "../../../__tests__/fixtures/layout-builder.ts";
 
 describe("LayoutBuilder", function () {
 	let builder: LayoutBuilder;

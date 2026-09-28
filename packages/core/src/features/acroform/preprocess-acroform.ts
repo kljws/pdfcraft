@@ -3,7 +3,7 @@ import type { PdfNode } from "../../types/internal";
 import { isNumber, isObject } from "../../utils/variable-type";
 import type { PreprocessedAcroFormNode } from "./acroform.types";
 
-const SUPPORTED_TYPES: ReadonlySet<unknown> = new Set([
+const supportedTypes: ReadonlySet<unknown> = new Set([
 	"text",
 	"button",
 	"list",
@@ -19,7 +19,7 @@ export function preprocessAcroForm(node: PdfNode): PreprocessedAcroFormNode {
 	if (typeof form.id !== "string" || form.id.trim().length === 0) {
 		throw new Error("Invalid AcroForm node: 'acroform.id' must be a non-empty string");
 	}
-	if (!SUPPORTED_TYPES.has(form.type)) {
+	if (!supportedTypes.has(form.type)) {
 		throw new Error(`Invalid AcroForm node: unsupported field type '${String(form.type)}'`);
 	}
 	if (node.width !== undefined && node.width !== "*" && !(isNumber(node.width) && node.width > 0)) {

@@ -5,7 +5,7 @@ import type {
 	PageBreakNodeInfo,
 } from "../../engine/page-break-before.types";
 
-const NODE_INFO_KEYS = [
+const nodeInfoKeys = [
 	"id",
 	"text",
 	"ul",
@@ -40,11 +40,13 @@ export const pageBreakBeforeFeature = {
 			const positions = node.positions!;
 			const publicNode = node as PdfNode;
 			const nodeInfo = {} as PageBreakNodeInfo;
-			for (const key of NODE_INFO_KEYS) {
+			for (const key of nodeInfoKeys) {
 				if (publicNode[key] !== undefined) nodeInfo[key] = publicNode[key];
 			}
 			context.copyExtensionProperties(node, nodeInfo);
-			nodeInfo.startPosition = positions[0];
+			const [startPosition] = positions;
+			if (!startPosition) continue;
+			nodeInfo.startPosition = startPosition;
 			nodeInfo.pageNumbers = Array.from(
 				new Set(
 					positions
@@ -59,17 +61,22 @@ export const pageBreakBeforeFeature = {
 			node.nodeInfo = nodeInfo;
 		}
 
-		for (let index = 0; index < nodes.length; index++) {
-			const node = nodes[index];
+		for (const [index, node] of nodes.entries()) {
 			if (node.pageBreak === "before" || node.pageBreakCalculated) continue;
 
 			node.pageBreakCalculated = true;
 			const nodeInfo = node.nodeInfo!;
 			const pageNumber = nodeInfo.pageNumbers[0];
-			const getNodes = (start: number, end: number, targetPage: number): PageBreakNodeInfo[] => {
+			// A node without a page number has no neighbours on a page.
+			const getNodes = (
+				start: number,
+				end: number,
+				targetPage: number | undefined,
+			): PageBreakNodeInfo[] => {
 				const result: PageBreakNodeInfo[] = [];
-				for (let nodeIndex = start; nodeIndex < end; nodeIndex++) {
-					const info = nodes[nodeIndex].nodeInfo;
+				if (targetPage === undefined) return result;
+				for (const other of nodes.slice(start, end)) {
+					const info = other.nodeInfo;
 					if (!info) continue;
 					if (info.pageNumbers.includes(targetPage)) result.push(info);
 				}
@@ -79,7 +86,12 @@ export const pageBreakBeforeFeature = {
 			if (
 				pageBreakBefore(nodeInfo, {
 					getFollowingNodesOnPage: () => getNodes(index + 1, nodes.length, pageNumber),
-					getNodesOnNextPage: () => getNodes(index + 1, nodes.length, pageNumber + 1),
+					getNodesOnNextPage: () =>
+						getNodes(
+							index + 1,
+							nodes.length,
+							pageNumber === undefined ? undefined : pageNumber + 1,
+						),
 					getPreviousNodesOnPage: () => getNodes(0, index, pageNumber),
 				})
 			) {

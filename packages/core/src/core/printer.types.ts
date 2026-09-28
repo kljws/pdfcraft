@@ -1,10 +1,10 @@
+import type { AllowUndefined } from "../utils/defined";
 import type {
 	CreatePdfOptions,
 	Dictionary,
 	DocumentDefinition,
 	DynamicBackground,
 	DynamicContent,
-	FontDescriptors,
 	Margin,
 	PatternDefinition,
 	PageOrientation,
@@ -21,46 +21,44 @@ import type { DynamicPageMargins } from "../types/internal";
 
 export type PrinterResourceReference = string | ResourceReference;
 
-export interface AttachmentDefinition extends PDFKit.Mixins.PDFAttachmentOptions {
+export type AttachmentDefinition = AllowUndefined<PDFKit.Mixins.PDFAttachmentOptions> & {
 	src: PrinterResourceReference | Uint8Array;
-	name?: string;
-	description?: string;
-}
+};
 
-export interface PrinterDocumentDefinition extends PdfCraftDocumentExtensionRegistry {
+export type PrinterDocumentDefinition = PdfCraftDocumentExtensionRegistry & {
 	content: DocumentDefinition["content"];
-	version?: DocumentDefinition["version"];
-	subset?: PDFKit.Mixins.PDFSubsets;
-	tagged?: boolean;
-	displayTitle?: boolean;
-	images?: Dictionary<PrinterResourceReference>;
-	attachments?: Dictionary<PrinterResourceReference | AttachmentDefinition>;
-	files?: Dictionary<AttachmentDefinition>;
-	patterns?: Dictionary<PatternDefinition>;
-	pageSize?: PageSizeName | PageSize;
-	pageMargins?: PageMarginDefinition | Margin | DynamicPageMargins;
-	pageOrientation?: PageOrientation;
-	styles?: Dictionary<Style>;
-	defaultStyle?: Style;
-	header?: DynamicContent;
-	footer?: DynamicContent;
-	background?: DynamicBackground;
-	watermark?: DocumentDefinition["watermark"];
-	pageBreakBefore?: DocumentDefinition["pageBreakBefore"];
-	info?: Dictionary<string | Date>;
-	compress?: boolean;
-	userPassword?: string;
-	ownerPassword?: string;
-	permissions?: DocumentPermissions;
-	language?: string;
-	maxPagesNumber?: number;
-}
+	version?: DocumentDefinition["version"] | undefined;
+	subset?: PDFKit.Mixins.PDFSubsets | undefined;
+	tagged?: boolean | undefined;
+	displayTitle?: boolean | undefined;
+	images?: Dictionary<PrinterResourceReference> | undefined;
+	attachments?: Dictionary<PrinterResourceReference | AttachmentDefinition> | undefined;
+	files?: Dictionary<AttachmentDefinition> | undefined;
+	patterns?: Dictionary<PatternDefinition> | undefined;
+	pageSize?: PageSizeName | PageSize | undefined;
+	pageMargins?: PageMarginDefinition | Margin | DynamicPageMargins | undefined;
+	pageOrientation?: PageOrientation | undefined;
+	styles?: Dictionary<Style> | undefined;
+	defaultStyle?: Style | undefined;
+	header?: DynamicContent | undefined;
+	footer?: DynamicContent | undefined;
+	background?: DynamicBackground | undefined;
+	watermark?: DocumentDefinition["watermark"] | undefined;
+	pageBreakBefore?: DocumentDefinition["pageBreakBefore"] | undefined;
+	info?: Dictionary<string | Date> | undefined;
+	compress?: boolean | undefined;
+	userPassword?: string | undefined;
+	ownerPassword?: string | undefined;
+	permissions?: DocumentPermissions | undefined;
+	language?: string | undefined;
+	maxPagesNumber?: number | undefined;
+};
 
-export interface PrinterOptions extends CreatePdfOptions {
-	fontLayoutCache?: boolean;
-	bufferPages?: boolean;
-	tableLayouts?: Dictionary<TableLayout>;
-}
+export type PrinterOptions = CreatePdfOptions & {
+	fontLayoutCache?: boolean | undefined;
+	bufferPages?: boolean | undefined;
+	tableLayouts?: Dictionary<TableLayout> | undefined;
+};
 
 export type PdfKitCreationOptions = Omit<PDFKit.PDFDocumentOptions, "font" | "size"> & {
 	size: [number, number];
@@ -70,9 +68,7 @@ export type PdfKitCreationOptions = Omit<PDFKit.PDFDocumentOptions, "font" | "si
 	font: null;
 };
 
-export type PrinterFontDescriptors = FontDescriptors;
-
-export interface ExtendedResource {
+export type ExtendedResource = {
 	url: string;
 	headers: ResourceHeaders;
-}
+};

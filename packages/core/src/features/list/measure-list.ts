@@ -10,12 +10,12 @@ import { isNumber } from "../../utils/variable-type";
 import { buildUnorderedMarker, formatOrderedMarker, resolveMarkerColor } from "./list-markers";
 import type { ListMeasureNode, MeasuredListItem, MeasuredListNode } from "./list.types";
 
-export interface ListMeasureContext {
+export type ListMeasureContext = {
 	styles: StyleContextStack;
 	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
 	measureGap(): TextMeasurement;
 	buildMarkerInlines(text: string, color: Color, styles: StyleContextStack): Inline[];
-}
+};
 
 export function measureUnorderedList(
 	node: ListMeasureNode,
@@ -30,8 +30,8 @@ export function measureUnorderedList(
 	node._minWidth = 0;
 	node._maxWidth = 0;
 
-	for (let index = 0; index < items.length; index++) {
-		const item: MeasuredListItem = (items[index] = context.measureNode(items[index]));
+	for (const [index, pending] of items.entries()) {
+		const item: MeasuredListItem = (items[index] = context.measureNode(pending));
 		if (item._kind !== "list") {
 			item.listMarker = buildUnorderedMarker(item, style, gapSize, item.listType || node.type);
 		}
@@ -60,8 +60,8 @@ export function measureOrderedList(
 	node._maxWidth = 0;
 
 	let counter = node.start;
-	for (let index = 0; index < items.length; index++) {
-		const item: MeasuredListItem = (items[index] = context.measureNode(items[index]));
+	for (const [index, pending] of items.entries()) {
+		const item: MeasuredListItem = (items[index] = context.measureNode(pending));
 		if (item._kind !== "list") {
 			const counterValue = isNumber(item.counter) ? item.counter : counter;
 			const counterText = formatOrderedMarker(
@@ -79,8 +79,9 @@ export function measureOrderedList(
 				};
 			}
 
-			if (item.listMarker?._inlines) {
-				gapSize.width = Math.max(gapSize.width, item.listMarker._inlines[0].width);
+			const markerInline = item.listMarker?._inlines?.[0];
+			if (markerInline) {
+				gapSize.width = Math.max(gapSize.width, markerInline.width);
 			}
 			counter += node.reversed ? -1 : 1;
 		}

@@ -1,5 +1,6 @@
 import PDFKit from "pdfkit";
 import { isString } from "../utils/variable-type";
+import { withoutUndefined, type AllowUndefined } from "../utils/defined";
 import { decodeBase64, toArrayBuffer } from "../utils/bytes";
 import type {
 	Dictionary,
@@ -33,13 +34,13 @@ const escapeXmpText = (value: unknown): string =>
 		.replaceAll('"', "&quot;")
 		.replaceAll("'", "&apos;");
 
-interface PdfKitMetadataInternals {
+type PdfKitMetadataInternals = {
 	info: Record<string, unknown>;
-}
+};
 
-interface PdfKitMetadataPrototype {
+type PdfKitMetadataPrototype = {
 	endMetadata(this: object): void;
-}
+};
 
 class PDFDocument extends PDFKit {
 	private readonly fontProvider: FontProvider;
@@ -53,7 +54,7 @@ class PDFDocument extends PDFKit {
 	declare localAccessPolicy: LocalAccessPolicy | undefined;
 	declare _font: EmbeddedFont;
 	declare _imageRegistry: Dictionary<EmbeddedImage>;
-	declare _root: { data: { OpenAction?: PDFKit.PDFKitReference } };
+	declare _root: { data: { OpenAction?: PDFKit.PDFKitReference | undefined } };
 	declare _normalizeColor: ((color: string) => unknown[] | null) | undefined;
 	declare openImage: (source: PDFKit.Mixins.ImageSrc) => EmbeddedImage;
 	declare _pdfCraftPages: PdfPage[];
@@ -210,7 +211,9 @@ class PDFDocument extends PDFKit {
 		return null;
 	}
 
-	provideAttachment(src: string | ResolvedAttachmentDefinition): ResolvedAttachmentDefinition {
+	provideAttachment(
+		src: string | AllowUndefined<ResolvedAttachmentDefinition>,
+	): ResolvedAttachmentDefinition {
 		const checkRequired = (obj: unknown): ResolvedAttachmentDefinition => {
 			if (!obj || typeof obj !== "object") {
 				throw new Error("No attachment");
@@ -223,7 +226,9 @@ class PDFDocument extends PDFKit {
 		};
 
 		const attachment =
-			typeof src === "object" ? checkRequired(src) : checkRequired(this.attachments[src]);
+			typeof src === "object"
+				? checkRequired(withoutUndefined(src))
+				: checkRequired(this.attachments[src]);
 
 		if (this.virtualfs && isString(attachment.src) && this.virtualfs.existsSync(attachment.src)) {
 			const file = this.virtualfs.readFileSync(attachment.src);

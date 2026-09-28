@@ -28,7 +28,7 @@ export function stringifyNode(node: unknown): string {
 }
 
 /** Text measured for a page number that no layout pass has resolved yet. */
-export const UNRESOLVED_PAGE_NUMBER_TEXT = "00000";
+export const unresolvedPageNumberText = "00000";
 
 /**
  * Page number of the node's first position as laid out by the latest layout pass. Positions
@@ -69,7 +69,7 @@ export function getNodeId(node: { id?: unknown; text?: unknown }): string | null
  */
 export function getNodeMargin(
 	node: {
-		style?: NodeStyleValue;
+		style?: NodeStyleValue | undefined;
 		margin?: unknown;
 		marginLeft?: unknown;
 		marginTop?: unknown;
@@ -102,7 +102,7 @@ export function getNodeMargin(
 	function flattenStyleArray(
 		styleValue: unknown,
 		visited: Set<string> = new Set(),
-	): { margin?: PartialMargin } {
+	): { margin?: PartialMargin | undefined } {
 		const styleArray = Array.isArray(styleValue) ? styleValue : [styleValue];
 
 		// style is not valid array of strings
@@ -110,9 +110,8 @@ export function getNodeMargin(
 			return {};
 		}
 
-		let flattenedStyles: { margin?: PartialMargin } = {};
-		for (let index = 0; index < styleArray.length; index++) {
-			const styleName = styleArray[index];
+		let flattenedStyles: { margin?: PartialMargin | undefined } = {};
+		for (const styleName of styleArray) {
 			const style = styleStack.styleDictionary[styleName];
 
 			// style not found

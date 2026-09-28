@@ -36,7 +36,7 @@ export function moveToNextColumn(
 	calculateBottomMost(snakingSnapshot, null);
 	let overflowCount = 0;
 	for (let index = state.snapshots.length - 1; index >= 0; index--) {
-		if (!state.snapshots[index].overflowed) break;
+		if (!state.snapshots[index]?.overflowed) break;
 		overflowCount++;
 	}
 
@@ -75,7 +75,7 @@ export function moveToNextColumn(
 
 	for (let index = state.snapshots.length - 2; index >= 0; index--) {
 		const snapshot = state.snapshots[index];
-		if (snapshot.overflowed || snapshot.snakingColumns) break;
+		if (!snapshot || snapshot.overflowed || snapshot.snakingColumns) break;
 		snapshot.x = newX;
 		snapshot.y = newY;
 		snapshot.page = state.page;

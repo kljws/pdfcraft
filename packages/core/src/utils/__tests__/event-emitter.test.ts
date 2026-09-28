@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import EventEmitter from "../event-emitter";
 
-interface Events {
+type Events = {
 	change: [value: number];
-}
+};
 
 describe("EventEmitter", () => {
 	it("emits typed arguments and removes listeners", () => {

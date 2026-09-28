@@ -1,3 +1,4 @@
+import { withoutUndefined } from "../utils/defined";
 import type PDFDocument from "../rendering/pdf-document";
 import type { Dictionary } from "../types";
 import type { PrinterDocumentDefinition } from "./printer.types";
@@ -55,6 +56,6 @@ export function embedFiles(docDefinition: PrinterDocumentDefinition, pdfKitDoc: 
 			file.src = pdfKitDoc.virtualfs.readFileSync(file.src);
 		}
 		file.name ||= key;
-		pdfKitDoc.file(file.src, file);
+		pdfKitDoc.file(file.src, withoutUndefined(file));
 	}
 }

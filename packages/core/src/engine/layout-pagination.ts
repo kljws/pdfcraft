@@ -1,10 +1,10 @@
 import type PageElementWriter from "../layout/element-writer.page";
 import type { PageOrientation } from "../types";
 
-export interface VerticalPaginationContext {
+export type VerticalPaginationContext = {
 	writer: PageElementWriter;
 	moveAcrossSnakingPage(pageOrientation?: PageOrientation): void;
-}
+};
 
 export function moveDownWithPageBreak(
 	height: number,

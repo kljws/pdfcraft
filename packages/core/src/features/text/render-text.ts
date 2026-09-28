@@ -5,19 +5,19 @@ import type { Inline, LayoutPdfNode, LineLike, MeasuredPdfNode } from "../../typ
 import { isNumber } from "../../utils/variable-type";
 import TextDecorator from "./text-decorator";
 
-export interface TextRenderContext {
+export type TextRenderContext = {
 	document: PDFDocument;
 	outlineMap: Record<string, PDFKit.PDFOutline>;
 	x: number;
 	y: number;
 	/** Renders an inline form field owned by another feature. */
 	renderAcroForm(inline: Inline, x: number, y: number): void;
-}
+};
 
-interface TextOptions extends PDFKit.Mixins.TextOptions {
+type TextOptions = PDFKit.Mixins.TextOptions & {
 	textWidth: number;
 	wordCount: number;
-}
+};
 
 const offsetText = (y: number, inline: Inline): number => {
 	if (inline.sup) return y - inline.fontSize * 0.75;
@@ -42,13 +42,11 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 	let { x, y } = context;
 
 	if (line._outline) {
-		let parentOutline = document.outline;
-		if (line._outline.parentId && context.outlineMap[line._outline.parentId]) {
-			parentOutline = context.outlineMap[line._outline.parentId];
-		}
+		const parentId = line._outline.parentId;
+		const parentOutline = (parentId && context.outlineMap[parentId]) || document.outline;
 
 		const outline = parentOutline.addItem(line._outline.text, {
-			expanded: line._outline.expanded,
+			expanded: line._outline.expanded === true,
 		});
 		if (line._outline.id) context.outlineMap[line._outline.id] = outline;
 	}
@@ -63,8 +61,7 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 
 	textDecorator.drawBackground(line, x, y);
 
-	for (let index = 0; index < line.inlines.length; index++) {
-		const inline = line.inlines[index];
+	for (const [index, inline] of line.inlines.entries()) {
 		const shiftToBaseline = lineHeight - (inline.font.ascender / 1000) * inline.fontSize - descent;
 
 		if (inline.acroform) {

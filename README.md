@@ -272,7 +272,7 @@ pnpm test
 Test locations:
 
 - unit tests are colocated under `packages/*/src/**/__tests__/`;
-- integration tests are under `packages/*/tests/integration/`, and the shared reference documents under `packages/core/tests/reference/`;
+- integration tests (`*.integ.ts`) are colocated under `packages/core/src/**/__tests__/` (other packages still use `packages/*/tests/integration/`), and the shared reference documents and helpers under `packages/core/src/__tests__/fixtures/`;
 - browser tests are under `packages/browser/tests/`;
 - public type-contract tests are under `packages/*/tests/types/`;
 - tests of the built packages are under `tests/consumer/`, and manual visual checks under `tests/visual/`.

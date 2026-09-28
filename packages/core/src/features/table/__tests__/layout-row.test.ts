@@ -30,17 +30,17 @@ describe("Table row layout", function () {
 	describe("processRow", function () {
 		var builder: BaseLayoutBuilder;
 		var rowLayout: TableRowLayout;
-		interface RowCellFixture {
+		type RowCellFixture = {
 			stack: Array<{ text: string; pageBreak?: "after" }>;
-		}
-		interface TableFixture {
+		};
+		type TableFixture = {
 			table: {
 				headerRows: number;
 				widths: ColumnWidth[];
 				body: LayoutTableCell[][];
 			};
 			metrics: { offsets: { offsets: number[] } };
-		}
+		};
 
 		function createTable(
 			headerRows: number,

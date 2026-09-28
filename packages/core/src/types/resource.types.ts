@@ -2,9 +2,9 @@ import type { Dictionary } from "./common.types";
 
 export type AccessPolicy = (resource: string) => boolean | Promise<boolean>;
 export type LocalAccessPolicy = (resource: string) => boolean;
-export interface HeaderCollection {
+export type HeaderCollection = {
 	forEach(callback: (value: string, key: string) => void): void;
-}
+};
 export type ResourceHeaders =
 	| Record<string, string>
 	| ReadonlyArray<readonly [string, string]>
@@ -23,32 +23,32 @@ export type VfsEncoding =
 	| "utf16le"
 	| "utf-16le";
 
-export interface ResourceReference {
+export type ResourceReference = {
 	url: string;
-	headers?: ResourceHeaders;
-}
+	headers?: ResourceHeaders | undefined;
+};
 
 export type ResourceSource = string | ResourceReference;
 export type FontSource = ResourceSource | [ResourceSource, string];
 
-export interface FontDescriptor {
+export type FontDescriptor = {
 	normal: FontSource;
-	bold?: FontSource;
-	italics?: FontSource;
-	bolditalics?: FontSource;
-}
+	bold?: FontSource | undefined;
+	italics?: FontSource | undefined;
+	bolditalics?: FontSource | undefined;
+};
 
 export type FontDescriptors = Dictionary<FontDescriptor>;
 
-export interface VirtualFileSystem {
+export type VirtualFileSystem = {
 	existsSync(filename: string): boolean;
 	readFileSync(
 		filename: string,
-		options?: VfsEncoding | { encoding?: VfsEncoding },
+		options?: VfsEncoding | { encoding?: VfsEncoding | undefined },
 	): Uint8Array | string;
 	writeFileSync(
 		filename: string,
 		content: string | ArrayBuffer | ArrayBufferView,
-		options?: VfsEncoding | { encoding?: VfsEncoding },
+		options?: VfsEncoding | { encoding?: VfsEncoding | undefined },
 	): void;
-}
+};

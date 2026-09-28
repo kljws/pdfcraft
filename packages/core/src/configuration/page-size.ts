@@ -82,10 +82,10 @@ const isValidDimension = (value: unknown): value is number =>
 const describe = (value: unknown): string =>
 	typeof value === "string" ? `'${value}'` : String(value);
 
-const MARGIN_SIDES = ["left", "top", "right", "bottom"] as const;
+const marginSides = ["left", "top", "right", "bottom"] as const;
 
 function assertValidMargins(margins: PageMargins, path: string): PageMargins {
-	for (const side of MARGIN_SIDES) {
+	for (const side of marginSides) {
 		const value = margins[side];
 		if (!isNumber(value) || !Number.isFinite(value) || value < 0) {
 			throw new Error(

@@ -4,10 +4,10 @@ import type { EmbeddedFont, RenderablePage } from "../../rendering/renderer.type
 import type { MeasuredWatermark, PageSize, PdfPage } from "../../types/internal";
 import type { WatermarkDefinition } from "./measure-watermark";
 
-interface WatermarkLayoutContext {
+type WatermarkLayoutContext = {
 	pages: PdfPage[];
 	measureWatermark(watermark: WatermarkDefinition, pageSize: PageSize): MeasuredWatermark;
-}
+};
 
 export const watermarkFeature = {
 	layout(watermark: unknown, context: WatermarkLayoutContext): void {

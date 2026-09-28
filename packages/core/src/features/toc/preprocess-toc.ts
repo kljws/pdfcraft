@@ -3,15 +3,15 @@ import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { isString } from "../../utils/variable-type";
 import type { PreprocessedTocNode } from "./toc.types";
 
-export interface TocPreprocessContext {
+export type TocPreprocessContext = {
 	tocs: Record<string, PreprocessedPdfNode>;
 	preprocessNode(input: unknown): PreprocessedPdfNode;
-}
+};
 
-export interface TocItemRegistrationContext {
+export type TocItemRegistrationContext = {
 	parentNode: PreprocessedPdfNode | null;
 	tocs: Record<string, PreprocessedPdfNode>;
-}
+};
 
 export function registerTocItem(
 	node: PreprocessedPdfNode,
@@ -20,17 +20,13 @@ export function registerTocItem(
 	if (!node.tocItem) return;
 	if (!Array.isArray(node.tocItem)) node.tocItem = [node.tocItem];
 
-	for (let index = 0; index < node.tocItem.length; index++) {
-		if (!isString(node.tocItem[index])) node.tocItem[index] = "_default_";
-		const tocItemId = node.tocItem[index];
-
-		if (!context.tocs[tocItemId]) {
-			context.tocs[tocItemId] = {
-				_kind: "toc",
-				toc: { _items: [], _pseudo: true },
-			};
+	node.tocItem = node.tocItem.map((item) => (isString(item) ? item : "_default_"));
+	for (const tocItemId of node.tocItem) {
+		let tocNode = context.tocs[tocItemId];
+		if (!tocNode) {
+			tocNode = { _kind: "toc", toc: { _items: [], _pseudo: true } };
+			context.tocs[tocItemId] = tocNode;
 		}
-		const tocNode = context.tocs[tocItemId];
 		if (tocNode._kind !== "toc") {
 			throw new Error(`Internal preprocessing error: missing TOC '${tocItemId}'`);
 		}
@@ -53,8 +49,8 @@ export function preprocessToc(node: PdfNode, context: TocPreprocessContext): Pre
 	toc.title = toc.title ? context.preprocessNode(toc.title) : null;
 	toc._items = [];
 
-	if (context.tocs[toc.id]) {
-		const registeredNode = context.tocs[toc.id];
+	const registeredNode = context.tocs[toc.id];
+	if (registeredNode) {
 		if (registeredNode._kind !== "toc") {
 			throw new Error(`Internal preprocessing error: missing TOC '${toc.id}'`);
 		}

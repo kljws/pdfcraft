@@ -15,14 +15,14 @@ export type MeasuredAcroFormNode = MeasuredNodeBase & {
 	_kind: "acroform";
 	acroform: NonNullable<PdfNode["acroform"]>;
 	/** Font resolved at measurement for the form field appearance. */
-	_formFont?: PdfFont;
+	_formFont?: PdfFont | undefined;
 };
 
 export type LayoutAcroFormNode = LayoutNodeBase & {
 	_kind: "acroform";
 	acroform: NonNullable<PdfNode["acroform"]>;
 	/** Font resolved at measurement for the form field appearance. */
-	_formFont?: PdfFont;
+	_formFont?: PdfFont | undefined;
 };
 
 declare module "../../types/document.types" {

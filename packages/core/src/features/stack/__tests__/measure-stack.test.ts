@@ -6,11 +6,11 @@ import {
 } from "../../../__tests__/fixtures/measurement.ts";
 import type { PdfNode } from "../../../types/internal.ts";
 
-interface MeasuredFixture extends PdfNode {
+type MeasuredFixture = PdfNode & {
 	_minWidth: number;
 	_maxWidth: number;
 	stack: MeasuredFixture[];
-}
+};
 
 const docMeasure = createTestMeasurement<MeasuredFixture>(sampleTestProvider);
 const docPreprocessor = createBuiltInPreprocessing();

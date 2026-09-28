@@ -18,13 +18,13 @@ import type {
 } from "./text.types";
 
 /** Inline shaping owned by text and injected by measurement composition. */
-export interface TextMeasureCapabilities {
+export type TextMeasureCapabilities = {
 	readonly inlines: TextInlines;
-}
+};
 
 type TextMeasureFeatureContext = NodeMeasureContext & TextMeasureCapabilities;
 
-interface TextFeatureStages extends NodeFeatureStages {
+type TextFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTextNode;
 	measureNode: TextMeasureNode;
@@ -35,15 +35,15 @@ interface TextFeatureStages extends NodeFeatureStages {
 	measureContext: TextMeasureFeatureContext;
 	layoutContext: NodeLayoutContext;
 	renderContext: TextRenderContext;
-}
+};
 
-interface TextFeature extends NodeFeature<TextFeatureStages> {
+type TextFeature = NodeFeature<TextFeatureStages> & {
 	readonly kind: "text";
 	preprocess(node: PdfNode, context: TextPreprocessContext): PreprocessedTextNode;
 	measure(node: TextMeasureNode, context: TextMeasureFeatureContext): MeasuredTextNode;
 	layout(node: LayoutTextNode, context: NodeLayoutContext): void;
 	render(line: LineLike, context: TextRenderContext): void;
-}
+};
 
 export const textFeature = {
 	kind: "text",

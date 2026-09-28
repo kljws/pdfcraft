@@ -4,7 +4,6 @@ import { isObject, isString, isValue } from "../../utils/variable-type";
 
 type StyleRecord = Style;
 type StyleNode = object;
-type StyleOverride = string | object;
 const readProperty = (value: object, key: string): unknown =>
 	(value as Record<string, unknown>)[key];
 type Widen<T> = T extends string
@@ -21,7 +20,7 @@ type Widen<T> = T extends string
 class StyleContextStack {
 	styleDictionary: Dictionary<StyleRecord>;
 	defaultStyle: StyleRecord;
-	styleOverrides: StyleOverride[];
+	styleOverrides: Array<string | object>;
 
 	constructor(
 		styleDictionary: Dictionary<StyleRecord> | null = null,
@@ -57,7 +56,7 @@ class StyleContextStack {
 			return 0;
 		}
 
-		const node = item as { style?: NodeStyleValue; section?: unknown };
+		const node = item as { style?: NodeStyleValue | undefined; section?: unknown };
 		if (typeof node.section !== "undefined") {
 			return 0;
 		}
@@ -72,8 +71,8 @@ class StyleContextStack {
 			}
 		}
 
-		for (let i = 0, l = styleNames.length; i < l; i++) {
-			this.push(styleNames[i]);
+		for (const styleName of styleNames) {
+			this.push(styleName);
 		}
 		let pushedStyleOverride = 0;
 		if (isObject(node.style)) {
@@ -100,6 +99,7 @@ class StyleContextStack {
 		if (this.styleOverrides) {
 			for (let i = this.styleOverrides.length - 1; i >= 0; i--) {
 				const item = this.styleOverrides[i];
+				if (item === undefined) continue;
 
 				if (isString(item)) {
 					const value = this.getStylePropertyFromStyle(item, property, new Set());

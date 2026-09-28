@@ -9,13 +9,13 @@ import { backgroundFeature } from "../features/repeatables/background.feature";
 import { headerFooterFeature } from "../features/repeatables/header-footer.feature";
 import { watermarkFeature } from "../features/repeatables/watermark.feature";
 
-interface DocumentFeatureCompositionHost {
+type DocumentFeatureCompositionHost = {
 	writer: PageElementWriter;
 	preprocessing: BuiltInPreprocessing;
 	measurement: BuiltInMeasurement;
 	suppressLinearNodeList: boolean;
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
-}
+};
 
 export function createBuiltInDocumentFeatures(
 	host: DocumentFeatureCompositionHost,
@@ -36,7 +36,7 @@ export function createBuiltInDocumentFeatures(
 		background: {
 			layout(background: unknown): boolean {
 				const context = host.writer.context();
-				const pageSize = context.getCurrentPage().pageSize;
+				const pageSize = context.requireCurrentPage().pageSize;
 				return backgroundFeature.layout(background, {
 					pageNumber: context.page + 1,
 					pageCount: context.pageCount,
@@ -49,7 +49,8 @@ export function createBuiltInDocumentFeatures(
 					measureNode: (node) => host.measurement.measureNode(node) as LayoutPdfNode,
 					layoutNode: layoutRepeatableNode,
 					recordBackgroundItems: (count) => {
-						context.backgroundLength[context.page] += count;
+						context.backgroundLength[context.page] =
+							(context.backgroundLength[context.page] ?? 0) + count;
 					},
 				});
 			},

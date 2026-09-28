@@ -9,21 +9,21 @@ import {
 	type TableVectorRole,
 } from "./table-processor.helpers";
 
-const TABLE_FILL_CORRECTION = 0.5;
+const tableFillCorrection = 0.5;
 
-export interface TableLinePosition {
+export type TableLinePosition = {
 	x: number;
 	index: number;
-}
+};
 
-interface RowSegment {
+type RowSegment = {
 	y1: number;
 	y2: number;
 	willBreak: boolean;
 	horizontalLineOffset: number;
-	roundTop?: boolean;
-	roundBottom?: boolean;
-}
+	roundTop?: boolean | undefined;
+	roundBottom?: boolean | undefined;
+};
 
 export function drawTableRowSegment(
 	processor: TableProcessor,
@@ -41,40 +41,47 @@ export function drawTableRowSegment(
 		roundTop = false,
 		roundBottom = false,
 	} = segment;
+	const row = body[rowIndex];
+	if (!row) throw new Error(`Internal layout error: missing table row ${rowIndex}`);
 	let lastCellIndex = -1;
-	for (let i = 0; i < xs.length - 1; i++) {
-		lastCellIndex = Math.max(lastCellIndex, xs[i].index);
+	for (const position of xs.slice(0, -1)) {
+		lastCellIndex = Math.max(lastCellIndex, position.index);
 	}
 
-	for (let i = 0, l = xs.length; i < l; i++) {
+	const l = xs.length;
+	for (const [i, position] of xs.entries()) {
 		let leftCellBorder = false;
 		let rightCellBorder = false;
-		const colIndex = xs[i].index;
+		const colIndex = position.index;
 
-		if (colIndex < body[rowIndex].length) {
-			const cell = body[rowIndex][colIndex];
-			leftCellBorder = cell.border ? cell.border[0] : processor.layout.defaultBorder;
-			rightCellBorder = cell.border ? cell.border[2] : processor.layout.defaultBorder;
+		const ownCell = row[colIndex];
+		if (ownCell) {
+			leftCellBorder = ownCell.border ? ownCell.border[0] : processor.layout.defaultBorder;
+			rightCellBorder = ownCell.border ? ownCell.border[2] : processor.layout.defaultBorder;
 		}
-		if (colIndex > 0 && !leftCellBorder) {
-			const cell = body[rowIndex][colIndex - 1];
-			leftCellBorder = cell.border ? cell.border[2] : processor.layout.defaultBorder;
+		const previousCell = colIndex > 0 ? row[colIndex - 1] : undefined;
+		if (previousCell && !leftCellBorder) {
+			leftCellBorder = previousCell.border
+				? previousCell.border[2]
+				: processor.layout.defaultBorder;
 		}
-		if (colIndex + 1 < body[rowIndex].length && !rightCellBorder) {
-			const cell = body[rowIndex][colIndex + 1];
-			rightCellBorder = cell.border ? cell.border[0] : processor.layout.defaultBorder;
+		const nextCell = row[colIndex + 1];
+		if (nextCell && !rightCellBorder) {
+			rightCellBorder = nextCell.border ? nextCell.border[0] : processor.layout.defaultBorder;
 		}
 
 		if (leftCellBorder) {
 			const isOuterBoundary = i === 0 || i === l - 1;
-			const edgeCell = i === 0 ? body[rowIndex][0] : body[rowIndex][xs[i - 1]?.index ?? colIndex];
-			const hasTopBorder = edgeCell.border ? edgeCell.border[1] : processor.layout.defaultBorder;
-			const hasBottomBorder = edgeCell.border ? edgeCell.border[3] : processor.layout.defaultBorder;
+			const edgeCell = i === 0 ? row[0] : row[xs[i - 1]?.index ?? colIndex];
+			const hasTopBorder = edgeCell?.border ? edgeCell.border[1] : processor.layout.defaultBorder;
+			const hasBottomBorder = edgeCell?.border
+				? edgeCell.border[3]
+				: processor.layout.defaultBorder;
 			processor.drawVerticalLine(
-				xs[i].x,
+				position.x,
 				y1 - horizontalLineOffset,
 				y2 + processor.bottomLineWidth,
-				xs[i].index,
+				position.index,
 				writer,
 				rowIndex,
 				xs[i - 1]?.index ?? null,
@@ -93,8 +100,9 @@ export function drawTableRowSegment(
 			);
 		}
 
-		if (i >= l - 1) continue;
-		const cell = body[rowIndex][colIndex];
+		const nextPosition = xs[i + 1];
+		const cell = row[colIndex];
+		if (!nextPosition || !cell) continue;
 		cell._willBreak ??= willBreak;
 		if (cell._bottomY === undefined) {
 			let bottomY = processor.dontBreakRows
@@ -128,15 +136,17 @@ export function drawTableRowSegment(
 			? processor.layout.vLineWidth(colIndex, processor.tableNode)
 			: 0;
 		let rightBorderWidth = 0;
-		if ((colIndex === 0 || colIndex + 1 === body[rowIndex].length) && !rightCellBorder) {
+		if ((colIndex === 0 || colIndex + 1 === row.length) && !rightCellBorder) {
 			rightBorderWidth = processor.layout.vLineWidth(colIndex + 1, processor.tableNode);
 		} else if (rightCellBorder) {
 			rightBorderWidth = processor.layout.vLineWidth(colIndex + 1, processor.tableNode) / 2;
 		}
 
-		const x1 = processor.dontBreakRows ? xs[i].x + leftBorderWidth : xs[i].x + leftBorderWidth / 2;
+		const x1 = processor.dontBreakRows
+			? position.x + leftBorderWidth
+			: position.x + leftBorderWidth / 2;
 		const fillY1 = processor.dontBreakRows ? y1 : y1 - horizontalLineOffset / 2;
-		const x2 = xs[i + 1].x + rightBorderWidth;
+		const x2 = nextPosition.x + rightBorderWidth;
 		const fillY2 = processor.dontBreakRows
 			? y2 + processor.bottomLineWidth
 			: y2 + processor.bottomLineWidth / 2;
@@ -146,14 +156,14 @@ export function drawTableRowSegment(
 			lastCellIndex === 0
 				? 0
 				: isFirstCell || isLastCell
-					? TABLE_FILL_CORRECTION
-					: TABLE_FILL_CORRECTION * 2;
+					? tableFillCorrection
+					: tableFillCorrection * 2;
 		const rectangle = {
 			type: "rect" as const,
-			x: x1 - (isFirstCell ? 0 : TABLE_FILL_CORRECTION),
-			y: fillY1 - TABLE_FILL_CORRECTION,
+			x: x1 - (isFirstCell ? 0 : tableFillCorrection),
+			y: fillY1 - tableFillCorrection,
 			w: x2 - x1 + horizontalCorrection,
-			h: fillY2 - fillY1 + TABLE_FILL_CORRECTION * 2,
+			h: fillY2 - fillY1 + tableFillCorrection * 2,
 			lineWidth: 0,
 		};
 		const cornerRadii: CornerRadii = [

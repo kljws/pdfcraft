@@ -10,71 +10,74 @@ import type {
 	PageSizeName,
 } from "./common.types";
 
-export interface Style {
-	extends?: string | string[];
-	font?: string;
-	fontSize?: number;
-	bold?: boolean;
-	italics?: boolean;
-	alignment?: Alignment;
-	tableAlignment?: Exclude<Alignment, "justify">;
-	color?: Color;
-	background?: Color;
-	decoration?: Decoration | Decoration[];
-	decorationColor?: Color;
-	decorationStyle?: "dashed" | "dotted" | "double" | "wavy";
-	decorationThickness?: number;
-	lineHeight?: number;
-	paragraphGap?: number;
-	characterSpacing?: number;
-	columnGap?: number;
-	leadingIndent?: number;
-	noWrap?: boolean;
-	wordBreak?: "normal" | "break-all";
-	preserveLeadingSpaces?: boolean;
-	preserveTrailingSpaces?: boolean;
-	fontFeatures?: string[];
-	opacity?: number;
-	markerColor?: Color;
-	border?: [boolean, boolean, boolean, boolean];
-	borderColor?: [Color, Color, Color, Color];
-	fillColor?: Color;
-	fillOpacity?: number;
-	margin?: Margin;
-	marginLeft?: number;
-	marginTop?: number;
-	marginRight?: number;
-	marginBottom?: number;
-	link?: string;
-	linkToPage?: number;
-	linkToDestination?: string;
-	linkToFile?: string | { src: string | Uint8Array; name?: string; description?: string };
-	sup?: boolean;
-	sub?: boolean;
-}
+export type Style = {
+	extends?: string | readonly string[] | undefined;
+	font?: string | undefined;
+	fontSize?: number | undefined;
+	bold?: boolean | undefined;
+	italics?: boolean | undefined;
+	alignment?: Alignment | undefined;
+	tableAlignment?: Exclude<Alignment, "justify"> | undefined;
+	color?: Color | undefined;
+	background?: Color | undefined;
+	decoration?: Decoration | readonly Decoration[] | undefined;
+	decorationColor?: Color | undefined;
+	decorationStyle?: "dashed" | "dotted" | "double" | "wavy" | undefined;
+	decorationThickness?: number | undefined;
+	lineHeight?: number | undefined;
+	paragraphGap?: number | undefined;
+	characterSpacing?: number | undefined;
+	columnGap?: number | undefined;
+	leadingIndent?: number | undefined;
+	noWrap?: boolean | undefined;
+	wordBreak?: "normal" | "break-all" | undefined;
+	preserveLeadingSpaces?: boolean | undefined;
+	preserveTrailingSpaces?: boolean | undefined;
+	fontFeatures?: readonly string[] | undefined;
+	opacity?: number | undefined;
+	markerColor?: Color | undefined;
+	border?: [boolean, boolean, boolean, boolean] | undefined;
+	borderColor?: [Color, Color, Color, Color] | undefined;
+	fillColor?: Color | undefined;
+	fillOpacity?: number | undefined;
+	margin?: Margin | undefined;
+	marginLeft?: number | undefined;
+	marginTop?: number | undefined;
+	marginRight?: number | undefined;
+	marginBottom?: number | undefined;
+	link?: string | undefined;
+	linkToPage?: number | undefined;
+	linkToDestination?: string | undefined;
+	linkToFile?:
+		| string
+		| { src: string | Uint8Array; name?: string | undefined; description?: string | undefined }
+		| undefined;
+	sup?: boolean | undefined;
+	sub?: boolean | undefined;
+};
 
-export interface ContentBase extends Style {
-	style?: string | string[] | Style;
-	id?: string;
-	pageBreak?: PageBreak;
-	pageOrientation?: PageOrientation;
-	absolutePosition?: { x: number; y: number };
-	relativePosition?: { x: number; y: number };
-	unbreakable?: boolean;
-	headlineLevel?: number;
-	tocItem?: string | string[];
-	tocStyle?: string | string[] | Style;
-	tocMargin?: Margin;
-	tocNumberStyle?: string | string[] | Style;
-	pageReference?: string;
-	textReference?: string;
-	outline?: boolean | string;
-	outlineExpanded?: boolean;
-	outlineParentId?: string;
-	outlineText?: string;
-	listType?: ListType;
-	counter?: number;
-}
+export type ContentBase = Style & {
+	style?: string | readonly string[] | Style | undefined;
+	id?: string | undefined;
+	pageBreak?: PageBreak | undefined;
+	pageOrientation?: PageOrientation | undefined;
+	absolutePosition?: { x: number; y: number } | undefined;
+	relativePosition?: { x: number; y: number } | undefined;
+	unbreakable?: boolean | undefined;
+	headlineLevel?: number | undefined;
+	tocItem?: string | readonly string[] | undefined;
+	tocStyle?: string | readonly string[] | Style | undefined;
+	tocMargin?: Margin | undefined;
+	tocNumberStyle?: string | readonly string[] | Style | undefined;
+	pageReference?: string | undefined;
+	textReference?: string | undefined;
+	outline?: boolean | string | undefined;
+	outlineExpanded?: boolean | undefined;
+	outlineParentId?: string | undefined;
+	outlineText?: string | undefined;
+	listType?: ListType | undefined;
+	counter?: number | undefined;
+};
 
 export type Text =
 	| string
@@ -83,132 +86,131 @@ export type Text =
 	| TextNode
 	| InlineImageNode
 	| AcroFormNode
-	| Array<string | number | boolean | TextNode | InlineImageNode | AcroFormNode>;
+	| readonly (string | number | boolean | TextNode | InlineImageNode | AcroFormNode)[];
 
-export interface TextNode extends ContentBase {
+export type TextNode = ContentBase & {
 	text: Text;
-	maxHeight?: number;
-}
+	maxHeight?: number | undefined;
+};
 
-export interface InlineImageNode extends ContentBase {
+export type InlineImageNode = ContentBase & {
 	image: string | Uint8Array;
-	width?: number;
-	height?: number;
-	fit?: [number, number];
-	minWidth?: number;
-	maxWidth?: number;
-	minHeight?: number;
-	maxHeight?: number;
-	opacity?: number;
-}
+	width?: number | undefined;
+	height?: number | undefined;
+	fit?: [number, number] | undefined;
+	minWidth?: number | undefined;
+	maxWidth?: number | undefined;
+	minHeight?: number | undefined;
+	maxHeight?: number | undefined;
+	opacity?: number | undefined;
+};
 
 export type AcroFormType = "text" | "button" | "list" | "combo" | "checkbox";
 
-export interface AcroFormOptions extends Record<string, unknown> {
-	value?: string;
-	defaultValue?: string;
-	select?: string[];
-	align?: "left" | "center" | "right";
-	multiline?: boolean;
-	password?: boolean;
-	readOnly?: boolean;
-	required?: boolean;
-	selected?: boolean;
-	backgroundColor?: Color;
-	borderColor?: Color;
-	fontSize?: number;
-	format?: Record<string, unknown> & { type: string };
-}
+export type AcroFormOptions = Record<string, unknown> & {
+	value?: string | undefined;
+	defaultValue?: string | undefined;
+	select?: readonly string[] | undefined;
+	align?: "left" | "center" | "right" | undefined;
+	multiline?: boolean | undefined;
+	password?: boolean | undefined;
+	readOnly?: boolean | undefined;
+	required?: boolean | undefined;
+	selected?: boolean | undefined;
+	backgroundColor?: Color | undefined;
+	borderColor?: Color | undefined;
+	fontSize?: number | undefined;
+	format?: (Record<string, unknown> & { type: string }) | undefined;
+};
 
-export interface AcroFormDefinition {
+export type AcroFormDefinition = {
 	type: AcroFormType;
 	id: string;
-	options?: AcroFormOptions;
-}
+	options?: AcroFormOptions | undefined;
+};
 
-export interface AcroFormNode extends ContentBase {
+export type AcroFormNode = ContentBase & {
 	acroform: AcroFormDefinition;
-	width?: number | "*";
-	height?: number;
-}
+	width?: number | "*" | undefined;
+	height?: number | undefined;
+};
 
-export interface StackNode extends Omit<ContentBase, "borderColor"> {
-	stack: Content[];
-	borderRadius?: number;
-	borderWidth?: number;
-	borderColor?: Color;
-	backgroundColor?: Color;
-	padding?: Margin;
-}
+export type StackNode = Omit<ContentBase, "borderColor"> & {
+	stack: readonly Content[];
+	borderRadius?: number | undefined;
+	borderWidth?: number | undefined;
+	borderColor?: Color | undefined;
+	backgroundColor?: Color | undefined;
+	padding?: Margin | undefined;
+};
 
-export interface ColumnsNode extends ContentBase {
-	columns: Array<Content | Column>;
-	columnGap?: number;
-	snakingColumns?: boolean;
-}
+export type ColumnsNode = ContentBase & {
+	columns: readonly (Content | Column)[];
+	columnGap?: number | undefined;
+	snakingColumns?: boolean | undefined;
+};
 
-export interface Column extends ContentBase {
-	width?: number | "auto" | "*" | "star" | `${number}%`;
-	text?: Text;
-	stack?: Content[];
-}
+export type Column = ContentBase & {
+	width?: number | "auto" | "*" | "star" | `${number}%` | undefined;
+	text?: Text | undefined;
+	stack?: readonly Content[] | undefined;
+};
 
-interface ListNodeBase extends ContentBase {
-	type?: ListType;
-	start?: number;
-	reversed?: boolean;
-	separator?: string | [string, string];
-}
+type ListNodeBase = ContentBase & {
+	type?: ListType | undefined;
+	start?: number | undefined;
+	reversed?: boolean | undefined;
+	separator?: string | [string, string] | undefined;
+};
 
 export type ListNode = ListNodeBase &
-	({ ul: Content[]; ol?: never } | { ol: Content[]; ul?: never });
+	(
+		| { ul: readonly Content[]; ol?: never | undefined }
+		| { ol: readonly Content[]; ul?: never | undefined }
+	);
 
-export interface TableChrome {
-	colSpan?: number;
-	rowSpan?: number;
-	border?: [boolean, boolean, boolean, boolean];
-	borderColor?: [Color, Color, Color, Color];
-	fillColor?: Color;
-	fillOpacity?: number;
-	verticalAlignment?: "top" | "middle" | "bottom";
-}
+export type TableChrome = {
+	colSpan?: number | undefined;
+	rowSpan?: number | undefined;
+	border?: [boolean, boolean, boolean, boolean] | undefined;
+	borderColor?: [Color, Color, Color, Color] | undefined;
+	fillColor?: Color | undefined;
+	fillOpacity?: number | undefined;
+	verticalAlignment?: "top" | "middle" | "bottom" | undefined;
+};
 
 export type TableCell = Content & TableChrome;
 
 export type TableCellDefinition = Content | TableCell;
 
-export type TableRow = TableCellDefinition[];
+export type TableRow = readonly TableCellDefinition[];
 
-export interface TableHeaderDefinition {
-	rows: TableRow[];
-	layout?: string | TableLayout;
-}
+export type TableHeaderDefinition = {
+	rows: readonly TableRow[];
+	layout?: string | TableLayout | undefined;
+};
 
-export interface TableRowGroup {
-	rows: TableRow[];
-	keepTogether?: boolean;
-	dontBreakRows?: boolean;
-	layout?: TableRowGroupLayout;
-}
+export type TableRowGroup = {
+	rows: readonly TableRow[];
+	keepTogether?: boolean | undefined;
+	dontBreakRows?: boolean | undefined;
+	layout?: TableRowGroupLayout | undefined;
+};
 
-export interface TableRowGroupLayoutContext {
+export type TableRowGroupLayoutContext = {
 	groupIndex: number;
 	rowCount: number;
 	startRow: number;
 	endRow: number;
-}
+};
 
-export interface TableRowGroupLayout {
-	hLineWidth?: (
-		boundaryIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => number;
-	vLineWidth?: (
-		columnIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => number;
+export type TableRowGroupLayout = {
+	hLineWidth?:
+		| ((boundaryIndex: number, node: TableLayoutNode, group: TableRowGroupLayoutContext) => number)
+		| undefined;
+	vLineWidth?:
+		| ((columnIndex: number, node: TableLayoutNode, group: TableRowGroupLayoutContext) => number)
+		| undefined;
 	hLineColor?:
 		| Color
 		| ((
@@ -216,7 +218,8 @@ export interface TableRowGroupLayout {
 				node: TableLayoutNode,
 				columnIndex: number | undefined,
 				group: TableRowGroupLayoutContext,
-		  ) => Color);
+		  ) => Color)
+		| undefined;
 	vLineColor?:
 		| Color
 		| ((
@@ -224,190 +227,219 @@ export interface TableRowGroupLayout {
 				node: TableLayoutNode,
 				rowIndex: number | undefined,
 				group: TableRowGroupLayoutContext,
-		  ) => Color);
-	paddingLeft?: (
-		columnIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => number;
-	paddingRight?: (
-		columnIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => number;
-	paddingTop?: (
-		rowIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => number;
-	paddingBottom?: (
-		rowIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => number;
-	hLineStyle?: (
-		boundaryIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => { dash?: CanvasVector["dash"] } | null;
-	vLineStyle?: (
-		columnIndex: number,
-		node: TableLayoutNode,
-		group: TableRowGroupLayoutContext,
-	) => { dash?: CanvasVector["dash"] } | null;
-}
+		  ) => Color)
+		| undefined;
+	paddingLeft?:
+		| ((columnIndex: number, node: TableLayoutNode, group: TableRowGroupLayoutContext) => number)
+		| undefined;
+	paddingRight?:
+		| ((columnIndex: number, node: TableLayoutNode, group: TableRowGroupLayoutContext) => number)
+		| undefined;
+	paddingTop?:
+		| ((rowIndex: number, node: TableLayoutNode, group: TableRowGroupLayoutContext) => number)
+		| undefined;
+	paddingBottom?:
+		| ((rowIndex: number, node: TableLayoutNode, group: TableRowGroupLayoutContext) => number)
+		| undefined;
+	hLineStyle?:
+		| ((
+				boundaryIndex: number,
+				node: TableLayoutNode,
+				group: TableRowGroupLayoutContext,
+		  ) => { dash?: CanvasVector["dash"] | undefined } | null)
+		| undefined;
+	vLineStyle?:
+		| ((
+				columnIndex: number,
+				node: TableLayoutNode,
+				group: TableRowGroupLayoutContext,
+		  ) => { dash?: CanvasVector["dash"] | undefined } | null)
+		| undefined;
+};
 
-export interface TableBodyDefinition {
-	groups: TableRowGroup[];
-	layout?: string | TableLayout;
-}
+export type TableBodyDefinition = {
+	groups: readonly TableRowGroup[];
+	layout?: string | TableLayout | undefined;
+};
 
-export interface TableDefinition {
-	header?: TableHeaderDefinition;
+export type TableDefinition = {
+	header?: TableHeaderDefinition | undefined;
 	body: TableBodyDefinition;
-	borderRadius?: number;
-	widths?: Array<number | "auto" | "*" | "star" | `${number}%`> | number | "auto" | "*" | "star";
-	heights?: number | "auto" | Array<number | "auto"> | ((row: number) => number | "auto");
-}
+	borderRadius?: number | undefined;
+	widths?:
+		| readonly (number | "auto" | "*" | "star" | `${number}%`)[]
+		| number
+		| "auto"
+		| "*"
+		| "star"
+		| undefined;
+	heights?:
+		| number
+		| "auto"
+		| readonly (number | "auto")[]
+		| ((row: number) => number | "auto")
+		| undefined;
+};
 
-export interface TableLayoutDefinition {
-	body: TableRow[];
-	widths: Array<number | "auto" | "*" | "star" | `${number}%`>;
-	heights?: number | "auto" | Array<number | "auto"> | ((row: number) => number | "auto");
+export type TableLayoutDefinition = {
+	body: readonly TableRow[];
+	widths: readonly (number | "auto" | "*" | "star" | `${number}%`)[];
+	heights?:
+		| number
+		| "auto"
+		| readonly (number | "auto")[]
+		| ((row: number) => number | "auto")
+		| undefined;
 	headerRows: number;
-}
+};
 
-export interface TableLayoutNode extends Omit<TableNode, "table"> {
+export type TableLayoutNode = Omit<TableNode, "table"> & {
 	table: TableLayoutDefinition;
-}
+};
 
-export interface TableNode extends ContentBase {
+export type TableNode = ContentBase & {
 	table: TableDefinition;
-}
+};
 
-export interface TableLayout {
-	hLineWidth?: (index: number, node: TableLayoutNode) => number;
-	vLineWidth?: (index: number, node: TableLayoutNode) => number;
-	hLineColor?: Color | ((index: number, node: TableLayoutNode, columnIndex?: number) => Color);
-	vLineColor?: Color | ((index: number, node: TableLayoutNode, rowIndex?: number) => Color);
-	paddingLeft?: (index: number, node: TableLayoutNode) => number;
-	paddingRight?: (index: number, node: TableLayoutNode) => number;
-	paddingTop?: (index: number, node: TableLayoutNode) => number;
-	paddingBottom?: (index: number, node: TableLayoutNode) => number;
-	hLineStyle?: (index: number, node: TableLayoutNode) => { dash?: CanvasVector["dash"] } | null;
-	vLineStyle?: (index: number, node: TableLayoutNode) => { dash?: CanvasVector["dash"] } | null;
-	hLineWhenBroken?: boolean;
+export type TableLayout = {
+	hLineWidth?: ((index: number, node: TableLayoutNode) => number) | undefined;
+	vLineWidth?: ((index: number, node: TableLayoutNode) => number) | undefined;
+	hLineColor?:
+		| Color
+		| ((index: number, node: TableLayoutNode, columnIndex?: number) => Color)
+		| undefined;
+	vLineColor?:
+		| Color
+		| ((index: number, node: TableLayoutNode, rowIndex?: number) => Color)
+		| undefined;
+	paddingLeft?: ((index: number, node: TableLayoutNode) => number) | undefined;
+	paddingRight?: ((index: number, node: TableLayoutNode) => number) | undefined;
+	paddingTop?: ((index: number, node: TableLayoutNode) => number) | undefined;
+	paddingBottom?: ((index: number, node: TableLayoutNode) => number) | undefined;
+	hLineStyle?:
+		| ((index: number, node: TableLayoutNode) => { dash?: CanvasVector["dash"] | undefined } | null)
+		| undefined;
+	vLineStyle?:
+		| ((index: number, node: TableLayoutNode) => { dash?: CanvasVector["dash"] | undefined } | null)
+		| undefined;
+	hLineWhenBroken?: boolean | undefined;
 	fillColor?:
 		| Color
 		| null
-		| ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => Color | null | undefined);
+		| ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => Color | null | undefined)
+		| undefined;
 	fillOpacity?:
 		| number
-		| ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => number | undefined);
-	defaultBorder?: boolean;
-}
+		| ((rowIndex: number, node: TableLayoutNode, columnIndex: number) => number | undefined)
+		| undefined;
+	defaultBorder?: boolean | undefined;
+};
 
-export interface ImageNode extends Omit<ContentBase, "borderColor"> {
+export type ImageNode = Omit<ContentBase, "borderColor"> & {
 	image: string | Uint8Array;
-	width?: number;
-	height?: number;
-	fit?: [number, number];
-	cover?: {
-		width: number;
-		height: number;
-		valign?: "top" | "center" | "bottom";
-		align?: "left" | "center" | "right";
-	};
-	opacity?: number;
-	minWidth?: number;
-	maxWidth?: number;
-	minHeight?: number;
-	maxHeight?: number;
-	borderRadius?: number;
-	borderWidth?: number;
-	borderColor?: Color;
+	width?: number | undefined;
+	height?: number | undefined;
+	fit?: [number, number] | undefined;
+	cover?:
+		| {
+				width: number;
+				height: number;
+				valign?: "top" | "center" | "bottom" | undefined;
+				align?: "left" | "center" | "right" | undefined;
+		  }
+		| undefined;
+	opacity?: number | undefined;
+	minWidth?: number | undefined;
+	maxWidth?: number | undefined;
+	minHeight?: number | undefined;
+	maxHeight?: number | undefined;
+	borderRadius?: number | undefined;
+	borderWidth?: number | undefined;
+	borderColor?: Color | undefined;
 	/**
 	 * Opt-in: when the sized image cannot fit the content area of a fresh page or column, scale
 	 * it down proportionally to fit that area instead of letting it overflow. Applied after
 	 * `width`, `height`, `fit` and the min/max options. It never enlarges an image and is ignored
 	 * for `cover` and `absolutePosition`.
 	 */
-	shrinkToFit?: boolean;
-}
+	shrinkToFit?: boolean | undefined;
+};
 
-export interface CanvasVector {
+export type CanvasVector = {
 	type: "line" | "rect" | "ellipse" | "polyline" | "path";
-	x?: number;
-	y?: number;
-	x1?: number;
-	y1?: number;
-	x2?: number;
-	y2?: number;
-	w?: number;
-	h?: number;
-	r?: number;
-	r1?: number;
-	r2?: number;
-	points?: Array<{ x: number; y: number }>;
-	lineWidth?: number;
-	lineColor?: Color;
-	color?: Color;
-	fillOpacity?: number;
-	lineOpacity?: number;
-	strokeOpacity?: number;
-	dash?: { length: number; space?: number; phase?: number };
-	d?: string;
-	closePath?: boolean;
-	linearGradient?: string[];
-	lineCap?: "butt" | "round" | "square";
-	lineJoin?: "miter" | "round" | "bevel";
-}
+	x?: number | undefined;
+	y?: number | undefined;
+	x1?: number | undefined;
+	y1?: number | undefined;
+	x2?: number | undefined;
+	y2?: number | undefined;
+	w?: number | undefined;
+	h?: number | undefined;
+	r?: number | undefined;
+	r1?: number | undefined;
+	r2?: number | undefined;
+	points?: readonly { x: number; y: number }[] | undefined;
+	lineWidth?: number | undefined;
+	lineColor?: Color | undefined;
+	color?: Color | undefined;
+	fillOpacity?: number | undefined;
+	lineOpacity?: number | undefined;
+	strokeOpacity?: number | undefined;
+	dash?: { length: number; space?: number | undefined; phase?: number | undefined } | undefined;
+	d?: string | undefined;
+	closePath?: boolean | undefined;
+	linearGradient?: readonly string[] | undefined;
+	lineCap?: "butt" | "round" | "square" | undefined;
+	lineJoin?: "miter" | "round" | "bevel" | undefined;
+};
 
-export interface CanvasNode extends ContentBase {
-	canvas: CanvasVector[];
-}
+export type CanvasNode = ContentBase & {
+	canvas: readonly CanvasVector[];
+};
 
-export interface AttachmentNode extends ContentBase {
-	attachment: string | { src: string | Uint8Array; name?: string; description?: string };
-}
+export type AttachmentNode = ContentBase & {
+	attachment:
+		| string
+		| { src: string | Uint8Array; name?: string | undefined; description?: string | undefined };
+};
 
-export interface TocDefinition {
-	id?: string;
-	title?: Content;
-	textStyle?: string | string[] | Style;
-	numberStyle?: string | string[] | Style;
-	textMargin?: Margin;
-	sortBy?: "title";
-	sortLocale?: string;
-	outlines?: boolean;
-	hideEmpty?: boolean;
-}
+export type TocDefinition = {
+	id?: string | undefined;
+	title?: Content | undefined;
+	textStyle?: string | readonly string[] | Style | undefined;
+	numberStyle?: string | readonly string[] | Style | undefined;
+	textMargin?: Margin | undefined;
+	sortBy?: "title" | undefined;
+	sortLocale?: string | undefined;
+	outlines?: boolean | undefined;
+	hideEmpty?: boolean | undefined;
+};
 
-export interface TocNode extends ContentBase {
+export type TocNode = ContentBase & {
 	toc: TocDefinition;
-}
+};
 
 export type Watermark =
 	| string
 	| ({
 			text: string;
-			angle?: number;
-			color?: Color;
-			opacity?: number;
-			bold?: boolean;
-			italics?: boolean;
+			angle?: number | undefined;
+			color?: Color | undefined;
+			opacity?: number | undefined;
+			bold?: boolean | undefined;
+			italics?: boolean | undefined;
 	  } & Style);
 
-export interface SectionNode extends Omit<ContentBase, "background" | "pageOrientation"> {
+export type SectionNode = Omit<ContentBase, "background" | "pageOrientation"> & {
 	section: Content;
-	pageSize?: PageSizeName | PageSize | "inherit";
-	pageOrientation?: PageOrientation | "inherit";
-	pageMargins?: Margin | "inherit";
-	header?: DynamicContent | null;
-	footer?: DynamicContent | null;
-	background?: DynamicBackground | null;
-	watermark?: Watermark | "inherit" | null;
-}
+	pageSize?: PageSizeName | PageSize | "inherit" | undefined;
+	pageOrientation?: PageOrientation | "inherit" | undefined;
+	pageMargins?: Margin | "inherit" | undefined;
+	header?: DynamicContent | null | undefined;
+	footer?: DynamicContent | null | undefined;
+	background?: DynamicBackground | null | undefined;
+	watermark?: Watermark | "inherit" | null | undefined;
+};
 
 declare global {
 	interface PdfCraftContentExtensionRegistry {}
@@ -430,7 +462,7 @@ export type ContentNode =
 	| SectionNode
 	| ExtensionContentNode;
 
-export type Content = string | number | boolean | ContentNode | Content[];
+export type Content = string | number | boolean | ContentNode | readonly Content[];
 
 export type DynamicContent =
 	| Content

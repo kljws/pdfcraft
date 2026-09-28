@@ -7,8 +7,7 @@ import type { DecorationGroup } from "./text.types";
 const groupDecorations = (line: LineLike, pdfDocument: PDFDocument): DecorationGroup[] => {
 	const groups: DecorationGroup[] = [];
 	let currentGroup: DecorationGroup | null = null;
-	for (let i = 0, l = line.inlines.length; i < l; i++) {
-		const inline = line.inlines[i];
+	for (const inline of line.inlines) {
 		let decoration = inline.decoration as Decoration | Decoration[] | undefined;
 		if (!decoration) {
 			currentGroup = null;
@@ -20,8 +19,7 @@ const groupDecorations = (line: LineLike, pdfDocument: PDFDocument): DecorationG
 		const color = pdfDocument.resolveColor(inline.decorationColor ?? inline.color, "black");
 		const style = (inline.decorationStyle || "solid") as DecorationGroup["decorationStyle"];
 		const thickness = isNumber(inline.decorationThickness) ? inline.decorationThickness : null;
-		for (let ii = 0, ll = decoration.length; ii < ll; ii++) {
-			const decorationItem = decoration[ii];
+		for (const decorationItem of decoration) {
 			if (
 				!currentGroup ||
 				decorationItem !== currentGroup.decoration ||
@@ -56,9 +54,7 @@ class TextDecorator {
 
 	drawBackground(line: LineLike, x: number, y: number): void {
 		const height = line.getHeight();
-		for (let i = 0, l = line.inlines.length; i < l; i++) {
-			const inline = line.inlines[i];
-
+		for (const inline of line.inlines) {
 			let color = this.pdfDocument.resolveColor(inline.background, undefined);
 			if (!color) {
 				continue;
@@ -79,8 +75,8 @@ class TextDecorator {
 
 	drawDecorations(line: LineLike, x: number, y: number): void {
 		const groups = groupDecorations(line, this.pdfDocument);
-		for (let i = 0, l = groups.length; i < l; i++) {
-			this._drawDecoration(groups[i], x, y);
+		for (const group of groups) {
+			this._drawDecoration(group, x, y);
 		}
 	}
 
@@ -93,14 +89,15 @@ class TextDecorator {
 
 		const width = () => {
 			let sum = 0;
-			for (let i = 0, l = group.inlines.length; i < l; i++) {
-				const justifyShift = group.inlines[i].justifyShift || 0;
-				sum += group.inlines[i].width + justifyShift;
+			for (const inline of group.inlines) {
+				sum += inline.width + (inline.justifyShift || 0);
 			}
 			return sum;
 		};
 
-		const firstInline = group.inlines[0];
+		const [firstInline] = group.inlines;
+		// A group is created with its first inline, so it is never empty.
+		if (!firstInline) return;
 		const biggerInline = maxInline();
 		const totalWidth = width();
 		const lineAscent = group.line.getAscenderHeight();
@@ -126,11 +123,11 @@ class TextDecorator {
 				throw new Error(`Unknown decoration : ${group.decoration}`);
 		}
 
-		if (group.inlines[0].sup) {
-			y -= group.inlines[0].fontSize * 0.75;
+		if (firstInline.sup) {
+			y -= firstInline.fontSize * 0.75;
 		}
-		if (group.inlines[0].sub) {
-			y += group.inlines[0].fontSize * 0.35;
+		if (firstInline.sub) {
+			y += firstInline.fontSize * 0.35;
 		}
 
 		this.pdfDocument.save();

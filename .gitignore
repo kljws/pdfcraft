@@ -1,6 +1,7 @@
 .vitest-attachments/
 .vitest/
 .cursor/
+.agents/
 .DS_Store
 .idea
 .env

@@ -5,7 +5,7 @@ type VectorInsertionListener = (pageIndex: number, page: PdfPage, pageItem: Vect
 const vectorInsertionListener = Symbol("vectorInsertionListener");
 
 type TrackedVector = Vector & {
-	[vectorInsertionListener]?: VectorInsertionListener;
+	[vectorInsertionListener]?: VectorInsertionListener | undefined;
 };
 
 export const trackVectorInsertion = (vector: Vector, listener: VectorInsertionListener): void => {

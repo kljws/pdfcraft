@@ -2,10 +2,10 @@ import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
 import { stringifyNode, markNodeKind } from "../../utils/node";
 import type { PreprocessedSectionNode } from "./section.types";
 
-export interface SectionPreprocessContext {
+export type SectionPreprocessContext = {
 	allowSections: boolean;
 	preprocessNode(input: unknown): PreprocessedPdfNode;
-}
+};
 
 export function preprocessSection(
 	node: PdfNode,

@@ -20,7 +20,7 @@ export type TableLayoutCapabilities = Pick<TableLayoutHost, "processRow">;
 
 type TableLayoutFeatureContext = NodeLayoutContext & TableLayoutCapabilities;
 
-interface TableFeatureStages extends NodeFeatureStages {
+type TableFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTableNode;
 	measureNode: TableMeasureNode;
@@ -29,14 +29,14 @@ interface TableFeatureStages extends NodeFeatureStages {
 	preprocessContext: TablePreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: TableLayoutFeatureContext;
-}
+};
 
-interface TableFeature extends NodeFeature<TableFeatureStages> {
+type TableFeature = NodeFeature<TableFeatureStages> & {
 	readonly kind: "table";
 	preprocess(node: PdfNode, context: TablePreprocessContext): PreprocessedTableNode;
 	measure(node: TableMeasureNode, context: NodeMeasureContext): MeasuredTableNode;
 	layout(node: LayoutTableNode, context: TableLayoutFeatureContext): void;
-}
+};
 
 export const tableFeature = {
 	kind: "table",

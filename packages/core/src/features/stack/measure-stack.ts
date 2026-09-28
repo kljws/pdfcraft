@@ -9,10 +9,10 @@ export function measureStack(
 	node._minWidth = 0;
 	node._maxWidth = 0;
 
-	for (let index = 0; index < items.length; index++) {
-		items[index] = context.measureNode(items[index]);
-		node._minWidth = Math.max(node._minWidth, items[index]._minWidth ?? 0);
-		node._maxWidth = Math.max(node._maxWidth, items[index]._maxWidth ?? 0);
+	for (const [index, pending] of items.entries()) {
+		const item = (items[index] = context.measureNode(pending));
+		node._minWidth = Math.max(node._minWidth, item._minWidth ?? 0);
+		node._maxWidth = Math.max(node._maxWidth, item._maxWidth ?? 0);
 	}
 	return node;
 }

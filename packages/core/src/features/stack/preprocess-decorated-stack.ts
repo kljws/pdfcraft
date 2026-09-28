@@ -24,10 +24,10 @@ const isColor = (value: unknown): boolean =>
 	isString(value) ||
 	(Array.isArray(value) && value.length === 2 && value.every((part) => isString(part)));
 
-export interface DecoratedStackPreprocessContext {
+export type DecoratedStackPreprocessContext = {
 	allowSections: boolean;
 	preprocessTable(node: PdfNode, allowSections: boolean): PreprocessedPdfNode;
-}
+};
 
 export function preprocessDecoratedStack(
 	node: PdfNode,

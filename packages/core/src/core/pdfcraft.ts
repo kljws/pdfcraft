@@ -51,9 +51,9 @@ class PdfCraftBase<Output = unknown> {
 	protected virtualfs: VirtualFileSystem;
 	protected fonts: FontDescriptors;
 	protected tableLayouts: Dictionary<TableLayout>;
-	protected progressCallback?: PdfCraftOptions["progressCallback"];
-	protected urlAccessPolicy?: AccessPolicy;
-	protected localAccessPolicy?: LocalAccessPolicy;
+	protected progressCallback?: PdfCraftOptions["progressCallback"] | undefined;
+	protected urlAccessPolicy?: AccessPolicy | undefined;
+	protected localAccessPolicy?: LocalAccessPolicy | undefined;
 	protected extensions: PdfCraftExtensions;
 	protected resourceLoading: ResourceLoadingOptions;
 

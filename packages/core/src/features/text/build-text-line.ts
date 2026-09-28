@@ -38,13 +38,15 @@ export function buildTextLine(textNode: LayoutTextNode, availableWidth: number):
 	let consumedInlineCount = 0;
 	let forceContinue = false;
 
-	while (
-		consumedInlineCount < inlines.length &&
-		(line.hasEnoughSpaceForInline(inlines[consumedInlineCount], inlines, consumedInlineCount + 1) ||
-			forceContinue)
-	) {
-		let hardWrap = false;
+	for (;;) {
 		const inline = inlines[consumedInlineCount];
+		if (
+			!inline ||
+			!(line.hasEnoughSpaceForInline(inline, inlines, consumedInlineCount + 1) || forceContinue)
+		) {
+			break;
+		}
+		let hardWrap = false;
 
 		if (!inline.noWrap && inline.text.length > 1 && inline.width > line.getAvailableWidth()) {
 			const maxChars = findMaxFitLength(inline.text, line.getAvailableWidth(), (text) =>

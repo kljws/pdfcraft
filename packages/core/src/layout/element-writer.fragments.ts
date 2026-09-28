@@ -10,12 +10,12 @@ import type {
 import { offsetVector, pack } from "../utils/tools";
 import { notifyVectorInsertion } from "./vector-insertion";
 
-export interface ElementFragment {
+export type ElementFragment = {
 	height: number;
-	xOffset?: number;
-	yOffset?: number;
+	xOffset?: number | undefined;
+	yOffset?: number | undefined;
 	items: PageItem[];
-}
+};
 
 export function replayFragment(
 	writer: { context(): DocumentContext },
@@ -25,7 +25,7 @@ export function replayFragment(
 	dontUpdateContextPosition: boolean | undefined,
 ): boolean {
 	const ctx = writer.context();
-	const page = ctx.getCurrentPage();
+	const page = ctx.requireCurrentPage();
 
 	if (!useBlockXOffset && block.height > ctx.availableHeight) {
 		return false;
@@ -48,7 +48,7 @@ export function replayFragment(
 
 			case "vector": {
 				const v = pack(item.item as Vector) as Vector & {
-					_isFillColorFromUnbreakable?: boolean;
+					_isFillColorFromUnbreakable?: boolean | undefined;
 				};
 				updateNodePageNumbers(v, ctx.page + 1);
 
@@ -65,7 +65,7 @@ export function replayFragment(
 					// If the item is a fillColor from an unbreakable block
 					// We have to add it at the beginning of the items body array of the page
 					delete v._isFillColorFromUnbreakable;
-					const endOfBackgroundItemsIndex = ctx.backgroundLength[ctx.page];
+					const endOfBackgroundItemsIndex = ctx.backgroundLength[ctx.page] ?? 0;
 					page.items.splice(endOfBackgroundItemsIndex, 0, pageItem);
 				} else {
 					page.items.push(pageItem);
@@ -107,7 +107,7 @@ export function replayFragment(
 }
 
 function updateNodePageNumbers(
-	item: { _node?: LayoutPdfNode; _position?: Position },
+	item: { _node?: LayoutPdfNode | undefined; _position?: Position | undefined },
 	pageNumber: number,
 ): void {
 	if (item._position) {
@@ -117,7 +117,8 @@ function updateNodePageNumbers(
 
 	// Compatibility for fragments created outside LayoutBuilder, where only a
 	// single position was historically associated with the rendered item.
-	if (item._node?.positions?.length === 1) {
-		item._node.positions[0].pageNumber = pageNumber;
+	const positions = item._node?.positions;
+	if (positions?.length === 1 && positions[0]) {
+		positions[0].pageNumber = pageNumber;
 	}
 }

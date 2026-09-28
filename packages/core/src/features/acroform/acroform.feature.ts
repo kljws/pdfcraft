@@ -17,7 +17,7 @@ import type {
 	PreprocessedAcroFormNode,
 } from "./acroform.types";
 
-interface AcroFormFeatureStages extends NodeFeatureStages {
+type AcroFormFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedAcroFormNode;
 	measuredNode: MeasuredAcroFormNode;
@@ -27,15 +27,15 @@ interface AcroFormFeatureStages extends NodeFeatureStages {
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
 	renderContext: AcroFormRenderContext;
-}
+};
 
-export interface AcroFormRenderContext {
+export type AcroFormRenderContext = {
 	renderer: AcroFormRenderer;
 	x: number;
 	y: number;
-}
+};
 
-interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
+type AcroFormFeature = NodeFeature<AcroFormFeatureStages> & {
 	readonly kind: "acroform";
 	preprocess(node: PdfNode): PreprocessedAcroFormNode;
 	createRenderer(document: PDFDocument): AcroFormRenderer;
@@ -44,7 +44,7 @@ interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
 	place(node: LayoutAcroFormNode, context: NodePlaceContext): CurrentPosition | false;
 	layout(node: LayoutAcroFormNode, context: NodeLayoutContext): void;
 	render(node: LayoutAcroFormNode | Inline, context: AcroFormRenderContext): void;
-}
+};
 
 export const acroFormFeature = {
 	kind: "acroform",

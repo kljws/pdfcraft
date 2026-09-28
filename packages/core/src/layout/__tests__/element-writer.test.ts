@@ -4,14 +4,14 @@ import ElementWriter from "../element-writer.ts";
 import { trackVectorInsertion } from "../vector-insertion.ts";
 import type { CurrentPosition, LineLike, PageItem, PdfPage, Vector } from "../../types/internal.ts";
 
-interface TestPage {
+type TestPage = {
 	items: Array<{ item: { x?: number; y?: number } }>;
-}
+};
 
-interface TestFragment {
+type TestFragment = {
 	height: number;
 	items: PageItem[];
-}
+};
 
 describe("ElementWriter", function () {
 	var ew: ElementWriter;
@@ -28,6 +28,9 @@ describe("ElementWriter", function () {
 			availableWidth: 100,
 			availableHeight: 100,
 			getCurrentPage: function () {
+				return page;
+			},
+			requireCurrentPage: function () {
 				return page;
 			},
 			getCurrentPosition: function () {

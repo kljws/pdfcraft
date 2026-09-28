@@ -7,13 +7,14 @@ import {
 import type { PdfNode, TextMeasurement } from "../../../types/internal.ts";
 import type { ListItemState } from "../list.types.ts";
 
-interface MeasuredFixture extends PdfNode, ListItemState {
-	_minWidth: number;
-	_maxWidth: number;
-	metrics: { gapSize: TextMeasurement };
-	ul: MeasuredFixture[];
-	ol: MeasuredFixture[];
-}
+type MeasuredFixture = PdfNode &
+	ListItemState & {
+		_minWidth: number;
+		_maxWidth: number;
+		metrics: { gapSize: TextMeasurement };
+		ul: MeasuredFixture[];
+		ol: MeasuredFixture[];
+	};
 
 const docMeasure = createTestMeasurement<MeasuredFixture>(sampleTestProvider);
 const docPreprocessor = createBuiltInPreprocessing();

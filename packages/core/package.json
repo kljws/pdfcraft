@@ -44,10 +44,10 @@
 		"format:fix": "oxfmt .",
 		"format:check": "oxfmt --check .",
 		"test:types": "tsc -p tests/types/tsconfig.json",
-		"test:unit": "vitest run packages/core/src",
-		"test:integration": "vitest run packages/core/tests/integration",
-		"test:coverage": "vitest run packages/core/src packages/core/tests/integration --coverage",
-		"test:watch": "vitest packages/core/src packages/core/tests/integration"
+		"test:unit": "cd ../.. && vitest run --project unit packages/core/",
+		"test:integration": "cd ../.. && vitest run --project integration packages/core/",
+		"test:coverage": "cd ../.. && vitest run --project unit --project integration --coverage packages/core/",
+		"test:watch": "cd ../.. && vitest --project unit --project integration packages/core/"
 	},
 	"dependencies": {
 		"linebreak": "^1.1.0",

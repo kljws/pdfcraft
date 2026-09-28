@@ -18,13 +18,13 @@ import type { PdfCraftExtensions, Style } from "../types";
 import type { LayoutPdfNode, PageMarginSource, PageSize, PdfPage } from "../types/internal";
 import { createBuiltInDocumentFeatures } from "./built-in-document-features";
 
-interface BuiltInDocumentPipelineContext {
+type BuiltInDocumentPipelineContext = {
 	extensions: PdfCraftExtensions;
-	pageBreakBefore?: PageBreakBefore;
+	pageBreakBefore?: PageBreakBefore | undefined;
 	runPass(pageCount: number, bottomMarginOverrides: readonly number[]): DocumentLayoutPassResult;
-}
+};
 
-interface BuiltInDocumentPassHost {
+type BuiltInDocumentPassHost = {
 	readonly pageSize: PageSize;
 	readonly pageMargins: PageMarginSource;
 	preprocessing: BuiltInPreprocessing;
@@ -36,9 +36,9 @@ interface BuiltInDocumentPassHost {
 	verticalAlignmentItemStack: unknown[];
 	writer: PageElementWriter;
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
-}
+};
 
-interface BuiltInDocumentPassInput {
+type BuiltInDocumentPassInput = {
 	docStructure: unknown;
 	pdfDocument: PDFDocument;
 	defaultStyle: Style;
@@ -49,7 +49,7 @@ interface BuiltInDocumentPassInput {
 	pageCount: number;
 	bottomMarginOverrides: readonly number[];
 	requiresFirstPage(document: LayoutPdfNode): boolean;
-}
+};
 
 export function runBuiltInDocumentPipeline(context: BuiltInDocumentPipelineContext): PdfPage[] {
 	return runDocumentLayoutPipeline({

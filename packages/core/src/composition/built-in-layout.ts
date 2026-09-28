@@ -14,11 +14,11 @@ import {
 
 type BuiltInLayoutContext = NodeLayoutContext & ColumnsLayoutCapabilities & TableLayoutCapabilities;
 
-interface BuiltInLayoutHost extends TableRowLayoutHost {
+type BuiltInLayoutHost = TableRowLayoutHost & {
 	readonly pageMargins: PageMarginSource;
 	readonly pageSize: PageSize;
 	readonly suppressLinearNodeList: boolean;
-}
+};
 
 export function createBuiltInLayout(host: BuiltInLayoutHost) {
 	const rows = new TableRowLayout(host);

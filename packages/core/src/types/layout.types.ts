@@ -1,26 +1,26 @@
 import type { ColumnWidth } from "./table.types";
 import type { Metadata } from "./document.types";
 
-export interface Point {
+export type Point = {
 	x: number;
 	y: number;
-}
+};
 
-export interface Dimensions {
+export type Dimensions = {
 	width: number;
 	height: number;
-}
+};
 
-export interface PageSize extends Dimensions {
+export type PageSize = Dimensions & {
 	orientation: "portrait" | "landscape";
-}
+};
 
-export interface PageMargins {
+export type PageMargins = {
 	left: number;
 	right: number;
 	top: number;
 	bottom: number;
-}
+};
 
 export type PageMarginDefinition =
 	| number
@@ -36,11 +36,11 @@ export type DynamicPageMargins = (
 
 export type PageMarginSource = PageMarginDefinition | DynamicPageMargins;
 
-export interface Position {
-	pageNumber?: number;
-}
+export type Position = {
+	pageNumber?: number | undefined;
+};
 
-export interface CurrentPosition {
+export type CurrentPosition = {
 	pageNumber: number;
 	left: number;
 	top: number;
@@ -49,41 +49,41 @@ export interface CurrentPosition {
 	pageOrientation: "portrait" | "landscape";
 	pageInnerHeight: number;
 	pageInnerWidth: number;
-}
+};
 
-export interface ContextSnapshot {
+export type ContextSnapshot = {
 	x: number;
 	y: number;
 	availableWidth: number;
 	availableHeight: number;
 	page: number;
-	bottomByPage?: Metadata;
-	bottomMost?: Metadata;
-	snakingColumns?: boolean;
-	columnGap?: number;
-	columnWidths?: ColumnWidth[] | null;
-	lastColumnWidth?: number;
-}
+	bottomByPage?: Metadata | undefined;
+	bottomMost?: Metadata | undefined;
+	snakingColumns?: boolean | undefined;
+	columnGap?: number | undefined;
+	columnWidths?: ColumnWidth[] | null | undefined;
+	lastColumnWidth?: number | undefined;
+};
 
-export interface PageBreak {
+export type PageBreak = {
 	prevPage: number;
 	prevY: number;
 	y: number;
-	rowIndex?: number;
-	rowSpan?: number;
-	rowIndexOfSpanEnd?: number;
-}
+	rowIndex?: number | undefined;
+	rowSpan?: number | undefined;
+	rowIndexOfSpanEnd?: number | undefined;
+};
 
-export interface NodeLayoutInfo extends Metadata {
+export type NodeLayoutInfo = Metadata & {
 	startPosition: Position;
 	pageNumbers: number[];
 	pages: number;
 	stack: boolean;
-}
+};
 
-export interface OutlineDefinition {
-	id?: string;
-	parentId?: string;
+export type OutlineDefinition = {
+	id?: string | undefined;
+	parentId?: string | undefined;
 	text: string;
-	expanded?: boolean;
-}
+	expanded?: boolean | undefined;
+};

@@ -11,7 +11,7 @@ import { measureCanvas } from "./measure-canvas";
 import { placeCanvasItem } from "./place-canvas";
 import type { LayoutCanvasNode, MeasuredCanvasNode, PreprocessedCanvasNode } from "./canvas.types";
 
-interface CanvasFeatureStages extends NodeFeatureStages {
+type CanvasFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedCanvasNode;
 	measuredNode: MeasuredCanvasNode;
@@ -19,9 +19,9 @@ interface CanvasFeatureStages extends NodeFeatureStages {
 	preprocessContext: undefined;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-}
+};
 
-interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {
+type CanvasFeature = NodeFeature<CanvasFeatureStages> & {
 	readonly kind: "canvas";
 	preprocess(node: PdfNode): PreprocessedCanvasNode;
 	measure(node: MeasuredCanvasNode, context: NodeMeasureContext): MeasuredCanvasNode;
@@ -29,7 +29,7 @@ interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {
 	layout(node: LayoutCanvasNode, context: NodeLayoutContext): void;
 	decorate(node: LayoutCanvasNode): void;
 	reset(node: LayoutCanvasNode): void;
-}
+};
 
 export const canvasFeature = {
 	kind: "canvas",
@@ -47,9 +47,9 @@ export const canvasFeature = {
 		if (Array.isArray(positions)) {
 			node.positions ??= [];
 			node.positions.push(...positions.filter((position) => position !== undefined));
-			for (let index = 0; index < (node.canvas?.length ?? 0); index++) {
-				node.canvas![index]._position = positions[index];
-			}
+			node.canvas?.forEach((vector, index) => {
+				vector._position = positions[index];
+			});
 		}
 		for (const vector of node.canvas ?? []) vector._node = node;
 	},

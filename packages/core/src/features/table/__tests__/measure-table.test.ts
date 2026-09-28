@@ -7,24 +7,24 @@ import {
 import type { ColumnWidth, PdfNode, PdfTable, TableLayout } from "../../../types/internal.ts";
 import type { MeasuredTableNode } from "../table.types.ts";
 
-interface MeasuredFixture extends PdfNode {
+type MeasuredFixture = PdfNode & {
 	_minWidth: number;
 	_maxWidth: number;
 	table: PdfTable & { body: MeasuredFixture[][] };
-}
+};
 
-interface FixtureTableBody extends Array<MeasuredFixture[]> {
+type FixtureTableBody = Array<MeasuredFixture[]> & {
 	push(...items: unknown[][]): number;
-}
+};
 
-interface TableNodeFixture extends Omit<PdfNode, "layout" | "table"> {
+type TableNodeFixture = Omit<PdfNode, "layout" | "table"> & {
 	layout?: Partial<TableLayout>;
 	table: Omit<PdfTable, "body" | "widths"> & {
 		body: FixtureTableBody;
 		widths: ColumnWidth[];
 		headerLines?: number;
 	};
-}
+};
 
 var emptyTableLayout: TableLayout = {
 	defaultBorder: true,

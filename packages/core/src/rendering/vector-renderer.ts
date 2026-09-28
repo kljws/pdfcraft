@@ -2,12 +2,12 @@ import type { Vector } from "../types/internal";
 import { isNumber } from "../utils/variable-type";
 import type PDFDocument from "./pdf-document";
 
-interface VectorState {
-	lineWidth?: number;
-	dash?: string;
-	lineJoin?: string;
-	lineCap?: string;
-}
+type VectorState = {
+	lineWidth?: number | undefined;
+	dash?: string | undefined;
+	lineJoin?: string | undefined;
+	lineCap?: string | undefined;
+};
 
 class VectorRenderer {
 	private state: VectorState = {};
@@ -90,15 +90,14 @@ class VectorRenderer {
 				this.document.lineTo(vector.x2!, vector.y2!);
 				break;
 			case "polyline": {
-				const points = vector.points ?? [];
-				if (points.length === 0) break;
-				this.document.moveTo(points[0].x, points[0].y);
-				for (let index = 1; index < points.length; index++) {
-					this.document.lineTo(points[index].x, points[index].y);
+				const [first, ...rest] = vector.points ?? [];
+				if (!first) break;
+				this.document.moveTo(first.x, first.y);
+				for (const point of rest) {
+					this.document.lineTo(point.x, point.y);
 				}
-				if (points.length > 1) {
-					const first = points[0];
-					const last = points[points.length - 1];
+				const last = rest.at(-1);
+				if (last) {
 					if (vector.closePath || (first.x === last.x && first.y === last.y)) {
 						this.document.closePath();
 					}

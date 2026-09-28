@@ -25,6 +25,23 @@ export const testConfig = {
 	},
 } satisfies NonNullable<ViteUserConfig["test"]>;
 
+// Unit tests are `.test.ts` files and integration tests `.integ.ts` files, both colocated in
+// `__tests__` directories. Packages not yet migrated keep integration tests in their own
+// `tests/integration` directory. Consumer checks run against the built packages, after
+// `pnpm build`. Browser tests use `vitest-browser.config.mts`.
 export default defineConfig({
-	test: testConfig,
+	test: {
+		...testConfig,
+		projects: [
+			{ extends: true, test: { name: "unit", include: ["packages/*/src/**/*.test.ts"] } },
+			{
+				extends: true,
+				test: {
+					name: "integration",
+					include: ["packages/*/src/**/*.integ.ts", "packages/*/tests/integration/**/*.test.ts"],
+				},
+			},
+			{ extends: true, test: { name: "consumer", include: ["tests/consumer/**/*.test.ts"] } },
+		],
+	},
 });

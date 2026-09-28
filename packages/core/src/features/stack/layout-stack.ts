@@ -2,10 +2,10 @@ import type { PageOrientation } from "../../types";
 import type { LayoutPdfNode } from "../../types/internal";
 import type { LayoutStackNode } from "./stack.types";
 
-export interface StackLayoutContext {
+export type StackLayoutContext = {
 	processNode(node: LayoutPdfNode): void;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
-}
+};
 
 export function layoutStack(node: LayoutStackNode, context: StackLayoutContext): void {
 	const stack = node.stack;
@@ -13,8 +13,7 @@ export function layoutStack(node: LayoutStackNode, context: StackLayoutContext):
 	node.positions ??= [];
 	const positions = node.positions;
 
-	for (let index = 0; index < stack.length; index++) {
-		const item = stack[index];
+	for (const [index, item] of stack.entries()) {
 		context.processNode(item);
 		positions.push(...(item.positions ?? []));
 

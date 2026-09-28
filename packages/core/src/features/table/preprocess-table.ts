@@ -5,7 +5,7 @@ import { isNumber, isObject, isPositiveInteger, isString } from "../../utils/var
 import { normalizeTableBody } from "./table-body";
 import type { PreprocessedTableNode } from "./table.types";
 
-const ROW_GROUP_LAYOUT_PROPERTIES = new Set([
+const rowGroupLayoutProperties = new Set([
 	"hLineWidth",
 	"vLineWidth",
 	"hLineColor",
@@ -35,10 +35,10 @@ const isValidTableWidth = (value: unknown): boolean =>
 			value === "star" ||
 			(/^\d+(?:\.\d+)?%$/.test(value) && Number.parseFloat(value) >= 0)));
 
-export interface TablePreprocessContext {
+export type TablePreprocessContext = {
 	allowSections: boolean;
 	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
-}
+};
 
 export function preprocessTable(
 	node: PdfNode,
@@ -148,7 +148,7 @@ export function preprocessTable(
 		endRow: number;
 		keepTogether: boolean;
 		dontBreakRows: boolean;
-		layoutDefinition?: TableRowGroupLayout;
+		layoutDefinition?: TableRowGroupLayout | undefined;
 	}> = [];
 	for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
 		const group = groups[groupIndex];
@@ -180,7 +180,7 @@ export function preprocessTable(
 			);
 		}
 		for (const property of Object.keys(group.layout ?? {})) {
-			if (!ROW_GROUP_LAYOUT_PROPERTIES.has(property)) {
+			if (!rowGroupLayoutProperties.has(property)) {
 				throw new Error(
 					`Invalid table row group ${groupIndex}: unsupported layout property '${property}'`,
 				);
@@ -214,12 +214,11 @@ export function preprocessTable(
 		delete table.header;
 	}
 
-	for (let row = 0; row < body.length; row++) {
-		if (!Array.isArray(body[row])) {
+	for (const [row, rowCells] of body.entries()) {
+		if (!Array.isArray(rowCells)) {
 			throw new Error(`Invalid table node: row ${row} in 'table.body' must be an array`);
 		}
-		for (let column = 0; column < body[row].length; column++) {
-			const cell = body[row][column];
+		for (const [column, cell] of rowCells.entries()) {
 			if (!isObject(cell)) continue;
 			for (const property of ["colSpan", "rowSpan"] as const) {
 				if (cell[property] !== undefined && !isPositiveInteger(cell[property])) {
@@ -238,8 +237,7 @@ export function preprocessTable(
 		);
 	}
 	for (let column = 0; column < columnCount; column++) {
-		for (let row = 0; row < body.length; row++) {
-			const rowData = body[row];
+		for (const rowData of body) {
 			const data = rowData[column];
 			if (data !== undefined && (!isObject(data) || !data._span)) {
 				rowData[column] = context.preprocessNode(

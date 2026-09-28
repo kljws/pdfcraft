@@ -3,8 +3,9 @@ import type { ContextSnapshot, PagePosition } from "./document-context.types";
 
 export function findSnakingSnapshot(snapshots: ContextSnapshot[]): ContextSnapshot | null {
 	for (let index = snapshots.length - 1; index >= 0; index--) {
-		if (snapshots[index].snakingColumns) {
-			return snapshots[index];
+		const snapshot = snapshots[index];
+		if (snapshot?.snakingColumns) {
+			return snapshot;
 		}
 	}
 	return null;
@@ -13,6 +14,7 @@ export function findSnakingSnapshot(snapshots: ContextSnapshot[]): ContextSnapsh
 export function hasNestedNonSnakingGroup(snapshots: ContextSnapshot[]): boolean {
 	for (let index = snapshots.length - 1; index >= 0; index--) {
 		const snapshot = snapshots[index];
+		if (!snapshot) continue;
 		if (snapshot.snakingColumns) {
 			return false;
 		}

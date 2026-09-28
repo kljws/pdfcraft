@@ -17,14 +17,14 @@ import type {
 import type { NodePlaceResult } from "../engine/contracts/node-feature";
 import { getFragmentHeight } from "./element-writer.helpers";
 
-interface ElementFragment {
+type ElementFragment = {
 	items: PageItem[];
 	height: number;
-	xOffset?: number;
-	yOffset?: number;
+	xOffset?: number | undefined;
+	yOffset?: number | undefined;
 	insertedOnPages: boolean[];
-	pageMarginLeft?: number;
-}
+	pageMarginLeft?: number | undefined;
+};
 
 /**
  * An extended ElementWriter which can handle:
@@ -152,7 +152,7 @@ class PageElementWriter {
 		this.repeatables.forEach(function (this: PageElementWriter, rep): void {
 			if (rep.insertedOnPages[this.context().page] === undefined) {
 				rep.insertedOnPages[this.context().page] = true;
-				const currentLeft = this.context().getCurrentPage().pageMargins.left;
+				const currentLeft = this.context().requireCurrentPage().pageMargins.left;
 				const fragment =
 					rep.pageMarginLeft === undefined
 						? rep
@@ -173,7 +173,7 @@ class PageElementWriter {
 		});
 
 		const currentMargins =
-			this.context().getCurrentPage().pageMargins ?? this.context().pageMargins;
+			this.context().getCurrentPage()?.pageMargins ?? this.context().pageMargins;
 		if (
 			previousColumnState &&
 			(previousColumnState.pageMargins.left !== currentMargins.left ||
@@ -222,9 +222,9 @@ class PageElementWriter {
 			this.writer.popContext();
 
 			const nbPages = unbreakableContext.pages.length;
-			if (nbPages > 0) {
+			const firstPage = unbreakableContext.pages[0];
+			if (firstPage) {
 				if (forcedX !== undefined || forcedY !== undefined) {
-					const firstPage = unbreakableContext.pages[0];
 					const firstPageContentHeight = getFragmentHeight(
 						firstPage.items,
 						nbPages === 1 ? unbreakableContext.y : firstPage.pageSize.height,
@@ -247,7 +247,7 @@ class PageElementWriter {
 					// single-page behavior even if its temporary context overflowed.
 					if (nbPages > 1) {
 						fragment.height =
-							unbreakableContext.getCurrentPage().pageSize.height -
+							unbreakableContext.requireCurrentPage().pageSize.height -
 							unbreakableContext.pageMargins.top -
 							unbreakableContext.pageMargins.bottom;
 					} else {
@@ -258,8 +258,7 @@ class PageElementWriter {
 					return fragment.height;
 				}
 
-				for (let pageIndex = 0; pageIndex < nbPages; pageIndex++) {
-					const sourcePage = unbreakableContext.pages[pageIndex];
+				for (const [pageIndex, sourcePage] of unbreakableContext.pages.entries()) {
 					const isLastPage = pageIndex === nbPages - 1;
 					const fragment: ElementFragment = {
 						items: sourcePage.items,
@@ -286,14 +285,14 @@ class PageElementWriter {
 		const unbreakableContext = this.context();
 		const rep: ElementFragment = { items: [], height: 0, insertedOnPages: [] };
 
-		unbreakableContext.pages[0].items.forEach((item: PageItem) => {
+		for (const item of unbreakableContext.pages[0]?.items ?? []) {
 			rep.items.push(item);
-		});
+		}
 
 		rep.xOffset = this.originalX;
 		rep.pageMarginLeft =
-			this.contextStack.at(-1)?.getCurrentPage().pageMargins.left ??
-			unbreakableContext.getCurrentPage().pageMargins.left;
+			this.contextStack.at(-1)?.getCurrentPage()?.pageMargins.left ??
+			unbreakableContext.requireCurrentPage().pageMargins.left;
 
 		rep.height = getFragmentHeight(rep.items, unbreakableContext.y);
 
@@ -350,6 +349,7 @@ class PageElementWriter {
 			// The inner row should complete via normal page break instead.
 			for (let i = ctx.snapshots.length - 1; i >= 0; i--) {
 				const snap = ctx.snapshots[i];
+				if (!snap) continue;
 				if (snap.snakingColumns) {
 					break; // Reached the snaking snapshot, no inner groups found
 				}
@@ -360,7 +360,7 @@ class PageElementWriter {
 
 			let overflowCount = 0;
 			for (let i = ctx.snapshots.length - 1; i >= 0; i--) {
-				if (ctx.snapshots[i].overflowed) {
+				if (ctx.snapshots[i]?.overflowed) {
 					overflowCount++;
 				} else {
 					break;
@@ -375,11 +375,10 @@ class PageElementWriter {
 			}
 
 			const currentColumnWidth = ctx.availableWidth || ctx.lastColumnWidth || 0;
-			const nextColumnWidth = snakingSnapshot.columnWidths
-				? snakingSnapshot.columnWidths[overflowCount + 1]
-				: currentColumnWidth;
+			const nextColumnWidth =
+				snakingSnapshot.columnWidths?.[overflowCount + 1] ?? currentColumnWidth;
 			const nextX = ctx.x + currentColumnWidth + (snakingSnapshot.gap || 0);
-			const page = ctx.getCurrentPage();
+			const page = ctx.requireCurrentPage();
 			const pageWidth = page.pageSize.width;
 			const rightMargin = page.pageMargins ? page.pageMargins.right : 0;
 			const parentRightMargin = ctx.marginXTopParent ? ctx.marginXTopParent[1] : 0;
@@ -421,7 +420,7 @@ class PageElementWriter {
 
 					position = addFct(false);
 				} else {
-					while (ctx.snapshots.length > 0 && ctx.snapshots[ctx.snapshots.length - 1].overflowed) {
+					while (ctx.snapshots.at(-1)?.overflowed) {
 						const popped = ctx.snapshots.pop();
 						const prevSnapshot = ctx.snapshots[ctx.snapshots.length - 1];
 						if (prevSnapshot) {

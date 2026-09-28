@@ -3,12 +3,12 @@ import { getPageSpanHeight } from "../layout/page-item-geometry";
 import type { PageOrientation } from "../types";
 import type { LayoutPdfNode } from "../types/internal";
 
-export interface VerticalAlignmentStackEntry {
+export type VerticalAlignmentStackEntry = {
 	begin: { item: LayoutPdfNode };
 	end: { item: LayoutPdfNode };
-}
+};
 
-export interface LayoutNodeLifecycleContext {
+export type LayoutNodeLifecycleContext = {
 	writer: PageElementWriter;
 	linearNodeList: LayoutPdfNode[];
 	suppressLinearNodeList: boolean;
@@ -16,7 +16,7 @@ export interface LayoutNodeLifecycleContext {
 	decorateNode(node: LayoutPdfNode): void;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
 	layoutContent(node: LayoutPdfNode): void;
-}
+};
 
 function moveToRequestedPage(
 	writer: PageElementWriter,

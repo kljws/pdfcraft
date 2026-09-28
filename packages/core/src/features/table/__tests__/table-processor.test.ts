@@ -8,7 +8,7 @@ import { resetTableLayoutState } from "../table-processor.helpers.ts";
 import type { ResolvedTableLayout } from "../table-processor.types.ts";
 import type { LayoutTableNode } from "../table.types.ts";
 
-interface MutableTableFixture {
+type MutableTableFixture = {
 	table: {
 		widths: Array<{ width: string | number }>;
 		body: unknown[][];
@@ -19,7 +19,7 @@ interface MutableTableFixture {
 		offsets: { total: number };
 		layout: Record<string, () => void>;
 	};
-}
+};
 
 const asNode = (value: unknown): LayoutTableNode => value as LayoutTableNode;
 const asWriter = (value: unknown): PageElementWriter => value as PageElementWriter;

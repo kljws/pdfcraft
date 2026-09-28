@@ -3,12 +3,12 @@ import type {
 	PendingMeasureNode,
 	PreprocessedPdfNode,
 } from "../../types/internal";
-import { getLaidOutPageText, getNodeId, UNRESOLVED_PAGE_NUMBER_TEXT } from "../../utils/node";
+import { getLaidOutPageText, getNodeId, unresolvedPageNumberText } from "../../utils/node";
 import type { MeasuredTocNode } from "./toc.types";
 
-export interface TocMeasureContext {
+export type TocMeasureContext = {
 	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
-}
+};
 
 export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode {
 	const toc = node.toc;
@@ -56,7 +56,7 @@ export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): M
 				},
 				{
 					_kind: "text",
-					text: getLaidOutPageText(item._nodeRef) ?? UNRESOLVED_PAGE_NUMBER_TEXT,
+					text: getLaidOutPageText(item._nodeRef) ?? unresolvedPageNumberText,
 					linkToDestination: destination,
 					alignment: "right",
 					_tocItemRef: item._nodeRef,

@@ -14,14 +14,13 @@ const createSpanPlaceholder = (): PreprocessedPdfNode =>
 	({ _span: true }) as unknown as PreprocessedPdfNode;
 
 export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
-	const columnCount = body[0].length;
+	const columnCount = body[0]?.length ?? 0;
 	if (columnCount === 0) {
 		throw new Error("Invalid table node: table rows must contain at least one cell");
 	}
 
 	let activeRowSpans = Array<number>(columnCount).fill(0);
-	for (let rowIndex = 0; rowIndex < body.length; rowIndex++) {
-		const sourceRow = body[rowIndex];
+	for (const [rowIndex, sourceRow] of body.entries()) {
 		const normalizedRow: PreprocessedPdfNode[] = [];
 		let sourceIndex = 0;
 		const usesExplicitSlots = sourceRow.length === columnCount;
@@ -32,18 +31,18 @@ export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
 		}
 
 		for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
-			if (activeRowSpans[columnIndex] > 0) {
+			if ((activeRowSpans[columnIndex] ?? 0) > 0) {
 				if (usesExplicitSlots || isSpanPlaceholder(sourceRow[sourceIndex])) sourceIndex++;
 				normalizedRow.push(createSpanPlaceholder());
 				continue;
 			}
 
-			if (sourceIndex >= sourceRow.length) {
+			const cell = sourceRow[sourceIndex++];
+			if (cell === undefined) {
 				throw new Error(
 					`Invalid table row ${rowIndex}: resolves to fewer than ${columnCount} columns`,
 				);
 			}
-			const cell = sourceRow[sourceIndex++];
 			if (isObject(cell) && cell._span === true) {
 				throw new Error(
 					`Invalid table cell at row ${rowIndex}, column ${columnIndex}: span placeholder has no active span`,
@@ -56,7 +55,7 @@ export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
 				);
 			}
 			for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
-				if (activeRowSpans[columnIndex + spanIndex] > 0) {
+				if ((activeRowSpans[columnIndex + spanIndex] ?? 0) > 0) {
 					throw new Error(
 						`Invalid table cell at row ${rowIndex}, column ${columnIndex}: 'colSpan' overlaps an active rowSpan`,
 					);
@@ -78,8 +77,7 @@ export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
 		}
 
 		const nextRowSpans = activeRowSpans.map((remaining) => Math.max(0, remaining - 1));
-		for (let columnIndex = 0; columnIndex < normalizedRow.length; columnIndex++) {
-			const cell = normalizedRow[columnIndex];
+		for (const [columnIndex, cell] of normalizedRow.entries()) {
 			if (!isObject(cell) || cell._span || !isPositiveInteger(cell.rowSpan)) continue;
 			if (rowIndex + cell.rowSpan > body.length) {
 				throw new Error(
@@ -89,7 +87,7 @@ export function normalizeTableBody(body: PreprocessedPdfNode[][]): number {
 			const colSpan = getCellSpan(cell);
 			for (let spanIndex = 0; spanIndex < colSpan; spanIndex++) {
 				nextRowSpans[columnIndex + spanIndex] = Math.max(
-					nextRowSpans[columnIndex + spanIndex],
+					nextRowSpans[columnIndex + spanIndex] ?? 0,
 					cell.rowSpan - 1,
 				);
 			}

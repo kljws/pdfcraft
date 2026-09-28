@@ -14,177 +14,177 @@ export type NodeText<Node = PdfNode> =
 	| null
 	| undefined;
 
-export interface SerializedBuffer {
+export type SerializedBuffer = {
 	type: "Buffer";
 	data: number[];
-}
+};
 
-export interface NodeReference<Node = PdfNode> {
+export type NodeReference<Node = PdfNode> = {
 	_nodeRef: Node;
-	_textNodeRef?: Node;
-	_pseudo?: boolean;
-}
+	_textNodeRef?: Node | undefined;
+	_pseudo?: boolean | undefined;
+};
 
-export interface TocDefinition<Node = PdfNode> {
-	id?: string;
-	title?: Node | null;
+export type TocDefinition<Node = PdfNode> = {
+	id?: string | undefined;
+	title?: Node | null | undefined;
 	_items: NodeReference<Node>[];
-	_pseudo?: boolean;
-	_table?: Node;
-	textStyle?: NodeStyleValue;
-	numberStyle?: NodeStyleValue;
-	textMargin?: Margin;
-	sortBy?: "title";
-	sortLocale?: string;
-	outlines?: boolean;
-	hideEmpty?: boolean;
-}
+	_pseudo?: boolean | undefined;
+	_table?: Node | undefined;
+	textStyle?: NodeStyleValue | undefined;
+	numberStyle?: NodeStyleValue | undefined;
+	textMargin?: Margin | undefined;
+	sortBy?: "title" | undefined;
+	sortLocale?: string | undefined;
+	outlines?: boolean | undefined;
+	hideEmpty?: boolean | undefined;
+};
 
 export type NodeStyleValue = string | string[] | Metadata;
 
-export interface PdfNode {
+export type PdfNode = {
 	[key: string]: unknown;
 
 	// Raw and preprocessed content variants.
-	text?: NodeText;
-	stack?: PdfNode[];
-	columns?: ColumnNode[];
-	ul?: PdfNode[];
-	ol?: PdfNode[];
-	table?: PdfTable;
-	canvas?: Vector[];
-	section?: PdfNode;
-	image?: string | Uint8Array | SerializedBuffer;
-	attachment?: string | AttachmentSource;
-	acroform?: AcroFormDefinition;
-	toc?: TocDefinition;
+	text?: NodeText | undefined;
+	stack?: PdfNode[] | undefined;
+	columns?: ColumnNode[] | undefined;
+	ul?: PdfNode[] | undefined;
+	ol?: PdfNode[] | undefined;
+	table?: PdfTable | undefined;
+	canvas?: Vector[] | undefined;
+	section?: PdfNode | undefined;
+	image?: string | Uint8Array | SerializedBuffer | undefined;
+	attachment?: string | AttachmentSource | undefined;
+	acroform?: AcroFormDefinition | undefined;
+	toc?: TocDefinition | undefined;
 
 	// Public node options and styles used internally.
-	style?: NodeStyleValue;
-	id?: string;
-	tocItem?: string | string[];
-	tocStyle?: NodeStyleValue;
-	tocMargin?: Margin;
-	tocNumberStyle?: NodeStyleValue;
-	pageReference?: string;
-	textReference?: string;
-	linkToDestination?: string;
-	linkToFile?: string | AttachmentSource;
-	icon?: string;
-	options?: Metadata;
-	type?: string;
-	listType?: string;
-	start?: number;
-	counter?: number;
-	reversed?: boolean;
-	separator?: string | [string, string];
-	width?: number | string;
-	height?: number | "auto";
-	minWidth?: number;
-	maxWidth?: number;
-	minHeight?: number;
-	maxHeight?: number;
-	fit?: [number, number] | number;
-	cover?: ImageCover;
-	opacity?: number;
-	borderRadius?: number;
-	borderWidth?: number;
-	backgroundColor?: Color;
-	_imageBorderColor?: Color;
-	colSpan?: number;
-	rowSpan?: number;
-	border?: [boolean, boolean, boolean, boolean];
-	borderColor?: [Color, Color, Color, Color];
-	fillColor?: Color;
-	fillOpacity?: number;
-	overlayPattern?: PDFKit.Mixins.ColorValue;
-	overlayOpacity?: number;
-	verticalAlignment?: "top" | "middle" | "bottom";
-	layout?: string | TableLayout;
-	pageBreak?: string;
-	pageBreakCalculated?: boolean;
-	pageOrientation?: "portrait" | "landscape";
-	absolutePosition?: Point;
-	relativePosition?: Point;
-	unbreakable?: boolean;
-	headlineLevel?: number;
-	outline?: boolean | string;
-	outlineExpanded?: boolean;
-	outlineParentId?: string;
-	outlineText?: string;
-	font?: string;
-	fontSize?: number;
-	bold?: boolean;
-	italics?: boolean;
-	alignment?: Alignment;
-	tableAlignment?: "left" | "center" | "right";
-	color?: Color;
-	background?: Color;
-	decoration?: Decoration | Decoration[];
-	decorationColor?: Color;
-	decorationStyle?: string;
-	decorationThickness?: number;
-	lineHeight?: number;
-	paragraphGap?: number;
-	characterSpacing?: number;
-	leadingIndent?: number;
-	noWrap?: boolean | null;
-	wordBreak?: "normal" | "break-all";
-	preserveLeadingSpaces?: boolean;
-	preserveTrailingSpaces?: boolean;
-	margin?: Margin;
-	marginLeft?: number;
-	marginTop?: number;
-	marginRight?: number;
-	marginBottom?: number;
-	link?: string;
-	linkToPage?: number;
-	sup?: boolean;
-	sub?: boolean;
-	markerColor?: Color;
-	columnGap?: number;
-	snakingColumns?: boolean;
-	padding?: Margin;
-}
+	style?: NodeStyleValue | undefined;
+	id?: string | undefined;
+	tocItem?: string | string[] | undefined;
+	tocStyle?: NodeStyleValue | undefined;
+	tocMargin?: Margin | undefined;
+	tocNumberStyle?: NodeStyleValue | undefined;
+	pageReference?: string | undefined;
+	textReference?: string | undefined;
+	linkToDestination?: string | undefined;
+	linkToFile?: string | AttachmentSource | undefined;
+	icon?: string | undefined;
+	options?: Metadata | undefined;
+	type?: string | undefined;
+	listType?: string | undefined;
+	start?: number | undefined;
+	counter?: number | undefined;
+	reversed?: boolean | undefined;
+	separator?: string | [string, string] | undefined;
+	width?: number | string | undefined;
+	height?: number | "auto" | undefined;
+	minWidth?: number | undefined;
+	maxWidth?: number | undefined;
+	minHeight?: number | undefined;
+	maxHeight?: number | undefined;
+	fit?: [number, number] | number | undefined;
+	cover?: ImageCover | undefined;
+	opacity?: number | undefined;
+	borderRadius?: number | undefined;
+	borderWidth?: number | undefined;
+	backgroundColor?: Color | undefined;
+	_imageBorderColor?: Color | undefined;
+	colSpan?: number | undefined;
+	rowSpan?: number | undefined;
+	border?: [boolean, boolean, boolean, boolean] | undefined;
+	borderColor?: [Color, Color, Color, Color] | undefined;
+	fillColor?: Color | undefined;
+	fillOpacity?: number | undefined;
+	overlayPattern?: PDFKit.Mixins.ColorValue | undefined;
+	overlayOpacity?: number | undefined;
+	verticalAlignment?: "top" | "middle" | "bottom" | undefined;
+	layout?: string | TableLayout | undefined;
+	pageBreak?: string | undefined;
+	pageBreakCalculated?: boolean | undefined;
+	pageOrientation?: "portrait" | "landscape" | undefined;
+	absolutePosition?: Point | undefined;
+	relativePosition?: Point | undefined;
+	unbreakable?: boolean | undefined;
+	headlineLevel?: number | undefined;
+	outline?: boolean | string | undefined;
+	outlineExpanded?: boolean | undefined;
+	outlineParentId?: string | undefined;
+	outlineText?: string | undefined;
+	font?: string | undefined;
+	fontSize?: number | undefined;
+	bold?: boolean | undefined;
+	italics?: boolean | undefined;
+	alignment?: Alignment | undefined;
+	tableAlignment?: "left" | "center" | "right" | undefined;
+	color?: Color | undefined;
+	background?: Color | undefined;
+	decoration?: Decoration | Decoration[] | undefined;
+	decorationColor?: Color | undefined;
+	decorationStyle?: string | undefined;
+	decorationThickness?: number | undefined;
+	lineHeight?: number | undefined;
+	paragraphGap?: number | undefined;
+	characterSpacing?: number | undefined;
+	leadingIndent?: number | undefined;
+	noWrap?: boolean | null | undefined;
+	wordBreak?: "normal" | "break-all" | undefined;
+	preserveLeadingSpaces?: boolean | undefined;
+	preserveTrailingSpaces?: boolean | undefined;
+	margin?: Margin | undefined;
+	marginLeft?: number | undefined;
+	marginTop?: number | undefined;
+	marginRight?: number | undefined;
+	marginBottom?: number | undefined;
+	link?: string | undefined;
+	linkToPage?: number | undefined;
+	sup?: boolean | undefined;
+	sub?: boolean | undefined;
+	markerColor?: Color | undefined;
+	columnGap?: number | undefined;
+	snakingColumns?: boolean | undefined;
+	padding?: Margin | undefined;
+};
 
-export interface PreprocessedNodeState<Node = PdfNode> {
-	_kind?: string;
-	_nodeRef?: Node;
-	_textNodeRef?: Node;
-	_tocItemRef?: Node;
-	_pseudo?: boolean;
-}
+export type PreprocessedNodeState<Node = PdfNode> = {
+	_kind?: string | undefined;
+	_nodeRef?: Node | undefined;
+	_textNodeRef?: Node | undefined;
+	_tocItemRef?: Node | undefined;
+	_pseudo?: boolean | undefined;
+};
 
-export interface MeasuredNodeState {
-	_margin?: [number, number, number, number] | null;
-	_paragraphGap?: number;
-	_minWidth?: number;
-	_maxWidth?: number;
-	_minHeight?: number;
-	_maxHeight?: number;
-	_width?: number;
-	_height?: number;
-	_alignment?: Alignment;
-}
+export type MeasuredNodeState = {
+	_margin?: [number, number, number, number] | null | undefined;
+	_paragraphGap?: number | undefined;
+	_minWidth?: number | undefined;
+	_maxWidth?: number | undefined;
+	_minHeight?: number | undefined;
+	_maxHeight?: number | undefined;
+	_width?: number | undefined;
+	_height?: number | undefined;
+	_alignment?: Alignment | undefined;
+};
 
-export interface LayoutNodeState<Node = PdfNode> {
-	_node?: Node;
-	_position?: Position;
-	positions?: Position[];
-	nodeInfo?: NodeLayoutInfo;
-	pageNumber?: number;
-	x?: number;
-	y?: number;
-	resetXY?: () => void;
-	__height?: number;
-	_x?: number;
+export type LayoutNodeState<Node = PdfNode> = {
+	_node?: Node | undefined;
+	_position?: Position | undefined;
+	positions?: Position[] | undefined;
+	nodeInfo?: NodeLayoutInfo | undefined;
+	pageNumber?: number | undefined;
+	x?: number | undefined;
+	y?: number | undefined;
+	resetXY?: (() => void) | undefined;
+	__height?: number | undefined;
+	_x?: number | undefined;
 	// Vertical-alignment box state, filled by the container that aligns its content.
-	getNodeHeight?: () => number;
-	getViewHeight?: () => number;
-	nodeHeight?: number;
-	cell?: Node;
-	isCellContentMultiPage?: boolean;
-}
+	getNodeHeight?: (() => number) | undefined;
+	getViewHeight?: (() => number) | undefined;
+	nodeHeight?: number | undefined;
+	cell?: Node | undefined;
+	isCellContentMultiPage?: boolean | undefined;
+};
 
 type PreprocessedNodeKey = keyof PreprocessedNodeState;
 type MeasuredNodeKey = keyof MeasuredNodeState;
@@ -214,15 +214,16 @@ type NodeHierarchyKey =
 	| "image"
 	| "attachment"
 	| "acroform";
+// Kept as an interface: it takes part in the recursive node types and breaks the cycle.
 interface NodeHierarchy<Node, TableWidths = RawTableWidths> {
-	text?: NodeText<Node>;
-	stack?: Node[];
-	columns?: ColumnNode<Node>[];
-	ul?: Node[];
-	ol?: Node[];
-	table?: PdfTable<Node, TableWidths>;
-	section?: Node;
-	toc?: TocDefinition<Node>;
+	text?: NodeText<Node> | undefined;
+	stack?: Node[] | undefined;
+	columns?: ColumnNode<Node>[] | undefined;
+	ul?: Node[] | undefined;
+	ol?: Node[] | undefined;
+	table?: PdfTable<Node, TableWidths> | undefined;
+	section?: Node | undefined;
+	toc?: TocDefinition<Node> | undefined;
 }
 type NodeDefinition = Omit<
 	KnownPdfNode,
@@ -232,6 +233,9 @@ type NodeDefinition = Omit<
 export type RawPdfNode = NodeDefinition &
 	NodeHierarchy<RawPdfNode> &
 	Pick<KnownPdfNode, "canvas" | "image" | "attachment" | "acroform">;
+// The node bases stay interfaces: they refer to the node unions built from `NodeKindRegistry`,
+// which refer back to them. Interface members resolve lazily and break that cycle; type aliases
+// of intersections do not.
 export interface PreprocessedNodeBase
 	extends NodeDefinition, PreprocessedNodeState<PreprocessedPdfNode> {}
 
@@ -251,12 +255,12 @@ export interface LayoutNodeBase
  */
 export interface NodeKindRegistry {}
 
-interface NodeKindStages {
+type NodeKindStages = {
 	preprocessed: unknown;
 	measure: unknown;
 	measured: unknown;
 	layout: unknown;
-}
+};
 
 type NodeOfStage<Stage extends keyof NodeKindStages> = {
 	[Kind in keyof NodeKindRegistry]: NodeKindRegistry[Kind] extends NodeKindStages
@@ -274,15 +278,15 @@ export type MeasurePdfNode = NodeOfStage<"measure">;
 export type MeasuredPdfNode = NodeOfStage<"measured">;
 export type LayoutPdfNode = NodeOfStage<"layout">;
 
-export interface ImageCover {
+export type ImageCover = {
 	width: number;
 	height: number;
-	align?: "left" | "center" | "right";
-	valign?: "top" | "center" | "bottom";
-}
+	align?: "left" | "center" | "right" | undefined;
+	valign?: "top" | "center" | "bottom" | undefined;
+};
 
-export interface AttachmentSource extends Metadata {
+export type AttachmentSource = Metadata & {
 	src: string | Uint8Array | ArrayBuffer;
-	name?: string;
-	description?: string;
-}
+	name?: string | undefined;
+	description?: string | undefined;
+};

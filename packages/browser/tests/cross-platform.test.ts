@@ -8,7 +8,7 @@ import {
 	crossPlatformFonts,
 	summarizePdf,
 	type PdfJs,
-} from "../../core/tests/reference/cross-platform.ts";
+} from "../../core/src/__tests__/fixtures/cross-platform.ts";
 
 /**
  * Generates the reference documents through the built browser bundle in Chromium, with the same
@@ -56,7 +56,7 @@ describe("cross-platform output: browser entry", () => {
 		}
 
 		await expect(`${JSON.stringify(summaries, null, "\t")}\n`).toMatchFileSnapshot(
-			"../../core/tests/reference/__snapshots__/cross-platform.summary.json",
+			"../../core/src/__tests__/__snapshots__/cross-platform.summary.json",
 		);
 	}, 60_000);
 });

@@ -16,10 +16,10 @@ import type {
 } from "./extension.types";
 import { renderExtension, type ExtensionRenderContext } from "./render-extension";
 
-export interface ExtensionResourceContext {
+export type ExtensionResourceContext = {
 	extensions: PdfCraftExtensions;
 	resolve(resource: ExtensionResourceReference): string;
-}
+};
 
 export const extensionFeature = {
 	kind: "extension",

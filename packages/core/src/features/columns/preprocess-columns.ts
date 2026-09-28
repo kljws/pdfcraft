@@ -2,9 +2,9 @@ import type { ColumnNode, PdfNode, PreprocessedPdfNode } from "../../types/inter
 import { stringifyNode, markNodeKind } from "../../utils/node";
 import type { PreprocessedColumnsNode } from "./columns.types";
 
-export interface ColumnsPreprocessContext {
+export type ColumnsPreprocessContext = {
 	preprocessNode(input: unknown): PreprocessedPdfNode;
-}
+};
 
 export function preprocessColumns(
 	node: PdfNode,

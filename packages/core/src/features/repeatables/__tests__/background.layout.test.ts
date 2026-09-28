@@ -1,10 +1,10 @@
 import { assert, beforeEach, describe, it, vi } from "vitest";
 import type { Dictionary, Style } from "../../../types/index.ts";
-import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
+import type { LayoutBuilder } from "../../../__tests__/fixtures/layout-builder.ts";
 import {
 	createLayoutBuilder,
 	sampleTestProvider,
-} from "../../../../tests/helpers/layout-builder.ts";
+} from "../../../__tests__/fixtures/layout-builder.ts";
 
 describe("LayoutBuilder", function () {
 	let builder: LayoutBuilder;

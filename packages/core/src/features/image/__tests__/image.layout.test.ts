@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
-import { LayoutBuilder as TestLayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
-import { sampleTestProvider } from "../../../../tests/helpers/layout-builder.ts";
+import { LayoutBuilder as TestLayoutBuilder } from "../../../__tests__/fixtures/layout-builder.ts";
+import { sampleTestProvider } from "../../../__tests__/fixtures/layout-builder.ts";
 
 describe("image layout", function () {
 	it("should use the absolutePosition attribute without pagebreak in image", function () {

@@ -56,15 +56,17 @@ export function beginColumn(
 	offset = 0,
 	endingCell: ColumnEndingCell | null = null,
 ): void {
-	let saved = state.snapshots[state.snapshots.length - 1];
+	let saved = state.snapshots.at(-1);
 	if (saved?.overflowed) {
 		for (let index = state.snapshots.length - 1; index >= 0; index--) {
-			if (!state.snapshots[index].overflowed) {
-				saved = state.snapshots[index];
+			const candidate = state.snapshots[index];
+			if (candidate && !candidate.overflowed) {
+				saved = candidate;
 				break;
 			}
 		}
 	}
+	if (!saved) throw new Error("Internal layout error: no column context to complete");
 
 	calculateBottomMost(state, saved, endingCell);
 

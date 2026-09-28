@@ -4,7 +4,7 @@ type BackgroundGetter =
 	| ((pageNumber: number, pageSize: PageSize) => unknown)
 	| ((pageNumber: number, pageCount: number, pageSize: PageSize) => unknown);
 
-interface BackgroundLayoutContext {
+type BackgroundLayoutContext = {
 	pageNumber: number;
 	pageCount: number;
 	pageSize: PageSize;
@@ -14,7 +14,7 @@ interface BackgroundLayoutContext {
 	measureNode(node: PreprocessedPdfNode): LayoutPdfNode;
 	layoutNode(node: LayoutPdfNode): void;
 	recordBackgroundItems(count: number): void;
-}
+};
 
 export const backgroundFeature = {
 	layout(background: unknown, context: BackgroundLayoutContext): boolean {

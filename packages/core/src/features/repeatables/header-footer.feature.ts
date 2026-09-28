@@ -6,18 +6,16 @@ import type {
 	PreprocessedPdfNode,
 } from "../../types/internal";
 
-interface RepeatableSize {
+type RepeatableSize = {
 	x: number;
 	y: number;
 	width: number;
 	height: number;
-}
-
-type RepeatableSizeFunction = (pageSize: PageSize, pageMargins: PageMargins) => RepeatableSize;
+};
 
 type DynamicNodeGetter = (pageNumber: number, pageCount: number, pageSize: PageSize) => unknown;
 
-interface HeaderFooterLayoutContext {
+type HeaderFooterLayoutContext = {
 	pages: PdfPage[];
 	setCurrentPage(pageIndex: number): void;
 	beginUnbreakableBlock(width: number, height: number): void;
@@ -29,19 +27,18 @@ interface HeaderFooterLayoutContext {
 	preprocessNode(node: unknown): PreprocessedPdfNode;
 	measureNode(node: PreprocessedPdfNode): LayoutPdfNode;
 	layoutNode(node: LayoutPdfNode): void;
-}
+};
 
 const layoutDynamicRepeatable = (
 	nodeGetter: unknown,
-	sizeFunction: RepeatableSizeFunction,
+	sizeFunction: (pageSize: PageSize, pageMargins: PageMargins) => RepeatableSize,
 	customPropertyName: "header" | "footer",
 	autoHeight: boolean,
 	context: HeaderFooterLayoutContext,
 ): Array<number | undefined> => {
 	const measuredHeights: Array<number | undefined> = [];
-	for (let pageIndex = 0; pageIndex < context.pages.length; pageIndex++) {
+	for (const [pageIndex, page] of context.pages.entries()) {
 		context.setCurrentPage(pageIndex);
-		const page = context.pages[pageIndex];
 		const customProperties = page.customProperties;
 		let pageNodeGetter = nodeGetter;
 		if (customProperties[customPropertyName] || customProperties[customPropertyName] === null) {

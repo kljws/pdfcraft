@@ -84,11 +84,11 @@ const getLastWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 
 	if (noWrap) {
 		// text was not wrapped, we need only last word
-		const tmpWords = splitWords(word.text, false);
-		if (tmpWords[tmpWords.length - 1] === undefined) {
+		const lastSplitWord = splitWords(word.text, false).at(-1);
+		if (lastSplitWord === undefined) {
 			return null;
 		}
-		word = tmpWords[tmpWords.length - 1];
+		word = lastSplitWord;
 	}
 
 	return word.text;
@@ -151,17 +151,18 @@ class TextBreaker {
 
 				const joinsPreviousInline = firstWord !== null && !/^\s/u.test(firstWord);
 				const wrapWords = joinsPreviousInline ? splitWords(lastWord + firstWord, false) : [];
-				if (wrapWords.length === 1) {
-					results[results.length - 1].noNewLine = true;
+				const previousInline = results.at(-1);
+				if (wrapWords.length === 1 && previousInline) {
+					previousInline.noNewLine = true;
 				}
 			}
 
-			for (let i2 = 0, l2 = words.length; i2 < l2; i2++) {
+			for (const word of words) {
 				const result: BrokenInline = {
-					text: words[i2].text,
+					text: word.text,
 				};
 
-				if (words[i2].lineEnd) {
+				if (word.lineEnd) {
 					result.lineEnd = true;
 				}
 

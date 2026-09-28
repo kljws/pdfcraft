@@ -5,12 +5,12 @@ import TableProcessor from "./table-processor";
 import { findSameRowPageBreakByRowSpanData, getPageBreakListBySpan } from "./table-pagination";
 import type { LayoutTableCell, LayoutTableNode } from "./table.types";
 
-export interface TableLayoutHost {
+export type TableLayoutHost = {
 	writer: PageElementWriter;
 	nestedLevel: number;
 	processRow(options: ProcessRowOptions): ProcessRowResult;
 	snakingAwarePageBreak(): void;
-}
+};
 
 function getRowHeight(
 	heights: PdfTable<LayoutTableCell>["heights"],
@@ -49,7 +49,11 @@ function getRowColumnGeometry(
 			throw new Error(`Internal layout error: missing table boundary for column ${columnIndex}`);
 		}
 		const contentWidth = Math.max(0, slotEnd - slotStart - leftBorder - leftPadding - rightPadding);
-		widths.push({ ...table.widths[columnIndex], _calcWidth: contentWidth });
+		const columnWidth = table.widths[columnIndex];
+		if (!columnWidth) {
+			throw new Error(`Internal layout error: missing table width for column ${columnIndex}`);
+		}
+		widths.push({ ...columnWidth, _calcWidth: contentWidth });
 		offsets.push(
 			columnIndex === 0
 				? processor.tableOffset + leftBorder + leftPadding
@@ -67,7 +71,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 	processor.beginTable(host.writer);
 
 	let lastRowHeight = 0;
-	for (let rowIndex = 0; rowIndex < table.body.length; rowIndex++) {
+	for (const [rowIndex, row] of table.body.entries()) {
 		processor.selectLayout(rowIndex);
 		const rowGroup = processor.rowGroupsByRow[rowIndex];
 		const rowDontBreakRows = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
@@ -102,7 +106,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 		const isUnbreakableRow = rowDontBreakRows || rowIndex <= processor.rowsWithoutPageBreak - 1;
 		if (!isUnbreakableRow && rowHeight !== undefined) {
 			const context = host.writer.context();
-			const page = context.getCurrentPage();
+			const page = context.requireCurrentPage();
 			const rowOverhead =
 				processor.layout.paddingTop(rowIndex, tableNode) +
 				processor.layout.paddingBottom(rowIndex, tableNode) +
@@ -136,7 +140,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 
 		const rowYBefore = host.writer.context().y;
 		if (rowDontBreakRows) {
-			for (const cell of table.body[rowIndex]) {
+			for (const cell of row) {
 				if (cell.rowSpan && cell.rowSpan > 1) {
 					cell._startingRowSpanY = host.writer.context().y;
 					cell._startingRowSpanPage = host.writer.context().page;
@@ -151,7 +155,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 			marginX: tableNode._margin ? [tableNode._margin[0], tableNode._margin[2]] : [0, 0],
 			dontBreakRows: rowDontBreakRows,
 			rowsWithoutPageBreak: processor.rowsWithoutPageBreak,
-			cells: table.body[rowIndex],
+			cells: row,
 			widths: rowGeometry.widths,
 			gaps: rowGeometry.offsets,
 			tableBody: table.body,

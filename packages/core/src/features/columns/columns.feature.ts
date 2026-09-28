@@ -19,7 +19,7 @@ export type ColumnsLayoutCapabilities = Pick<ColumnsLayoutContext, "processRow">
 
 type ColumnsLayoutFeatureContext = NodeLayoutContext & ColumnsLayoutCapabilities;
 
-interface ColumnsFeatureStages extends NodeFeatureStages {
+type ColumnsFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedColumnsNode;
 	measuredNode: MeasuredColumnsNode;
@@ -27,14 +27,14 @@ interface ColumnsFeatureStages extends NodeFeatureStages {
 	preprocessContext: ColumnsPreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: ColumnsLayoutFeatureContext;
-}
+};
 
-interface ColumnsFeature extends NodeFeature<ColumnsFeatureStages> {
+type ColumnsFeature = NodeFeature<ColumnsFeatureStages> & {
 	readonly kind: "columns";
 	preprocess(node: PdfNode, context: ColumnsPreprocessContext): PreprocessedColumnsNode;
 	measure(node: MeasuredColumnsNode, context: NodeMeasureContext): MeasuredColumnsNode;
 	layout(node: LayoutColumnsNode, context: ColumnsLayoutFeatureContext): void;
-}
+};
 
 export const columnsFeature = {
 	kind: "columns",

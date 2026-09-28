@@ -25,7 +25,6 @@ import { createBuiltInLayout } from "../composition/built-in-layout";
 import { createBuiltInMeasurement } from "../composition/built-in-measurement";
 import { createBuiltInPreprocessing } from "../composition/built-in-preprocessing";
 import { moveToNextSnakingColumnOrPage } from "../engine/layout-pagination";
-type TableLayoutSource = Partial<TableLayout> | PublicTableLayout;
 
 /**
  * Layout engine which turns document-definition-object into a set of pages, lines, inlines
@@ -56,7 +55,7 @@ class LayoutBuilder {
 		this.layout = createBuiltInLayout(this);
 	}
 
-	registerTableLayouts(tableLayouts: Dictionary<TableLayoutSource>): void {
+	registerTableLayouts(tableLayouts: Dictionary<Partial<TableLayout> | PublicTableLayout>): void {
 		this.tableLayouts = pack(
 			this.tableLayouts,
 			tableLayouts as Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,

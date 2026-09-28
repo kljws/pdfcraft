@@ -1,9 +1,9 @@
 import type { LayoutPdfNode } from "../types/internal";
 
-export interface NodeDecorationHooks {
+export type NodeDecorationHooks = {
 	decorateFeature(node: LayoutPdfNode): void;
 	resetFeature(node: LayoutPdfNode): void;
-}
+};
 
 export function decorateNode(node: LayoutPdfNode, hooks: NodeDecorationHooks): void {
 	const x = node.x;

@@ -3,10 +3,10 @@ import type PDFDocument from "../../rendering/pdf-document";
 import type { Inline } from "../../types/internal";
 import type { MeasuredAcroFormNode } from "./acroform.types";
 
-export interface AcroFormMeasureContext {
+export type AcroFormMeasureContext = {
 	document: PDFDocument;
 	styles: StyleContextStack;
-}
+};
 
 export function measureAcroForm(
 	node: MeasuredAcroFormNode,

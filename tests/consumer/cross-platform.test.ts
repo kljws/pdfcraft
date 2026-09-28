@@ -8,7 +8,7 @@ import {
 	crossPlatformFonts,
 	summarizePdf,
 	type PdfJs,
-} from "../../packages/core/tests/reference/cross-platform.ts";
+} from "../../packages/core/src/__tests__/fixtures/cross-platform.ts";
 
 /**
  * Generates the reference documents through the built Node.js entry. The browser suite compares
@@ -33,7 +33,7 @@ describe("cross-platform output: Node.js entry", () => {
 		}
 
 		await expect(`${JSON.stringify(summaries, null, "\t")}\n`).toMatchFileSnapshot(
-			"../../packages/core/tests/reference/__snapshots__/cross-platform.summary.json",
+			"../../packages/core/src/__tests__/__snapshots__/cross-platform.summary.json",
 		);
 	}, 60_000);
 });

@@ -4,12 +4,12 @@ import type { LayoutPdfNode, PageMarginSource } from "../../types/internal";
 import { resolveSectionPage, type SectionNode } from "./resolve-section-page";
 import type { LayoutSectionNode } from "./section.types";
 
-export interface SectionLayoutContext {
+export type SectionLayoutContext = {
 	writer: PageElementWriter;
 	defaultPageSize: PageSizeDefinition;
 	defaultPageMargins: PageMarginSource;
 	processNode(node: LayoutPdfNode): void;
-}
+};
 
 export function layoutSection(sectionNode: LayoutSectionNode, context: SectionLayoutContext): void {
 	const section = sectionNode as SectionNode;

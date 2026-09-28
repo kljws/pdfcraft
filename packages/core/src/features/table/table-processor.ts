@@ -27,7 +27,7 @@ import { drawTableRowSegment, type TableLinePosition } from "./table-processor.r
 class TableProcessor {
 	tableNode: LayoutTableNode;
 	_isCurrentRowUnbreakable = false;
-	_currentRowGroup?: TableRowGroupRange<LayoutTableCell>;
+	_currentRowGroup?: TableRowGroupRange<LayoutTableCell> | undefined;
 	offsets!: TableOffsets;
 	layout!: ResolvedTableLayout;
 	headerLayout!: ResolvedTableLayout;
@@ -48,7 +48,7 @@ class TableProcessor {
 	bottomLineWidth = 0;
 	rowPaddingBottom = 0;
 	rowCallback: () => void = () => {};
-	_tableTopBorderY?: number;
+	_tableTopBorderY?: number | undefined;
 	rowTopPageY = 0;
 	rowTopY = 0;
 	rowXOffset = 0;
@@ -57,6 +57,13 @@ class TableProcessor {
 
 	constructor(tableNode: LayoutTableNode) {
 		this.tableNode = tableNode;
+	}
+
+	/** Column boundary `index`; boundaries exist for every column and the table's right edge. */
+	private boundaryAt(index: number): RowSpanData {
+		const boundary = this.rowSpanData[index];
+		if (!boundary) throw new Error(`Internal layout error: missing table boundary ${index}`);
+		return boundary;
 	}
 
 	private get table(): PdfTable<LayoutTableCell> {
@@ -228,11 +235,9 @@ class TableProcessor {
 			const result: TableLinePosition[] = [];
 			let cols = 0;
 
-			for (let i = 0, l = this.table.body[rowIndex].length; i < l; i++) {
+			for (const [i, item] of (this.table.body[rowIndex] ?? []).entries()) {
 				if (!cols) {
-					result.push({ x: this.rowSpanData[i].left, index: i });
-
-					const item = this.table.body[rowIndex][i];
+					result.push({ x: this.boundaryAt(i).left, index: i });
 					cols = item._colSpan || item.colSpan || 0;
 				}
 				if (cols > 0) {
@@ -240,10 +245,8 @@ class TableProcessor {
 				}
 			}
 
-			result.push({
-				x: this.rowSpanData[this.rowSpanData.length - 1].left,
-				index: this.rowSpanData.length - 1,
-			});
+			const lastIndex = this.rowSpanData.length - 1;
+			result.push({ x: this.boundaryAt(lastIndex).left, index: lastIndex });
 
 			return result;
 		};
@@ -260,32 +263,27 @@ class TableProcessor {
 
 		const xs = getLineXs();
 
-		const ys: Array<{ y0: number; y1?: number; page: number }> = [];
-
-		const hasBreaks = pageBreaks && pageBreaks.length > 0;
-		ys.push({
+		type RowSegment = { y0: number; y1?: number | undefined; page: number };
+		const [firstBreak] = pageBreaks;
+		const firstSegment: RowSegment = {
 			y0: this.rowTopY,
-			page: hasBreaks ? pageBreaks[0].prevPage : endingPage,
-		});
-
-		if (hasBreaks) {
-			for (let i = 0, l = pageBreaks.length; i < l; i++) {
-				const pageBreak = pageBreaks[i];
-				ys[ys.length - 1].y1 = pageBreak.prevY;
-
-				ys.push({ y0: pageBreak.y, page: pageBreak.prevPage + 1 });
-			}
+			page: firstBreak ? firstBreak.prevPage : endingPage,
+		};
+		const ys: RowSegment[] = [firstSegment];
+		let lastSegment = firstSegment;
+		for (const pageBreak of pageBreaks) {
+			lastSegment.y1 = pageBreak.prevY;
+			lastSegment = { y0: pageBreak.y, page: pageBreak.prevPage + 1 };
+			ys.push(lastSegment);
 		}
+		lastSegment.y1 = endingY;
 
-		ys[ys.length - 1].y1 = endingY;
-
-		const firstSegmentEnd = ys[0].y1;
+		const firstSegmentEnd = firstSegment.y1;
 		if (firstSegmentEnd === undefined) {
 			throw new Error("Internal layout error: table row segment has no ending position");
 		}
-		const skipOrphanePadding = firstSegmentEnd - ys[0].y0 === this.rowPaddingTop;
-		if (skipOrphanePadding && pageBreaks.length > 0 && this.layout.hLineWhenBroken !== false) {
-			const firstBreak = pageBreaks[0];
+		const skipOrphanePadding = firstSegmentEnd - firstSegment.y0 === this.rowPaddingTop;
+		if (skipOrphanePadding && firstBreak && this.layout.hLineWhenBroken !== false) {
 			this.drawHorizontalLine(rowIndex, writer, {
 				overrideY: firstBreak.prevY,
 				moveDown: false,
@@ -301,23 +299,21 @@ class TableProcessor {
 			!this.dontBreakRows
 		) {
 			// Draw the top border of the table
-			let pageTableStartedAt: number | undefined;
-			if (pageBreaks && pageBreaks.length > 0) {
-				// Get the page where table started at
-				pageTableStartedAt = pageBreaks[0].prevPage;
-			}
+			// The page where the table started
+			const pageTableStartedAt = firstBreak?.prevPage;
 			this.drawHorizontalLine(0, writer, {
 				overrideY: this._tableTopBorderY,
 				moveDown: false,
 				forcePage: pageTableStartedAt,
 			});
 		}
-		for (let yi = skipOrphanePadding ? 1 : 0, yl = ys.length; yi < yl; yi++) {
+		for (const [yi, segment] of ys.entries()) {
+			if (skipOrphanePadding && yi === 0) continue;
 			const willBreak = yi < ys.length - 1;
 			const rowBreakWithoutHeader = yi > 0 && !this.headerRows;
 			const hzLineOffset = rowBreakWithoutHeader ? 0 : this.topLineWidth;
-			const y1 = ys[yi].y0;
-			let y2 = ys[yi].y1;
+			const y1 = segment.y0;
+			let y2 = segment.y1;
 			if (y2 === undefined) {
 				throw new Error("Internal layout error: table row segment has no ending position");
 			}
@@ -326,8 +322,8 @@ class TableProcessor {
 				y2 = y2 + this.rowPaddingBottom;
 			}
 
-			if (writer.context().page != ys[yi].page) {
-				writer.context().page = ys[yi].page;
+			if (writer.context().page != segment.page) {
+				writer.context().page = segment.page;
 			}
 			const segmentContext = writer.context();
 			const segmentPage =
@@ -358,7 +354,7 @@ class TableProcessor {
 					borderSide: "top",
 				});
 			}
-			const roundedTopY = this.roundedTopByPage.get(ys[yi].page);
+			const roundedTopY = this.roundedTopByPage.get(segment.page);
 			const segmentTopY = y1 - hzLineOffset + this.topLineWidth / 2;
 			const startsRoundedPageFragment =
 				roundedTopY !== undefined && Math.abs(roundedTopY - segmentTopY) < 0.001;
@@ -387,30 +383,31 @@ class TableProcessor {
 				: writer.context().pages?.[writer.context().page];
 		if (restoredPage) writer.context().pageMargins = restoredPage.pageMargins;
 
-		const row = this.table.body[rowIndex];
-		for (let i = 0, l = row.length; i < l; i++) {
-			const cell = row[i];
+		for (const [i, cell] of (this.table.body[rowIndex] ?? []).entries()) {
+			const boundary = this.boundaryAt(i);
 			const rowSpan = cell.rowSpan ?? 0;
 			if (rowSpan) {
-				this.rowSpanData[i].rowSpan = rowSpan;
+				boundary.rowSpan = rowSpan;
 
 				// fix colSpans
 				if (cell.colSpan && cell.colSpan > 1) {
 					for (let j = 1; j < rowSpan; j++) {
-						this.table.body[rowIndex + j][i]._colSpan = cell.colSpan;
+						const spanned = this.table.body[rowIndex + j]?.[i];
+						if (spanned) spanned._colSpan = cell.colSpan;
 					}
 				}
 
 				// fix rowSpans
 				if (rowSpan > 1) {
 					for (let j = 1; j < rowSpan; j++) {
-						this.table.body[rowIndex + j][i]._rowSpanCurrentOffset = j;
+						const spanned = this.table.body[rowIndex + j]?.[i];
+						if (spanned) spanned._rowSpanCurrentOffset = j;
 					}
 				}
 			}
 
-			if (this.rowSpanData[i].rowSpan > 0) {
-				this.rowSpanData[i].rowSpan--;
+			if (boundary.rowSpan > 0) {
+				boundary.rowSpan--;
 			}
 		}
 

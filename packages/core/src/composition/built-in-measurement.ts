@@ -18,15 +18,15 @@ import { measureRegisteredNodeFeature } from "./built-in-feature-registry";
 
 type BuiltInMeasureContext = NodeMeasureContext & ListMeasureCapabilities & TextMeasureCapabilities;
 
-export interface BuiltInMeasurementOptions {
+export type BuiltInMeasurementOptions = {
 	readonly document: PDFDocument;
-	readonly styleDictionary?: Dictionary<Style>;
-	readonly defaultStyle?: Style;
-	readonly extensions?: PdfCraftExtensions;
-	readonly tableLayouts?: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
+	readonly styleDictionary?: Dictionary<Style> | undefined;
+	readonly defaultStyle?: Style | undefined;
+	readonly extensions?: PdfCraftExtensions | undefined;
+	readonly tableLayouts?: Dictionary<Partial<TableLayout<MeasuredPdfNode>>> | undefined;
 	/** Replaces the inline text engine, e.g. with a test double. */
-	readonly textInlines?: TextInlines;
-}
+	readonly textInlines?: TextInlines | undefined;
+};
 
 /** Measures preprocessed node trees with one style stack shared by every measured node. */
 export function createBuiltInMeasurement(options: BuiltInMeasurementOptions) {

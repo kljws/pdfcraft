@@ -10,49 +10,49 @@ import type {
 	Vector,
 } from "../../types/internal";
 
-export interface ListMarker {
-	canvas?: Vector[];
-	_inlines?: Inline[];
+export type ListMarker = {
+	canvas?: Vector[] | undefined;
+	_inlines?: Inline[] | undefined;
 	_minWidth: number;
 	_maxWidth: number;
-	_minHeight?: number;
-	_maxHeight?: number;
-}
+	_minHeight?: number | undefined;
+	_maxHeight?: number | undefined;
+};
 
 /** State the list feature attaches to each of its items, whatever their own kind. */
-export interface ListItemState {
-	listMarker?: ListMarker;
-}
+export type ListItemState = {
+	listMarker?: ListMarker | undefined;
+};
 
 export type MeasuredListItem = MeasuredPdfNode & ListItemState;
 export type LayoutListItem = LayoutPdfNode & ListItemState;
 
-export interface PreprocessedListNode extends PreprocessedNodeBase {
+export type PreprocessedListNode = PreprocessedNodeBase & {
 	_kind: "list";
-	ul?: PreprocessedPdfNode[];
-	ol?: PreprocessedPdfNode[];
-}
+	ul?: PreprocessedPdfNode[] | undefined;
+	ol?: PreprocessedPdfNode[] | undefined;
+};
 
-export interface ListMeasureNode extends MeasuredNodeBase {
+export type ListMeasureNode = MeasuredNodeBase & {
 	_kind: "list";
-	ul?: MeasuredListItem[];
-	ol?: MeasuredListItem[];
-}
+	ul?: MeasuredListItem[] | undefined;
+	ol?: MeasuredListItem[] | undefined;
+};
 
-export interface ListMetrics {
+export type ListMetrics = {
 	gapSize: TextMeasurement;
-}
+};
 
-export interface MeasuredListNode extends ListMeasureNode {
+export type MeasuredListNode = ListMeasureNode & {
 	metrics: ListMetrics;
-}
+};
 
-export interface LayoutListNode extends LayoutNodeBase {
+export type LayoutListNode = LayoutNodeBase & {
 	_kind: "list";
-	ul?: LayoutListItem[];
-	ol?: LayoutListItem[];
+	ul?: LayoutListItem[] | undefined;
+	ol?: LayoutListItem[] | undefined;
 	metrics: ListMetrics;
-}
+};
 
 declare module "../../types/document.types" {
 	interface NodeKindRegistry {

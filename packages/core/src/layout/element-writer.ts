@@ -15,13 +15,13 @@ import { type ElementFragment, replayFragment } from "./element-writer.fragments
 import { notifyVectorInsertion } from "./vector-insertion";
 import type { NodePlaceResult } from "../engine/contracts/node-feature";
 
-export interface ElementWriterEvents {
+export type ElementWriterEvents = {
 	lineAdded: [line: LineLike];
 	pageChanged: [change: PageBreak];
 	columnChanged: [change: { prevY: number; y: number }];
-}
+};
 
-interface ElementPlacementWriter {
+type ElementPlacementWriter = {
 	context(): DocumentContext;
 	getCurrentPositionOnPage(): CurrentPosition;
 	addVector(
@@ -31,9 +31,9 @@ interface ElementPlacementWriter {
 		index?: number,
 		forcePage?: number,
 	): CurrentPosition | undefined;
-}
+};
 
-export interface ElementPlacementAdapter {
+export type ElementPlacementAdapter = {
 	placeFeatureItem(
 		featureKind: string,
 		writer: ElementPlacementWriter,
@@ -41,7 +41,7 @@ export interface ElementPlacementAdapter {
 		index?: number,
 		allowOverflow?: boolean,
 	): NodePlaceResult;
-}
+};
 
 /**
  * A line/vector writer, which adds elements to current page and sets
@@ -50,8 +50,8 @@ export interface ElementPlacementAdapter {
 class ElementWriter {
 	private _context: DocumentContext;
 	readonly contextStack: DocumentContext[];
-	private readonly onLineAdded?: (line: LineLike) => void;
-	private readonly placement?: ElementPlacementAdapter;
+	private readonly onLineAdded?: ((line: LineLike) => void) | undefined;
+	private readonly placement?: ElementPlacementAdapter | undefined;
 
 	constructor(
 		context: DocumentContext,
@@ -137,7 +137,7 @@ class ElementWriter {
 		const width = this.context().availableWidth;
 		const lineWidth = line.getWidth();
 
-		const alignment = line.inlines.length > 0 ? line.inlines[0].alignment : undefined;
+		const alignment = line.inlines[0]?.alignment;
 
 		let offset = getAlignmentOffset(alignment ?? undefined, width, lineWidth);
 		if (offset) {
@@ -152,11 +152,12 @@ class ElementWriter {
 		) {
 			const additionalSpacing = (width - lineWidth) / (line.inlines.length - 1);
 
-			for (let i = 1, l = line.inlines.length; i < l; i++) {
+			for (const [i, inline] of line.inlines.entries()) {
+				if (i === 0) continue;
 				offset = i * additionalSpacing;
 
-				line.inlines[i].x += offset;
-				line.inlines[i].justifyShift = additionalSpacing;
+				inline.x += offset;
+				inline.justifyShift = additionalSpacing;
 			}
 		}
 	}
@@ -188,7 +189,7 @@ class ElementWriter {
 	}
 
 	beginVerticalAlignment(verticalAlignment?: string): PageItem {
-		const page = this.context().getCurrentPage();
+		const page = this.context().requireCurrentPage();
 		const item: PageItem = {
 			type: "beginVerticalAlignment",
 			item: { verticalAlignment: verticalAlignment },
@@ -198,7 +199,7 @@ class ElementWriter {
 	}
 
 	endVerticalAlignment(verticalAlignment?: string): PageItem {
-		const page = this.context().getCurrentPage();
+		const page = this.context().requireCurrentPage();
 		const item: PageItem = {
 			type: "endVerticalAlignment",
 			item: { verticalAlignment: verticalAlignment },
@@ -229,7 +230,7 @@ class ElementWriter {
 	pushContext(contextOrWidth?: DocumentContext | number, height?: number): void {
 		if (contextOrWidth === undefined) {
 			height =
-				this.context().getCurrentPage().pageSize.height -
+				this.context().requireCurrentPage().pageSize.height -
 				this.context().pageMargins.top -
 				this.context().pageMargins.bottom;
 			contextOrWidth = this.context().availableWidth;

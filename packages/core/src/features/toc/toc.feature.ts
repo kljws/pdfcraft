@@ -14,7 +14,7 @@ import {
 } from "./preprocess-toc";
 import type { LayoutTocNode, MeasuredTocNode, PreprocessedTocNode } from "./toc.types";
 
-interface TocFeatureStages extends NodeFeatureStages {
+type TocFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTocNode;
 	measuredNode: MeasuredTocNode;
@@ -22,15 +22,15 @@ interface TocFeatureStages extends NodeFeatureStages {
 	preprocessContext: TocPreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-}
+};
 
-interface TocFeature extends NodeFeature<TocFeatureStages> {
+type TocFeature = NodeFeature<TocFeatureStages> & {
 	readonly kind: "toc";
 	preprocess(node: PdfNode, context: TocPreprocessContext): PreprocessedTocNode;
 	registerItem(node: PreprocessedPdfNode, context: TocItemRegistrationContext): void;
 	measure(node: MeasuredTocNode, context: NodeMeasureContext): MeasuredTocNode;
 	layout(node: LayoutTocNode, context: NodeLayoutContext): void;
-}
+};
 
 export const tocFeature = {
 	kind: "toc",

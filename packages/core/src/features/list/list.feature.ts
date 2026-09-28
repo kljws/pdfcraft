@@ -20,7 +20,7 @@ import { measureOrderedList, measureUnorderedList, type ListMeasureContext } fro
 import { preprocessList, type ListPreprocessContext } from "./preprocess-list";
 
 /** Marker text measurement supplied by the inline text pipeline through composition. */
-export interface ListMeasureCapabilities {
+export type ListMeasureCapabilities = {
 	readonly inlines: {
 		sizeOfText(text: string, styles: StyleContextStack): TextSize;
 		buildInlines(
@@ -28,11 +28,11 @@ export interface ListMeasureCapabilities {
 			styles: StyleContextStack,
 		): { items: Inline[] };
 	};
-}
+};
 
 type ListMeasureFeatureContext = NodeMeasureContext & ListMeasureCapabilities;
 
-interface ListFeatureStages extends NodeFeatureStages {
+type ListFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedListNode;
 	measureNode: ListMeasureNode;
@@ -41,15 +41,15 @@ interface ListFeatureStages extends NodeFeatureStages {
 	preprocessContext: ListPreprocessContext;
 	measureContext: ListMeasureFeatureContext;
 	layoutContext: NodeLayoutContext;
-}
+};
 
-interface ListFeature extends NodeFeature<ListFeatureStages> {
+type ListFeature = NodeFeature<ListFeatureStages> & {
 	readonly kind: "list";
 	preprocess(node: PdfNode, context: ListPreprocessContext): PreprocessedListNode;
 	measure(node: ListMeasureNode, context: ListMeasureFeatureContext): MeasuredListNode;
 	layout(node: LayoutListNode, context: NodeLayoutContext): void;
 	hasMarker(node: LayoutPdfNode): boolean;
-}
+};
 
 export const listFeature = {
 	kind: "list",

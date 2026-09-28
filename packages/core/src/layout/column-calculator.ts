@@ -2,7 +2,7 @@ import { isString } from "../utils/variable-type";
 import type { ColumnWidth, TableLayout } from "../types/internal";
 
 type TableWidthNode<Node extends object> = Node & {
-	metrics?: { layout?: TableLayout<Node> };
+	metrics?: { layout?: TableLayout<Node> | undefined } | undefined;
 };
 
 function buildColumnWidths<Node extends object>(
@@ -132,9 +132,7 @@ function measureMinMax(columns: ColumnWidth[]): { min: number; max: number } {
 	const maxStar = { min: 0, max: 0 };
 	let starCount = 0;
 
-	for (let i = 0, l = columns.length; i < l; i++) {
-		const c = columns[i];
-
+	for (const c of columns) {
 		if (isStarColumn(c)) {
 			maxStar.min = Math.max(maxStar.min, c._minWidth);
 			maxStar.max = Math.max(maxStar.max, c._maxWidth);

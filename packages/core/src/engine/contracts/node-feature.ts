@@ -15,7 +15,7 @@ import type {
 	Vector,
 } from "../../types/internal";
 
-export interface FeatureItemWriter {
+export type FeatureItemWriter = {
 	context(): DocumentContext;
 	getCurrentPositionOnPage(): CurrentPosition;
 	addVector(
@@ -25,33 +25,33 @@ export interface FeatureItemWriter {
 		index?: number,
 		forcePage?: number,
 	): CurrentPosition | undefined;
-}
+};
 
-export interface NodePlaceContext {
+export type NodePlaceContext = {
 	readonly writer: FeatureItemWriter;
-	readonly index?: number;
+	readonly index?: number | undefined;
 	/** Set on the last attempt, after a fresh page or column: the item must be placed even if it overflows. */
-	readonly allowOverflow?: boolean;
-}
+	readonly allowOverflow?: boolean | undefined;
+};
 
 export type NodePlaceResult = CurrentPosition | false | Array<CurrentPosition | undefined>;
 export type NodePlaceHook = (node: LayoutPdfNode, context: NodePlaceContext) => NodePlaceResult;
 
-export interface NodeMeasureContext {
+export type NodeMeasureContext = {
 	readonly document: PDFDocument;
 	readonly styles: StyleContextStack;
 	readonly extensions: PdfCraftExtensions;
 	readonly tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
 	readonly featureState: Map<string, object>;
 	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
-}
+};
 
 export type NodeMeasureHook<Context extends NodeMeasureContext = NodeMeasureContext> = (
 	node: MeasurePdfNode,
 	context: Context,
 ) => MeasuredPdfNode | undefined;
 
-export interface NodeLayoutContext {
+export type NodeLayoutContext = {
 	readonly writer: PageElementWriter;
 	readonly pageMargins: PageMarginSource;
 	readonly pageSize: PageSize;
@@ -60,7 +60,7 @@ export interface NodeLayoutContext {
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
 	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
-}
+};
 
 export type NodeLayoutHook<Context extends NodeLayoutContext = NodeLayoutContext> = (
 	node: LayoutPdfNode,
@@ -68,23 +68,23 @@ export type NodeLayoutHook<Context extends NodeLayoutContext = NodeLayoutContext
 ) => void;
 
 /** Type map carried by a feature through every node lifecycle stage. */
-export interface NodeFeatureStages {
+export type NodeFeatureStages = {
 	preprocessNode: object;
 	preprocessedNode: object;
 	measuredNode: object;
 	layoutNode: object;
 	/** Omitted by features that emit no page item of their own. */
-	renderNode?: object;
+	renderNode?: object | undefined;
 	preprocessContext: object | undefined;
 	measureContext: object | undefined;
 	layoutContext: object | undefined;
 	renderContext?: object | undefined;
-	resourceSource?: object;
+	resourceSource?: object | undefined;
 	resolvedResources?: object | undefined;
 	resolveResourcesContext?: object | undefined;
-	pageItem?: object;
-	inline?: object;
-}
+	pageItem?: object | undefined;
+	inline?: object | undefined;
+};
 
 type OptionalStage<Stages, Name extends PropertyKey> = Name extends keyof Stages
 	? Stages[Name]
@@ -93,7 +93,7 @@ type StageOr<Stages, Name extends PropertyKey, Fallback> = Name extends keyof St
 	? Stages[Name]
 	: Fallback;
 
-export interface NodeFeature<Stages extends NodeFeatureStages> {
+export type NodeFeature<Stages extends NodeFeatureStages> = {
 	readonly kind: string;
 	matches(node: Stages["preprocessNode"]): boolean;
 	preprocess?(
@@ -116,5 +116,5 @@ export interface NodeFeature<Stages extends NodeFeatureStages> {
 	): void;
 	decorate?(node: Stages["layoutNode"]): void;
 	reset?(node: Stages["layoutNode"]): void;
-	readonly inline?: OptionalStage<Stages, "inline">;
-}
+	readonly inline?: OptionalStage<Stages, "inline"> | undefined;
+};

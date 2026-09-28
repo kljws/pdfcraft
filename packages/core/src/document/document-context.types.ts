@@ -1,25 +1,25 @@
 import type { PageOrientation } from "../types";
 import type { PageMargins, PageMarginSource, PdfPage } from "../types/internal";
 
-export interface ContextCoordinates {
+export type ContextCoordinates = {
 	x: number;
 	y: number;
 	availableWidth: number;
 	availableHeight: number;
 	page: number;
-}
+};
 
-export interface ContextSnapshot extends ContextCoordinates {
+export type ContextSnapshot = ContextCoordinates & {
 	bottomByPage: Record<number, number>;
 	bottomMost: ContextCoordinates;
 	lastColumnWidth: number;
-	overflowed?: boolean;
-	snakingColumns?: boolean;
-	gap?: number;
-	columnWidths?: number[] | null;
-}
+	overflowed?: boolean | undefined;
+	snakingColumns?: boolean | undefined;
+	gap?: number | undefined;
+	columnWidths?: number[] | null | undefined;
+};
 
-export interface DocumentContextState extends ContextCoordinates {
+export type DocumentContextState = ContextCoordinates & {
 	pages: PdfPage[];
 	pageMargins: PageMargins;
 	pageMarginSource: PageMarginSource;
@@ -30,17 +30,17 @@ export interface DocumentContextState extends ContextCoordinates {
 	lastColumnWidth: number;
 	marginXTopParent: [number, number] | null;
 	height: number;
-}
+};
 
-export interface ColumnEndingContext extends ContextCoordinates {
-	lastColumnWidth?: number;
-}
+export type ColumnEndingContext = ContextCoordinates & {
+	lastColumnWidth?: number | undefined;
+};
 
-export interface ColumnEndingCell {
-	_columnEndingContext?: ColumnEndingContext;
-}
+export type ColumnEndingCell = {
+	_columnEndingContext?: ColumnEndingContext | undefined;
+};
 
-export interface PagePosition {
+export type PagePosition = {
 	pageNumber: number;
 	pageOrientation: PageOrientation;
 	pageInnerHeight: number;
@@ -49,8 +49,8 @@ export interface PagePosition {
 	top: number;
 	verticalRatio: number;
 	horizontalRatio: number;
-}
+};
 
-export interface DocumentContextEvents {
+export type DocumentContextEvents = {
 	pageAdded: [page: PdfPage];
-}
+};

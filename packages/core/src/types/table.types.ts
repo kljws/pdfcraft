@@ -6,45 +6,50 @@ export type ColumnNode<Node = PdfNode> = Node & ColumnWidth;
 export type RawColumnWidth = ColumnWidth | number | string;
 export type RawTableWidths = RawColumnWidth | RawColumnWidth[];
 
-export interface PdfTable<Node = PdfNode, Widths = ColumnWidth[]> {
+export type PdfTable<Node = PdfNode, Widths = ColumnWidth[]> = {
 	body: Node[][];
 	widths: Widths;
-	borderRadius?: number;
-	heights?: number | "auto" | Array<number | "auto"> | ((rowIndex: number) => number | "auto");
-	headerRows?: number;
-	keepWithHeaderRows?: number;
-	dontBreakRows?: boolean;
-	_rowGroups?: TableRowGroupRange<Node>[];
-	_headerLayout?: string | Partial<TableLayout<Node>>;
-	_bodyLayout?: string | Partial<TableLayout<Node>>;
-	_blockContainer?: boolean;
-}
+	borderRadius?: number | undefined;
+	heights?:
+		| number
+		| "auto"
+		| Array<number | "auto">
+		| ((rowIndex: number) => number | "auto")
+		| undefined;
+	headerRows?: number | undefined;
+	keepWithHeaderRows?: number | undefined;
+	dontBreakRows?: boolean | undefined;
+	_rowGroups?: TableRowGroupRange<Node>[] | undefined;
+	_headerLayout?: string | Partial<TableLayout<Node>> | undefined;
+	_bodyLayout?: string | Partial<TableLayout<Node>> | undefined;
+	_blockContainer?: boolean | undefined;
+};
 
-export interface TableRowGroupRange<Node = PdfNode> {
+export type TableRowGroupRange<Node = PdfNode> = {
 	groupIndex: number;
 	startRow: number;
 	endRow: number;
 	keepTogether: boolean;
 	dontBreakRows: boolean;
-	layoutDefinition?: TableRowGroupLayout;
-	layout?: TableLayout<Node>;
-}
+	layoutDefinition?: TableRowGroupLayout | undefined;
+	layout?: TableLayout<Node> | undefined;
+};
 
-export interface ColumnWidth {
-	width?: number | string | null;
+export type ColumnWidth = {
+	width?: number | string | null | undefined;
 	_minWidth: number;
 	_maxWidth: number;
-	_calcWidth?: number;
-	elasticWidth?: boolean;
-}
+	_calcWidth?: number | undefined;
+	elasticWidth?: boolean | undefined;
+};
 
-export interface TableOffsets {
+export type TableOffsets = {
 	total: number;
 	offsets: number[];
-}
+};
 
-export interface TableLayout<Node = PdfNode> {
-	hLineWhenBroken?: boolean;
+export type TableLayout<Node = PdfNode> = {
+	hLineWhenBroken?: boolean | undefined;
 	hLineWidth(index: number, node: Node): number;
 	vLineWidth(index: number, node: Node): number;
 	hLineColor(index: number, node: Node, columnIndex?: number): unknown;
@@ -58,4 +63,4 @@ export interface TableLayout<Node = PdfNode> {
 	vLineStyle?(index: number, node: Node): { dash?: unknown } | null | undefined;
 	fillColor?: unknown;
 	fillOpacity?: unknown;
-}
+};

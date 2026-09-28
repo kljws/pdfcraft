@@ -16,12 +16,12 @@ class Line {
 	lastLineInParagraph = false;
 	x = 0;
 	y = 0;
-	id?: string;
-	_node?: LayoutPdfNode;
-	_position?: Position;
-	_outline?: OutlineDefinition;
-	_pageNodeRef?: MeasuredPdfNode | LayoutPdfNode;
-	_pageReferenceText?: string;
+	id?: string | undefined;
+	_node?: LayoutPdfNode | undefined;
+	_position?: Position | undefined;
+	_outline?: OutlineDefinition | undefined;
+	_pageNodeRef?: MeasuredPdfNode | LayoutPdfNode | undefined;
+	_pageReferenceText?: string | undefined;
 
 	/**
 	 * @param maxWidth Maximum width this line can have
@@ -94,8 +94,7 @@ class Line {
 		let inlineWidth = inline.width;
 		let inlineTrailingCut = inline.trailingCut || 0;
 		if (inline.noNewLine) {
-			for (let i = nextInlineIndex, l = nextInlines.length; i < l; i++) {
-				const nextInline = nextInlines[i];
+			for (const nextInline of nextInlines.slice(nextInlineIndex)) {
 				inlineWidth += nextInline.width;
 				inlineTrailingCut = nextInline.trailingCut || 0;
 				if (!nextInline.noNewLine) {

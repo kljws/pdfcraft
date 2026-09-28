@@ -95,10 +95,10 @@ function romanCounter(counter: number): string {
 	};
 	let value = counter;
 	let result = "";
-	for (const numeral in numerals) {
-		while (value >= numerals[numeral]) {
+	for (const [numeral, amount] of Object.entries(numerals)) {
+		while (value >= amount) {
 			result += numeral;
-			value -= numerals[numeral];
+			value -= amount;
 		}
 	}
 	return result;

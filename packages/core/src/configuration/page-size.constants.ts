@@ -1,5 +1,3 @@
-type PageDimensions = readonly [width: number, height: number];
-
 const pageSizes = {
 	"4A0": [4767.87, 6740.79],
 	"2A0": [3370.39, 4767.87],
@@ -51,6 +49,6 @@ const pageSizes = {
 	LEGAL: [612.0, 1008.0],
 	LETTER: [612.0, 792.0],
 	TABLOID: [792.0, 1224.0],
-} as const satisfies Record<string, PageDimensions>;
+} as const satisfies Record<string, readonly [width: number, height: number]>;
 
 export default pageSizes;

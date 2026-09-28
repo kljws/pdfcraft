@@ -4,13 +4,13 @@ import type { LayoutPdfNode, LineLike } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
 import type { LayoutListNode, ListMarker } from "./list.types";
 
-export interface ListLayoutContext {
+export type ListLayoutContext = {
 	writer: PageElementWriter;
 	ordered: boolean;
 	getPageWidth(): number;
 	isLinearNodeListSuppressed(): boolean;
 	processNode(node: LayoutPdfNode): void;
-}
+};
 
 export function layoutList(node: LayoutListNode, context: ListLayoutContext): void {
 	let nextMarker: ListMarker | null = null;
@@ -19,13 +19,14 @@ export function layoutList(node: LayoutListNode, context: ListLayoutContext): vo
 			const marker = nextMarker;
 			nextMarker = null;
 
-			if (marker.canvas) {
-				const vector = marker.canvas[0];
+			const vector = marker.canvas?.[0];
+			const inline = marker._inlines?.[0];
+			if (vector) {
 				offsetVector(vector, -marker._minWidth, 0);
 				context.writer.addVector(vector);
-			} else if (marker._inlines) {
+			} else if (inline) {
 				const markerLine = new Line(context.getPageWidth());
-				markerLine.addInline(marker._inlines[0]);
+				markerLine.addInline(inline);
 				markerLine.x = -marker._minWidth;
 				markerLine.y = line.getAscenderHeight() - markerLine.getAscenderHeight();
 				context.writer.addLine(markerLine, true);

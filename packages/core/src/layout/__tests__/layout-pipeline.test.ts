@@ -1,6 +1,9 @@
 import { assert, beforeEach, describe, it } from "vitest";
-import type { LayoutBuilder } from "../../../tests/helpers/layout-builder.ts";
-import { createLayoutBuilder, sampleTestProvider } from "../../../tests/helpers/layout-builder.ts";
+import type { LayoutBuilder } from "../../__tests__/fixtures/layout-builder.ts";
+import {
+	createLayoutBuilder,
+	sampleTestProvider,
+} from "../../__tests__/fixtures/layout-builder.ts";
 
 describe("layout pipeline", function () {
 	let builder: LayoutBuilder;

@@ -16,34 +16,35 @@ import type { ResolvedColor } from "../../rendering/renderer.types";
 
 export type TextFragment = string | number | boolean | null | undefined | PdfNode;
 
-export interface BrokenWord {
+export type BrokenWord = {
 	text: string;
-	lineEnd?: boolean;
-}
+	lineEnd?: boolean | undefined;
+};
 
-export interface BrokenInline extends Record<string, unknown> {
+export type BrokenInline = Record<string, unknown> & {
 	text: string;
-	image?: PdfNode["image"];
-	acroform?: PdfNode["acroform"];
-	lineEnd?: boolean;
-	noNewLine?: boolean;
-}
+	image?: PdfNode["image"] | undefined;
+	acroform?: PdfNode["acroform"] | undefined;
+	lineEnd?: boolean | undefined;
+	noNewLine?: boolean | undefined;
+};
 
-export interface InlineMeasurement {
+export type InlineMeasurement = {
 	items: Inline[];
 	minWidth: number;
 	maxWidth: number;
-}
+};
 
 /** References resolved from `pageReference` and `textReference` during preprocessing. */
+// Kept as an interface: it takes part in the recursive node types and breaks the cycle.
 export interface TextReferenceState<Node> {
-	_pageRef?: NodeReference<Node>;
-	_textRef?: NodeReference<Node>;
+	_pageRef?: NodeReference<Node> | undefined;
+	_textRef?: NodeReference<Node> | undefined;
 	/**
 	 * Complete page number measured for a page reference or TOC number. Inline fragments copy it,
 	 * so a number wrapped across lines is still compared as a whole.
 	 */
-	_pageReferenceText?: string;
+	_pageReferenceText?: string | undefined;
 }
 
 export type PreprocessedTextNode = PreprocessedNodeBase &
@@ -52,9 +53,9 @@ export type PreprocessedTextNode = PreprocessedNodeBase &
 		text: NonNullable<NodeText<PreprocessedPdfNode>>;
 	};
 
-export interface TextMetrics {
+export type TextMetrics = {
 	inlines: Inline[];
-}
+};
 
 export type TextMeasureNode = MeasuredNodeBase &
 	TextReferenceState<MeasuredPdfNode> & {
@@ -73,14 +74,14 @@ export type LayoutTextNode = LayoutNodeBase &
 		metrics: TextMetrics;
 	};
 
-export interface DecorationGroup {
+export type DecorationGroup = {
 	line: LineLike;
 	decoration: Decoration;
 	decorationColor: ResolvedColor;
 	decorationStyle: "solid" | "double" | "dashed" | "dotted" | "wavy";
 	decorationThickness: number | null;
 	inlines: Inline[];
-}
+};
 
 declare module "../../types/document.types" {
 	interface NodeKindRegistry {

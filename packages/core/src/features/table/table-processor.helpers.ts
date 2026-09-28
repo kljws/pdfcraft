@@ -8,7 +8,7 @@ import type {
 } from "./table-processor.types";
 import type TableProcessor from "./table-processor";
 
-const PAGE_BREAK_VALUES = new Set([
+const pageBreakValues = new Set([
 	"before",
 	"beforeOdd",
 	"beforeEven",
@@ -118,7 +118,7 @@ export const hasExplicitPageBreak = (cell: LayoutTableCell): boolean => {
 		return false;
 	}
 
-	return typeof cell.pageBreak === "string" && PAGE_BREAK_VALUES.has(cell.pageBreak);
+	return typeof cell.pageBreak === "string" && pageBreakValues.has(cell.pageBreak);
 };
 
 export const getTableInnerContentWidth = (tableNode: LayoutTableNode): number =>
@@ -176,11 +176,13 @@ export const createRowSpanData = (
 	let left = horizontalOffset;
 	const table = requireTable(tableNode);
 
-	for (let index = 0; index < table.body[0].length; index++) {
+	const columnCount = table.body[0]?.length ?? 0;
+	for (let index = 0; index < columnCount; index++) {
 		const padding = layout.paddingLeft(index, tableNode) + layout.paddingRight(index, tableNode);
 		const width =
-			padding + layout.vLineWidth(index, tableNode) + (table.widths[index]._calcWidth ?? 0);
-		data[data.length - 1].width = width;
+			padding + layout.vLineWidth(index, tableNode) + (table.widths[index]?._calcWidth ?? 0);
+		const previous = data.at(-1);
+		if (previous) previous.width = width;
 		left += width;
 		data.push({ left, rowSpan: 0, width: 0 });
 	}
@@ -195,14 +197,14 @@ export const propagateCellBorders = (body: LayoutTableCell[][]): void => {
 		borderIndex: number,
 		value: boolean,
 	): void => {
-		const cell = body[rowIndex][columnIndex];
+		const cell = body[rowIndex]?.[columnIndex];
+		if (!cell) return;
 		cell.border ||= [true, true, true, true];
 		cell.border[borderIndex] = value;
 	};
 
-	for (let rowIndex = 0; rowIndex < body.length; rowIndex++) {
-		for (let columnIndex = 0; columnIndex < body[rowIndex].length; columnIndex++) {
-			const cell = body[rowIndex][columnIndex];
+	for (const [rowIndex, row] of body.entries()) {
+		for (const [columnIndex, cell] of row.entries()) {
 			if (!cell.border) continue;
 
 			const rowSpan = cell.rowSpan || 1;

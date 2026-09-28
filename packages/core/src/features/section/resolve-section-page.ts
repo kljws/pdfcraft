@@ -10,28 +10,28 @@ import { convertToDynamicContent } from "../../utils/tools";
 
 export type SectionNode = Omit<LayoutPdfNode, "background" | "pageOrientation"> & {
 	section: LayoutPdfNode;
-	pageSize?: PageSizeDefinition | "inherit";
-	pageOrientation?: PageOrientation | "inherit";
-	pageMargins?: PageMarginDefinition | "inherit";
+	pageSize?: PageSizeDefinition | "inherit" | undefined;
+	pageOrientation?: PageOrientation | "inherit" | undefined;
+	pageMargins?: PageMarginDefinition | "inherit" | undefined;
 	header?: unknown;
 	footer?: unknown;
 	background?: unknown;
 	watermark?: unknown;
 };
 
-interface SectionDefaults {
+type SectionDefaults = {
 	pageSize: PageSizeDefinition;
 	pageMargins: PageMarginSource;
-	inheritedPageMargins?: PageMarginDefinition;
-}
+	inheritedPageMargins?: PageMarginDefinition | undefined;
+};
 
 export function resolveSectionPage(
 	section: SectionNode,
-	currentPage: PdfPage | null,
+	currentPage: PdfPage | null | undefined,
 	defaults: SectionDefaults,
 ): {
 	pageSize: PageSizeDefinition;
-	pageOrientation?: PageOrientation;
+	pageOrientation?: PageOrientation | undefined;
 	pageMargins: PageMarginSource;
 	customProperties: Record<string, unknown>;
 } {

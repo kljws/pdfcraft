@@ -1,11 +1,11 @@
-export interface PathBounds {
+export type PathBounds = {
 	minX: number;
 	minY: number;
 	maxX: number;
 	maxY: number;
-}
+};
 
-const PARAMETER_COUNTS: Record<string, number> = {
+const parameterCounts: Record<string, number> = {
 	A: 7,
 	C: 6,
 	H: 1,
@@ -18,7 +18,8 @@ const PARAMETER_COUNTS: Record<string, number> = {
 	Z: 0,
 };
 
-const isCommand = (token: string): boolean => /^[a-z]$/i.test(token);
+const isCommand = (token: string | undefined): token is string =>
+	token !== undefined && /^[a-z]$/i.test(token);
 
 export function getCanvasPathBounds(path: string | undefined): PathBounds | null {
 	if (!path) return null;
@@ -43,10 +44,14 @@ export function getCanvasPathBounds(path: string | undefined): PathBounds | null
 	const numberAt = (offset: number): number => Number(tokens[index + offset]);
 
 	while (index < tokens.length) {
-		if (isCommand(tokens[index])) command = tokens[index++];
+		const token = tokens[index];
+		if (isCommand(token)) {
+			command = token;
+			index++;
+		}
 		if (!command) return null;
 		const upper = command.toUpperCase();
-		const parameterCount = PARAMETER_COUNTS[upper];
+		const parameterCount = parameterCounts[upper];
 		if (parameterCount === undefined) return null;
 		if (upper === "Z") {
 			x = startX;

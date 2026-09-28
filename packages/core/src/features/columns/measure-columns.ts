@@ -11,9 +11,9 @@ export function measureColumns(
 	const columnGap = context.styles.getProperty("columnGap");
 	node._gap = typeof columnGap === "number" ? columnGap : 0;
 
-	for (let index = 0; index < columns.length; index++) {
-		columns[index] = context.measureNode(columns[index]) as ColumnNode<MeasuredPdfNode>;
-	}
+	columns.forEach((column, index) => {
+		columns[index] = context.measureNode(column) as ColumnNode<MeasuredPdfNode>;
+	});
 
 	const measures = ColumnCalculator.measureMinMax(columns);
 	const gapCount = Math.max(0, columns.length - 1);

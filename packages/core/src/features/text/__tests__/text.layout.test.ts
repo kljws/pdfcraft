@@ -1,9 +1,9 @@
 import { assert, beforeEach, describe, it } from "vitest";
-import type { LayoutBuilder } from "../../../../tests/helpers/layout-builder.ts";
+import type { LayoutBuilder } from "../../../__tests__/fixtures/layout-builder.ts";
 import {
 	createLayoutBuilder,
 	sampleTestProvider,
-} from "../../../../tests/helpers/layout-builder.ts";
+} from "../../../__tests__/fixtures/layout-builder.ts";
 
 describe("text layout", function () {
 	let builder: LayoutBuilder;
@@ -271,7 +271,7 @@ describe("text layout", function () {
 	});
 
 	it("should support not line break if is text inlines (#975)", function () {
-		var TEXT = [
+		var sampleText = [
 			{ text: "Celestial Circle—" },
 			{ text: "The Faithful Ally", style: "styled" },
 			{ text: ", " },
@@ -284,14 +284,14 @@ describe("text layout", function () {
 			{ text: "Warding the Created Mind", style: "styled" },
 		];
 
-		var TEXT2 = [
+		var secondSampleText = [
 			{ text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod " },
 			{ text: "re" },
 			{ text: "mark", style: "styled" },
 			{ text: "able" },
 		];
 
-		var desc = [{ text: TEXT }, { text: TEXT2 }];
+		var desc = [{ text: sampleText }, { text: secondSampleText }];
 
 		var pages = builder.layoutDocument(
 			desc,

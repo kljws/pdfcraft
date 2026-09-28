@@ -13,7 +13,7 @@ import type {
 	PreprocessedSectionNode,
 } from "./section.types";
 
-interface SectionFeatureStages extends NodeFeatureStages {
+type SectionFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedSectionNode;
 	measuredNode: MeasuredSectionNode;
@@ -21,14 +21,14 @@ interface SectionFeatureStages extends NodeFeatureStages {
 	preprocessContext: SectionPreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-}
+};
 
-interface SectionFeature extends NodeFeature<SectionFeatureStages> {
+type SectionFeature = NodeFeature<SectionFeatureStages> & {
 	readonly kind: "section";
 	preprocess(node: PdfNode, context: SectionPreprocessContext): PreprocessedSectionNode;
 	measure(node: MeasuredSectionNode, context: NodeMeasureContext): MeasuredSectionNode;
 	layout(node: LayoutSectionNode, context: NodeLayoutContext): void;
-}
+};
 
 export const sectionFeature = {
 	kind: "section",

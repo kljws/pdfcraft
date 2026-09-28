@@ -40,12 +40,12 @@ type BuiltInPreprocessContext = ColumnsPreprocessContext &
 	TextPreprocessContext &
 	TocPreprocessContext;
 
-interface PreprocessingState {
+type PreprocessingState = {
 	parentNode: PreprocessedPdfNode | null;
 	readonly tocs: Record<string, PreprocessedPdfNode>;
 	readonly nodeReferences: Record<string, NodeReference<PreprocessedPdfNode>>;
 	readonly referenceRequests: NodeReferenceRequest[];
-}
+};
 
 const normalizeNode = (input: unknown): PdfNode => {
 	let rawNode: RawPdfNode;
@@ -76,7 +76,7 @@ const normalizeNode = (input: unknown): PdfNode => {
 	return node;
 };
 
-const CONTENT_KEYS = [
+const contentKeys = [
 	"text",
 	"stack",
 	"columns",
@@ -92,7 +92,7 @@ const CONTENT_KEYS = [
 const describeContent = (item: object): string => {
 	if (Array.isArray(item)) return "array";
 	const record = item as Record<string, unknown>;
-	const kind = CONTENT_KEYS.find((key) => key in record) ?? "node";
+	const kind = contentKeys.find((key) => key in record) ?? "node";
 	return typeof record.id === "string" ? `${kind} '${record.id}'` : kind;
 };
 

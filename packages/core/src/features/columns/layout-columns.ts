@@ -3,20 +3,20 @@ import type PageElementWriter from "../../layout/element-writer.page";
 import type { ColumnWidth, LayoutPdfNode, Position } from "../../types/internal";
 import type { LayoutColumnsNode } from "./columns.types";
 
-interface ColumnsRowOptions {
+type ColumnsRowOptions = {
 	marginX: [number, number];
 	cells: LayoutPdfNode[];
 	widths: ColumnWidth[];
 	gaps: number[] | null;
-	snakingColumns?: boolean;
-}
+	snakingColumns?: boolean | undefined;
+};
 
-export interface ColumnsLayoutContext {
+export type ColumnsLayoutContext = {
 	writer: PageElementWriter;
 	enterNestedLevel(): void;
 	leaveNestedLevel(): number;
 	processRow(options: ColumnsRowOptions): { positions: Position[] };
-}
+};
 
 export function layoutColumns(node: LayoutColumnsNode, context: ColumnsLayoutContext): void {
 	context.enterNestedLevel();

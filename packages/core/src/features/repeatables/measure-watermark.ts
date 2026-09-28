@@ -5,18 +5,18 @@ import type { Color, Style } from "../../types";
 import type { MeasuredWatermark, PageSize, WatermarkSize } from "../../types/internal";
 import { isNumber, isValue } from "../../utils/variable-type";
 
-export interface WatermarkDefinition {
+export type WatermarkDefinition = {
 	text: string;
-	font?: string;
-	fontSize?: number | "auto";
-	color?: Color;
-	opacity?: number;
-	bold?: boolean;
-	italics?: boolean;
-	angle?: number | null;
-}
+	font?: string | undefined;
+	fontSize?: number | "auto" | undefined;
+	color?: Color | undefined;
+	opacity?: number | undefined;
+	bold?: boolean | undefined;
+	italics?: boolean | undefined;
+	angle?: number | null | undefined;
+};
 
-interface NormalizedWatermark extends WatermarkDefinition {
+type NormalizedWatermark = WatermarkDefinition & {
 	font: string;
 	fontSize: number;
 	color: Color;
@@ -24,7 +24,7 @@ interface NormalizedWatermark extends WatermarkDefinition {
 	bold: boolean;
 	italics: boolean;
 	angle: number;
-}
+};
 
 export function createWatermark(
 	watermark: WatermarkDefinition,

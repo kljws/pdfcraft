@@ -19,7 +19,7 @@ class VirtualFileSystem implements VirtualFileSystemContract {
 
 	readFileSync(
 		filename: string,
-		options?: VfsEncoding | { encoding?: VfsEncoding },
+		options?: VfsEncoding | { encoding?: VfsEncoding | undefined },
 	): string | Uint8Array {
 		const normalizedFilename = normalizeFilename(filename);
 		const encoding = typeof options === "object" ? options.encoding : options;
@@ -39,7 +39,7 @@ class VirtualFileSystem implements VirtualFileSystemContract {
 	writeFileSync(
 		filename: string,
 		content: string | ArrayBuffer | ArrayBufferView,
-		options?: VfsEncoding | { encoding?: VfsEncoding },
+		options?: VfsEncoding | { encoding?: VfsEncoding | undefined },
 	): void {
 		const normalizedFilename = normalizeFilename(filename);
 		const encoding = typeof options === "object" ? options.encoding : options;

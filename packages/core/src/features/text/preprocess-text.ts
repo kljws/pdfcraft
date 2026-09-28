@@ -3,12 +3,12 @@ import { stringifyNode, markNodeKind } from "../../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../../utils/variable-type";
 import type { PreprocessedTextNode } from "./text.types";
 
-export interface TextPreprocessContext {
+export type TextPreprocessContext = {
 	parentNode: PreprocessedPdfNode | null;
 	registerTocItem(node: PreprocessedPdfNode): void;
 	preprocessReferences(node: PreprocessedTextNode): void;
 	preprocessNode(input: unknown): PreprocessedPdfNode;
-}
+};
 
 export function normalizeTextValue(value: unknown): unknown {
 	if (isString(value)) return value.replace(/\t/g, "    ");

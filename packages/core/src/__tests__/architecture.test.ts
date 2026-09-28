@@ -3,15 +3,15 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-const SOURCE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Layers that must stay feature-neutral (docs/ARCHITECTURE.md, "Dépendances autorisées"). */
-const NEUTRAL_LAYERS = ["document", "engine", "layout", "services", "types", "utils"];
+const neutralLayers = ["document", "engine", "layout", "services", "types", "utils"];
 
 /** Orchestration entry points inside neutral layers, allowed to import composed facades. */
-const ORCHESTRATION_FILES = new Set(["layout/layout-builder.ts"]);
+const orchestrationFiles = new Set(["layout/layout-builder.ts"]);
 
-const IMPORT_PATTERN = /(?:from\s+|import\s*\(?\s*)["'](\.{1,2}\/[^"']+)["']/g;
+const importPattern = /(?:from\s+|import\s*\(?\s*)["'](\.{1,2}\/[^"']+)["']/g;
 
 function listSourceFiles(directory: string): string[] {
 	return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -27,15 +27,15 @@ function listSourceFiles(directory: string): string[] {
 
 function listImports(file: string): string[] {
 	const source = readFileSync(file, "utf8");
-	return [...source.matchAll(IMPORT_PATTERN)].map((match) =>
-		relative(SOURCE_ROOT, resolve(dirname(file), match[1])),
+	return [...source.matchAll(importPattern)].map((match) =>
+		relative(sourceRoot, resolve(dirname(file), match[1])),
 	);
 }
 
 function findViolations(): string[] {
 	const violations: string[] = [];
-	for (const file of listSourceFiles(SOURCE_ROOT)) {
-		const source = relative(SOURCE_ROOT, file);
+	for (const file of listSourceFiles(sourceRoot)) {
+		const source = relative(sourceRoot, file);
 		const [layer, feature] = source.split("/");
 		for (const target of listImports(file)) {
 			const [targetLayer, targetFeature] = target.split("/");
@@ -43,8 +43,8 @@ function findViolations(): string[] {
 				violations.push(`${source} -> features/${targetFeature}/`);
 			}
 			if (
-				NEUTRAL_LAYERS.includes(layer) &&
-				!ORCHESTRATION_FILES.has(source) &&
+				neutralLayers.includes(layer) &&
+				!orchestrationFiles.has(source) &&
 				["features", "composition"].includes(targetLayer)
 			) {
 				violations.push(`${source} -> ${targetLayer}/`);
@@ -54,11 +54,11 @@ function findViolations(): string[] {
 	return [...new Set(violations)];
 }
 
-const SHARED_NODE_STATE = ["PreprocessedNodeState", "MeasuredNodeState", "LayoutNodeState"];
+const sharedNodeState = ["PreprocessedNodeState", "MeasuredNodeState", "LayoutNodeState"];
 
 function listSharedNodeStateFields(): string[] {
-	const source = readFileSync(join(SOURCE_ROOT, "types/document.types.ts"), "utf8");
-	return SHARED_NODE_STATE.flatMap((name) => {
+	const source = readFileSync(join(sourceRoot, "types/document.types.ts"), "utf8");
+	return sharedNodeState.flatMap((name) => {
 		const body = source.match(new RegExp(`interface ${name}(?:<[^>]*>)? \\{([^}]*)\\}`))?.[1] ?? "";
 		return [...body.matchAll(/^\s*(\w+)\??:/gm)].map((match) => match[1]);
 	});
@@ -66,12 +66,12 @@ function listSharedNodeStateFields(): string[] {
 
 /** Owner of a source file: its feature for feature code, otherwise its top-level layer. */
 function ownerOf(file: string): string {
-	const [layer, feature] = relative(SOURCE_ROOT, file).split("/");
+	const [layer, feature] = relative(sourceRoot, file).split("/");
 	return layer === "features" ? `features/${feature}` : layer;
 }
 
 function findFeatureOwnedSharedFields(): string[] {
-	const sources = listSourceFiles(SOURCE_ROOT)
+	const sources = listSourceFiles(sourceRoot)
 		.filter((file) => ownerOf(file) !== "types")
 		.map((file) => ({ owner: ownerOf(file), source: readFileSync(file, "utf8") }));
 	return listSharedNodeStateFields().flatMap((field) => {

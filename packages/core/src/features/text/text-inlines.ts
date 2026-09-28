@@ -8,8 +8,8 @@ import { isObject } from "../../utils/variable-type";
 import type { Inline, MeasuredPdfNode } from "../../types/internal";
 import type { BrokenInline, InlineMeasurement, TextFragment } from "./text.types";
 
-const LEADING = /^(\s)+/g;
-const TRAILING = /(\s)+$/g;
+const leadingWhitespace = /^(\s)+/g;
+const trailingWhitespace = /(\s)+$/g;
 
 const flattenTextArray = (input: TextFragment | TextFragment[]): TextFragment[] => {
 	const combineStyles = (parent: unknown, child: unknown): unknown => {
@@ -54,8 +54,8 @@ const flattenTextArray = (input: TextFragment | TextFragment[]): TextFragment[] 
 class TextInlines {
 	declare pdfDocument: TextFontProvider | null;
 	private readonly textMetrics: TextMetrics;
-	private readonly measureInlineImage?: (node: MeasuredPdfNode) => MeasuredPdfNode;
-	private readonly measureInlineAcroForm?: (inline: Inline) => Inline;
+	private readonly measureInlineImage?: ((node: MeasuredPdfNode) => MeasuredPdfNode) | undefined;
+	private readonly measureInlineAcroForm?: ((inline: Inline) => Inline) | undefined;
 
 	/**
 	 * @param pdfDocument object is instance of PDFDocument
@@ -135,16 +135,17 @@ class TextInlines {
 	}
 
 	measure(array: BrokenInline[], styleContextStack: StyleContextStack): Inline[] {
-		if (array.length) {
+		const first = array[0];
+		if (first) {
 			const leadingIndent = StyleContextStack.getStyleProperty(
-				array[0],
+				first,
 				styleContextStack,
 				"leadingIndent",
 				0,
 			);
 			if (leadingIndent) {
-				array[0].leadingCut = -leadingIndent;
-				array[0].leadingIndent = leadingIndent;
+				first.leadingCut = -leadingIndent;
+				first.leadingIndent = leadingIndent;
 			}
 		}
 
@@ -231,7 +232,7 @@ class TextInlines {
 					false,
 				);
 				if (!preserveLeadingSpaces) {
-					const leadingSpaces = !isMediaInline ? inline.text.match(LEADING) : null;
+					const leadingSpaces = !isMediaInline ? inline.text.match(leadingWhitespace) : null;
 					if (leadingSpaces) {
 						inline.leadingCut += this.widthOfText(leadingSpaces[0], inline);
 					}
@@ -244,7 +245,7 @@ class TextInlines {
 					false,
 				);
 				if (!preserveTrailingSpaces) {
-					const trailingSpaces = !isMediaInline ? inline.text.match(TRAILING) : null;
+					const trailingSpaces = !isMediaInline ? inline.text.match(trailingWhitespace) : null;
 					if (trailingSpaces) {
 						inline.trailingCut = this.widthOfText(trailingSpaces[0], inline);
 					}
@@ -268,7 +269,7 @@ class TextInlines {
 		text: string,
 		inline: Pick<Inline, "font" | "fontSize"> & {
 			fontFeatures?: unknown;
-			characterSpacing?: number;
+			characterSpacing?: number | undefined;
 		},
 	): number {
 		return this.textMetrics.widthOfText(text, inline);
