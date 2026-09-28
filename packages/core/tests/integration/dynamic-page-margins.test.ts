@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import IntegrationTestHelper from "./integration-test.helpers.ts";
 
@@ -66,16 +66,14 @@ describe("Integration test: dynamic page margins", () => {
 		}
 	});
 
-	it("warns once when page-count-dependent margins do not converge", () => {
+	it("fails explicitly when page-count-dependent margins do not converge", () => {
 		const helper = new IntegrationTestHelper();
-		const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-		helper.renderPages("A6", {
-			content: Array.from({ length: 10 }, (_, index) => `Line ${index + 1}`),
-			pageMargins: (_currentPage, pageCount) => [40, 40, 40, pageCount === 1 ? 350 : 40],
-		});
-
-		expect(warning).toHaveBeenCalledTimes(1);
-		warning.mockRestore();
+		expect(() =>
+			helper.renderPages("A6", {
+				content: Array.from({ length: 10 }, (_, index) => `Line ${index + 1}`),
+				pageMargins: (_currentPage, pageCount) => [40, 40, 40, pageCount === 1 ? 350 : 40],
+			}),
+		).toThrow(/did not converge after 10 layout passes: page margins function/);
 	});
 });

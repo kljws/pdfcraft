@@ -5,11 +5,10 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
-import { layoutFeatureItem } from "../../layout/element-writer.helpers";
+import { layoutFeatureItem, placeAtomicItem } from "../../layout/element-writer.helpers";
 import type PDFDocument from "../../rendering/pdf-document";
-import type { Inline, PdfNode } from "../../types/internal";
+import type { CurrentPosition, Inline, PdfNode } from "../../types/internal";
 import { measureAcroForm, measureInlineAcroForm } from "./measure-acroform";
-import { placeAcroFormItem } from "./place-acroform";
 import { preprocessAcroForm } from "./preprocess-acroform";
 import { AcroFormRenderer } from "./render-acroform";
 import type {
@@ -21,7 +20,6 @@ import type {
 interface AcroFormFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedAcroFormNode;
-	measureNode: MeasuredAcroFormNode;
 	measuredNode: MeasuredAcroFormNode;
 	layoutNode: LayoutAcroFormNode;
 	renderNode: LayoutAcroFormNode | Inline;
@@ -43,7 +41,7 @@ interface AcroFormFeature extends NodeFeature<AcroFormFeatureStages> {
 	createRenderer(document: PDFDocument): AcroFormRenderer;
 	measure(node: MeasuredAcroFormNode, context: NodeMeasureContext): MeasuredAcroFormNode;
 	measureInline(inline: Inline): Inline;
-	place(node: LayoutAcroFormNode, context: NodePlaceContext): ReturnType<typeof placeAcroFormItem>;
+	place(node: LayoutAcroFormNode, context: NodePlaceContext): CurrentPosition | false;
 	layout(node: LayoutAcroFormNode, context: NodeLayoutContext): void;
 	render(node: LayoutAcroFormNode | Inline, context: AcroFormRenderContext): void;
 }
@@ -61,7 +59,16 @@ export const acroFormFeature = {
 		});
 	},
 	measureInline: measureInlineAcroForm,
-	place: placeAcroFormItem,
+	place(node, context): CurrentPosition | false {
+		const height = typeof node.height === "number" ? node.height : 15;
+		return placeAtomicItem("acroform", node, height, context, {
+			prepare: ({ availableWidth }) => {
+				node._width = typeof node.width === "number" ? node.width : Math.max(0, availableWidth);
+				node._height = height;
+				return height;
+			},
+		});
+	},
 	layout(node, context): void {
 		layoutFeatureItem("acroform", node, context.writer);
 	},

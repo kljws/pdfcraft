@@ -73,6 +73,11 @@ export interface DocumentDefinition extends PdfCraftDocumentExtensionRegistry {
 	ownerPassword?: string;
 	permissions?: DocumentPermissions;
 	language?: string;
+	/**
+	 * Writes only the first `maxPagesNumber` pages of the complete document (an excerpt). Layout,
+	 * page totals (`pageCount` in headers and footers) and page references still describe the
+	 * complete document. `getPageInfo()` on the output reports whether pages were omitted.
+	 */
 	maxPagesNumber?: number;
 	pageBreakBefore?: (
 		currentNode: Dictionary,

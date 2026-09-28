@@ -326,6 +326,13 @@ export interface ImageNode extends Omit<ContentBase, "borderColor"> {
 	borderRadius?: number;
 	borderWidth?: number;
 	borderColor?: Color;
+	/**
+	 * Opt-in: when the sized image cannot fit the content area of a fresh page or column, scale
+	 * it down proportionally to fit that area instead of letting it overflow. Applied after
+	 * `width`, `height`, `fit` and the min/max options. It never enlarges an image and is ignored
+	 * for `cover` and `absolutePosition`.
+	 */
+	shrinkToFit?: boolean;
 }
 
 export interface CanvasVector {

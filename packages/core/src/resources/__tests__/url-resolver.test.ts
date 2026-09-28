@@ -189,3 +189,113 @@ describe("URLResolver", () => {
 		expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ redirect: "follow" });
 	});
 });
+
+describe("URLResolver limits", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		vi.useRealTimers();
+	});
+
+	const hangingFetch = () =>
+		vi.fn(
+			(_url: string, init?: RequestInit) =>
+				new Promise<Response>((_resolve, reject) => {
+					if (init?.signal?.aborted) reject(init.signal.reason);
+					init?.signal?.addEventListener("abort", () => reject(init.signal!.reason));
+				}),
+		);
+
+	it("fails a download that exceeds the configured timeout and aborts the request", async () => {
+		vi.useFakeTimers();
+		const fetchMock = hangingFetch();
+		vi.stubGlobal("fetch", fetchMock);
+		const resolver = new URLResolver(new VirtualFileSystem(), { timeout: 50 });
+
+		const pending = expect(resolver.resolve("https://slow.example.com/a.png")).rejects.toThrow(
+			'Resource download timed out after 50 ms (url: "https://slow.example.com/a.png")',
+		);
+		await vi.advanceTimersByTimeAsync(50);
+		await pending;
+		expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+	});
+
+	it("cancels outstanding downloads when the caller aborts", async () => {
+		const fetchMock = hangingFetch();
+		vi.stubGlobal("fetch", fetchMock);
+		const controller = new AbortController();
+		const resolver = new URLResolver(new VirtualFileSystem(), { signal: controller.signal });
+
+		resolver.resolveReference("https://slow.example.com/a.png");
+		const pending = expect(resolver.resolved()).rejects.toThrow(
+			'Resource loading was cancelled (url: "https://slow.example.com/a.png")',
+		);
+		controller.abort();
+		await pending;
+	});
+
+	it("cancels sibling downloads after one fails and reports the original failure", async () => {
+		const slow = hangingFetch();
+		const fetchMock = vi.fn((url: string, init?: RequestInit) =>
+			url.includes("broken")
+				? Promise.resolve(new Response(null, { status: 404 }))
+				: slow(url, init),
+		);
+		vi.stubGlobal("fetch", fetchMock);
+		const resolver = new URLResolver(new VirtualFileSystem());
+
+		resolver.resolveReference("https://slow.example.com/a.png");
+		resolver.resolveReference("https://broken.example.com/b.png");
+
+		await expect(resolver.resolved()).rejects.toThrow("Failed to fetch (status code: 404)");
+		expect(slow.mock.calls[0][1]?.signal?.aborted).toBe(true);
+	});
+
+	it("rejects a resource whose declared size exceeds the limit without reading it", async () => {
+		const body = new ReadableStream<Uint8Array>({ pull: vi.fn() });
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(body, { headers: { "content-length": "2000" } })),
+		);
+		const resolver = new URLResolver(new VirtualFileSystem(), { maxSize: 1000 });
+
+		await expect(resolver.resolve("https://big.example.com/a.png")).rejects.toThrow(
+			'Resource exceeds the maximum size of 1000 bytes (url: "https://big.example.com/a.png")',
+		);
+	});
+
+	it("stops reading an undeclared body once it exceeds the limit", async () => {
+		let pulls = 0;
+		const body = new ReadableStream<Uint8Array>({
+			pull(controller) {
+				pulls++;
+				controller.enqueue(new Uint8Array(400));
+			},
+		});
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(body)),
+		);
+		const fileSystem = new VirtualFileSystem();
+		const resolver = new URLResolver(fileSystem, { maxSize: 1000 });
+
+		await expect(resolver.resolve("https://stream.example.com/a.png")).rejects.toThrow(
+			"Resource exceeds the maximum size of 1000 bytes",
+		);
+		expect(pulls).toBeLessThan(6);
+		expect(fileSystem.existsSync("https://stream.example.com/a.png")).toBe(false);
+	});
+
+	it("stores a resource within the limit", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => new Response(new Uint8Array([1, 2, 3]))),
+		);
+		const fileSystem = new VirtualFileSystem();
+		const resolver = new URLResolver(fileSystem, { maxSize: 3, timeout: 1000 });
+
+		await resolver.resolve("https://ok.example.com/a.png");
+		expect(fileSystem.readFileSync("https://ok.example.com/a.png")).toEqual(
+			Uint8Array.from([1, 2, 3]),
+		);
+	});
+});

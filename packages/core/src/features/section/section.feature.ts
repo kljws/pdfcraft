@@ -16,14 +16,11 @@ import type {
 interface SectionFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedSectionNode;
-	measureNode: MeasuredSectionNode;
 	measuredNode: MeasuredSectionNode;
 	layoutNode: LayoutSectionNode;
-	renderNode: never;
 	preprocessContext: SectionPreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-	renderContext: never;
 }
 
 interface SectionFeature extends NodeFeature<SectionFeatureStages> {

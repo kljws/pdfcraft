@@ -5,6 +5,7 @@ import type { NodeLayoutContext } from "../engine/contracts/node-feature";
 import type { PageOrientation } from "../types";
 import type { LayoutPdfNode, PageMarginSource, PageSize } from "../types/internal";
 import { decorateNode as decorateLayoutNode } from "../layout/node.decorators";
+import { moveDownWithPageBreak } from "../engine/layout-pagination";
 import {
 	decorateRegisteredNodeFeature,
 	layoutRegisteredNodeFeature,
@@ -19,13 +20,13 @@ interface BuiltInLayoutHost extends TableRowLayoutHost {
 	readonly suppressLinearNodeList: boolean;
 }
 
-export function createBuiltInLayout(
-	host: BuiltInLayoutHost,
-	callbacks: {
-		moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
-	},
-) {
+export function createBuiltInLayout(host: BuiltInLayoutHost) {
 	const rows = new TableRowLayout(host);
+	const moveDown = (height: number, pageOrientation?: PageOrientation): void =>
+		moveDownWithPageBreak(height, pageOrientation, {
+			writer: host.writer,
+			moveAcrossSnakingPage: (orientation) => host.snakingAwarePageBreak(orientation),
+		});
 	const context: BuiltInLayoutContext = {
 		get writer() {
 			return host.writer;
@@ -45,7 +46,7 @@ export function createBuiltInLayout(
 			host.processNode(node, isVerticalAlignmentAllowed),
 		processRow: (options) => rows.processRow(options),
 		snakingAwarePageBreak: (orientation) => host.snakingAwarePageBreak(orientation),
-		moveDownWithPageBreak: callbacks.moveDownWithPageBreak,
+		moveDownWithPageBreak: moveDown,
 	};
 	const nodeDecorationHooks = {
 		decorateFeature: decorateRegisteredNodeFeature,
@@ -58,6 +59,7 @@ export function createBuiltInLayout(
 			return document._kind !== "section";
 		},
 		decorateNode: (node: LayoutPdfNode): void => decorateLayoutNode(node, nodeDecorationHooks),
+		moveDownWithPageBreak: moveDown,
 		layoutNode: (node: LayoutPdfNode): void => {
 			layoutRegisteredNodeFeature(node, context);
 		},

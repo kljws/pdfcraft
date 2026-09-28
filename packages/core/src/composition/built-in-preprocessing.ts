@@ -9,7 +9,11 @@ import type { TocPreprocessContext } from "../features/toc/preprocess-toc";
 import { extensionFeature } from "../features/extension/extension.feature";
 import { tableFeature } from "../features/table/table.feature";
 import { asRawText, normalizeTextProperty } from "../features/text/preprocess-text";
-import { preprocessNodeReferences } from "../features/text/preprocess-node-references";
+import {
+	checkNodeReferences,
+	preprocessNodeReferences,
+	type NodeReferenceRequest,
+} from "../features/text/preprocess-node-references";
 import { tocFeature } from "../features/toc/toc.feature";
 import type { PdfCraftExtensions } from "../types";
 import type {
@@ -40,6 +44,7 @@ interface PreprocessingState {
 	parentNode: PreprocessedPdfNode | null;
 	readonly tocs: Record<string, PreprocessedPdfNode>;
 	readonly nodeReferences: Record<string, NodeReference<PreprocessedPdfNode>>;
+	readonly referenceRequests: NodeReferenceRequest[];
 }
 
 const normalizeNode = (input: unknown): PdfNode => {
@@ -71,6 +76,26 @@ const normalizeNode = (input: unknown): PdfNode => {
 	return node;
 };
 
+const CONTENT_KEYS = [
+	"text",
+	"stack",
+	"columns",
+	"ul",
+	"ol",
+	"table",
+	"image",
+	"canvas",
+	"toc",
+	"section",
+] as const;
+
+const describeContent = (item: object): string => {
+	if (Array.isArray(item)) return "array";
+	const record = item as Record<string, unknown>;
+	const kind = CONTENT_KEYS.find((key) => key in record) ?? "node";
+	return typeof record.id === "string" ? `${kind} '${record.id}'` : kind;
+};
+
 /**
  * Preprocesses a document or an independent block. Each call starts from fresh reference and
  * table-of-contents state, so no pass leaks into the next one.
@@ -81,8 +106,19 @@ export function createBuiltInPreprocessing(extensions: PdfCraftExtensions = []) 
 		{ ...extensionFeature, matches: (node: PdfNode) => extensionFeature.matches(node, extensions) },
 	]);
 
+	// Preprocessing repeats on every layout pass; each unresolved text reference is reported once.
+	const warnedTextReferences = new Set<string>();
+
 	const preprocessTree = (input: unknown, allowSections: boolean): PreprocessedPdfNode => {
-		const state: PreprocessingState = { parentNode: null, tocs: {}, nodeReferences: {} };
+		const state: PreprocessingState = {
+			parentNode: null,
+			tocs: {},
+			nodeReferences: {},
+			referenceRequests: [],
+		};
+		// Content currently being preprocessed, from the root to the current node. The same object
+		// may appear several times in a document, but never inside itself.
+		const activeContent: object[] = [];
 		const createContext = (allowSections: boolean): BuiltInPreprocessContext => ({
 			allowSections,
 			get parentNode() {
@@ -99,6 +135,7 @@ export function createBuiltInPreprocessing(extensions: PdfCraftExtensions = []) 
 				preprocessNodeReferences(item, {
 					parentNode: state.parentNode,
 					nodeReferences: state.nodeReferences,
+					requests: state.referenceRequests,
 				}),
 			preprocessTable: (item, isSectionAllowed) =>
 				tableFeature.preprocess(item, createContext(isSectionAllowed)),
@@ -107,13 +144,31 @@ export function createBuiltInPreprocessing(extensions: PdfCraftExtensions = []) 
 		});
 
 		function preprocessNode(item: unknown, isSectionAllowed = false): PreprocessedPdfNode {
+			if (item === null || typeof item !== "object")
+				return preprocessContent(item, isSectionAllowed);
+			const cycleStart = activeContent.indexOf(item);
+			if (cycleStart !== -1) {
+				const chain = [...activeContent.slice(cycleStart), item].map(describeContent).join(" > ");
+				throw new Error(`Cyclic document structure: a node contains itself (${chain})`);
+			}
+			activeContent.push(item);
+			try {
+				return preprocessContent(item, isSectionAllowed);
+			} finally {
+				activeContent.pop();
+			}
+		}
+
+		function preprocessContent(item: unknown, isSectionAllowed: boolean): PreprocessedPdfNode {
 			const node = normalizeNode(item);
 			const result = registry.dispatch(node)?.preprocess(node, createContext(isSectionAllowed));
 			if (result) return result;
 			throw new Error(`Unrecognized document structure: ${stringifyNode(node)}`);
 		}
 
-		return preprocessNode(input, allowSections);
+		const result = preprocessNode(input, allowSections);
+		checkNodeReferences(state.nodeReferences, state.referenceRequests, warnedTextReferences);
+		return result;
 	};
 
 	return {

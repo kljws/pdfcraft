@@ -3,6 +3,7 @@ import { isObject } from "../../utils/variable-type";
 import StyleContextStack from "../../services/styles/style-context-stack";
 import type { PdfNode } from "../../types/internal";
 import type { BrokenInline, BrokenWord, TextFragment, TextReferenceState } from "./text.types";
+import { getPageReferenceText } from "./preprocess-node-references";
 
 const splitWords = (input: unknown, noWrap: boolean, breakAll: boolean = false): BrokenWord[] => {
 	const words: BrokenWord[] = [];
@@ -128,6 +129,7 @@ class TextBreaker {
 			);
 			if (isObject(item)) {
 				const node = item as PdfNode & TextReferenceState<PdfNode>;
+				if (isObject(node._pageRef)) node.text = getPageReferenceText(node._pageRef);
 				const textReference = node._textRef;
 				if (isObject(textReference) && isObject(textReference._textNodeRef)) {
 					const referencedText = textReference._textNodeRef.text;

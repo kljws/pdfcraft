@@ -1,6 +1,6 @@
 import type { PageOrientation } from "../types";
 import type { Metadata, PageMargins, PageMarginSource, PageSize, PdfPage } from "../types/internal";
-import { normalizePageMargin } from "../configuration/page-size";
+import { assertUsableContentArea, normalizePageMargin } from "../configuration/page-size";
 import {
 	beginColumn,
 	beginColumnGroup,
@@ -291,14 +291,17 @@ class DocumentContext {
 			this.pageMarginSource = pageMargin;
 		}
 		let evaluatedMargins: PageMargins;
+		const path = `pageMargins for page ${this.pages.length + 1}`;
 		if (typeof this.pageMarginSource === "function") {
 			this.pageMarginFunctionUsed = true;
 			evaluatedMargins = normalizePageMargin(
 				this.pageMarginSource(this.pages.length + 1, this.pageCount, pageSize),
+				`${path} (returned by the pageMargins function)`,
 			);
 		} else {
-			evaluatedMargins = normalizePageMargin(this.pageMarginSource);
+			evaluatedMargins = normalizePageMargin(this.pageMarginSource, path);
 		}
+		assertUsableContentArea(pageSize, evaluatedMargins, path);
 		this.basePageMargins.push(evaluatedMargins);
 		const bottomMarginOverride = this.bottomMarginOverrides[this.pages.length];
 		if (bottomMarginOverride !== undefined) {

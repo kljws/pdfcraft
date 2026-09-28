@@ -17,7 +17,6 @@ import { renderImage, type ImageRenderContext } from "./render-image";
 interface ImageFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedImageNode;
-	measureNode: MeasuredImageNode;
 	measuredNode: MeasuredImageNode;
 	layoutNode: LayoutImageNode;
 	renderNode: LayoutImageNode;

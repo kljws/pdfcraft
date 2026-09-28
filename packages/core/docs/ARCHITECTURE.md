@@ -26,9 +26,44 @@ PdfCraft.createPdf(docDefinition)                    core/pdfcraft.ts
                 → document PDFKit → OutputDocument     output/
 ```
 
-Le document est cloné une seule fois. Le pipeline peut ensuite relancer plusieurs passes complètes
-(jusqu'à 10) tant que le nombre de pages, les marges dynamiques ou `pageBreakBefore` ne sont pas
-stables. Chaque passe re-prétraite le même arbre.
+Le document est cloné une seule fois. Le pipeline peut ensuite relancer plusieurs passes complètes.
+Chaque passe re-prétraite le même arbre.
+
+### Convergence des passes
+
+`engine/document-layout-pipeline.ts` relance une passe tant qu'une de ces raisons reste ouverte :
+hauteur des pieds de page, fonction `pageMargins` ou arrière-plan dépendant du nombre de pages, et
+numéro de page mesuré différent de la page finale de sa cible (`pageReference`, table des matières).
+
+- Ces raisons dynamiques doivent se stabiliser en 10 passes consécutives. Sinon la génération
+  échoue avec `Layout did not converge…` et la liste des raisons encore ouvertes ; un résultat
+  instable n'est jamais renvoyé.
+- Chaque saut ajouté par `pageBreakBefore` est un progrès définitif, car un nœud n'est évalué
+  qu'une fois. Les sauts ont leur propre borne (un par nœud mis en page) et remettent à zéro le
+  budget des raisons dynamiques.
+
+Les numéros de page sont mesurés avec la page trouvée par la passe précédente : les `positions`
+d'un nœud survivent jusqu'à sa prochaine mise en page. La première passe mesure `00000`.
+
+### Validation des entrées
+
+- Les formats de page personnalisés et les marges sont validés avant la pagination
+  (`configuration/page-size.ts`) ; les marges renvoyées par une fonction sont validées à chaque
+  page. Les messages indiquent le chemin de l'entrée.
+- Le preprocessing rejette un nœud qui se contient lui-même (le même nœud peut apparaître plusieurs
+  fois) et une `pageReference` sans cible, une fois tout l'arbre prétraité pour autoriser les
+  références en avant. Une `textReference` sans cible produit un texte vide et un avertissement.
+
+### Ressources et sortie
+
+- `URLResolver` applique `resourceLoading.timeout` et `resourceLoading.maxSize` à chaque
+  ressource, et `signal` annule les téléchargements. Le premier échec annule les autres et c'est
+  lui qui est signalé.
+- `OutputDocument` définit qui finalise le flux : les méthodes de données (`getBuffer`, `write`…)
+  le finalisent elles-mêmes ; un flux obtenu par `getStream()` peut être configuré puis collecté,
+  ou consommé et terminé par l'appelant. Les combinaisons qui ne peuvent pas produire un PDF
+  complet sont rejetées explicitement. `getPageInfo()` indique si `maxPagesNumber` a tronqué le
+  document ; les totaux de pages et les références décrivent toujours le document complet.
 
 ## Organisation des dossiers
 
@@ -187,7 +222,28 @@ Chaque feature possède les décisions propres à sa structure :
 - `image` et les autres éléments atomiques passent à la page suivante lorsqu'ils ne tiennent pas.
 
 Le moteur ne connaît pas les lignes ou cellules d'une table, et `table` ne réimplémente pas le
-changement de page générique. Les cellules fantômes créées par une fusion n'ont pas de `_kind` et sont
+changement de page générique.
+
+### Contenu trop grand
+
+- Un élément atomique (`image`, `canvas`, `attachment`, `acroform`, extension) est placé via
+  `findPlacementPage`. S'il ne tient pas, le writer passe à la colonne ou page suivante ; sur une
+  page dont seul l'arrière-plan est présent, ou à la dernière tentative forcée, il est accepté et
+  déborde. Il n'est jamais perdu.
+- Une image qui déborde de la zone où elle est placée produit un avertissement unique. Avec
+  `shrinkToFit`, elle est réduite proportionnellement à cette zone.
+- Un bloc `unbreakable`, un groupe `dontBreakRows` ou `keepTogether` et un en-tête de table plus
+  grands qu'une page sont coupés comme du contenu ordinaire, sans perte. Un en-tête ou pied de page
+  qui ne laisse aucune place est rejeté.
+
+### Durée de vie de l'état
+
+| Durée de vie | État | Remis à zéro par |
+|---|---|---|
+| Document | `pageBreakCalculated`, `pageBreak` ajouté par `pageBreakBefore`, `_x` (x relatif d'origine) | jamais |
+| Passe | `positions`, `_position`, `nodeInfo`, x/y absolus, état de `LayoutBuilder` (`linearNodeList`, `nestedLevel`, pile d'alignement vertical, writer) | `decorateNode`, `resetXY`, `startLayoutPass` |
+| Passe, état de feature | état privé d'une feature (tables, listes…) | hook `reset` de la feature, appelé par `resetXY` |
+| Preprocessing | références, table des matières, cycle en cours | nouvel état à chaque `preprocessDocument`/`preprocessBlock` | Les cellules fantômes créées par une fusion n'ont pas de `_kind` et sont
 ignorées par le dispatch.
 
 ## Contenu inline
@@ -243,6 +299,11 @@ Le test d'architecture échoue si l'une de ces règles est violée.
 - **Pagination des tables :** `features/table/__tests__/table.pagination.snapshot.test.ts` met en page
   un corpus de tables et compare chaque élément de page à un snapshot. Toute modification de la
   pagination des tables apparaît comme une différence de snapshot.
+- **Documents de référence :** `tests/reference/` décrit des documents couvrant texte, images,
+  tables, colonnes, listes, en-têtes, pieds de page, références et table des matières.
+  `tests/integration/reference-documents.test.ts` les génère par l'API publique, relit le PDF avec
+  pdf.js, vérifie le texte attendu et compare les éléments de page finaux à un snapshot. Une
+  simplification ne doit changer aucun snapshot.
 - **Fixtures :** `src/__tests__/fixtures/` fournit `createTestMeasurement` et les assertions typées
   `expectPreprocessedKind` et `expectMeasuredKind`. `tests/helpers/layout-builder.ts` fournit un
   `LayoutBuilder` de test.

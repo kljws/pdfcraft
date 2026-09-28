@@ -87,41 +87,42 @@ export function getBuiltInFeatureByKind(kind: string): NodeFeatureDescriptor | u
 	return nodeFeaturesByKind.get(kind);
 }
 
+type StageHookName = "measure" | "layout" | "decorate" | "reset" | "place" | "render";
+type NodeStateHook = (node: LayoutPdfNode) => void;
+
 /**
  * Stage hooks receive the composed context and the node of their own kind; each feature declares
  * the context subset and node shape it consumes. Dispatch by `_kind` guarantees the node shape,
- * so the hook is invoked with the lifecycle union and the composition's concrete context type.
+ * so the hook is returned with the lifecycle union and the composition's concrete context type.
  */
+function getStageHook<Hook>(kind: string, name: StageHookName): Hook | undefined {
+	const feature = getBuiltInFeatureByKind(kind);
+	return feature && name in feature ? (feature[name as keyof typeof feature] as Hook) : undefined;
+}
+
 export function measureRegisteredNodeFeature<Context extends NodeMeasureContext>(
 	node: MeasurePdfNode,
 	context: Context,
 ): MeasuredPdfNode | undefined {
-	const measure = getBuiltInFeatureByKind(node._kind)?.measure as
-		| NodeMeasureHook<Context>
-		| undefined;
-	return measure?.(node, context);
+	return getStageHook<NodeMeasureHook<Context>>(node._kind, "measure")?.(node, context);
 }
 
 export function layoutRegisteredNodeFeature<Context extends NodeLayoutContext>(
 	node: LayoutPdfNode,
 	context: Context,
 ): boolean {
-	const layout = getBuiltInFeatureByKind(node._kind)?.layout as NodeLayoutHook<Context> | undefined;
+	const layout = getStageHook<NodeLayoutHook<Context>>(node._kind, "layout");
 	if (!layout) return false;
 	layout(node, context);
 	return true;
 }
 
-type NodeStateHook = (node: LayoutPdfNode) => void;
-
 export function decorateRegisteredNodeFeature(node: LayoutPdfNode): void {
-	const feature = getBuiltInFeatureByKind(node._kind);
-	if (feature && "decorate" in feature) (feature.decorate as NodeStateHook | undefined)?.(node);
+	getStageHook<NodeStateHook>(node._kind, "decorate")?.(node);
 }
 
 export function resetRegisteredNodeFeature(node: LayoutPdfNode): void {
-	const feature = getBuiltInFeatureByKind(node._kind);
-	if (feature && "reset" in feature) (feature.reset as NodeStateHook | undefined)?.(node);
+	getStageHook<NodeStateHook>(node._kind, "reset")?.(node);
 }
 
 export function placeFeatureItem(
@@ -129,18 +130,17 @@ export function placeFeatureItem(
 	node: LayoutPdfNode,
 	context: NodePlaceContext,
 ): NodePlaceResult {
-	const feature = getBuiltInFeatureByKind(featureKind);
-	if (!feature || !("place" in feature)) {
+	const place = getStageHook<NodePlaceHook>(featureKind, "place");
+	if (!place) {
 		throw new Error(`Node feature '${featureKind}' does not support page-item placement`);
 	}
-	const place = feature.place as NodePlaceHook;
 	return place(node, context);
 }
 
 export function createBuiltInElementPlacement(): ElementPlacementAdapter {
 	return {
-		placeFeatureItem: (featureKind, writer, node, index) =>
-			placeFeatureItem(featureKind, node, { writer, index }),
+		placeFeatureItem: (featureKind, writer, node, index, allowOverflow) =>
+			placeFeatureItem(featureKind, node, { writer, index, allowOverflow }),
 	};
 }
 
@@ -150,11 +150,13 @@ export function renderFeatureItem<Context>(
 	node: LayoutPdfNode,
 	context: Context,
 ): void {
-	const feature = getBuiltInFeatureByKind(featureKind);
-	if (!feature || !("render" in feature)) {
+	const render = getStageHook<(node: LayoutPdfNode, context: Context) => void>(
+		featureKind,
+		"render",
+	);
+	if (!render) {
 		throw new Error(`Node feature '${featureKind}' does not support page-item rendering`);
 	}
-	const render = feature.render as (node: LayoutPdfNode, context: Context) => void;
 	render(node, context);
 }
 

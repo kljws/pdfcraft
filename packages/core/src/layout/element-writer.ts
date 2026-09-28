@@ -39,6 +39,7 @@ export interface ElementPlacementAdapter {
 		writer: ElementPlacementWriter,
 		node: LayoutPdfNode,
 		index?: number,
+		allowOverflow?: boolean,
 	): NodePlaceResult;
 }
 
@@ -71,10 +72,21 @@ class ElementWriter {
 		featureKind: "canvas",
 		node: LayoutPdfNode,
 		index?: number,
+		allowOverflow?: boolean,
 	): false | Array<CurrentPosition | undefined>;
-	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): CurrentPosition | false;
-	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): NodePlaceResult {
-		return this.getPlacement().placeFeatureItem(featureKind, this, node, index);
+	addFeatureItem(
+		featureKind: string,
+		node: LayoutPdfNode,
+		index?: number,
+		allowOverflow?: boolean,
+	): CurrentPosition | false;
+	addFeatureItem(
+		featureKind: string,
+		node: LayoutPdfNode,
+		index?: number,
+		allowOverflow = false,
+	): NodePlaceResult {
+		return this.getPlacement().placeFeatureItem(featureKind, this, node, index, allowOverflow);
 	}
 
 	private getPlacement(): ElementPlacementAdapter {

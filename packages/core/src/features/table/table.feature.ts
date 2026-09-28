@@ -26,11 +26,9 @@ interface TableFeatureStages extends NodeFeatureStages {
 	measureNode: TableMeasureNode;
 	measuredNode: MeasuredTableNode;
 	layoutNode: LayoutTableNode;
-	renderNode: never;
 	preprocessContext: TablePreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: TableLayoutFeatureContext;
-	renderContext: never;
 }
 
 interface TableFeature extends NodeFeature<TableFeatureStages> {

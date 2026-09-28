@@ -30,6 +30,8 @@ export interface FeatureItemWriter {
 export interface NodePlaceContext {
 	readonly writer: FeatureItemWriter;
 	readonly index?: number;
+	/** Set on the last attempt, after a fresh page or column: the item must be placed even if it overflows. */
+	readonly allowOverflow?: boolean;
 }
 
 export type NodePlaceResult = CurrentPosition | false | Array<CurrentPosition | undefined>;
@@ -71,11 +73,12 @@ export interface NodeFeatureStages {
 	preprocessedNode: object;
 	measuredNode: object;
 	layoutNode: object;
-	renderNode: object;
+	/** Omitted by features that emit no page item of their own. */
+	renderNode?: object;
 	preprocessContext: object | undefined;
 	measureContext: object | undefined;
 	layoutContext: object | undefined;
-	renderContext: object | undefined;
+	renderContext?: object | undefined;
 	resourceSource?: object;
 	resolvedResources?: object | undefined;
 	resolveResourcesContext?: object | undefined;
@@ -107,7 +110,10 @@ export interface NodeFeature<Stages extends NodeFeatureStages> {
 	): Stages["measuredNode"];
 	layout?(node: Stages["layoutNode"], context: Stages["layoutContext"]): void;
 	place?(node: Stages["layoutNode"], context: NodePlaceContext): NodePlaceResult;
-	render?(node: Stages["renderNode"], context: Stages["renderContext"]): void;
+	render?(
+		node: OptionalStage<Stages, "renderNode">,
+		context: OptionalStage<Stages, "renderContext">,
+	): void;
 	decorate?(node: Stages["layoutNode"]): void;
 	reset?(node: Stages["layoutNode"]): void;
 	readonly inline?: OptionalStage<Stages, "inline">;

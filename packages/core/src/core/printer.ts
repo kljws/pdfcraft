@@ -1,6 +1,10 @@
 import PDFDocument from "../rendering/pdf-document";
 import LayoutBuilder from "../layout/layout-builder";
-import { normalizePageSize, normalizePageMargin } from "../configuration/page-size";
+import {
+	assertUsableContentArea,
+	normalizePageSize,
+	normalizePageMargin,
+} from "../configuration/page-size";
 import { tableLayouts } from "../configuration/table-layouts";
 import Renderer from "../rendering/renderer";
 import type { RenderablePage } from "../rendering/renderer.types";
@@ -121,6 +125,9 @@ class PdfPrinter {
 			typeof docDefinition.pageMargins === "function"
 				? docDefinition.pageMargins
 				: normalizePageMargin(docDefinition.pageMargins);
+		if (typeof pageMargins !== "function") {
+			assertUsableContentArea(pageSize, pageMargins, "pageMargins");
+		}
 		const builder = new LayoutBuilder(pageSize, pageMargins, this.extensions);
 
 		builder.registerTableLayouts(tableLayouts);
@@ -147,10 +154,16 @@ class PdfPrinter {
 						)
 				: undefined,
 		);
+		const totalPageCount = pages.length;
 		const maxNumberPages = docDefinition.maxPagesNumber ?? -1;
 		if (isNumber(maxNumberPages) && maxNumberPages > -1) {
 			pages = pages.slice(0, maxNumberPages);
 		}
+		this.pdfKitDoc.pdfCraftPageInfo = {
+			pageCount: pages.length,
+			totalPageCount,
+			truncated: pages.length < totalPageCount,
+		};
 
 		const renderer = new Renderer(this.pdfKitDoc, options.progressCallback, this.extensions);
 		renderer.renderPages(pages as RenderablePage[]);

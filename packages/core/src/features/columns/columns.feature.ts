@@ -22,14 +22,11 @@ type ColumnsLayoutFeatureContext = NodeLayoutContext & ColumnsLayoutCapabilities
 interface ColumnsFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedColumnsNode;
-	measureNode: MeasuredColumnsNode;
 	measuredNode: MeasuredColumnsNode;
 	layoutNode: LayoutColumnsNode;
-	renderNode: never;
 	preprocessContext: ColumnsPreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: ColumnsLayoutFeatureContext;
-	renderContext: never;
 }
 
 interface ColumnsFeature extends NodeFeature<ColumnsFeatureStages> {

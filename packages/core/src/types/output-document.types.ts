@@ -1,5 +1,17 @@
+/**
+ * Page counts of a generated document. `totalPageCount` is the length of the complete layout,
+ * which page totals and page references describe; `pageCount` is the number of pages written
+ * to the PDF. They differ only when `maxPagesNumber` truncated the output.
+ */
+export interface PdfPageInfo {
+	pageCount: number;
+	totalPageCount: number;
+	truncated: boolean;
+}
+
 export interface OutputDocument {
 	getStream(): Promise<unknown>;
+	getPageInfo(): Promise<PdfPageInfo>;
 	getBuffer(): Promise<Uint8Array>;
 	getBase64(): Promise<string>;
 	getDataUrl(): Promise<string>;

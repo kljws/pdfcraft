@@ -1,5 +1,6 @@
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type TextInlines from "./text-inlines";
+import { getPageReferenceText } from "./preprocess-node-references";
 import type { MeasuredTextNode, TextFragment, TextMeasureNode } from "./text.types";
 
 export interface TextMeasureContext {
@@ -8,6 +9,7 @@ export interface TextMeasureContext {
 }
 
 export function measureText(node: TextMeasureNode, context: TextMeasureContext): MeasuredTextNode {
+	if (node._pageRef) node.text = getPageReferenceText(node._pageRef);
 	const referencedNode = node._textRef?._textNodeRef;
 	if (referencedNode?._kind === "text" && referencedNode.text) node.text = referencedNode.text;
 

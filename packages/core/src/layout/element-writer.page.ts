@@ -100,7 +100,9 @@ class PageElementWriter {
 	): false | Array<CurrentPosition | undefined>;
 	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): CurrentPosition | false;
 	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): NodePlaceResult {
-		return this._fitOnPage(() => this.writer.addFeatureItem(featureKind, node, index));
+		return this._fitOnPage((allowOverflow) =>
+			this.writer.addFeatureItem(featureKind, node, index, allowOverflow),
+		);
 	}
 
 	addVector(...parameters: Parameters<ElementWriter["addVector"]>): CurrentPosition | undefined {

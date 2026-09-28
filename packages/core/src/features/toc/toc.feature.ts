@@ -17,14 +17,11 @@ import type { LayoutTocNode, MeasuredTocNode, PreprocessedTocNode } from "./toc.
 interface TocFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTocNode;
-	measureNode: MeasuredTocNode;
 	measuredNode: MeasuredTocNode;
 	layoutNode: LayoutTocNode;
-	renderNode: never;
 	preprocessContext: TocPreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-	renderContext: never;
 }
 
 interface TocFeature extends NodeFeature<TocFeatureStages> {

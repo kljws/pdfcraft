@@ -6,12 +6,7 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
-import {
-	addPageItem,
-	alignItem,
-	canPlaceOnCurrentPage,
-	layoutFeatureItem,
-} from "../../layout/element-writer.helpers";
+import { layoutFeatureItem, placeAtomicItem } from "../../layout/element-writer.helpers";
 import { measureBox } from "../../services/measurement/measure-box";
 import type {
 	ExtensionMeasureNode,
@@ -55,21 +50,8 @@ export const extensionFeature = {
 		});
 		return node as MeasuredExtensionNode;
 	},
-	place(node: LayoutExtensionNode, { writer, index }: NodePlaceContext): CurrentPosition | false {
-		const height = node._height ?? 0;
-		const context = writer.context();
-		const page = context.getCurrentPage();
-		const position = writer.getCurrentPositionOnPage();
-
-		if (!canPlaceOnCurrentPage(node, height, page, context.availableHeight)) return false;
-
-		node._x ??= node.x || 0;
-		node.x = context.x + node._x;
-		node.y = context.y;
-		alignItem(node, context.availableWidth);
-		addPageItem(page, { type: "extension", item: node }, index);
-		context.moveDown(height);
-		return position;
+	place(node: LayoutExtensionNode, context: NodePlaceContext): CurrentPosition | false {
+		return placeAtomicItem("extension", node, node._height ?? 0, context);
 	},
 	layout(node: LayoutExtensionNode, context: NodeLayoutContext): void {
 		layoutFeatureItem("extension", node, context.writer);

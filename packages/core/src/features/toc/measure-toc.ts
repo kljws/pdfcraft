@@ -3,7 +3,7 @@ import type {
 	PendingMeasureNode,
 	PreprocessedPdfNode,
 } from "../../types/internal";
-import { getNodeId } from "../../utils/node";
+import { getLaidOutPageText, getNodeId, UNRESOLVED_PAGE_NUMBER_TEXT } from "../../utils/node";
 import type { MeasuredTocNode } from "./toc.types";
 
 export interface TocMeasureContext {
@@ -56,7 +56,7 @@ export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): M
 				},
 				{
 					_kind: "text",
-					text: "00000",
+					text: getLaidOutPageText(item._nodeRef) ?? UNRESOLVED_PAGE_NUMBER_TEXT,
 					linkToDestination: destination,
 					alignment: "right",
 					_tocItemRef: item._nodeRef,

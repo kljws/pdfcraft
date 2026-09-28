@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `shrinkToFit: true` on a block image scales it down proportionally when it cannot fit the content area of a fresh page or column, instead of letting it overflow. It never enlarges an image, is applied after `width`, `height`, `fit` and the min/max options, and is ignored for `cover` and `absolutePosition`. Default output is unchanged.
+- `getPageInfo()` on the output document reports `pageCount`, `totalPageCount` and `truncated`, so callers can tell a complete PDF from an excerpt produced by `maxPagesNumber`.
+- `resourceLoading: { timeout, maxSize }` on `createPdfCraft()` and per document on `createPdf()` bounds each remote resource download (milliseconds including redirects and body, and bytes). `createPdf(definition, { signal })` cancels outstanding downloads. The first failed download cancels the others and is the error reported. Without these options, loading is unbounded as before.
+
+### Changed
+
+- A layout that does not stabilize now throws `Layout did not converge after 10 layout passes: …` naming the unresolved reasons (footer height, page margins function, background page count, page references) instead of warning and returning the last pass. Previously only unstable footer heights threw.
+- Custom page sizes and page margins are validated before pagination, with the input path in the message (for example `Invalid pageSize.width` or `Invalid pageMargins for page 3 (returned by the pageMargins function)`). Non-finite, negative or non-numeric values, including numeric strings, and margins that leave no usable width or height are rejected. `height: "auto"` is unchanged.
+- A node that contains itself is rejected with `Cyclic document structure` and the chain of node kinds instead of overflowing the call stack. The same node used several times is still accepted.
+- A `pageReference` whose id matches no node now fails at the end of preprocessing with `Unresolved pageReference '<id>'` instead of `Page reference id not found` during rendering. A missing `textReference` target still renders empty text and is now reported once with a warning.
+- Output stream ownership is defined: data methods finalize the stream themselves; a stream taken with `getStream()` may be configured and then collected, or consumed and ended by the caller. Collecting after the caller consumed or ended the stream, or calling `getStream()` after collection started, now rejects with an explicit error instead of hanging or silently ignoring changes. Stream errors emitted before collection are reported.
+- An image that cannot fit the content area where it is placed logs one warning with its source and dimensions. Ordinary moves to the next page do not warn.
+- Internal: atomic feature placement (image, attachment, AcroForm, extension) shares one `placeAtomicItem` helper; the attachment and AcroForm placement modules were merged into their feature descriptors; registry stage dispatch uses one typed hook lookup; features omit stage types identical to the defaults; per-pass layout state is reset in one place; the move-down-with-page-break relay through `LayoutBuilder` was removed. Output is unchanged.
+
+### Fixed
+
+- `pageBreakBefore` could stop after nine breaks because every break consumed one of the ten layout passes. Breaks now have their own bound (one per laid-out node) and all requested breaks are applied.
+- An image, canvas, attachment, AcroForm or extension taller than the page was silently dropped when the page had a background, because background items made the page look non-empty and the forced last placement attempt ignored feature items. Such items now overflow on a fresh page as they do without a background.
+- Page references and table-of-contents page numbers are measured with the page number found by the previous layout pass, and another pass runs when a number changes. Text after an inline page reference no longer keeps the gap of the five-digit placeholder, and the table-of-contents number column is sized for the real numbers.
+
+### Tests
+
+- Added reference documents covering text, images, tables, columns, lists, headers, footers, page references and the table of contents. Each is generated through the public API, parsed with pdf.js, checked for expected text and compared with a snapshot of the final page items, and generated twice to check that repeated generation is stable and does not mutate the definition.
+- Locked in the split-without-loss behavior of oversized unbreakable blocks, `dontBreakRows` and `keepTogether` groups and repeated table headers.
+
 ## [0.8.2] - 2026-09-25
 
 ### Changed

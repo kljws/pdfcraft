@@ -1,4 +1,4 @@
-import { isNumber, isString } from "./variable-type";
+import { isNumber, isObject, isString } from "./variable-type";
 import type StyleContextStack from "../services/styles/style-context-stack";
 import type { NodeStyleValue, PdfNode, PreprocessedPdfNode } from "../types/internal";
 
@@ -25,6 +25,21 @@ function fontStringify(key: string, value: unknown): unknown {
  */
 export function stringifyNode(node: unknown): string {
 	return JSON.stringify(node, fontStringify);
+}
+
+/** Text measured for a page number that no layout pass has resolved yet. */
+export const UNRESOLVED_PAGE_NUMBER_TEXT = "00000";
+
+/**
+ * Page number of the node's first position as laid out by the latest layout pass. Positions
+ * survive until the node is laid out again, so measurement in the next pass can use them.
+ */
+export function getLaidOutPageText(node: unknown): string | undefined {
+	if (!isObject(node)) return undefined;
+	const positions = (node as { positions?: unknown }).positions;
+	if (!Array.isArray(positions)) return undefined;
+	const pageNumber = (positions[0] as { pageNumber?: unknown } | undefined)?.pageNumber;
+	return isNumber(pageNumber) ? String(pageNumber) : undefined;
 }
 
 export function getNodeId(node: { id?: unknown; text?: unknown }): string | null {

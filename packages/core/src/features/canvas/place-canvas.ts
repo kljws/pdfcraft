@@ -1,5 +1,5 @@
 import type { NodePlaceContext } from "../../engine/contracts/node-feature";
-import { canPlaceOnCurrentPage, getAlignmentOffset } from "../../layout/element-writer.helpers";
+import { findPlacementPage, getAlignmentOffset } from "../../layout/element-writer.helpers";
 import type { CurrentPosition } from "../../types/internal";
 import { offsetVector } from "../../utils/tools";
 import type { LayoutCanvasNode } from "./canvas.types";
@@ -13,14 +13,14 @@ export function alignCanvas(node: LayoutCanvasNode, availableWidth: number): voi
 
 export function placeCanvasItem(
 	node: LayoutCanvasNode,
-	{ writer, index: initialIndex }: NodePlaceContext,
+	{ writer, index: initialIndex, allowOverflow }: NodePlaceContext,
 ): false | Array<CurrentPosition | undefined> {
 	let index = initialIndex;
 	const context = writer.context();
-	const page = context.getCurrentPage();
 	const height = node._minHeight ?? 0;
 
-	if (!canPlaceOnCurrentPage(node, height, page, context.availableHeight)) return false;
+	const page = findPlacementPage(node, height, context, allowOverflow);
+	if (!page) return false;
 
 	alignCanvas(node, context.availableWidth);
 	const positions: Array<CurrentPosition | undefined> = [];

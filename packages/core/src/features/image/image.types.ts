@@ -20,6 +20,7 @@ export type MeasuredImageNode = MeasuredNodeBase & {
 export type LayoutImageNode = LayoutNodeBase & {
 	_kind: "image";
 	image: ImageSource;
+	shrinkToFit?: boolean;
 };
 
 declare module "../../types/document.types" {

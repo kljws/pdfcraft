@@ -25,14 +25,11 @@ function hasBlockDecoration(node: PdfNode): boolean {
 interface StackFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedPdfNode;
-	measureNode: MeasuredStackNode;
 	measuredNode: MeasuredStackNode;
 	layoutNode: LayoutStackNode;
-	renderNode: never;
 	preprocessContext: StackFeaturePreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-	renderContext: never;
 }
 
 interface StackFeature extends NodeFeature<StackFeatureStages> {

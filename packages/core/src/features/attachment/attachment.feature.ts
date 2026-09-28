@@ -6,11 +6,10 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
-import type { PageItem, PdfNode } from "../../types/internal";
+import type { CurrentPosition, PageItem, PdfNode } from "../../types/internal";
 import type { PrinterDocumentDefinition, PrinterResourceReference } from "../../core/printer.types";
-import { layoutFeatureItem } from "../../layout/element-writer.helpers";
+import { layoutFeatureItem, placeAtomicItem } from "../../layout/element-writer.helpers";
 import { isNumber } from "../../utils/variable-type";
-import { placeAttachmentItem } from "./place-attachment";
 import { renderAttachment, type AttachmentRenderContext } from "./render-attachment";
 import { resolveAttachmentReferences } from "./attachment-resources";
 import type {
@@ -48,10 +47,7 @@ interface AttachmentFeature extends NodeFeature<AttachmentFeatureStages> {
 		context: AttachmentResourceContext,
 	): undefined;
 	measure(node: PreprocessedAttachmentNode, context: NodeMeasureContext): MeasuredAttachmentNode;
-	place(
-		node: LayoutAttachmentNode,
-		context: NodePlaceContext,
-	): ReturnType<typeof placeAttachmentItem>;
+	place(node: LayoutAttachmentNode, context: NodePlaceContext): CurrentPosition | false;
 	layout(node: LayoutAttachmentNode, context: NodeLayoutContext): void;
 	render(node: LayoutAttachmentNode, context: AttachmentRenderContext): void;
 }
@@ -76,7 +72,9 @@ export const attachmentFeature = {
 	layout(node, context): void {
 		layoutFeatureItem("attachment", node, context.writer);
 	},
-	place: placeAttachmentItem,
+	place(node, context): CurrentPosition | false {
+		return placeAtomicItem("attachment", node, node._height ?? 0, context, { align: false });
+	},
 	render(node, context): void {
 		renderAttachment(node, context);
 	},

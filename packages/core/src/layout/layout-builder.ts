@@ -24,7 +24,7 @@ import {
 import { createBuiltInLayout } from "../composition/built-in-layout";
 import { createBuiltInMeasurement } from "../composition/built-in-measurement";
 import { createBuiltInPreprocessing } from "../composition/built-in-preprocessing";
-import { moveDownWithPageBreak, moveToNextSnakingColumnOrPage } from "../engine/layout-pagination";
+import { moveToNextSnakingColumnOrPage } from "../engine/layout-pagination";
 type TableLayoutSource = Partial<TableLayout> | PublicTableLayout;
 
 /**
@@ -53,10 +53,7 @@ class LayoutBuilder {
 		this.pageSize = pageSize;
 		this.pageMargins = pageMargins;
 		this.extensions = extensions;
-		this.layout = createBuiltInLayout(this, {
-			moveDownWithPageBreak: (height, orientation) =>
-				this.moveDownWithPageBreak(height, orientation),
-		});
+		this.layout = createBuiltInLayout(this);
 	}
 
 	registerTableLayouts(tableLayouts: Dictionary<TableLayoutSource>): void {
@@ -64,13 +61,6 @@ class LayoutBuilder {
 			this.tableLayouts,
 			tableLayouts as Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
 		);
-	}
-
-	private moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void {
-		moveDownWithPageBreak(height, pageOrientation, {
-			writer: this.writer,
-			moveAcrossSnakingPage: (orientation) => this.snakingAwarePageBreak(orientation),
-		});
 	}
 
 	/** Lays out a document definition into pages of positioned lines, inlines and vectors. */
@@ -120,8 +110,7 @@ class LayoutBuilder {
 			suppressLinearNodeList: this.suppressLinearNodeList,
 			verticalAlignmentItemStack: this.verticalAlignmentItemStack,
 			decorateNode: (target) => this.layout.decorateNode(target),
-			moveDownWithPageBreak: (height, orientation) =>
-				this.moveDownWithPageBreak(height, orientation),
+			moveDownWithPageBreak: this.layout.moveDownWithPageBreak,
 			layoutContent: (contentNode) => this.layout.layoutNode(contentNode),
 		});
 	}

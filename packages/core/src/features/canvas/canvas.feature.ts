@@ -14,14 +14,11 @@ import type { LayoutCanvasNode, MeasuredCanvasNode, PreprocessedCanvasNode } fro
 interface CanvasFeatureStages extends NodeFeatureStages {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedCanvasNode;
-	measureNode: MeasuredCanvasNode;
 	measuredNode: MeasuredCanvasNode;
 	layoutNode: LayoutCanvasNode;
-	renderNode: never;
 	preprocessContext: undefined;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
-	renderContext: never;
 }
 
 interface CanvasFeature extends NodeFeature<CanvasFeatureStages> {

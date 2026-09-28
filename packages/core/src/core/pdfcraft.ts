@@ -13,10 +13,33 @@ import type {
 	LocalAccessPolicy,
 	PdfCraftExtensions,
 	PdfCraftOptions,
+	ResourceLoadingOptions,
 	TableLayout,
 	VirtualFileSystem,
 } from "../types";
 import type { PdfDocumentStream } from "../output/output-document";
+
+function validateResourceLoading(options: ResourceLoadingOptions): ResourceLoadingOptions {
+	const { timeout, maxSize } = options;
+	if (
+		timeout !== undefined &&
+		!(typeof timeout === "number" && timeout > 0 && Number.isFinite(timeout))
+	) {
+		throw new Error(
+			`Invalid resourceLoading.timeout: expected a positive number of milliseconds, received ${String(timeout)}`,
+		);
+	}
+	if (maxSize !== undefined && !(Number.isSafeInteger(maxSize) && maxSize >= 0)) {
+		throw new Error(
+			`Invalid resourceLoading.maxSize: expected a non-negative integer, received ${String(maxSize)}`,
+		);
+	}
+	// Only defined limits are returned, so a per-document override keeps the instance defaults.
+	return {
+		...(timeout !== undefined && { timeout }),
+		...(maxSize !== undefined && { maxSize }),
+	};
+}
 
 class PdfCraftBase<Output = unknown> {
 	protected virtualfs: VirtualFileSystem;
@@ -26,6 +49,7 @@ class PdfCraftBase<Output = unknown> {
 	protected urlAccessPolicy?: AccessPolicy;
 	protected localAccessPolicy?: LocalAccessPolicy;
 	protected extensions: PdfCraftExtensions;
+	protected resourceLoading: ResourceLoadingOptions;
 
 	constructor(options: PdfCraftOptions = {}) {
 		this.virtualfs = options.virtualfs ?? new DefaultVirtualFileSystem();
@@ -35,6 +59,7 @@ class PdfCraftBase<Output = unknown> {
 		this.urlAccessPolicy = options.urlAccessPolicy;
 		this.localAccessPolicy = options.localAccessPolicy;
 		this.extensions = [...(options.extensions ?? [])];
+		this.resourceLoading = validateResourceLoading(options.resourceLoading ?? {});
 	}
 
 	createPdf(docDefinition: DocumentDefinition, options: CreatePdfOptions = {}): Output {
@@ -66,7 +91,11 @@ class PdfCraftBase<Output = unknown> {
 			);
 		}
 
-		const urlResolver = new URLResolver(this.virtualfs);
+		const urlResolver = new URLResolver(this.virtualfs, {
+			...this.resourceLoading,
+			...validateResourceLoading(validatedOptions.resourceLoading ?? {}),
+			signal: validatedOptions.signal,
+		});
 		urlResolver.setUrlAccessPolicy(this.urlAccessPolicy);
 
 		const fonts = Object.fromEntries(

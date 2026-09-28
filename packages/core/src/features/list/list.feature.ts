@@ -38,11 +38,9 @@ interface ListFeatureStages extends NodeFeatureStages {
 	measureNode: ListMeasureNode;
 	measuredNode: MeasuredListNode;
 	layoutNode: LayoutListNode;
-	renderNode: never;
 	preprocessContext: ListPreprocessContext;
 	measureContext: ListMeasureFeatureContext;
 	layoutContext: NodeLayoutContext;
-	renderContext: never;
 }
 
 interface ListFeature extends NodeFeature<ListFeatureStages> {

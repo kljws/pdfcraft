@@ -1,5 +1,6 @@
 import { extensionFeature } from "../features/extension/extension.feature";
 import { listFeature } from "../features/list/list.feature";
+import { hasStalePageReferences } from "../features/text/preprocess-node-references";
 import { pageBreakBeforeFeature } from "../features/repeatables/page-break-before.feature";
 import type { PageBreakBefore } from "../engine/page-break-before.types";
 import DocumentContext from "../document/document-context";
@@ -28,8 +29,11 @@ interface BuiltInDocumentPassHost {
 	readonly pageMargins: PageMarginSource;
 	preprocessing: BuiltInPreprocessing;
 	measurement: BuiltInMeasurement;
+	// Per-pass layout state, reset by `startLayoutPass`.
 	linearNodeList: LayoutPdfNode[];
 	suppressLinearNodeList: boolean;
+	nestedLevel: number;
+	verticalAlignmentItemStack: unknown[];
 	writer: PageElementWriter;
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
 }
@@ -64,11 +68,27 @@ export function runBuiltInDocumentPipeline(context: BuiltInDocumentPipelineConte
 	});
 }
 
+/**
+ * Resets the layout state that lives for one pass. State kept across passes on purpose:
+ * - on nodes: `pageBreakCalculated` and a `pageBreak` added by `pageBreakBefore` (each node is
+ *   evaluated once), `_x` (the node's original relative x), and `positions` from the previous
+ *   pass until the node is laid out again (page references read them while measuring);
+ * - per node, `x`/`y` are restored by `resetXY` between passes (document layout pipeline) and
+ *   `positions` is cleared when the node is decorated for layout;
+ * - feature-specific state is reset by each feature's `reset` hook through `resetXY`.
+ */
+function startLayoutPass(host: BuiltInDocumentPassHost, documentContext: DocumentContext): void {
+	host.linearNodeList = [];
+	host.suppressLinearNodeList = false;
+	host.nestedLevel = 0;
+	host.verticalAlignmentItemStack.length = 0;
+	host.writer = new PageElementWriter(documentContext, createBuiltInElementPlacement());
+}
+
 export function runBuiltInDocumentPass(
 	host: BuiltInDocumentPassHost,
 	input: BuiltInDocumentPassInput,
 ): DocumentLayoutPassResult {
-	host.linearNodeList = [];
 	const processedDocument = host.preprocessing.preprocessDocument(input.docStructure);
 	const layoutDocument = host.measurement.measureNode(processedDocument) as LayoutPdfNode;
 
@@ -76,7 +96,7 @@ export function runBuiltInDocumentPass(
 	documentContext.pageMarginSource = host.pageMargins;
 	documentContext.pageCount = input.pageCount;
 	documentContext.bottomMarginOverrides = input.bottomMarginOverrides;
-	host.writer = new PageElementWriter(documentContext, createBuiltInElementPlacement());
+	startLayoutPass(host, documentContext);
 	const documentFeatures = createBuiltInDocumentFeatures(
 		host,
 		input.pdfDocument,
@@ -119,5 +139,6 @@ export function runBuiltInDocumentPass(
 		dynamicBackgroundUsesPageCount,
 		basePageMargins: host.writer.context().basePageMargins,
 		footerHeights,
+		pageReferencesChanged: hasStalePageReferences(host.writer.context().pages),
 	};
 }

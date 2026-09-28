@@ -28,6 +28,18 @@ export function normalizePageSize(
 			return { width: size[0], height: size[1] };
 		}
 
+		if (!isValidDimension(definition.width)) {
+			throw new Error(
+				`Invalid pageSize.width: expected a finite positive number, received ${describe(definition.width)}`,
+			);
+		}
+		// An already normalized automatic height is Infinity.
+		const isAutomaticHeight = definition.height === "auto" || definition.height === Infinity;
+		if (!isAutomaticHeight && !isValidDimension(definition.height)) {
+			throw new Error(
+				`Invalid pageSize.height: expected a finite positive number or 'auto', received ${describe(definition.height)}`,
+			);
+		}
 		return {
 			width: definition.width,
 			height: definition.height === "auto" ? Infinity : definition.height,
@@ -43,7 +55,53 @@ export function normalizePageSize(
 	return size;
 }
 
-export function normalizePageMargin(margin: PageMarginDefinition): PageMargins {
+const isValidDimension = (value: unknown): value is number =>
+	isNumber(value) && Number.isFinite(value) && value > 0;
+
+const describe = (value: unknown): string =>
+	typeof value === "string" ? `'${value}'` : String(value);
+
+const MARGIN_SIDES = ["left", "top", "right", "bottom"] as const;
+
+function assertValidMargins(margins: PageMargins, path: string): PageMargins {
+	for (const side of MARGIN_SIDES) {
+		const value = margins[side];
+		if (!isNumber(value) || !Number.isFinite(value) || value < 0) {
+			throw new Error(
+				`Invalid ${path}.${side}: expected a finite non-negative number, received ${describe(value)}`,
+			);
+		}
+	}
+	return margins;
+}
+
+/**
+ * Rejects margins that leave no usable content area on a page. `path` names the input that
+ * produced the margins, so the error points at the definition to fix.
+ */
+export function assertUsableContentArea(
+	pageSize: PageSize,
+	margins: PageMargins,
+	path: string,
+): void {
+	const width = pageSize.width - margins.left - margins.right;
+	if (!(width > 0)) {
+		throw new Error(
+			`Invalid ${path}: left (${margins.left}) and right (${margins.right}) margins leave no usable width on a page ${pageSize.width} wide`,
+		);
+	}
+	const height = pageSize.height - margins.top - margins.bottom;
+	if (!(height > 0)) {
+		throw new Error(
+			`Invalid ${path}: top (${margins.top}) and bottom (${margins.bottom}) margins leave no usable height on a page ${pageSize.height} high`,
+		);
+	}
+}
+
+export function normalizePageMargin(
+	margin: PageMarginDefinition,
+	path = "pageMargins",
+): PageMargins {
 	if (isNumber(margin)) {
 		margin = { left: margin, right: margin, top: margin, bottom: margin };
 	} else if (Array.isArray(margin)) {
@@ -52,9 +110,15 @@ export function normalizePageMargin(margin: PageMarginDefinition): PageMargins {
 		} else if (margin.length === 4) {
 			margin = { left: margin[0], top: margin[1], right: margin[2], bottom: margin[3] };
 		} else {
-			throw new Error("Invalid pageMargins definition");
+			throw new Error(
+				`Invalid ${path}: expected a number, an array of 2 or 4 numbers, or an object, received an array of ${(margin as unknown[]).length}`,
+			);
 		}
+	} else if (margin === null || typeof margin !== "object") {
+		throw new Error(
+			`Invalid ${path}: expected a number, an array of 2 or 4 numbers, or an object, received ${describe(margin)}`,
+		);
 	}
 
-	return margin as PageMargins;
+	return assertValidMargins(margin as PageMargins, path);
 }

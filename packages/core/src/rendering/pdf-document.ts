@@ -22,6 +22,7 @@ import type {
 	FileAnnotationOptions,
 } from "./renderer.types";
 import type { PdfPage } from "../types/internal";
+import type { PdfPageInfo } from "../types";
 import FontProvider from "../services/typography/font-provider";
 
 const escapeXmpText = (value: unknown): string =>
@@ -56,6 +57,7 @@ class PDFDocument extends PDFKit {
 	declare _normalizeColor: ((color: string) => unknown[] | null) | undefined;
 	declare openImage: (source: PDFKit.Mixins.ImageSrc) => EmbeddedImage;
 	declare _pdfCraftPages: PdfPage[];
+	declare pdfCraftPageInfo: PdfPageInfo;
 	declare fileAnnotation: (
 		x: number,
 		y: number,

@@ -9,6 +9,8 @@ export interface DocumentLayoutPassResult {
 	dynamicBackgroundUsesPageCount?: boolean;
 	basePageMargins: PageMargins[];
 	footerHeights: Array<number | undefined>;
+	/** A page number was measured with a value that differs from its target's final page. */
+	pageReferencesChanged?: boolean;
 }
 
 export interface DocumentLayoutPipelineContext {
@@ -31,60 +33,70 @@ const equalMargins = (current: readonly number[], next: readonly number[]): bool
 	current.length === next.length &&
 	current.every((margin, pageIndex) => Math.abs(margin - next[pageIndex]) < 0.001);
 
+/** Reasons a pass result depends on assumptions that the pass itself invalidated. */
+function getUnstableReasons(
+	result: DocumentLayoutPassResult,
+	assumedPageCount: number,
+	bottomMarginOverrides: readonly number[],
+): string[] {
+	const reasons: string[] = [];
+	if (!equalMargins(bottomMarginOverrides, getFooterBottomMargins(result))) {
+		reasons.push("footer height");
+	}
+	const pageCountChanged = assumedPageCount !== result.pages.length;
+	if (result.pageMarginFunctionUsed && pageCountChanged) reasons.push("page margins function");
+	if (result.dynamicBackgroundUsesPageCount && pageCountChanged)
+		reasons.push("background page count");
+	if (result.pageReferencesChanged) reasons.push("page references");
+	return reasons;
+}
+
+/**
+ * Repeats layout passes until the result is stable.
+ *
+ * Two kinds of progress have separate bounds:
+ * - dynamic layout (footer heights, page-count-dependent margins and backgrounds) must stabilize
+ *   within `MAX_LAYOUT_PASSES` consecutive passes, otherwise it is considered oscillating;
+ * - each `pageBreakBefore` break is permanent progress, since a node is evaluated only once, so
+ *   breaks are bounded by the number of laid-out nodes and restart the dynamic budget.
+ *
+ * Reaching either bound throws instead of returning an unstable layout.
+ */
 export function runDocumentLayoutPipeline(context: DocumentLayoutPipelineContext): PdfPage[] {
 	let assumedPageCount = 0;
 	let bottomMarginOverrides: number[] = [];
-	let layoutPass = 1;
-	const pageCountHistory = [assumedPageCount];
-	let warnedAboutCycle = false;
 	let result = context.runPass(assumedPageCount, bottomMarginOverrides);
+	let dynamicPasses = 1;
+	let pageBreakPasses = 0;
+	const laidOutNodes = new Set<LayoutPdfNode>();
 
-	while (layoutPass < MAX_LAYOUT_PASSES) {
-		const nextPageCount = result.pages.length;
-		const nextBottomMarginOverrides = getFooterBottomMargins(result);
-		const footerMarginsNeedAnotherPass = !equalMargins(
-			bottomMarginOverrides,
-			nextBottomMarginOverrides,
-		);
-		const marginsNeedAnotherPass =
-			Boolean(result.pageMarginFunctionUsed) && assumedPageCount !== nextPageCount;
-		const backgroundNeedsAnotherPass =
-			Boolean(result.dynamicBackgroundUsesPageCount) && assumedPageCount !== nextPageCount;
-		const pageBreakNeedsAnotherPass = context.requiresPageBreakRelayout(result);
+	for (;;) {
+		for (const node of result.linearNodeList) laidOutNodes.add(node);
+		const unstableReasons = getUnstableReasons(result, assumedPageCount, bottomMarginOverrides);
+		const pageBreakAdded = context.requiresPageBreakRelayout(result);
 
-		if (
-			!footerMarginsNeedAnotherPass &&
-			!marginsNeedAnotherPass &&
-			!backgroundNeedsAnotherPass &&
-			!pageBreakNeedsAnotherPass
-		) {
-			break;
-		}
+		if (unstableReasons.length === 0 && !pageBreakAdded) return result.pages;
 
-		if (footerMarginsNeedAnotherPass || marginsNeedAnotherPass || backgroundNeedsAnotherPass) {
-			if (
-				(marginsNeedAnotherPass || backgroundNeedsAnotherPass) &&
-				!warnedAboutCycle &&
-				pageCountHistory.includes(nextPageCount)
-			) {
-				console.warn(
-					"Non-convergent dynamic layout detected; layout stopped after a bounded number of passes.",
+		if (pageBreakAdded) {
+			pageBreakPasses++;
+			if (pageBreakPasses > laidOutNodes.size) {
+				throw new Error(
+					`Layout did not converge: pageBreakBefore requested ${pageBreakPasses} breaks for ${laidOutNodes.size} nodes`,
 				);
-				warnedAboutCycle = true;
 			}
-			assumedPageCount = nextPageCount;
-			pageCountHistory.push(nextPageCount);
+			dynamicPasses = 0;
+		} else if (dynamicPasses >= MAX_LAYOUT_PASSES) {
+			throw new Error(
+				`Layout did not converge after ${MAX_LAYOUT_PASSES} layout passes: ${unstableReasons.join(", ")} still changed the layout`,
+			);
 		}
-		bottomMarginOverrides = nextBottomMarginOverrides;
 
+		if (unstableReasons.length > 0) {
+			assumedPageCount = result.pages.length;
+			bottomMarginOverrides = getFooterBottomMargins(result);
+		}
 		for (const node of result.linearNodeList) node.resetXY?.();
 		result = context.runPass(assumedPageCount, bottomMarginOverrides);
-		layoutPass++;
+		dynamicPasses++;
 	}
-
-	if (!equalMargins(bottomMarginOverrides, getFooterBottomMargins(result))) {
-		throw new Error(`Footer height did not converge after ${MAX_LAYOUT_PASSES} layout passes`);
-	}
-
-	return result.pages;
 }

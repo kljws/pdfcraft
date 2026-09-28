@@ -51,8 +51,13 @@ describe("DocPreprocessor", function () {
 		});
 
 		it("tags page and text references without text as text", function () {
-			assert.equal(docPreprocessor.preprocessBlock({ pageReference: "intro" })._kind, "text");
-			assert.equal(docPreprocessor.preprocessBlock({ textReference: "intro" })._kind, "text");
+			const target = { text: "Intro", id: "intro" };
+			const block = (reference: object) =>
+				docPreprocessor.preprocessBlock([reference, { ...target }]) as unknown as {
+					stack: Array<{ _kind: string }>;
+				};
+			assert.equal(block({ pageReference: "intro" }).stack[0]._kind, "text");
+			assert.equal(block({ textReference: "intro" }).stack[0]._kind, "text");
 		});
 
 		it("rejects public nodes recognized by several features", function () {
