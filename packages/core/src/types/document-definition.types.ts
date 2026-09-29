@@ -18,6 +18,8 @@ export type AttachmentDefinition = {
 	hidden?: boolean | undefined;
 	creationDate?: Date | undefined;
 	modifiedDate?: Date | undefined;
+	/** Relationship of the embedded file to the document (PDF/A-3 `AFRelationship`). */
+	relationship?: "Alternative" | "Data" | "Source" | "Supplement" | "Unspecified" | undefined;
 };
 
 export type DocumentPermissions = {

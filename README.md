@@ -40,7 +40,8 @@ pnpm add @pdfcraft/core
 
 For browser applications, install `@pdfcraft/browser` instead. It is self-contained and also exports the public TypeScript contracts.
 
-QR and SVG support are optional, separately installed extensions:
+QR and SVG support are optional, separately installed extensions (Factur-X support is the optional
+`@pdfcraft/factur-x` helper, see [PDF/A and Factur-X](#pdfa-and-factur-x)):
 
 ```sh
 pnpm add @pdfcraft/qr @pdfcraft/svg
@@ -189,30 +190,24 @@ set `shrinkToFit: true` on it to scale it down instead:
 
 ## PDF/A and Factur-X
 
-`subset: "PDF/A-3b"` writes the PDF/A identification, and `files` embeds attachments such as a
-Factur-X XML invoice. `xmpMetadata` adds RDF descriptions to the XMP metadata packet, which Factur-X
-needs for its `fx:` properties and their PDF/A extension schema. It requires a PDF `version` other
-than 1.3. See `playground/shared/samples/quote.js` for a complete EN 16931 invoice.
+`subset: "PDF/A-3b"` writes the PDF/A identification, `files` embeds attachments, and `xmpMetadata`
+adds RDF descriptions to the XMP metadata packet (it requires a PDF `version` other than 1.3).
+
+For Factur-X invoices, the optional `@pdfcraft/factur-x` package combines them: it embeds the CII XML
+as `factur-x.xml` with the relationship its profile requires and adds the Factur-X XMP metadata.
+
+```sh
+pnpm add @pdfcraft/factur-x
+```
 
 ```ts
-const documentDefinition = {
-	version: "1.7",
-	subset: "PDF/A-3b",
-	files: {
-		"factur-x.xml": { src: "./factur-x.xml", relationship: "Alternative", type: "text/xml" },
-	},
-	xmpMetadata: [
-		`<rdf:Description rdf:about="" xmlns:fx="urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#">
-			<fx:DocumentType>INVOICE</fx:DocumentType>
-			<fx:DocumentFileName>factur-x.xml</fx:DocumentFileName>
-			<fx:Version>1.0</fx:Version>
-			<fx:ConformanceLevel>EN 16931</fx:ConformanceLevel>
-		</rdf:Description>`,
-		// plus the PDF/A extension schema declaring the fx: properties (see quote.js)
-	],
-	content: ["Invoice"],
-};
+import { withFacturX } from "@pdfcraft/factur-x";
+
+const pdf = pdfcraft.createPdf(withFacturX({ content: ["Invoice"] }, { xml: invoiceXml }));
 ```
+
+The application provides the XML and validates it (XSD and EN 16931 Schematron); see
+`playground/shared/samples/quote.js` for a complete invoice.
 
 ## TypeScript
 

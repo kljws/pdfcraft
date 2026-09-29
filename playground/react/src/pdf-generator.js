@@ -1,6 +1,7 @@
 import pdfcraft from "@pdfcraft/browser";
 import { qrExtension } from "@pdfcraft/qr";
 import { svgExtension } from "@pdfcraft/svg";
+import * as facturX from "@pdfcraft/factur-x";
 import { Roboto, Figtree } from "./fonts";
 import sampleImage from "../../shared/images/sampleImage.jpg?url";
 import playgroundLogo from "../../logo.jpg?url";
@@ -54,7 +55,7 @@ const resourceUrls = new Map([
 
 export const generatePdf = (source) => {
 	const documentDefinition = resolveDocumentResources(
-		parseDocumentDefinition(source),
+		parseDocumentDefinition(source, { "@pdfcraft/factur-x": facturX }),
 		resourceUrls,
 	);
 	const referencedImageUrls = [...resourceUrls]

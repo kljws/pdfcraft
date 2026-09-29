@@ -1,0 +1,63 @@
+{
+	"name": "@pdfcraft/factur-x",
+	"version": "0.1.0",
+	"description": "Factur-X (EN 16931) metadata and attachment helper for PDFCraft",
+	"type": "module",
+	"sideEffects": false,
+	"author": "kljws",
+	"license": "MIT",
+	"homepage": "https://github.com/kljws/pdfcraft#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kljws/pdfcraft.git",
+		"directory": "packages/factur-x"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"main": "dist/index.cjs",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist",
+		"LICENSE",
+		"README.md"
+	],
+	"scripts": {
+		"typecheck": "tsc --noEmit -p tsconfig.build.json",
+		"build": "pnpm run typecheck && tsdown",
+		"prepack": "pnpm run build"
+	},
+	"devDependencies": {
+		"@pdfcraft/core": "workspace:^",
+		"tsdown": "^0.22.9",
+		"typescript": "^7.0.2"
+	},
+	"peerDependencies": {
+		"@pdfcraft/core": "^0.10.0"
+	},
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			},
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"keywords": [
+		"pdf",
+		"factur-x",
+		"zugferd",
+		"en16931",
+		"pdfa"
+	]
+}

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import pdfcraft from "@pdfcraft/core";
 import { qrExtension } from "@pdfcraft/qr";
 import { svgExtension } from "@pdfcraft/svg";
+import * as facturX from "@pdfcraft/factur-x";
 import {
 	createSampleSource,
 	parseDocumentDefinition,
@@ -128,7 +129,10 @@ const sendPdf = async (request, response) => {
 	const source = await readRequest(request);
 	const startedAt = performance.now();
 	const documentDefinition = resolveDocumentFilePaths(
-		resolveDocumentResources(parseDocumentDefinition(source), resourcePaths),
+		resolveDocumentResources(
+			parseDocumentDefinition(source, { "@pdfcraft/factur-x": facturX }),
+			resourcePaths,
+		),
 	);
 	const buffer = await pdfcraft.createPdf(documentDefinition).getBuffer();
 

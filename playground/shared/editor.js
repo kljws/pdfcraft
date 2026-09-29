@@ -2,13 +2,35 @@ export const createSampleSource = (sample) => {
 	return `${sample.trim()}\n`;
 };
 
-export const parseDocumentDefinition = (source) => {
-	const trimmedSource = source.trim();
+const namedImport = /^\s*import\s*\{([^}]*)\}\s*from\s*["']([^"']+)["'];?\s*$/gm;
+
+/**
+ * Samples are ES modules. The playground evaluates them without a module loader, so each named
+ * import (`import { withFacturX } from "@pdfcraft/factur-x"`) is read from `modules`.
+ */
+const replaceImports = (source, modules) =>
+	source.replace(namedImport, (_statement, names, specifier) => {
+		if (!(specifier in modules)) {
+			throw new Error(`The playground cannot import "${specifier}"`);
+		}
+		const bindings = names
+			.split(",")
+			.map((name) => name.trim())
+			.filter(Boolean)
+			.map((name) => name.replace(/\s+as\s+/, ": "));
+		return `const { ${bindings.join(", ")} } = __pdfcraftModules[${JSON.stringify(specifier)}];`;
+	});
+
+export const parseDocumentDefinition = (source, modules = {}) => {
+	const trimmedSource = replaceImports(source.trim(), modules);
 	const exportDefaultIndex = trimmedSource.indexOf("export default");
 	if (exportDefaultIndex !== -1) {
 		const executableSource = `${trimmedSource.slice(0, exportDefaultIndex)}const __pdfcraftSample =${trimmedSource.slice(exportDefaultIndex + "export default".length)}`;
 		// The playground intentionally executes locally edited document definitions.
-		return new Function(`"use strict";\n${executableSource}\nreturn __pdfcraftSample;`)();
+		return new Function(
+			"__pdfcraftModules",
+			`"use strict";\n${executableSource}\nreturn __pdfcraftSample;`,
+		)(modules);
 	}
 
 	// Support source saved by playground versions older than the module-based samples.

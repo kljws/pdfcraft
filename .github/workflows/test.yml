@@ -88,4 +88,5 @@ jobs:
       - run: pnpm --filter @pdfcraft/core pack --dry-run
       - run: pnpm --filter @pdfcraft/browser pack --dry-run
       - run: pnpm --filter @pdfcraft/qr pack --dry-run
+      - run: pnpm --filter @pdfcraft/factur-x pack --dry-run
       - run: pnpm --filter @pdfcraft/svg pack --dry-run

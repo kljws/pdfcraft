@@ -46,4 +46,13 @@ describe("package exports", () => {
 		expect(svg.svgExtension.measure).toBeTypeOf("function");
 		expect(svgCommonjs.svgExtension.render).toBeTypeOf("function");
 	});
+
+	it("publishes the Factur-X helper as ESM and CommonJS", async () => {
+		const facturX = await import("@pdfcraft/factur-x");
+		const facturXCommonjs = createRequire(import.meta.url)("@pdfcraft/factur-x") as typeof facturX;
+
+		expect(facturX.withFacturX).toBeTypeOf("function");
+		expect(facturXCommonjs.withFacturX).toBeTypeOf("function");
+		expect(facturX.facturXFileName).toBe("factur-x.xml");
+	});
 });

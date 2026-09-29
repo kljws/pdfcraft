@@ -14,6 +14,9 @@ importers:
       '@pdfcraft/core':
         specifier: workspace:*
         version: link:packages/core
+      '@pdfcraft/factur-x':
+        specifier: workspace:*
+        version: link:packages/factur-x
       '@pdfcraft/qr':
         specifier: workspace:*
         version: link:packages/qr
@@ -96,6 +99,18 @@ importers:
       '@types/pdfkit':
         specifier: ^0.17.5
         version: 0.17.6
+      tsdown:
+        specifier: ^0.22.9
+        version: 0.22.14(typescript@7.0.2)
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
+  packages/factur-x:
+    devDependencies:
+      '@pdfcraft/core':
+        specifier: workspace:^
+        version: link:../core
       tsdown:
         specifier: ^0.22.9
         version: 0.22.14(typescript@7.0.2)
