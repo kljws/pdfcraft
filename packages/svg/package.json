@@ -1,6 +1,6 @@
 {
 	"name": "@pdfcraft/svg",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "SVG extension for PDFCraft",
 	"type": "module",
 	"sideEffects": false,
@@ -40,7 +40,7 @@
 		"typescript": "^7.0.2"
 	},
 	"peerDependencies": {
-		"@pdfcraft/core": "^8.0.0"
+		"@pdfcraft/core": "^0.10.0"
 	},
 	"exports": {
 		".": {

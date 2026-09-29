@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-29
+
+### Changed
+
+- Bundles `@pdfcraft/core` 0.10.0: `xmpMetadata` adds RDF descriptions to the XMP metadata packet (for example Factur-X metadata, see `@pdfcraft/factur-x`), and attachment definitions expose `relationship` in the public types.
+
 ## [0.9.0] - 2026-09-28
 
 ### Changed
@@ -675,7 +681,8 @@ The starting baseline already included, and PDFCraft 0.4.0 retains, the followin
 - browser `SVGElement` support and SVG validation;
 - promise-based output methods.
 
-[Unreleased]: https://github.com/kljws/pdfcraft/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/kljws/pdfcraft/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/kljws/pdfcraft/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/kljws/pdfcraft/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/kljws/pdfcraft/compare/v0.7.3...v0.8.0
 [0.7.3]: https://github.com/kljws/pdfcraft/compare/v0.7.2...v0.7.3
