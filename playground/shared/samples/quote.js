@@ -1,3 +1,52 @@
+// Factur-X metadata required in the XMP packet: the fx: properties and the PDF/A extension schema
+// that declares them. The values match the embedded factur-x.xml (EN 16931 profile).
+const facturXNamespace = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
+const facturXProperty = (name, description) => `
+				<rdf:li rdf:parseType="Resource">
+					<pdfaProperty:name>${name}</pdfaProperty:name>
+					<pdfaProperty:valueType>Text</pdfaProperty:valueType>
+					<pdfaProperty:category>external</pdfaProperty:category>
+					<pdfaProperty:description>${description}</pdfaProperty:description>
+				</rdf:li>`;
+
+const facturXMetadata = [
+	`<rdf:Description rdf:about="" xmlns:fx="${facturXNamespace}">
+	<fx:DocumentType>INVOICE</fx:DocumentType>
+	<fx:DocumentFileName>factur-x.xml</fx:DocumentFileName>
+	<fx:Version>1.0</fx:Version>
+	<fx:ConformanceLevel>EN 16931</fx:ConformanceLevel>
+</rdf:Description>`,
+	`<rdf:Description rdf:about="" xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/" xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#" xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#">
+	<pdfaExtension:schemas>
+		<rdf:Bag>
+			<rdf:li rdf:parseType="Resource">
+				<pdfaSchema:schema>Factur-X PDFA Extension Schema</pdfaSchema:schema>
+				<pdfaSchema:namespaceURI>${facturXNamespace}</pdfaSchema:namespaceURI>
+				<pdfaSchema:prefix>fx</pdfaSchema:prefix>
+				<pdfaSchema:property>
+					<rdf:Seq>${[
+						facturXProperty("DocumentFileName", "The name of the embedded XML document"),
+						facturXProperty(
+							"DocumentType",
+							"The type of the hybrid document in capital letters, e.g. INVOICE or ORDER",
+						),
+						facturXProperty(
+							"Version",
+							"The actual version of the standard applying to the embedded XML document",
+						),
+						facturXProperty(
+							"ConformanceLevel",
+							"The conformance level of the embedded XML document",
+						),
+					].join("")}
+					</rdf:Seq>
+				</pdfaSchema:property>
+			</rdf:li>
+		</rdf:Bag>
+	</pdfaExtension:schemas>
+</rdf:Description>`,
+];
+
 export default {
 	version: "1.7",
 	subset: "PDF/A-3b",
@@ -10,6 +59,7 @@ export default {
 		author: "Lumen Atelier SAS",
 		subject: "Devis Nordique Design",
 	},
+	xmpMetadata: facturXMetadata,
 	files: {
 		"factur-x.xml": {
 			src: "./test.xml",
@@ -558,7 +608,7 @@ export default {
 								],
 								[
 									{
-										text: "Fourniture et pose de capteurs CO₂, particules, température et humidité.\n\nInclus :\n- Installation sur site\n- Intégration réseau sécurisée\n- Calibration et recette",
+										text: "Fourniture, installation et mise en service de capteurs de qualité de l'air intérieur (QAI) et de confort thermique.\n\nInclus :\n- Fourniture de capteurs multi-paramètres de haute précision (CO₂, particules fines PM10/PM2.5, température, humidité)\n- Installation sur site selon les préconisations techniques et hauteurs réglementaires\n- Intégration réseau sécurisée (Wi-Fi/Ethernet/IoT) avec chiffrement des données\n- Calibration initiale des sondes, tests de connectivité et procès-verbal de recette",
 										color: "#52577A",
 										fontSize: 9,
 										colSpan: 7,
