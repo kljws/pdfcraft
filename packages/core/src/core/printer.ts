@@ -27,6 +27,22 @@ import { createMetadata, embedFiles, getResolvedImages } from "./printer.helpers
 import { resolvePrinterUrls } from "./printer.resources";
 import { getBuiltInResolvedAttachments } from "../composition/built-in-printer-resources";
 
+/** Validated `xmpMetadata` fragments; PDF 1.3 documents have no XMP metadata stream to extend. */
+function getXmpFragments(docDefinition: PrinterDocumentDefinition): readonly string[] {
+	const { xmpMetadata } = docDefinition;
+	if (xmpMetadata === undefined) return [];
+	const fragments = typeof xmpMetadata === "string" ? [xmpMetadata] : xmpMetadata;
+	if (!Array.isArray(fragments) || fragments.some((fragment) => typeof fragment !== "string")) {
+		throw new Error("Invalid xmpMetadata: expected a string or an array of strings");
+	}
+	if (docDefinition.version === "1.3") {
+		throw new Error(
+			"Invalid xmpMetadata: PDF version 1.3 has no XMP metadata; set 'version' to 1.4 or later",
+		);
+	}
+	return fragments;
+}
+
 class PdfPrinter {
 	readonly fontDescriptors: FontDescriptors;
 	readonly virtualfs: VirtualFileSystem;
@@ -121,6 +137,7 @@ class PdfPrinter {
 			docDefinition as unknown as Record<string, unknown>,
 		);
 		embedFiles(docDefinition, this.pdfKitDoc);
+		this.pdfKitDoc.xmpFragments = getXmpFragments(docDefinition);
 
 		const pageMargins =
 			typeof docDefinition.pageMargins === "function"

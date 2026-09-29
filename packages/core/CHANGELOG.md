@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `xmpMetadata` in the document definition adds RDF descriptions to the PDF's XMP metadata packet, for example the Factur-X `fx:` properties (`DocumentType`, `DocumentFileName`, `Version`, `ConformanceLevel`) and their PDF/A extension schema, which Factur-X validators require. It needs a PDF `version` other than 1.3, the default, and fails with an explicit error otherwise.
+
 ## [0.9.0] - 2026-09-28
 
 ### Added

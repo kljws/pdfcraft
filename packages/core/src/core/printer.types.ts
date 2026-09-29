@@ -52,6 +52,7 @@ export type PrinterDocumentDefinition = PdfCraftDocumentExtensionRegistry & {
 	permissions?: DocumentPermissions | undefined;
 	language?: string | undefined;
 	maxPagesNumber?: number | undefined;
+	xmpMetadata?: DocumentDefinition["xmpMetadata"];
 };
 
 export type PrinterOptions = CreatePdfOptions & {

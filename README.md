@@ -187,6 +187,33 @@ set `shrinkToFit: true` on it to scale it down instead:
 { image: "poster", width: 500, shrinkToFit: true }
 ```
 
+## PDF/A and Factur-X
+
+`subset: "PDF/A-3b"` writes the PDF/A identification, and `files` embeds attachments such as a
+Factur-X XML invoice. `xmpMetadata` adds RDF descriptions to the XMP metadata packet, which Factur-X
+needs for its `fx:` properties and their PDF/A extension schema. It requires a PDF `version` other
+than 1.3. See `playground/shared/samples/quote.js` for a complete EN 16931 invoice.
+
+```ts
+const documentDefinition = {
+	version: "1.7",
+	subset: "PDF/A-3b",
+	files: {
+		"factur-x.xml": { src: "./factur-x.xml", relationship: "Alternative", type: "text/xml" },
+	},
+	xmpMetadata: [
+		`<rdf:Description rdf:about="" xmlns:fx="urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#">
+			<fx:DocumentType>INVOICE</fx:DocumentType>
+			<fx:DocumentFileName>factur-x.xml</fx:DocumentFileName>
+			<fx:Version>1.0</fx:Version>
+			<fx:ConformanceLevel>EN 16931</fx:ConformanceLevel>
+		</rdf:Description>`,
+		// plus the PDF/A extension schema declaring the fx: properties (see quote.js)
+	],
+	content: ["Invoice"],
+};
+```
+
 ## TypeScript
 
 Public contracts are available from the package and from the dedicated types export.

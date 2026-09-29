@@ -74,6 +74,12 @@ export type DocumentDefinition = PdfCraftDocumentExtensionRegistry & {
 	permissions?: DocumentPermissions | undefined;
 	language?: string | undefined;
 	/**
+	 * RDF descriptions (`<rdf:Description …>…</rdf:Description>`) added as-is to the document's XMP
+	 * metadata packet, for example the Factur-X `fx:` properties and their PDF/A extension schema.
+	 * Requires a PDF `version` other than 1.3, which has no XMP metadata stream.
+	 */
+	xmpMetadata?: string | readonly string[] | undefined;
+	/**
 	 * Writes only the first `maxPagesNumber` pages of the complete document (an excerpt). Layout,
 	 * page totals (`pageCount` in headers and footers) and page references still describe the
 	 * complete document. `getPageInfo()` on the output reports whether pages were omitted.

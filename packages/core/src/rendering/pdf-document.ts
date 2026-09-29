@@ -59,6 +59,8 @@ class PDFDocument extends PDFKit {
 	declare openImage: (source: PDFKit.Mixins.ImageSrc) => EmbeddedImage;
 	declare _pdfCraftPages: PdfPage[];
 	declare pdfCraftPageInfo: PdfPageInfo;
+	/** RDF descriptions from `xmpMetadata`, added to the XMP packet when it is finalized. */
+	xmpFragments: readonly string[] = [];
 	declare fileAnnotation: (
 		x: number,
 		y: number,
@@ -133,6 +135,7 @@ class PDFDocument extends PDFKit {
 				typeof value === "string" ? escapeXmpText(value) : value,
 			]),
 		);
+		for (const fragment of this.xmpFragments) this.appendXML(fragment);
 		try {
 			(PDFKit.prototype as unknown as PdfKitMetadataPrototype).endMetadata.call(this);
 		} finally {
