@@ -57,7 +57,6 @@ for (const scenario of scenarios) {
 				result.samples.map(({ durationMs }) => durationMs),
 				0.95,
 			),
-			medianPeakRssBytes: median(result.samples.map(({ peakRssBytes }) => peakRssBytes)),
 			medianPeakHeapBytes: median(result.samples.map(({ peakHeapBytes }) => peakHeapBytes)),
 			medianOutputBytes: median(result.samples.map(({ outputBytes }) => outputBytes)),
 		},
@@ -70,7 +69,6 @@ const rows = results.map(({ name, description, summary }) => ({
 	workload: description,
 	medianMs: summary.medianDurationMs.toFixed(1),
 	p95Ms: summary.p95DurationMs.toFixed(1),
-	peakRssMiB: megabytes(summary.medianPeakRssBytes),
 	peakHeapMiB: megabytes(summary.medianPeakHeapBytes),
 	outputMiB: megabytes(summary.medianOutputBytes),
 }));

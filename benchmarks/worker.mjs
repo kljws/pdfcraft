@@ -6,8 +6,8 @@ const scenario = createScenarios(options.profile).find(({ name }) => name === op
 if (!scenario) throw new Error(`Unknown benchmark scenario: ${options.scenario}`);
 
 const memory = () => {
-	const { rss, heapUsed, external } = process.memoryUsage();
-	return { rss, heapUsed, external };
+	const { heapUsed, external } = process.memoryUsage();
+	return { heapUsed, external };
 };
 
 const measure = async () => {
@@ -17,7 +17,6 @@ const measure = async () => {
 	const sampler = setInterval(() => {
 		const current = memory();
 		peak = {
-			rss: Math.max(peak.rss, current.rss),
 			heapUsed: Math.max(peak.heapUsed, current.heapUsed),
 			external: Math.max(peak.external, current.external),
 		};
@@ -28,14 +27,12 @@ const measure = async () => {
 		const durationMs = performance.now() - startedAt;
 		const after = memory();
 		peak = {
-			rss: Math.max(peak.rss, after.rss),
 			heapUsed: Math.max(peak.heapUsed, after.heapUsed),
 			external: Math.max(peak.external, after.external),
 		};
 		return {
 			durationMs,
 			outputBytes,
-			peakRssBytes: Math.max(0, peak.rss - before.rss),
 			peakHeapBytes: Math.max(0, peak.heapUsed - before.heapUsed),
 			peakExternalBytes: Math.max(0, peak.external - before.external),
 		};
