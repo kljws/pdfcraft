@@ -40,6 +40,7 @@ export default function App() {
 
 		try {
 			const blob = await generatePdf(source);
+			const generationTime = (performance.now() - startedAt).toFixed(1);
 			if (currentGeneration !== generation.current) {
 				return;
 			}
@@ -54,7 +55,8 @@ export default function App() {
 			}
 
 			setPdfBlob(blob);
-			setStatus(`Generated in ${(performance.now() - startedAt).toFixed(1)} ms`);
+			const totalTime = (performance.now() - startedAt).toFixed(1);
+			setStatus(`Generation ${generationTime} ms · total ${totalTime} ms`);
 		} catch (error) {
 			if (currentGeneration === generation.current) {
 				setPdfBlob(null);
@@ -80,12 +82,9 @@ export default function App() {
 	return (
 		<div className="app">
 			<header>
-				<div className="flex flex-row items-center justify-between">
-					<div className="identity">
-						<strong>React playground</strong>
-						<span>Runs entirely in the browser</span>
-					</div>
-					<output title={status}>{status}</output>
+				<div className="identity">
+					<strong>React playground</strong>
+					<span>Runs entirely in the browser</span>
 				</div>
 				<SampleSelect
 					value={sample}
@@ -104,6 +103,9 @@ export default function App() {
 				>
 					Download
 				</button>
+				<output title={status} aria-live="polite">
+					{status}
+				</output>
 			</header>
 			<main>
 				<label className="editor-pane">
