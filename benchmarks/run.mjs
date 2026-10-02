@@ -63,6 +63,14 @@ for (const scenario of scenarios) {
 	});
 }
 
+if (argumentsMap.json) {
+	// Raw samples for charts; progress messages go to stderr, so stdout stays valid JSON.
+	console.log(
+		JSON.stringify({ profile, node: process.version, iterations, warmup, results }, null, 2),
+	);
+	process.exit(0);
+}
+
 const megabytes = (bytes) => (bytes / 1024 / 1024).toFixed(1);
 const rows = results.map(({ name, description, summary }) => ({
 	scenario: name,

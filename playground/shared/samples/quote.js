@@ -24,7 +24,7 @@ export default withFacturX(
 								borderRadius: 12,
 								//borderWidth: 2,
 								//borderColor: "#334155",
-								width: 70,
+								width: 50,
 								margin: [0, 0, 0, 0],
 							},
 						],
@@ -74,11 +74,11 @@ export default withFacturX(
 								text: "Émetteur",
 								color: "#52577A",
 								bold: true,
-								fontSize: 8,
+								fontSize: 9,
 							},
 							{
 								text: "Lumen Atelier SAS",
-								fontSize: 15,
+								fontSize: 13,
 							},
 							{
 								text: "14 rue des Glycines",
@@ -109,11 +109,11 @@ export default withFacturX(
 								text: "Client",
 								color: "#52577A",
 								bold: true,
-								fontSize: 8,
+								fontSize: 9,
 							},
 							{
 								text: "Nordique Design SARL",
-								fontSize: 15,
+								fontSize: 13,
 							},
 							{
 								text: "8 allée du Phare",

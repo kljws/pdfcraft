@@ -29,6 +29,12 @@ node benchmarks/run.mjs --scenario=quote-concurrent-1,quote-concurrent-10
 
 `--scenario` accepts one name or a comma-separated list. Results are printed only to the console; benchmark commands do not create report files.
 
+`--json` prints the raw samples of every iteration and the summary as JSON instead of the table, for charts or further analysis. Progress messages go to stderr, so stdout can be redirected:
+
+```sh
+node benchmarks/run.mjs --iterations=20 --scenario=quote-concurrent-1,quote-concurrent-10,quote-concurrent-100 --json > quote-benchmark.json
+```
+
 Concurrent scenarios use `Promise.all()` inside one process. They measure multiple in-flight generations and shared-process memory pressure, not parallel execution across worker threads or CPU cores.
 
 Use the same Node.js version, machine, power mode and background workload when comparing results. Compare the median duration and peak-memory deltas; absolute numbers from different machines are not directly comparable.
