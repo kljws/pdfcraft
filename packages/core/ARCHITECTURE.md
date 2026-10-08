@@ -29,7 +29,11 @@ Every source file belongs to exactly one category. The category decides what it 
   watermarks and `pageBreakBefore`. They follow the same rules as node features.
 - **Composition**: `composition/`. It is the only category that imports features, and it does so to
   connect them: registry, per-stage contexts, injected capabilities and rendering dispatch.
-  Composition adds no feature behavior of its own.
+  Composition adds no feature behavior of its own. Each feature declares the public keys of its
+  content (`contentKeys`); composition chooses which features take part in a cross-feature output,
+  such as the `pageBreakBefore` node information or cycle messages, and in which order.
+  A feature that emits page items of its own kind adds `pageItem: true` to its `NodeKindRegistry`
+  entry.
 - **Orchestration**: the entry points that run a generation and use composed facades:
   `index.ts`, `adapter.ts`, every file in `core/`, `layout/layout-builder.ts` and
   `rendering/renderer.ts`.
@@ -117,12 +121,17 @@ the drawing primitives.
 
 Sections own page setup at a section boundary (size, orientation, margins) and the inheritance of
 page settings, headers, footers, backgrounds and watermarks (`"inherit"`). A container that frames
-a leading section asks it to establish its page first (`preparePage`).
+a leading section asks it to establish its page first (`preparePage`); a stack forwards that request
+to its first item. A document whose layout starts with a section, directly or as the first item of
+stacks, starts on the section's page instead of a default one (`establishesFirstPage`). Section
+properties never apply as styles to its content (`sectionFeature.isUnstyled`, given to the style
+stack by composition).
 
 ### Table of contents
 
 The table of contents owns entry collection (`tocItem`), ordering (`sortBy`, `sortLocale`), the
-references from entries to their targets, and its presentation choices (title, styles, margins,
+references from entries to their targets (destinations found in nested text come from the text
+feature's `getNodeId`, supplied by composition), and its presentation choices (title, styles, margins,
 outlines, `hideEmpty`). It presents entries as a borderless table in the public grouped shape,
 normalized with table-level row keeping through the `normalizeTable` capability supplied by
 composition; it does not import the table feature.
@@ -130,7 +139,9 @@ composition; it does not import the table feature.
 ### Document-level features
 
 Headers, footers, backgrounds and watermarks remain document-level features. `pageBreakBefore` is
-also a document-level feature: it builds the node information passed to the user callback.
+also a document-level feature: it builds the node information passed to the user callback from the
+shared node properties and the content keys and feature checks that composition supplies, and keeps
+it out of the shared node state.
 
 ### Shared services
 
@@ -157,6 +168,8 @@ also a document-level feature: it builds the node information passed to the user
 - **Resource loading** (`resources/`, `core/printer.resources.ts` for orchestration, the resource
   providers of `rendering/pdf-document.ts`): URL resolution, access policies, size and time limits,
   the virtual file system, fonts, images, patterns and attachments as PDF resources.
+  The document definition that orchestration prepares and features resolve in place
+  (`PrinterDocumentDefinition`) is declared in `types/printer-document.types.ts`.
 - **Style resolution** (`services/styles/`): style dictionaries, `extends`, overrides and
   inheritance.
 - **Typography** (`services/typography/`): fonts and text metrics.
@@ -201,28 +214,13 @@ name do not count.
 
 ## Known import exceptions
 
-Each line names the importing file, the imported file, the reason and the step that removes it.
-
-- `features/attachment/attachment-resources.ts` → `core/printer.types.ts`: attachment resource
-  resolution reads `PrinterDocumentDefinition` and `PrinterResourceReference`, which are declared by
-  orchestration. Removed in step 6.
-- `features/attachment/attachment.feature.ts` → `core/printer.types.ts`: the attachment descriptor
-  types its `resolveResources` hook with the same orchestration types. Removed in step 6.
-- `services/resources/resource-reference.ts` → `core/printer.types.ts`: the shared resource guard
-  narrows to `PrinterResourceReference`, declared by orchestration. Removed in step 6.
-- `composition/built-in-printer-resources.ts` → `core/printer.types.ts`: composition types
-  resource resolution with the orchestration document types. Removed in step 6.
-
-Step 6 removes them by declaring the resource reference and the resolved document contract in
-`types/`, where features, services, composition and orchestration can all use them.
+None. Each new exception names the importing file, the imported file, the reason and the step that
+removes it: "- `source` → `target`: reason. Removed in step N."
 
 ## Known shared-state exceptions
 
-Each line names the field of the shared node state, the only owner that uses it, the reason and the
-step that removes it.
-
-- `nodeInfo` (`features/repeatables`): `pageBreakBefore` stores the node information it builds for
-  the user callback on the layout node (`LayoutNodeState`). Removed in step 6.
+None. Each new exception names the field of the shared node state, the only owner that uses it,
+the reason and the step that removes it: "- `field` (`owner`): reason. Removed in step N."
 
 ## Known ownership exceptions
 
@@ -231,25 +229,9 @@ Each one names its owner and the step that removes it.
 
 ### Step 6: central feature knowledge
 
-- **Hardcoded page-break properties.** `nodeInfoKeys` and `nodeInfo.stack`
-  (`features/repeatables/page-break-before.feature.ts`) list the properties of several features,
-  and the built `nodeInfo` is stored in the shared `LayoutNodeState`. Owner: each feature for its
-  own properties, `pageBreakBefore` for `nodeInfo`.
 - **Feature fields in shared node contracts.** `PdfNode`, `NodeHierarchy`, the internal
   `TocDefinition` (`types/document.types.ts`) and `_tocItemRef` on `Inline`
   (`types/text.types.ts`) carry fields of single features.
-- **Feature kinds in shared page items.** `FeaturePageItem.type` lists the feature kinds
-  (`types/rendering.types.ts`), and `ElementWriter.addFeatureItem` and
-  `PageElementWriter.addFeatureItem` have a `"canvas"` overload.
-- **Section knowledge in the style stack.** `StyleContextStack.autopush`
-  (`services/styles/style-context-stack.ts`) skips nodes that have a `section` property. Owner:
-  sections.
-- **Section and stack kinds in composition.** `requiresFirstPage` (`composition/built-in-layout.ts`)
-  tests `section` and `stack` kinds. Owner: sections.
-- **Content kinds in cycle messages.** `contentKeys` (`composition/built-in-preprocessing.ts`)
-  lists the public content keys. Owner: each feature.
-- **Text identifiers in shared utilities.** `getNodeId` (`utils/node.ts`) searches nested text for
-  an `id`. Owner: text.
 
 ## Planned simplifications
 

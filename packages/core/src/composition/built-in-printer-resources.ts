@@ -1,8 +1,8 @@
 import type { AttachmentResourceContext } from "../features/attachment/attachment.feature";
 import { getResolvedAttachments } from "../features/attachment/attachment-resources";
 import type { ExtensionResourceContext } from "../features/extension/extension.feature";
-import type { PrinterDocumentDefinition, PrinterResourceReference } from "../core/printer.types";
-import type { PdfCraftExtensions } from "../types";
+import type { PdfCraftExtensions, ResourceSource } from "../types";
+import type { PrinterDocumentDefinition } from "../types/internal";
 import { resolveFeatureResources } from "./built-in-feature-registry";
 
 type BuiltInResourceContext = AttachmentResourceContext & ExtensionResourceContext;
@@ -10,11 +10,11 @@ type BuiltInResourceContext = AttachmentResourceContext & ExtensionResourceConte
 export function resolveBuiltInPrinterResources(
 	document: PrinterDocumentDefinition,
 	extensions: PdfCraftExtensions,
-	resolve: (resource: PrinterResourceReference) => string,
+	resolve: (resource: ResourceSource) => string,
 ): void {
 	resolveFeatureResources<PrinterDocumentDefinition, BuiltInResourceContext>(document, {
 		extensions,
-		resolve: (resource) => resolve(resource as PrinterResourceReference),
+		resolve: (resource) => resolve(resource as ResourceSource),
 	});
 }
 

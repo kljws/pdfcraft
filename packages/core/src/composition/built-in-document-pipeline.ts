@@ -1,5 +1,11 @@
 import { extensionFeature } from "../features/extension/extension.feature";
+import { canvasFeature } from "../features/canvas/canvas.feature";
+import { columnsFeature } from "../features/columns/columns.feature";
+import { imageFeature } from "../features/image/image.feature";
 import { listFeature } from "../features/list/list.feature";
+import { stackFeature } from "../features/stack/stack.feature";
+import { tableFeature } from "../features/table/table.feature";
+import { textFeature } from "../features/text/text.feature";
 import { hasStalePageReferences } from "../features/text/preprocess-node-references";
 import { pageBreakBeforeFeature } from "../features/repeatables/page-break-before.feature";
 import type { PageBreakBefore } from "../engine/page-break-before.types";
@@ -50,6 +56,16 @@ type BuiltInDocumentPassInput = {
 	requiresFirstPage(document: LayoutPdfNode): boolean;
 };
 
+/** Content keys the `pageBreakBefore` callback receives, in the order they have always had. */
+const pageBreakContentKeys = [
+	textFeature,
+	listFeature,
+	tableFeature,
+	imageFeature,
+	canvasFeature,
+	columnsFeature,
+].flatMap((feature) => feature.contentKeys);
+
 export function runBuiltInDocumentPipeline(context: BuiltInDocumentPipelineContext): PdfPage[] {
 	return runDocumentLayoutPipeline({
 		runPass: context.runPass,
@@ -59,9 +75,12 @@ export function runBuiltInDocumentPipeline(context: BuiltInDocumentPipelineConte
 				result.pages,
 				context.pageBreakBefore,
 				{
+					contentKeys: pageBreakContentKeys,
 					copyExtensionProperties: (node, nodeInfo) =>
 						extensionFeature.copyPageBreakProperties(node, nodeInfo, context.extensions),
-					hasLeadingMarker: (node) => listFeature.hasMarker(node),
+					isBlank: (node) =>
+						node._kind === textFeature.kind && node.text === "" && !listFeature.hasMarker(node),
+					isStack: (node) => node._kind === stackFeature.kind,
 				},
 			),
 	});

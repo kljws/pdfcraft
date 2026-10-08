@@ -33,6 +33,7 @@ type ColumnsFeature = NodeFeature<ColumnsFeatureStages> & {
 
 export const columnsFeature = {
 	kind: "columns",
+	contentKeys: ["columns"],
 	matches(node): boolean {
 		return Boolean(node.columns);
 	},

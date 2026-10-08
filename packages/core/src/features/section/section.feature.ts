@@ -26,17 +26,27 @@ type SectionFeatureStages = NodeFeatureStages & {
 type SectionFeature = NodeFeature<SectionFeatureStages> & {
 	readonly kind: "section";
 	preprocess(node: PdfNode, context: SectionPreprocessContext): PreprocessedSectionNode;
+	isUnstyled(node: object): boolean;
 	measure(node: MeasuredSectionNode, context: NodeMeasureContext): MeasuredSectionNode;
 	layout(node: LayoutSectionNode, context: NodeLayoutContext): void;
 	preparePage(node: LayoutSectionNode, context: NodeLayoutContext): void;
+	establishesFirstPage(): boolean;
 };
 
 export const sectionFeature = {
 	kind: "section",
+	contentKeys: ["section"],
 	matches(node): boolean {
 		return Boolean(node.section);
 	},
 	preprocess: preprocessSection,
+	/**
+	 * A section's properties configure its pages: none of them, `style` included, styles its
+	 * content. This applies to any node with a `section` property, even one that is not a section.
+	 */
+	isUnstyled(node): boolean {
+		return (node as { section?: unknown }).section !== undefined;
+	},
 	measure(node, context): MeasuredSectionNode {
 		node.section = context.measureNode(node.section);
 		return node;
@@ -48,6 +58,10 @@ export const sectionFeature = {
 			defaultPageMargins: context.pageMargins,
 			processNode: (item) => context.processNode(item),
 		});
+	},
+	/** A section starts on a page with its own settings. */
+	establishesFirstPage(): boolean {
+		return true;
 	},
 	preparePage(node, context): void {
 		prepareSectionPage(node, {

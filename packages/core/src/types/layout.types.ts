@@ -1,5 +1,3 @@
-import type { Metadata } from "./document.types";
-
 export type Point = {
 	x: number;
 	y: number;
@@ -54,13 +52,6 @@ export type PageBreak = {
 	prevPage: number;
 	prevY: number;
 	y: number;
-};
-
-export type NodeLayoutInfo = Metadata & {
-	startPosition: Position;
-	pageNumbers: number[];
-	pages: number;
-	stack: boolean;
 };
 
 export type OutlineDefinition = {

@@ -70,18 +70,6 @@ class ElementWriter {
 	}
 
 	addFeatureItem(
-		featureKind: "canvas",
-		node: LayoutPdfNode,
-		index?: number,
-		allowOverflow?: boolean,
-	): false | Array<CurrentPosition | undefined>;
-	addFeatureItem(
-		featureKind: string,
-		node: LayoutPdfNode,
-		index?: number,
-		allowOverflow?: boolean,
-	): CurrentPosition | false;
-	addFeatureItem(
 		featureKind: string,
 		node: LayoutPdfNode,
 		index?: number,

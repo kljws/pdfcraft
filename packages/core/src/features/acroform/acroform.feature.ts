@@ -64,6 +64,7 @@ type AcroFormFeature = NodeFeature<AcroFormFeatureStages> & {
 
 export const acroFormFeature = {
 	kind: "acroform",
+	contentKeys: ["acroform"],
 	matches(node): boolean {
 		return Boolean(node.acroform);
 	},

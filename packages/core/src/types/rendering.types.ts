@@ -1,5 +1,5 @@
 import type { Color, FontDescriptors, VfsEncoding } from "./index";
-import type { LayoutPdfNode, Metadata } from "./document.types";
+import type { LayoutPdfNode, Metadata, PageItemNodeKind } from "./document.types";
 import type { PageMargins, PageSize, Point, Position } from "./layout.types";
 import type { LineLike } from "./text.types";
 
@@ -39,7 +39,7 @@ export type Vector = {
  * kind; layout and rendering treat it generically and dispatch it back to that feature.
  */
 export type FeaturePageItem = {
-	type: "image" | "extension" | "attachment" | "acroform";
+	type: PageItemNodeKind;
 	item: LayoutPdfNode;
 };
 

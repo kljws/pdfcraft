@@ -77,6 +77,11 @@ export type NodeLayoutContext = {
 	 * section applies its page settings. Does nothing for children without page settings.
 	 */
 	preparePage(node: LayoutPdfNode): void;
+	/**
+	 * Whether a node creates the first page of its layout itself, so the document must not start
+	 * with a page of its own; a leading section does.
+	 */
+	establishesFirstPage(node: LayoutPdfNode): boolean;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
 };
 
@@ -113,6 +118,8 @@ type StageOr<Stages, Name extends PropertyKey, Fallback> = Name extends keyof St
 
 export type NodeFeature<Stages extends NodeFeatureStages> = {
 	readonly kind: string;
+	/** Public keys that identify the feature's content in a document definition. */
+	readonly contentKeys?: readonly string[] | undefined;
 	matches(node: Stages["preprocessNode"]): boolean;
 	preprocess?(
 		node: Stages["preprocessNode"],
@@ -128,6 +135,7 @@ export type NodeFeature<Stages extends NodeFeatureStages> = {
 	): Stages["measuredNode"];
 	layout?(node: Stages["layoutNode"], context: Stages["layoutContext"]): void;
 	preparePage?(node: Stages["layoutNode"], context: Stages["layoutContext"]): void;
+	establishesFirstPage?(node: Stages["layoutNode"], context: Stages["layoutContext"]): boolean;
 	place?(node: Stages["layoutNode"], context: NodePlaceContext): NodePlaceResult;
 	render?(
 		node: OptionalStage<Stages, "renderNode">,

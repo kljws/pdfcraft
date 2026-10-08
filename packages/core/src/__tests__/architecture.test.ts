@@ -35,32 +35,7 @@ const allowedViolations: ReadonlyArray<{
 	target: string;
 	reason: string;
 	removalStep: RemovalStep;
-}> = [
-	{
-		source: "features/attachment/attachment-resources.ts",
-		target: "core/printer.types.ts",
-		reason: "resource types are declared by orchestration",
-		removalStep: 6,
-	},
-	{
-		source: "features/attachment/attachment.feature.ts",
-		target: "core/printer.types.ts",
-		reason: "resource types are declared by orchestration",
-		removalStep: 6,
-	},
-	{
-		source: "services/resources/resource-reference.ts",
-		target: "core/printer.types.ts",
-		reason: "resource types are declared by orchestration",
-		removalStep: 6,
-	},
-	{
-		source: "composition/built-in-printer-resources.ts",
-		target: "core/printer.types.ts",
-		reason: "resource types are declared by orchestration",
-		removalStep: 6,
-	},
-];
+}> = [];
 
 /**
  * Shared node-state fields used by a single feature, removed by a later refactoring step. Each
@@ -71,14 +46,7 @@ const allowedFeatureOwnedFields: ReadonlyArray<{
 	owner: string;
 	reason: string;
 	removalStep: RemovalStep;
-}> = [
-	{
-		field: "nodeInfo",
-		owner: "features/repeatables",
-		reason: "pageBreakBefore stores the node information it builds on the layout node",
-		removalStep: 6,
-	},
-];
+}> = [];
 
 /** ESTree node produced by oxc-parser, read structurally. */
 type AstNode = { type: string } & Record<string, unknown>;

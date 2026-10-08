@@ -38,6 +38,7 @@ declare module "../../types/document.types" {
 			measure: MeasuredAcroFormNode;
 			measured: MeasuredAcroFormNode;
 			layout: LayoutAcroFormNode;
+			pageItem: true;
 		};
 	}
 }

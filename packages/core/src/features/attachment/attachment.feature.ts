@@ -6,8 +6,13 @@ import type {
 	NodeMeasureContext,
 	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
-import type { CurrentPosition, PageItem, PdfNode } from "../../types/internal";
-import type { PrinterDocumentDefinition, PrinterResourceReference } from "../../core/printer.types";
+import type { ResourceSource } from "../../types";
+import type {
+	CurrentPosition,
+	PageItem,
+	PdfNode,
+	PrinterDocumentDefinition,
+} from "../../types/internal";
 import { layoutFeatureItem, placeAtomicItem } from "../../layout/element-writer.helpers";
 import { isNumber } from "../../utils/variable-type";
 import { renderAttachment, type AttachmentRenderContext } from "./render-attachment";
@@ -19,7 +24,7 @@ import type {
 } from "./attachment.types";
 
 export type AttachmentResourceContext = {
-	resolve(resource: PrinterResourceReference): string;
+	resolve(resource: ResourceSource): string;
 };
 
 type AttachmentFeatureStages = NodeFeatureStages & {
@@ -54,6 +59,7 @@ type AttachmentFeature = NodeFeature<AttachmentFeatureStages> & {
 
 export const attachmentFeature = {
 	kind: "attachment",
+	contentKeys: ["attachment"],
 	matches(node): boolean {
 		return Boolean(node.attachment);
 	},

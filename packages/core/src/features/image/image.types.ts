@@ -30,6 +30,7 @@ declare module "../../types/document.types" {
 			measure: MeasuredImageNode;
 			measured: MeasuredImageNode;
 			layout: LayoutImageNode;
+			pageItem: true;
 		};
 	}
 }

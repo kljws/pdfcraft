@@ -5,7 +5,15 @@ import type { StackPreprocessContext } from "../features/stack/preprocess-stack"
 import type { TablePreprocessContext } from "../features/table/preprocess-table";
 import type { TextPreprocessContext } from "../features/text/preprocess-text";
 import type { TocPreprocessContext } from "../features/toc/preprocess-toc";
+import { canvasFeature } from "../features/canvas/canvas.feature";
+import { columnsFeature } from "../features/columns/columns.feature";
 import { extensionFeature } from "../features/extension/extension.feature";
+import { imageFeature } from "../features/image/image.feature";
+import { listFeature } from "../features/list/list.feature";
+import { sectionFeature } from "../features/section/section.feature";
+import { stackFeature } from "../features/stack/stack.feature";
+import { tableFeature } from "../features/table/table.feature";
+import { textFeature } from "../features/text/text.feature";
 import { asRawText, normalizeTextProperty } from "../features/text/preprocess-text";
 import {
 	checkNodeReferences,
@@ -73,18 +81,18 @@ const normalizeNode = (input: unknown): PdfNode => {
 	return node;
 };
 
+/** Content keys that name an item in a cycle message, in order of precedence. */
 const contentKeys = [
-	"text",
-	"stack",
-	"columns",
-	"ul",
-	"ol",
-	"table",
-	"image",
-	"canvas",
-	"toc",
-	"section",
-] as const;
+	textFeature,
+	stackFeature,
+	columnsFeature,
+	listFeature,
+	tableFeature,
+	imageFeature,
+	canvasFeature,
+	tocFeature,
+	sectionFeature,
+].flatMap((feature) => feature.contentKeys);
 
 const describeContent = (item: object): string => {
 	if (Array.isArray(item)) return "array";

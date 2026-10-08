@@ -15,7 +15,7 @@ import {
 import type { LayoutTocNode, MeasuredTocNode, PreprocessedTocNode } from "./toc.types";
 
 /** Table normalization supplied by composition to the table of contents. */
-export type TocMeasureCapabilities = Pick<TocMeasureContext, "normalizeTable">;
+export type TocMeasureCapabilities = Pick<TocMeasureContext, "normalizeTable" | "getNodeId">;
 
 type TocMeasureFeatureContext = NodeMeasureContext & TocMeasureCapabilities;
 
@@ -39,6 +39,7 @@ type TocFeature = NodeFeature<TocFeatureStages> & {
 
 export const tocFeature = {
 	kind: "toc",
+	contentKeys: ["toc"],
 	matches(node): boolean {
 		return Boolean(node.toc);
 	},
@@ -48,6 +49,7 @@ export const tocFeature = {
 		return measureToc(node, {
 			measureNode: (item) => context.measureNode(item),
 			normalizeTable: (table, options) => context.normalizeTable(table, options),
+			getNodeId: (target) => context.getNodeId(target),
 		});
 	},
 	layout(node, context): void {

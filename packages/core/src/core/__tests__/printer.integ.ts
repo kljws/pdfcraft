@@ -3,7 +3,7 @@ import type PDFDocument from "../../rendering/pdf-document.ts";
 import Printer from "../printer.ts";
 import { VirtualFileSystem } from "../../resources/virtual-file-system.ts";
 import URLResolver from "../../resources/url-resolver.ts";
-import type { PrinterDocumentDefinition } from "../printer.types.ts";
+import type { PrinterDocumentDefinition } from "../../types/internal.ts";
 
 const shortSide = 1000;
 const longSide = 2000;

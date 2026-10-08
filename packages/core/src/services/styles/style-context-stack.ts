@@ -14,6 +14,11 @@ type Widen<T> = T extends string
 			? boolean
 			: T;
 
+export type StyleContextOptions = {
+	/** Whether a node's own properties, `style` included, never apply as styles. */
+	isUnstyled?: ((node: object) => boolean) | undefined;
+};
+
 /**
  * Used for style inheritance and style overrides
  */
@@ -21,18 +26,21 @@ class StyleContextStack {
 	styleDictionary: Dictionary<StyleRecord>;
 	defaultStyle: StyleRecord;
 	styleOverrides: Array<string | object>;
+	readonly options: StyleContextOptions;
 
 	constructor(
 		styleDictionary: Dictionary<StyleRecord> | null = null,
 		defaultStyle: StyleRecord = {},
+		options: StyleContextOptions = {},
 	) {
 		this.styleDictionary = styleDictionary ?? {};
 		this.defaultStyle = defaultStyle;
 		this.styleOverrides = [];
+		this.options = options;
 	}
 
 	clone(): StyleContextStack {
-		const stack = new StyleContextStack(this.styleDictionary, this.defaultStyle);
+		const stack = new StyleContextStack(this.styleDictionary, this.defaultStyle, this.options);
 
 		this.styleOverrides.forEach((item) => {
 			stack.styleOverrides.push(item);
@@ -56,10 +64,11 @@ class StyleContextStack {
 			return 0;
 		}
 
-		const node = item as { style?: NodeStyleValue | undefined; section?: unknown };
-		if (typeof node.section !== "undefined") {
+		if (this.options.isUnstyled?.(item)) {
 			return 0;
 		}
+
+		const node = item as { style?: NodeStyleValue | undefined };
 
 		let styleNames: string[] = [];
 

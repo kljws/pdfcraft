@@ -1,7 +1,7 @@
 import { withoutUndefined } from "../utils/defined";
 import type PDFDocument from "../rendering/pdf-document";
 import type { Dictionary } from "../types";
-import type { PrinterDocumentDefinition } from "./printer.types";
+import type { PrinterDocumentDefinition } from "../types/internal";
 
 export function getResolvedImages(images: PrinterDocumentDefinition["images"]): Dictionary<string> {
 	const result: Dictionary<string> = {};

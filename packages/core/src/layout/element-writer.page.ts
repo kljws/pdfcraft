@@ -95,12 +95,6 @@ class PageElementWriter {
 		);
 	}
 
-	addFeatureItem(
-		featureKind: "canvas",
-		node: LayoutPdfNode,
-		index?: number,
-	): false | Array<CurrentPosition | undefined>;
-	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): CurrentPosition | false;
 	addFeatureItem(featureKind: string, node: LayoutPdfNode, index?: number): NodePlaceResult {
 		return this._fitOnPage((allowOverflow) =>
 			this.writer.addFeatureItem(featureKind, node, index, allowOverflow),

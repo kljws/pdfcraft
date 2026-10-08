@@ -29,6 +29,7 @@ declare module "../../types/document.types" {
 			measure: MeasuredAttachmentNode;
 			measured: MeasuredAttachmentNode;
 			layout: LayoutAttachmentNode;
+			pageItem: true;
 		};
 	}
 }

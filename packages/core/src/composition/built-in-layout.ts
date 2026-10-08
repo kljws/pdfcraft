@@ -8,6 +8,7 @@ import { decorateNode as decorateLayoutNode } from "../layout/node.decorators";
 import { moveDownWithPageBreak } from "../engine/layout-pagination";
 import {
 	decorateRegisteredNodeFeature,
+	establishesFirstPageRegisteredNodeFeature,
 	layoutRegisteredNodeFeature,
 	preparePageRegisteredNodeFeature,
 	resetRegisteredNodeFeature,
@@ -52,6 +53,7 @@ export function createBuiltInLayout(host: BuiltInLayoutHost) {
 		advanceFlowRegion: (orientation, options) => host.advanceFlowRegion(orientation, options),
 		isInFlow: () => host.writer.context().getFlowSnapshot() !== null,
 		preparePage: (node) => preparePageRegisteredNodeFeature(node, context),
+		establishesFirstPage: (node) => establishesFirstPageRegisteredNodeFeature(node, context),
 		moveDownWithPageBreak: moveDown,
 	};
 	const nodeDecorationHooks = {
@@ -60,10 +62,8 @@ export function createBuiltInLayout(host: BuiltInLayoutHost) {
 	};
 
 	return {
-		requiresFirstPage: (document: LayoutPdfNode): boolean => {
-			if (document._kind === "stack" && document.stack[0]?._kind === "section") return false;
-			return document._kind !== "section";
-		},
+		requiresFirstPage: (document: LayoutPdfNode): boolean =>
+			!context.establishesFirstPage(document),
 		decorateNode: (node: LayoutPdfNode): void => decorateLayoutNode(node, nodeDecorationHooks),
 		moveDownWithPageBreak: moveDown,
 		layoutNode: (node: LayoutPdfNode): void => {

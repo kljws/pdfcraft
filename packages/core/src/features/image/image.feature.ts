@@ -60,6 +60,7 @@ type ImageFeature = NodeFeature<ImageFeatureStages> & {
 
 export const imageFeature = {
 	kind: "image",
+	contentKeys: ["image"],
 	matches(node: PdfNode): boolean {
 		return Boolean(node.image);
 	},

@@ -1,6 +1,6 @@
-import type { PrinterResourceReference } from "../../core/printer.types";
+import type { ResourceSource } from "../../types";
 
-export function isResourceReference(resource: unknown): resource is PrinterResourceReference {
+export function isResourceReference(resource: unknown): resource is ResourceSource {
 	return (
 		typeof resource === "string" ||
 		(resource !== null &&

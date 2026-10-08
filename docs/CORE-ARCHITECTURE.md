@@ -137,11 +137,13 @@ when they are useful.
 | `resolveResources` | before measurement | Resolves document resources owned by the feature (attachments, extensions) |
 | `measure` | measurement | Computes intrinsic sizes and metrics, without a position |
 | `layout` | layout | Decides space use, breaks and page changes |
-| `preparePage` | layout | Establishes the page the node starts on before a container frames it (sections) |
+| `preparePage` | layout | Establishes the page the node starts on before a container frames it (sections; stacks forward to their first item) |
+| `establishesFirstPage` | layout | Whether the node creates the first page of the document itself, so no default page is added (sections; stacks ask their first item) |
 | `place` | layout | For an atomic element: tests the space, aligns and emits a `PageItem` |
 | `render` | rendering | Translates the feature's `PageItem` into PDFKit calls |
 | `decorate`, `reset` | layout | Prepare or reset layout state before a new attempt |
 | `inline` | measurement | Measures the payload when the content appears in a text line |
+| `contentKeys` | declaration | Public keys that identify the feature's content, used by composition for the `pageBreakBefore` node information and cycle messages |
 
 Each hook receives the node type of its own `kind` and the context subset it declares.
 The registry guarantees the node shape by dispatching on `_kind`.
@@ -215,10 +217,11 @@ composition:
 |---|---|---|
 | `list` (measurement) | `ListMeasureCapabilities.inlines`: measure and build the marker inlines | text pipeline |
 | `table` (measurement) | `TableMeasureCapabilities.tableLayouts` | layouts registered by the caller |
-| `toc` (measurement) | `TocMeasureCapabilities.normalizeTable` | `tableFeature.normalize` |
+| `toc` (measurement) | `TocMeasureCapabilities.normalizeTable`, `getNodeId` | `tableFeature.normalize`, the text feature's `getNodeId` |
 | `text` (measurement) | `TextMeasureCapabilities.inlines` | `TextInlines` composed with the inline content types `image.inline` and `acroform.inline` |
 | `text` (rendering) | `renderInlineContent(inline, x, y)` | dispatch to `image.inline.render` or `acroform.inline.render` |
-| `pageBreakBefore` | `hasLeadingMarker(node)`, `copyExtensionProperties` | `listFeature.hasMarker`, `extensionFeature` |
+| `pageBreakBefore` | `contentKeys`, `isBlank(node)`, `isStack(node)`, `copyExtensionProperties` | the `contentKeys` of text, list, table, image, canvas and columns; text kind with `listFeature.hasMarker`; stack kind; `extensionFeature` |
+| style stack (measurement) | `StyleContextOptions.isUnstyled(node)` | `sectionFeature.isUnstyled` |
 | background, header and footer | `preprocessNode`, `measureNode`, `layoutNode` | single-pass pipeline |
 | page element writer | `ElementPlacementAdapter` | `createBuiltInElementPlacement` |
 
@@ -266,7 +269,7 @@ content uses `requireCurrentPage()`, which throws an explicit error if no page e
 | Lifetime | State | Reset by |
 |---|---|---|
 | Document | `pageBreakCalculated`, `pageBreak` added by `pageBreakBefore`, `_x` (original relative x) | never |
-| Pass | `positions`, `_position`, `nodeInfo`, absolute x/y, `LayoutBuilder` state (`linearNodeList`, `nestedLevel`, writer) | `decorateNode`, `resetXY`, `startLayoutPass` |
+| Pass | `positions`, `_position`, absolute x/y, `LayoutBuilder` state (`linearNodeList`, `nestedLevel`, writer) | `decorateNode`, `resetXY`, `startLayoutPass` |
 | Pass, feature state | a feature's private state (tables, lists…) | the feature's `reset` hook, called by `resetXY` |
 | Preprocessing | references, table of contents, current cycle | fresh state on every `preprocessDocument`/`preprocessBlock` |
 
@@ -285,7 +288,8 @@ payload, and exposes them through ports injected into the text pipeline. `text` 
 - Shared primitives are `vector`, `line`, `beginClip`, `endClip`, `beginVerticalAlignment` and
   `endVerticalAlignment`. The renderer and page geometry handle them explicitly.
 - An item emitted by a feature is a `FeaturePageItem` whose `type` is the feature's `kind`
-  (`image`, `extension`, `attachment`, `acroform`). Geometry, fragment cloning and rendering
+  (`image`, `extension`, `attachment`, `acroform`), registered with `pageItem: true` in the
+  feature's `NodeKindRegistry` entry. Geometry, fragment cloning and rendering
   treat it generically; rendering goes through `renderFeatureItem(kind, …)`.
 - The element writer owns insertion, order, coordinates, cloning and shared checks. A feature never
   pushes directly into a page and never renders another feature's item.
@@ -344,13 +348,14 @@ Tests are run from the repository root, because font paths are relative to the r
 
 1. Define its public shape in `types/content.types.ts`, its `kind` and its node types.
 2. Create `src/features/<kind>/` with its descriptor and only the useful hooks.
-3. Declare its node types on `NodeKindRegistry` from `<kind>.types.ts`.
+3. Declare its node types on `NodeKindRegistry` from `<kind>.types.ts`, and its public content keys
+   as `contentKeys` on the descriptor.
 4. Assign `_kind` during preprocessing with `markNodeKind`.
 5. Express external needs through ports declared in the feature, without importing another
    feature, and provide them in composition.
 6. Add a single entry to `builtInFeatures`.
-7. If it emits its own page element, add its `kind` to `FeaturePageItem` and provide `place`
-   and `render`.
+7. If it emits its own page element, set `pageItem: true` in its `NodeKindRegistry` entry and
+   provide `place` and `render`.
 8. Test the implemented stages, invalid shapes and the pagination rules involved, then
    update the changelog if public behavior changes.
 

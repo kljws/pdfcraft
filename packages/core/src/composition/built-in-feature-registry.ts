@@ -96,7 +96,15 @@ type NodeStateHook = (node: LayoutPdfNode) => void;
  */
 function getStageHook<Hook>(
 	kind: string,
-	name: "measure" | "layout" | "preparePage" | "decorate" | "reset" | "place" | "render",
+	name:
+		| "measure"
+		| "layout"
+		| "preparePage"
+		| "establishesFirstPage"
+		| "decorate"
+		| "reset"
+		| "place"
+		| "render",
 ): Hook | undefined {
 	const feature = getBuiltInFeatureByKind(kind);
 	return feature && name in feature ? (feature[name as keyof typeof feature] as Hook) : undefined;
@@ -124,6 +132,17 @@ export function preparePageRegisteredNodeFeature<Context extends NodeLayoutConte
 	context: Context,
 ): void {
 	getStageHook<NodeLayoutHook<Context>>(node._kind, "preparePage")?.(node, context);
+}
+
+export function establishesFirstPageRegisteredNodeFeature<Context extends NodeLayoutContext>(
+	node: LayoutPdfNode,
+	context: Context,
+): boolean {
+	const establishesFirstPage = getStageHook<(node: LayoutPdfNode, context: Context) => boolean>(
+		node._kind,
+		"establishesFirstPage",
+	);
+	return establishesFirstPage?.(node, context) ?? false;
 }
 
 export function decorateRegisteredNodeFeature(node: LayoutPdfNode): void {

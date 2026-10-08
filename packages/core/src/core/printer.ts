@@ -17,11 +17,8 @@ import type {
 	VirtualFileSystem,
 } from "../types";
 import type URLResolver from "../resources/url-resolver";
-import type {
-	PdfKitCreationOptions,
-	PrinterDocumentDefinition,
-	PrinterOptions,
-} from "./printer.types";
+import type { PrinterDocumentDefinition } from "../types/internal";
+import type { PdfKitCreationOptions, PrinterOptions } from "./printer.types";
 import { createMetadata, embedFiles, getResolvedImages } from "./printer.helpers";
 import { resolvePrinterUrls } from "./printer.resources";
 import { getBuiltInResolvedAttachments } from "../composition/built-in-printer-resources";

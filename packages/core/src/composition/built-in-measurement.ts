@@ -1,9 +1,11 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import { imageFeature } from "../features/image/image.feature";
+import { sectionFeature } from "../features/section/section.feature";
 import type { ListMeasureCapabilities } from "../features/list/list.feature";
 import { tableFeature, type TableMeasureCapabilities } from "../features/table/table.feature";
 import type { TextMeasureCapabilities } from "../features/text/text.feature";
 import type { TocMeasureCapabilities } from "../features/toc/toc.feature";
+import { getNodeId } from "../features/text/node-id";
 import TextInlines from "../features/text/text-inlines";
 import type { NodeMeasureContext } from "../engine/contracts/node-feature";
 import type PDFDocument from "../rendering/pdf-document";
@@ -40,6 +42,9 @@ export function createBuiltInMeasurement(options: BuiltInMeasurementOptions) {
 	const styleStack = new StyleContextStack(
 		options.styleDictionary ?? {},
 		options.defaultStyle ?? {},
+		{
+			isUnstyled: (node) => sectionFeature.isUnstyled(node),
+		},
 	);
 	const context: BuiltInMeasureContext = {
 		document: options.document,
@@ -52,6 +57,7 @@ export function createBuiltInMeasurement(options: BuiltInMeasurementOptions) {
 		featureState: new Map(),
 		measureNode: (node) => measureNode(node),
 		normalizeTable: (node, options) => tableFeature.normalize(node as unknown as PdfNode, options),
+		getNodeId,
 	};
 	const textInlines =
 		options.textInlines ??

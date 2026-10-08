@@ -4,7 +4,7 @@ import type {
 	PendingMeasureNode,
 	PreprocessedPdfNode,
 } from "../../types/internal";
-import { getLaidOutPageText, getNodeId, unresolvedPageNumberText } from "../../utils/node";
+import { getLaidOutPageText, unresolvedPageNumberText } from "../../utils/node";
 import type { MeasuredTocNode } from "./toc.types";
 
 export type TocMeasureContext = {
@@ -14,6 +14,8 @@ export type TocMeasureContext = {
 	 * `dontBreakRows` keeps every row whole, the first one together with the top border.
 	 */
 	normalizeTable(node: TableNode, options?: { dontBreakRows?: boolean }): PreprocessedPdfNode;
+	/** Destination id of an entry's target, which may be declared in its nested text. */
+	getNodeId(node: { id?: unknown; text?: unknown }): string | null;
 };
 
 export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode {
@@ -50,7 +52,7 @@ export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): M
 					? textNode.tocMargin
 					: textMargin;
 			const lineNumberStyle = textNode.tocNumberStyle || numberStyle;
-			const destination = getNodeId(item._nodeRef) ?? undefined;
+			const destination = context.getNodeId(item._nodeRef) ?? undefined;
 			body.push([
 				{
 					_kind: "text",

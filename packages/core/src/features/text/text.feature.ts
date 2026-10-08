@@ -47,6 +47,7 @@ type TextFeature = NodeFeature<TextFeatureStages> & {
 
 export const textFeature = {
 	kind: "text",
+	contentKeys: ["text"],
 	matches(node): boolean {
 		return node.text !== undefined || Boolean(node.pageReference || node.textReference);
 	},

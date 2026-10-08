@@ -1,5 +1,5 @@
 import type { AcroFormDefinition, Alignment, Color, Decoration, Margin } from "./index";
-import type { NodeLayoutInfo, Point, Position } from "./layout.types";
+import type { Point, Position } from "./layout.types";
 import type { Vector } from "./rendering.types";
 import type { ColumnNode } from "./table.types";
 
@@ -171,7 +171,6 @@ export type LayoutNodeState<Node = PdfNode> = {
 	_node?: Node | undefined;
 	_position?: Position | undefined;
 	positions?: Position[] | undefined;
-	nodeInfo?: NodeLayoutInfo | undefined;
 	pageNumber?: number | undefined;
 	x?: number | undefined;
 	y?: number | undefined;
@@ -245,7 +244,8 @@ export interface LayoutNodeBase
 
 /**
  * Open registry of node kinds. Each feature augments it from its own `*.types.ts` with the node
- * shape of every lifecycle stage, so these unions never import a feature.
+ * shape of every lifecycle stage, so these unions never import a feature. A feature that emits
+ * page items of its own kind also sets `pageItem: true`.
  */
 export interface NodeKindRegistry {}
 
@@ -254,7 +254,15 @@ type NodeKindStages = {
 	measure: unknown;
 	measured: unknown;
 	layout: unknown;
+	pageItem?: true | undefined;
 };
+
+/** Kinds of the features that emit page items of their own (`FeaturePageItem`). */
+export type PageItemNodeKind = {
+	[Kind in keyof NodeKindRegistry]: NodeKindRegistry[Kind] extends { pageItem: true }
+		? Kind
+		: never;
+}[keyof NodeKindRegistry];
 
 type NodeOfStage<Stage extends keyof NodeKindStages> = {
 	[Kind in keyof NodeKindRegistry]: NodeKindRegistry[Kind] extends NodeKindStages

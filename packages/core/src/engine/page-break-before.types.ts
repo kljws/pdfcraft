@@ -1,6 +1,12 @@
-import type { LayoutPdfNode, NodeLayoutInfo } from "../types/internal";
+import type { LayoutPdfNode, Metadata, Position } from "../types/internal";
 
-export type PageBreakNodeInfo = NodeLayoutInfo;
+/** Information about a laid-out node given to the user's `pageBreakBefore` callback. */
+export type PageBreakNodeInfo = Metadata & {
+	startPosition: Position;
+	pageNumbers: number[];
+	pages: number;
+	stack: boolean;
+};
 
 export type PageBreakHelpers = {
 	getFollowingNodesOnPage(): PageBreakNodeInfo[];
@@ -14,7 +20,10 @@ export type PageBreakBefore = (
 ) => boolean;
 
 export type PageBreakBeforeContext = {
+	/** Public content keys copied to the node information, in order. */
+	readonly contentKeys: readonly string[];
 	copyExtensionProperties(node: LayoutPdfNode, nodeInfo: PageBreakNodeInfo): void;
-	/** Whether a parent feature draws a marker in front of the node, such as a list bullet. */
-	hasLeadingMarker(node: LayoutPdfNode): boolean;
+	/** Whether the node draws nothing of its own, such as an empty text without a list marker. */
+	isBlank(node: LayoutPdfNode): boolean;
+	isStack(node: LayoutPdfNode): boolean;
 };

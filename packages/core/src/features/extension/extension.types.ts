@@ -18,6 +18,7 @@ declare module "../../types/document.types" {
 			measure: ExtensionMeasureNode;
 			measured: MeasuredExtensionNode;
 			layout: LayoutExtensionNode;
+			pageItem: true;
 		};
 	}
 }

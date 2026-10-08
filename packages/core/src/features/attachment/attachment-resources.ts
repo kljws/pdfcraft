@@ -1,12 +1,12 @@
 import type { ResolvedAttachmentDefinition } from "../../rendering/renderer.types";
-import type { Dictionary } from "../../types";
+import type { Dictionary, ResourceSource } from "../../types";
 import { withoutUndefined } from "../../utils/defined";
 import { isResourceReference } from "../../services/resources/resource-reference";
-import type { PrinterDocumentDefinition, PrinterResourceReference } from "../../core/printer.types";
+import type { PrinterDocumentDefinition } from "../../types/internal";
 
 export function resolveAttachmentReferences(
 	document: PrinterDocumentDefinition,
-	resolve: (resource: PrinterResourceReference) => string,
+	resolve: (resource: ResourceSource) => string,
 ): void {
 	if (!document.attachments) return;
 

@@ -47,6 +47,7 @@ type TableFeature = NodeFeature<TableFeatureStages> & {
 
 export const tableFeature = {
 	kind: "table",
+	contentKeys: ["table"],
 	matches(node): boolean {
 		return Boolean(node.table);
 	},

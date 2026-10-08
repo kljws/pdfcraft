@@ -1,14 +1,11 @@
 import type URLResolver from "../resources/url-resolver";
-import type { FontDescriptors, PdfCraftExtensions } from "../types";
-import type {
-	ExtendedResource,
-	PrinterDocumentDefinition,
-	PrinterResourceReference,
-} from "./printer.types";
+import type { FontDescriptors, PdfCraftExtensions, ResourceSource } from "../types";
+import type { PrinterDocumentDefinition } from "../types/internal";
+import type { ExtendedResource } from "./printer.types";
 import { resolveBuiltInPrinterResources } from "../composition/built-in-printer-resources";
 import { isResourceReference } from "../services/resources/resource-reference";
 
-function getExtendedUrl(url: PrinterResourceReference): ExtendedResource {
+function getExtendedUrl(url: ResourceSource): ExtendedResource {
 	return typeof url === "object"
 		? { url: url.url, headers: url.headers ?? {} }
 		: { url, headers: {} };
@@ -16,7 +13,7 @@ function getExtendedUrl(url: PrinterResourceReference): ExtendedResource {
 
 function resolveFontSource(
 	source: FontDescriptors[string][keyof FontDescriptors[string]],
-	resolve: (resource: PrinterResourceReference) => string,
+	resolve: (resource: ResourceSource) => string,
 ): typeof source {
 	if (!source) return source;
 	if (Array.isArray(source)) {
@@ -32,7 +29,7 @@ export async function resolvePrinterUrls(
 	urlResolver: URLResolver,
 	extensions: PdfCraftExtensions = [],
 ): Promise<void> {
-	const resolve = (resource: PrinterResourceReference): string => {
+	const resolve = (resource: ResourceSource): string => {
 		const url = getExtendedUrl(resource);
 		return urlResolver.resolveReference(url.url, url.headers);
 	};

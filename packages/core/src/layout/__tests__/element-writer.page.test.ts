@@ -291,6 +291,7 @@ describe("PageElementWriter", function () {
 			pew.addLine(buildLine(900));
 
 			const position = pew.addFeatureItem("extension", buildExtension(300));
+			if (Array.isArray(position)) throw new Error("Expected a single position");
 
 			assert.equal(ctx.pages.length, 2);
 			assert.equal(ctx.pages[0].items.length, 1);
@@ -301,6 +302,7 @@ describe("PageElementWriter", function () {
 
 		it("renders an oversized extension on an otherwise empty page", function () {
 			const position = pew.addFeatureItem("extension", buildExtension(2000));
+			if (Array.isArray(position)) throw new Error("Expected a single position");
 
 			assert.equal(ctx.pages.length, 1);
 			assert.equal(ctx.pages[0].items.length, 1);

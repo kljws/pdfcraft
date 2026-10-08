@@ -3,7 +3,7 @@ import type { FlowAdvance } from "../../engine/layout-pagination";
 import type { PageOrientation } from "../../types";
 import type { LayoutPdfNode } from "../../types/internal";
 import { isObject } from "../../utils/variable-type";
-import { getNodeId } from "../../utils/node";
+import { getNodeId } from "./node-id";
 import { buildTextLine } from "./build-text-line";
 import type { LayoutTextNode } from "./text.types";
 

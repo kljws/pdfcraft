@@ -33,6 +33,7 @@ type CanvasFeature = NodeFeature<CanvasFeatureStages> & {
 
 export const canvasFeature = {
 	kind: "canvas",
+	contentKeys: ["canvas"],
 	matches(node): boolean {
 		return Boolean(node.canvas);
 	},

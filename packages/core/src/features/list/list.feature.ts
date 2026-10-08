@@ -53,6 +53,7 @@ type ListFeature = NodeFeature<ListFeatureStages> & {
 
 export const listFeature = {
 	kind: "list",
+	contentKeys: ["ul", "ol"],
 	/** Whether list measurement attached a marker to this item. */
 	hasMarker(node): boolean {
 		return Boolean((node as LayoutListItem).listMarker);

@@ -42,26 +42,6 @@ export function getLaidOutPageText(node: unknown): string | undefined {
 	return isNumber(pageNumber) ? String(pageNumber) : undefined;
 }
 
-export function getNodeId(node: { id?: unknown; text?: unknown }): string | null {
-	if (isString(node.id)) {
-		return node.id;
-	}
-
-	if (Array.isArray(node.text)) {
-		for (const n of node.text) {
-			if (!n || typeof n !== "object") {
-				continue;
-			}
-			const nodeId = getNodeId(n);
-			if (nodeId) {
-				return nodeId;
-			}
-		}
-	}
-
-	return null;
-}
-
 /**
  * @param node
  * @param styleStack object is instance of PDFDocument

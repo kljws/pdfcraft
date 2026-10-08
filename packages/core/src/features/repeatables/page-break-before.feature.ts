@@ -1,19 +1,13 @@
-import type { LayoutPdfNode, PdfNode, PdfPage, Position } from "../../types/internal";
+import type { LayoutPdfNode, PdfPage, Position } from "../../types/internal";
 import type {
 	PageBreakBefore,
 	PageBreakBeforeContext,
 	PageBreakNodeInfo,
 } from "../../engine/page-break-before.types";
 
-const nodeInfoKeys = [
-	"id",
-	"text",
-	"ul",
-	"ol",
-	"table",
-	"image",
-	"canvas",
-	"columns",
+// Node properties shared by every kind, reported around the content keys.
+const leadingKeys = ["id"] as const;
+const trailingKeys = [
 	"headlineLevel",
 	"style",
 	"pageBreak",
@@ -32,13 +26,14 @@ export const pageBreakBeforeFeature = {
 		if (!pageBreakBefore) return false;
 
 		const nodes = linearNodeList.filter(
-			(node) =>
-				Boolean(node.positions?.length) &&
-				(node._kind !== "text" || node.text !== "" || context.hasLeadingMarker(node)),
+			(node) => Boolean(node.positions?.length) && !context.isBlank(node),
 		);
+		const nodeInfoKeys = [...leadingKeys, ...context.contentKeys, ...trailingKeys];
+		// Built for every node before any callback runs, so the neighbour helpers can return them.
+		const nodeInfos = new Map<LayoutPdfNode, PageBreakNodeInfo>();
 		for (const node of nodes) {
 			const positions = node.positions!;
-			const publicNode = node as PdfNode;
+			const publicNode = node as unknown as Record<string, unknown>;
 			const nodeInfo = {} as PageBreakNodeInfo;
 			for (const key of nodeInfoKeys) {
 				if (publicNode[key] !== undefined) nodeInfo[key] = publicNode[key];
@@ -57,15 +52,15 @@ export const pageBreakBeforeFeature = {
 				),
 			);
 			nodeInfo.pages = pages.length;
-			nodeInfo.stack = node._kind === "stack";
-			node.nodeInfo = nodeInfo;
+			nodeInfo.stack = context.isStack(node);
+			nodeInfos.set(node, nodeInfo);
 		}
 
 		for (const [index, node] of nodes.entries()) {
 			if (node.pageBreak === "before" || node.pageBreakCalculated) continue;
 
 			node.pageBreakCalculated = true;
-			const nodeInfo = node.nodeInfo!;
+			const nodeInfo = nodeInfos.get(node)!;
 			const pageNumber = nodeInfo.pageNumbers[0];
 			// A node without a page number has no neighbours on a page.
 			const getNodes = (
@@ -76,7 +71,7 @@ export const pageBreakBeforeFeature = {
 				const result: PageBreakNodeInfo[] = [];
 				if (targetPage === undefined) return result;
 				for (const other of nodes.slice(start, end)) {
-					const info = other.nodeInfo;
+					const info = nodeInfos.get(other);
 					if (!info) continue;
 					if (info.pageNumbers.includes(targetPage)) result.push(info);
 				}

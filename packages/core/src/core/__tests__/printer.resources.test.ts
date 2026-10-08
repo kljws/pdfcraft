@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type URLResolver from "../../resources/url-resolver";
 import type { PdfCraftExtension } from "../../types";
-import type { PrinterDocumentDefinition } from "../printer.types";
+import type { PrinterDocumentDefinition } from "../../types/internal";
 import { resolvePrinterUrls } from "../printer.resources";
 
 describe("resolvePrinterUrls", () => {

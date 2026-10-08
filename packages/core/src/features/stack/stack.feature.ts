@@ -27,10 +27,13 @@ type StackFeature = NodeFeature<StackFeatureStages> & {
 	preprocess(node: PdfNode, context: StackPreprocessContext): PreprocessedStackNode;
 	measure(node: MeasuredStackNode, context: NodeMeasureContext): MeasuredStackNode;
 	layout(node: LayoutStackNode, context: NodeLayoutContext): void;
+	preparePage(node: LayoutStackNode, context: NodeLayoutContext): void;
+	establishesFirstPage(node: LayoutStackNode, context: NodeLayoutContext): boolean;
 };
 
 export const stackFeature = {
 	kind: "stack",
+	contentKeys: ["stack"],
 	matches(node): boolean {
 		return Boolean(node.stack);
 	},
@@ -53,5 +56,14 @@ export const stackFeature = {
 			processNode: (item) => context.processNode(item),
 			moveDownWithPageBreak: context.moveDownWithPageBreak,
 		});
+	},
+	/** A stack starts on the page its first item establishes. */
+	preparePage(node, context): void {
+		const [firstItem] = node.stack;
+		if (firstItem) context.preparePage(firstItem);
+	},
+	establishesFirstPage(node, context): boolean {
+		const [firstItem] = node.stack;
+		return firstItem !== undefined && context.establishesFirstPage(firstItem);
 	},
 } satisfies StackFeature;
