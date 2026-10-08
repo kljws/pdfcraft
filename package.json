@@ -40,6 +40,7 @@
 		"@vitejs/plugin-react": "^6.0.3",
 		"@vitest/browser-playwright": "^5.0.0",
 		"@vitest/coverage-v8": "^5.0.0",
+		"oxc-parser": "^0.153.0",
 		"oxfmt": "^0.66.0",
 		"oxlint": "^1.81.0",
 		"pdfjs-dist": "^6.1.200",
