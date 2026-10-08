@@ -49,6 +49,7 @@ class TableProcessor {
 	cleanUpRepeatables = false;
 	headerRows = 0;
 	rowsWithoutPageBreak = 0;
+	dontBreakRows = false;
 	topLineWidth = 0;
 	rowPaddingTop = 0;
 	bottomLineWidth = 0;
@@ -136,9 +137,13 @@ class TableProcessor {
 		}
 		this.layout = this.headerRows ? this.headerLayout : this.bodyLayout;
 
-		if (this.rowsWithoutPageBreak) {
+		this.dontBreakRows = table.dontBreakRows || false;
+		if (this.rowsWithoutPageBreak || this.dontBreakRows) {
 			writer.beginUnbreakableBlock();
 			this.drawHorizontalLine(0, writer);
+			if (this.rowsWithoutPageBreak && this.dontBreakRows) {
+				writer.beginUnbreakableBlock();
+			}
 		}
 
 		propagateCellBorders(table.body);
@@ -167,14 +172,16 @@ class TableProcessor {
 			writer.context().moveDown(offset);
 		};
 		writer.addListener("pageChanged", this.rowCallback);
-		if (rowIndex === 0 && !this.rowsWithoutPageBreak) {
+		if (rowIndex === 0 && !this.dontBreakRows && !this.rowsWithoutPageBreak) {
 			this._tableTopBorderY = writer.context().y;
 			writer.context().moveDown(this.topLineWidth);
 		}
 
 		this.rowTopPageY = writer.context().y + this.rowPaddingTop;
 		const rowHasPageBreak = this.table.body[rowIndex]?.some(hasExplicitPageBreak) ?? false;
-		this._isCurrentRowUnbreakable = rowGroup?.dontBreakRows === true && !rowHasPageBreak;
+		const rowMustNotBreak = this.dontBreakRows || rowGroup?.dontBreakRows === true;
+		this._isCurrentRowUnbreakable =
+			rowMustNotBreak && !(this.dontBreakRows && rowIndex === 0) && !rowHasPageBreak;
 		if (this._isCurrentRowUnbreakable) writer.beginUnbreakableBlock();
 
 		this.rowTopY = writer.context().y;
@@ -289,7 +296,12 @@ class TableProcessor {
 				borderSide: "bottom",
 			});
 		}
-		if (rowIndex === 0 && !skipOrphanePadding && !this.rowsWithoutPageBreak) {
+		if (
+			rowIndex === 0 &&
+			!skipOrphanePadding &&
+			!this.rowsWithoutPageBreak &&
+			!this.dontBreakRows
+		) {
 			// Draw the top border of the table
 			// The page where the table started
 			const pageTableStartedAt = firstBreak?.prevPage;
@@ -409,7 +421,10 @@ class TableProcessor {
 			this.headerRepeatable = writer.currentBlockToRepeatable();
 		}
 
-		if (this._isCurrentRowUnbreakable) {
+		const shouldCommitCurrentRowUnbreakable =
+			(this.dontBreakRows && rowIndex === 0) || this._isCurrentRowUnbreakable;
+
+		if (shouldCommitCurrentRowUnbreakable) {
 			const pageChangedCallback = (change: TablePageBreak) => {
 				if (rowIndex > 0 && this.layout.hLineWhenBroken !== false) {
 					this.drawHorizontalLine(rowIndex, writer, {

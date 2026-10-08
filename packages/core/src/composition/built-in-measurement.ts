@@ -51,7 +51,7 @@ export function createBuiltInMeasurement(options: BuiltInMeasurementOptions) {
 		tableLayouts: (options.tableLayouts ?? {}) as TableMeasureCapabilities["tableLayouts"],
 		featureState: new Map(),
 		measureNode: (node) => measureNode(node),
-		normalizeTable: (node) => tableFeature.normalize(node as unknown as PdfNode),
+		normalizeTable: (node, options) => tableFeature.normalize(node as unknown as PdfNode, options),
 	};
 	const textInlines =
 		options.textInlines ??

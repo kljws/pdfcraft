@@ -80,7 +80,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 	for (const [rowIndex, row] of table.body.entries()) {
 		processor.selectLayout(rowIndex);
 		const rowGroup = processor.rowGroupsByRow[rowIndex];
-		const rowDontBreakRows = rowGroup?.dontBreakRows === true;
+		const rowDontBreakRows = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
 		const rowHeight = getRowHeight(table.heights, rowIndex);
 		// Inside a container flow, a row that cannot start in the remaining height moves to the next
 		// region as a whole.

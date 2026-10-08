@@ -47,6 +47,7 @@ export function resetTableLayoutState(tableNode: LayoutTableNode): void {
 			delete cell._willBreak;
 			delete cell._isUnbreakableContext;
 			delete cell.__height;
+			delete cell._rowTopPageYPadding;
 			delete cell._lastPageNumber;
 			delete cell._rowSpanCurrentOffset;
 		}

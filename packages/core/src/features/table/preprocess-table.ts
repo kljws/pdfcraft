@@ -243,13 +243,23 @@ function normalizeTableShape(node: PdfNode): {
 	return { body, columnCount };
 }
 
+export type TableNormalizationOptions = {
+	/** Keeps every row whole, the first one together with the top border. */
+	dontBreakRows?: boolean | undefined;
+};
+
 /**
  * Normalizes a table whose cells are already preprocessed, such as a table built by another
  * feature from preprocessed content. Its cells are not preprocessed again.
  */
-export function normalizeTable(node: PdfNode): PreprocessedTableNode {
+export function normalizeTable(
+	node: PdfNode,
+	{ dontBreakRows = false }: TableNormalizationOptions = {},
+): PreprocessedTableNode {
 	normalizeTableShape(node);
-	return markNodeKind(node, "table");
+	const tableNode = markNodeKind(node, "table");
+	if (dontBreakRows) tableNode.table.dontBreakRows = true;
+	return tableNode;
 }
 
 export function preprocessTable(

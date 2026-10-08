@@ -9,8 +9,11 @@ import type { MeasuredTocNode } from "./toc.types";
 
 export type TocMeasureContext = {
 	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
-	/** Normalizes a table, in the public table shape, whose cells are already preprocessed. */
-	normalizeTable(node: TableNode): PreprocessedPdfNode;
+	/**
+	 * Normalizes a table, in the public table shape, whose cells are already preprocessed.
+	 * `dontBreakRows` keeps every row whole, the first one together with the top border.
+	 */
+	normalizeTable(node: TableNode, options?: { dontBreakRows?: boolean }): PreprocessedPdfNode;
 };
 
 export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode {
@@ -72,15 +75,15 @@ export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): M
 		}
 
 		// Entries are presented as a borderless table whose rows never break across pages.
-		const tocTable = context.normalizeTable({
-			table: {
-				widths: ["*", "auto"],
-				body: {
-					groups: [{ rows: body as unknown as TableRow[], dontBreakRows: true }],
-					layout: "noBorders",
+		const tocTable = context.normalizeTable(
+			{
+				table: {
+					widths: ["*", "auto"],
+					body: { groups: [{ rows: body as unknown as TableRow[] }], layout: "noBorders" },
 				},
 			},
-		});
+			{ dontBreakRows: true },
+		);
 
 		toc._table = context.measureNode(tocTable);
 	}

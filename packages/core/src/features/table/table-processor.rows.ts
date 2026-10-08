@@ -100,11 +100,14 @@ export function drawTableRowSegment(
 		if (!nextPosition || !cell) continue;
 		cell._willBreak ??= willBreak;
 		if (cell._bottomY === undefined) {
-			let bottomY = y2 + processor.bottomLineWidth / 2;
-			if (willBreak) bottomY -= processor.rowPaddingBottom;
+			let bottomY = processor.dontBreakRows
+				? y2 + processor.bottomLineWidth
+				: y2 + processor.bottomLineWidth / 2;
+			if (willBreak || processor.dontBreakRows) bottomY -= processor.rowPaddingBottom;
 			cell._bottomY = bottomY - processor.reservedAtBottom;
 		}
 		cell._rowTopPageY = processor.rowTopPageY;
+		if (processor.dontBreakRows) cell._rowTopPageYPadding = processor.rowPaddingTop;
 		cell._lastPageNumber = writer.context().page + 1;
 
 		let fillColor = cell.fillColor;
@@ -134,10 +137,14 @@ export function drawTableRowSegment(
 			rightBorderWidth = processor.layout.vLineWidth(colIndex + 1, processor.tableNode) / 2;
 		}
 
-		const x1 = position.x + leftBorderWidth / 2;
-		const fillY1 = y1 - horizontalLineOffset / 2;
+		const x1 = processor.dontBreakRows
+			? position.x + leftBorderWidth
+			: position.x + leftBorderWidth / 2;
+		const fillY1 = processor.dontBreakRows ? y1 : y1 - horizontalLineOffset / 2;
 		const x2 = nextPosition.x + rightBorderWidth;
-		const fillY2 = y2 + processor.bottomLineWidth / 2;
+		const fillY2 = processor.dontBreakRows
+			? y2 + processor.bottomLineWidth
+			: y2 + processor.bottomLineWidth / 2;
 		const isFirstCell = colIndex === 0;
 		const isLastCell = colIndex === lastCellIndex;
 		const horizontalCorrection =

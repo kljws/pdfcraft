@@ -65,8 +65,10 @@ vertical alignment, and table pagination with its break tracking. Their data con
 layout presets in `features/table/table-layouts.ts`. Every table, public or built by another
 feature, goes through one normalization (`features/table/preprocess-table.ts`): `preprocessTable`
 for definitions whose cells still need preprocessing, `normalizeTable` for cells that are already
-preprocessed. Layouts registered by the caller (`tableLayouts`) reach tables as a measurement
-capability supplied by composition and replace presets of the same name.
+preprocessed. `normalizeTable` also accepts table-level row keeping (`dontBreakRows`), which the
+public shape does not expose; it keeps every row whole together with the first row's top border.
+Layouts registered by the caller (`tableLayouts`) reach tables as a measurement capability supplied
+by composition and replace presets of the same name.
 
 ### Columns
 
@@ -122,8 +124,8 @@ a leading section asks it to establish its page first (`preparePage`).
 The table of contents owns entry collection (`tocItem`), ordering (`sortBy`, `sortLocale`), the
 references from entries to their targets, and its presentation choices (title, styles, margins,
 outlines, `hideEmpty`). It presents entries as a borderless table in the public grouped shape,
-normalized through the `normalizeTable` capability supplied by composition; it does not import the
-table feature.
+normalized with table-level row keeping through the `normalizeTable` capability supplied by
+composition; it does not import the table feature.
 
 ### Document-level features
 

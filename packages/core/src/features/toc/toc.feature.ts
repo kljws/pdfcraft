@@ -47,7 +47,7 @@ export const tocFeature = {
 	measure(node, context): MeasuredTocNode {
 		return measureToc(node, {
 			measureNode: (item) => context.measureNode(item),
-			normalizeTable: (table) => context.normalizeTable(table),
+			normalizeTable: (table, options) => context.normalizeTable(table, options),
 		});
 	},
 	layout(node, context): void {

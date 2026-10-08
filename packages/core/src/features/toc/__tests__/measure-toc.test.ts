@@ -34,8 +34,10 @@ describe("table of contents measurement", function () {
 				keepTogether,
 				dontBreakRows,
 			})),
-			[{ startRow: 0, endRow: 1, keepTogether: false, dontBreakRows: true }],
+			[{ startRow: 0, endRow: 1, keepTogether: false, dontBreakRows: false }],
 		);
-		assert.notProperty(table?.table ?? {}, "dontBreakRows");
+		// Whole-table row keeping, not a row-group setting: it also draws the first row's top border
+		// and insets fills by the full border width (see toc-table-geometry.test.ts).
+		assert.isTrue(table?.table.dontBreakRows);
 	});
 });

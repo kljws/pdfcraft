@@ -26,6 +26,11 @@ export type PdfTable<Node = PdfNode, Widths = ColumnWidth[]> = {
 		| ((rowIndex: number) => number | "auto")
 		| undefined;
 	headerRows?: number | undefined;
+	/**
+	 * Keeps every row whole, the first one with the top border. Never read from the public shape:
+	 * only `normalizeTable` sets it, for tables that other features build (the table of contents).
+	 */
+	dontBreakRows?: boolean | undefined;
 	_rowGroups?: TableRowGroupRange<Node>[] | undefined;
 	_headerLayout?: string | Partial<TableLayout<Node>> | undefined;
 	_bodyLayout?: string | Partial<TableLayout<Node>> | undefined;
@@ -87,6 +92,7 @@ export interface TableNodeState<Node> {
 	_willBreak?: boolean | undefined;
 	_isUnbreakableContext?: boolean | undefined;
 	_bottomByPage?: Record<number, number> | undefined;
+	_rowTopPageYPadding?: number | undefined;
 	_lastPageNumber?: number | undefined;
 	_rowSpanCurrentOffset?: number | undefined;
 }
