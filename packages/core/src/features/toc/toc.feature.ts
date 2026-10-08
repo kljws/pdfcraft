@@ -31,10 +31,7 @@ type TocFeatureStages = NodeFeatureStages & {
 
 type TocFeature = NodeFeature<TocFeatureStages> & {
 	readonly kind: "toc";
-	preprocess(node: PdfNode, context: TocPreprocessContext): PreprocessedTocNode;
 	registerItem(node: PreprocessedPdfNode, context: TocItemRegistrationContext): void;
-	measure(node: MeasuredTocNode, context: TocMeasureFeatureContext): MeasuredTocNode;
-	layout(node: LayoutTocNode, context: NodeLayoutContext): void;
 };
 
 export const tocFeature = {

@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { PdfNode } from "../../types/internal";
 import {
-	builtInFeatureRegistry,
 	builtInFeatures,
-	createNodeFeatureRegistry,
-	getBuiltInFeatureByKind,
+	createFeatureDispatch,
+	indexFeaturesByKind,
 } from "../built-in-feature-registry";
+
+const dispatch = createFeatureDispatch([]);
 
 describe("built-in feature registry", () => {
 	it("preserves the established matching order", () => {
@@ -25,25 +26,25 @@ describe("built-in feature registry", () => {
 	});
 
 	it("dispatches by kind from the same collection", () => {
-		expect(getBuiltInFeatureByKind("image")?.kind).toBe("image");
-		expect(getBuiltInFeatureByKind("missing")).toBeUndefined();
-		expect(builtInFeatureRegistry.dispatch({ _kind: "attachment" })?.kind).toBe("attachment");
-		expect(builtInFeatureRegistry.dispatch({ _kind: "missing", image: "ignored" })).toBeUndefined();
+		expect(dispatch({ _kind: "image" })?.kind).toBe("image");
+		expect(dispatch({ _kind: "extension" })?.kind).toBe("extension");
+		expect(dispatch({ _kind: "attachment" })?.kind).toBe("attachment");
+		expect(dispatch({ _kind: "missing", image: "ignored" })).toBeUndefined();
 	});
 
 	it("rejects duplicate kinds when the registry is created", () => {
 		const feature = { kind: "duplicate", matches: (_node: PdfNode) => false };
-		expect(() => createNodeFeatureRegistry([feature, feature])).toThrow(
+		expect(() => indexFeaturesByKind([feature, feature])).toThrow(
 			"Duplicate node feature kind 'duplicate'",
 		);
 	});
 
 	it("rejects ambiguous public nodes but dispatches preprocessed nodes by kind", () => {
-		expect(() =>
-			builtInFeatureRegistry.dispatch({ table: {}, text: "ambiguous" } as PdfNode),
-		).toThrow("Ambiguous document node matches 'table', 'text'");
+		expect(() => dispatch({ table: {}, text: "ambiguous" } as PdfNode)).toThrow(
+			"Ambiguous document node matches 'table', 'text'",
+		);
 		expect(
-			builtInFeatureRegistry.dispatch({
+			dispatch({
 				_kind: "table",
 				table: { body: [], widths: [] },
 				text: "normalized",

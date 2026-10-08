@@ -14,7 +14,7 @@ import type {
 	MeasuredExtensionNode,
 	PreprocessedExtensionNode,
 } from "./extension.types";
-import { renderExtension, type ExtensionRenderContext } from "./render-extension";
+import { renderExtension } from "./render-extension";
 
 export type ExtensionResourceContext = {
 	extensions: PdfCraftExtensions;
@@ -56,9 +56,7 @@ export const extensionFeature = {
 	layout(node: LayoutExtensionNode, context: NodeLayoutContext): void {
 		layoutFeatureItem("extension", node, context.writer);
 	},
-	render(node: LayoutExtensionNode, context: ExtensionRenderContext): void {
-		renderExtension(node, context);
-	},
+	render: renderExtension,
 	copyPageBreakProperties(
 		node: LayoutPdfNode,
 		target: Record<string, unknown>,

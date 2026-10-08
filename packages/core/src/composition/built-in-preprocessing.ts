@@ -7,7 +7,6 @@ import type { TextPreprocessContext } from "../features/text/preprocess-text";
 import type { TocPreprocessContext } from "../features/toc/preprocess-toc";
 import { canvasFeature } from "../features/canvas/canvas.feature";
 import { columnsFeature } from "../features/columns/columns.feature";
-import { extensionFeature } from "../features/extension/extension.feature";
 import { imageFeature } from "../features/image/image.feature";
 import { listFeature } from "../features/list/list.feature";
 import { sectionFeature } from "../features/section/section.feature";
@@ -31,7 +30,7 @@ import type {
 } from "../types/internal";
 import { stringifyNode } from "../utils/node";
 import { isEmptyObject, isNumber, isObject, isString, isValue } from "../utils/variable-type";
-import { builtInFeatures, createNodeFeatureRegistry } from "./built-in-feature-registry";
+import { createFeatureDispatch } from "./built-in-feature-registry";
 
 /**
  * Every capability a built-in feature may request while preprocessing. Each feature declares
@@ -106,10 +105,7 @@ const describeContent = (item: object): string => {
  * table-of-contents state, so no pass leaks into the next one.
  */
 export function createBuiltInPreprocessing(extensions: PdfCraftExtensions = []) {
-	const registry = createNodeFeatureRegistry([
-		...builtInFeatures,
-		{ ...extensionFeature, matches: (node: PdfNode) => extensionFeature.matches(node, extensions) },
-	]);
+	const dispatch = createFeatureDispatch(extensions);
 
 	// Preprocessing repeats on every layout pass; each unresolved text reference is reported once.
 	const warnedTextReferences = new Set<string>();
@@ -164,7 +160,7 @@ export function createBuiltInPreprocessing(extensions: PdfCraftExtensions = []) 
 
 		function preprocessContent(item: unknown, isSectionAllowed: boolean): PreprocessedPdfNode {
 			const node = normalizeNode(item);
-			const result = registry.dispatch(node)?.preprocess(node, createContext(isSectionAllowed));
+			const result = dispatch(node)?.preprocess(node, createContext(isSectionAllowed));
 			if (result) return result;
 			throw new Error(`Unrecognized document structure: ${stringifyNode(node)}`);
 		}

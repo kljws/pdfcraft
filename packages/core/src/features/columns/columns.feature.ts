@@ -26,9 +26,6 @@ type ColumnsFeatureStages = NodeFeatureStages & {
 
 type ColumnsFeature = NodeFeature<ColumnsFeatureStages> & {
 	readonly kind: "columns";
-	preprocess(node: PdfNode, context: ColumnsPreprocessContext): PreprocessedColumnsNode;
-	measure(node: MeasuredColumnsNode, context: NodeMeasureContext): MeasuredColumnsNode;
-	layout(node: LayoutColumnsNode, context: NodeLayoutContext): void;
 };
 
 export const columnsFeature = {
@@ -38,9 +35,7 @@ export const columnsFeature = {
 		return Boolean(node.columns);
 	},
 	preprocess: preprocessColumns,
-	measure(node, context): MeasuredColumnsNode {
-		return measureColumns(node, context);
-	},
+	measure: measureColumns,
 	layout(node, context): void {
 		layoutColumns(node, {
 			writer: context.writer,

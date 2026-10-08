@@ -24,11 +24,6 @@ type StackFeatureStages = NodeFeatureStages & {
 
 type StackFeature = NodeFeature<StackFeatureStages> & {
 	readonly kind: "stack";
-	preprocess(node: PdfNode, context: StackPreprocessContext): PreprocessedStackNode;
-	measure(node: MeasuredStackNode, context: NodeMeasureContext): MeasuredStackNode;
-	layout(node: LayoutStackNode, context: NodeLayoutContext): void;
-	preparePage(node: LayoutStackNode, context: NodeLayoutContext): void;
-	establishesFirstPage(node: LayoutStackNode, context: NodeLayoutContext): boolean;
 };
 
 export const stackFeature = {
@@ -44,9 +39,7 @@ export const stackFeature = {
 		if (decoration) stackNode._decoration = decoration;
 		return stackNode;
 	},
-	measure(node, context): MeasuredStackNode {
-		return measureStack(node, context);
-	},
+	measure: measureStack,
 	layout(node, context): void {
 		if (node._decoration) {
 			layoutDecoratedStack(node, node._decoration, context);

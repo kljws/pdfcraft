@@ -6,7 +6,6 @@ import type {
 	NodeFeatureStages,
 	NodeLayoutContext,
 	NodeMeasureContext,
-	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
 import { layoutFeatureItem } from "../../layout/element-writer.helpers";
 import type { LayoutImageNode, MeasuredImageNode, PreprocessedImageNode } from "./image.types";
@@ -50,12 +49,6 @@ export type ImageInlineCapabilities = {
 
 type ImageFeature = NodeFeature<ImageFeatureStages> & {
 	readonly kind: "image";
-	readonly inline: ImageInlineCapabilities;
-	preprocess(node: PdfNode): PreprocessedImageNode;
-	measure(node: MeasuredImageNode, context: NodeMeasureContext): MeasuredImageNode;
-	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem>;
-	layout(node: LayoutImageNode, context: NodeLayoutContext): void;
-	render(node: LayoutImageNode, context: ImageRenderContext): void;
 };
 
 export const imageFeature = {
@@ -96,12 +89,8 @@ export const imageFeature = {
 	layout(node, context): void {
 		layoutFeatureItem("image", node, context.writer);
 	},
-	place(node: LayoutImageNode, context: NodePlaceContext): ReturnType<typeof placeImageItem> {
-		return placeImageItem(node, context);
-	},
-	render(node: LayoutImageNode, context: ImageRenderContext): void {
-		renderImage(node, context);
-	},
+	place: placeImageItem,
+	render: renderImage,
 } satisfies ImageFeature;
 
 function getImageMeasurer(context: NodeMeasureContext): ImageMeasurer {

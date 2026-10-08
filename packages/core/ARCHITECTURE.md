@@ -229,19 +229,14 @@ the reason and the step that removes it: "- `field` (`owner`): reason. Removed i
 None. These couplings do not appear as forbidden imports, so the architecture test cannot detect
 them; each new one names its owner and the step that removes it.
 
-## Planned simplifications
+## Intended repetition
 
-These are not ownership exceptions. Step 6 handles them after ownership is settled:
-
-- consolidate the feature registries and lookups (`builtInFeatureRegistry`, the preprocessing
-  registry and `getBuiltInFeatureByKind` in `composition/`);
-- declare each feature's hook signatures once instead of in both its stage map and its feature type;
-- factor the node fields repeated across preprocessed, measured and layout types;
-- remove forwarding wrappers that provide no adaptation or useful boundary;
-- remove the unused `GoTo` action reference created by `addPageLink()`
-  (`rendering/renderer.helpers.ts`);
-- remove output declarations in `types/output-document.types.ts` that duplicate the output
-  document classes.
+- Each feature declares one node type per stage. Only `_kind` and the content key repeat between
+  them, typed with each stage's node shape; most stages add fields of their own. The shared node
+  bases are composed from the state types and repeat nothing.
+- `types/output-document.types.ts` declares the public structural output types (no private
+  members, no DOM library dependency). The output classes implement them (`implements`), so a
+  difference between a class and its public type is a compile error.
 
 ## Refactoring steps
 
@@ -254,7 +249,7 @@ These are not ownership exceptions. Step 6 handles them after ownership is settl
 4. Finish ownership of inline content. Done.
 5. Give public and internal tables one normalization path, and move table presentation data into
    tables. Done.
-6. Reduce the framework around the features.
+6. Reduce the framework around the features. Done.
 
 Each step removes its exceptions from this document and, for import exceptions, from the test
 allowlist in the same change.

@@ -39,10 +39,7 @@ type TableFeatureStages = NodeFeatureStages & {
 
 type TableFeature = NodeFeature<TableFeatureStages> & {
 	readonly kind: "table";
-	preprocess(node: PdfNode, context: TablePreprocessContext): PreprocessedTableNode;
 	normalize(node: PdfNode, options?: TableNormalizationOptions): PreprocessedTableNode;
-	measure(node: TableMeasureNode, context: TableMeasureFeatureContext): MeasuredTableNode;
-	layout(node: LayoutTableNode, context: NodeLayoutContext): void;
 };
 
 export const tableFeature = {

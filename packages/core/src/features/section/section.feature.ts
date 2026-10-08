@@ -25,12 +25,7 @@ type SectionFeatureStages = NodeFeatureStages & {
 
 type SectionFeature = NodeFeature<SectionFeatureStages> & {
 	readonly kind: "section";
-	preprocess(node: PdfNode, context: SectionPreprocessContext): PreprocessedSectionNode;
 	isUnstyled(node: object): boolean;
-	measure(node: MeasuredSectionNode, context: NodeMeasureContext): MeasuredSectionNode;
-	layout(node: LayoutSectionNode, context: NodeLayoutContext): void;
-	preparePage(node: LayoutSectionNode, context: NodeLayoutContext): void;
-	establishesFirstPage(): boolean;
 };
 
 export const sectionFeature = {

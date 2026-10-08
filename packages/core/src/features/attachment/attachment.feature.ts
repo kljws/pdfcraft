@@ -4,7 +4,6 @@ import type {
 	NodeFeatureStages,
 	NodeLayoutContext,
 	NodeMeasureContext,
-	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
 import type { ResourceSource } from "../../types";
 import type {
@@ -46,15 +45,6 @@ type AttachmentFeatureStages = NodeFeatureStages & {
 
 type AttachmentFeature = NodeFeature<AttachmentFeatureStages> & {
 	readonly kind: "attachment";
-	preprocess(node: PdfNode): PreprocessedAttachmentNode;
-	resolveResources(
-		document: PrinterDocumentDefinition,
-		context: AttachmentResourceContext,
-	): undefined;
-	measure(node: PreprocessedAttachmentNode, context: NodeMeasureContext): MeasuredAttachmentNode;
-	place(node: LayoutAttachmentNode, context: NodePlaceContext): CurrentPosition | false;
-	layout(node: LayoutAttachmentNode, context: NodeLayoutContext): void;
-	render(node: LayoutAttachmentNode, context: AttachmentRenderContext): void;
 };
 
 export const attachmentFeature = {
@@ -81,7 +71,5 @@ export const attachmentFeature = {
 	place(node, context): CurrentPosition | false {
 		return placeAtomicItem("attachment", node, node._height ?? 0, context, { align: false });
 	},
-	render(node, context): void {
-		renderAttachment(node, context);
-	},
+	render: renderAttachment,
 } satisfies AttachmentFeature;

@@ -45,9 +45,6 @@ type ListFeatureStages = NodeFeatureStages & {
 
 type ListFeature = NodeFeature<ListFeatureStages> & {
 	readonly kind: "list";
-	preprocess(node: PdfNode, context: ListPreprocessContext): PreprocessedListNode;
-	measure(node: ListMeasureNode, context: ListMeasureFeatureContext): MeasuredListNode;
-	layout(node: LayoutListNode, context: NodeLayoutContext): void;
 	hasMarker(node: LayoutPdfNode): boolean;
 };
 

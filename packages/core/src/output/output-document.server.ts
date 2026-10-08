@@ -1,8 +1,10 @@
+import type { OutputDocumentServer as OutputDocumentServerContract } from "../types";
 import OutputDocument from "./output-document";
 import fs from "node:fs";
 import { Buffer } from "node:buffer";
 
-class OutputDocumentServer extends OutputDocument {
+/** Implements the public structural type of the same name, so the two cannot drift apart. */
+class OutputDocumentServer extends OutputDocument implements OutputDocumentServerContract {
 	async getBuffer(): Promise<Buffer> {
 		return Buffer.from(await this.getData());
 	}

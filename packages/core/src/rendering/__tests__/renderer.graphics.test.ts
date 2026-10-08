@@ -13,7 +13,6 @@ const extension: PdfCraftExtension = {
 };
 
 const createDocument = () => {
-	const action = { end: vi.fn() };
 	const document = {
 		fonts: { Roboto: { normal: "regular.ttf", bold: "bold.ttf" } },
 		page: { width: 600, height: 800 },
@@ -44,7 +43,7 @@ const createDocument = () => {
 		restore: vi.fn().mockReturnThis(),
 		image: vi.fn().mockReturnThis(),
 		link: vi.fn().mockReturnThis(),
-		ref: vi.fn(() => action),
+		ref: vi.fn(),
 		annotate: vi.fn().mockReturnThis(),
 		goTo: vi.fn().mockReturnThis(),
 		provideAttachment: vi.fn(() => ({ src: "attachment.txt" })),
@@ -56,7 +55,7 @@ const createDocument = () => {
 		fontSize: vi.fn().mockReturnThis(),
 		text: vi.fn().mockReturnThis(),
 	};
-	return { document, action };
+	return { document };
 };
 
 describe("Renderer graphics", () => {
@@ -162,7 +161,7 @@ describe("Renderer graphics", () => {
 	});
 
 	it("renders covered images and all supported annotations", () => {
-		const { document, action } = createDocument();
+		const { document } = createDocument();
 		const renderer = new Renderer(document as unknown as PDFDocument);
 		const image = {
 			image: "image",
@@ -189,7 +188,7 @@ describe("Renderer graphics", () => {
 			valign: undefined,
 		});
 		expect(document.link).toHaveBeenCalledWith(10, 20, 100, 50, "https://example.com");
-		expect(action.end).toHaveBeenCalledOnce();
+		expect(document.ref).not.toHaveBeenCalled();
 		expect(document.annotate).toHaveBeenCalledWith(10, 20, 100, 50, {
 			Subtype: "Link",
 			Dest: [1, "XYZ", null, null, null],
@@ -272,7 +271,7 @@ describe("Renderer graphics", () => {
 	});
 
 	it("delegates extension rendering, resolves fonts and renders links", () => {
-		const { document, action } = createDocument();
+		const { document } = createDocument();
 		const renderer = new Renderer(document as unknown as PDFDocument, undefined, [extension]);
 		const node = {
 			_extension: "test",
@@ -292,7 +291,7 @@ describe("Renderer graphics", () => {
 		expect(context.node).toBe(node);
 		expect(context.resolveFont("'Missing', Roboto", false, false, "Roboto")).toBe("regular.ttf");
 		expect(document.link).toHaveBeenCalledWith(5, 6, 70, 80, "https://example.com/svg");
-		expect(action.end).toHaveBeenCalledOnce();
+		expect(document.ref).not.toHaveBeenCalled();
 		expect(document.annotate).toHaveBeenCalledWith(5, 6, 70, 80, {
 			Subtype: "Link",
 			Dest: [2, "XYZ", null, null, null],

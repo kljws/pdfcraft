@@ -4,7 +4,6 @@ import type {
 	NodeFeatureStages,
 	NodeLayoutContext,
 	NodeMeasureContext,
-	NodePlaceContext,
 } from "../../engine/contracts/node-feature";
 import type { PdfNode } from "../../types/internal";
 import { measureCanvas } from "./measure-canvas";
@@ -23,12 +22,6 @@ type CanvasFeatureStages = NodeFeatureStages & {
 
 type CanvasFeature = NodeFeature<CanvasFeatureStages> & {
 	readonly kind: "canvas";
-	preprocess(node: PdfNode): PreprocessedCanvasNode;
-	measure(node: MeasuredCanvasNode, context: NodeMeasureContext): MeasuredCanvasNode;
-	place(node: LayoutCanvasNode, context: NodePlaceContext): ReturnType<typeof placeCanvasItem>;
-	layout(node: LayoutCanvasNode, context: NodeLayoutContext): void;
-	decorate(node: LayoutCanvasNode): void;
-	reset(node: LayoutCanvasNode): void;
 };
 
 export const canvasFeature = {

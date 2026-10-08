@@ -127,8 +127,14 @@ by a single feature stays in that feature.
 
 Each node feature exports a `<kind>Feature` descriptor that implements
 `NodeFeature<Stages>` (`engine/contracts/node-feature.ts`). `Stages` describes the node type and
-the context type at each stage. Only `matches` is required; the other hooks are provided only
-when they are useful.
+the context type at each stage, and `NodeFeature` derives every hook signature from it; a feature
+type adds only its literal `kind` and members that are not stage hooks. Only `matches` is
+required; the other hooks are provided only when they are useful.
+
+`composition/built-in-feature-registry.ts` holds the one list of features and their index by
+`kind`. Stage hooks are found by `_kind`; preprocessing recognizes public nodes through
+`createFeatureDispatch(extensions)`, which binds the extension matcher to the instance's
+extensions and rejects ambiguous nodes.
 
 | Hook | Stage | Role |
 |---|---|---|

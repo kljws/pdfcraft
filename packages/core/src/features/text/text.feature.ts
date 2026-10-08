@@ -39,10 +39,6 @@ type TextFeatureStages = NodeFeatureStages & {
 
 type TextFeature = NodeFeature<TextFeatureStages> & {
 	readonly kind: "text";
-	preprocess(node: PdfNode, context: TextPreprocessContext): PreprocessedTextNode;
-	measure(node: TextMeasureNode, context: TextMeasureFeatureContext): MeasuredTextNode;
-	layout(node: LayoutTextNode, context: NodeLayoutContext): void;
-	render(line: LineLike, context: TextRenderContext): void;
 };
 
 export const textFeature = {

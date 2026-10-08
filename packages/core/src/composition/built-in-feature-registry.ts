@@ -10,6 +10,7 @@ import { stackFeature } from "../features/stack/stack.feature";
 import { tableFeature } from "../features/table/table.feature";
 import { textFeature } from "../features/text/text.feature";
 import { tocFeature } from "../features/toc/toc.feature";
+import type { PdfCraftExtensions } from "../types";
 import type { LayoutPdfNode, MeasurePdfNode, MeasuredPdfNode, PdfNode } from "../types/internal";
 import type { ElementPlacementAdapter } from "../layout/element-writer";
 import { stringifyNode } from "../utils/node";
@@ -22,40 +23,6 @@ import type {
 	NodePlaceHook,
 	NodePlaceResult,
 } from "../engine/contracts/node-feature";
-
-type RegistryFeature = {
-	readonly kind: string;
-	matches(node: PdfNode): boolean;
-};
-
-export function createNodeFeatureRegistry<const Features extends readonly RegistryFeature[]>(
-	features: Features,
-) {
-	const byKind = new Map<string, Features[number]>();
-	for (const feature of features) {
-		if (byKind.has(feature.kind)) {
-			throw new Error(`Duplicate node feature kind '${feature.kind}'`);
-		}
-		byKind.set(feature.kind, feature);
-	}
-
-	return {
-		byKind: byKind as ReadonlyMap<string, Features[number]>,
-		/**
-		 * Resolves preprocessed nodes by `_kind` and public nodes by matcher. A public node
-		 * recognized by several features is rejected instead of depending on registry order.
-		 */
-		dispatch(node: PdfNode): Features[number] | undefined {
-			if (typeof node._kind === "string") return byKind.get(node._kind);
-			const matches = features.filter((feature) => feature.matches(node));
-			if (matches.length > 1) {
-				const kinds = matches.map((feature) => `'${feature.kind}'`).join(", ");
-				throw new Error(`Ambiguous document node matches ${kinds}: ${stringifyNode(node)}`);
-			}
-			return matches[0];
-		},
-	};
-}
 
 export const builtInFeatures = [
 	sectionFeature,
@@ -71,20 +38,47 @@ export const builtInFeatures = [
 	acroFormFeature,
 ] as const;
 
-export const builtInFeatureRegistry = createNodeFeatureRegistry(builtInFeatures);
-
 /**
- * Features reachable by `_kind` once preprocessing has run. Registered extensions share one
- * `extension` descriptor; its matcher needs the instance extensions and lives in preprocessing.
+ * Every node feature, reachable by `_kind` once preprocessing has run. Registered extensions share
+ * one `extension` descriptor; its matcher needs the instance extensions (`createFeatureDispatch`).
  */
 const nodeFeatures = [...builtInFeatures, extensionFeature] as const;
 type NodeFeatureDescriptor = (typeof nodeFeatures)[number];
-const nodeFeaturesByKind = new Map<string, NodeFeatureDescriptor>(
-	nodeFeatures.map((feature) => [feature.kind, feature]),
-);
 
-export function getBuiltInFeatureByKind(kind: string): NodeFeatureDescriptor | undefined {
-	return nodeFeaturesByKind.get(kind);
+export function indexFeaturesByKind<Feature extends { readonly kind: string }>(
+	features: readonly Feature[],
+): ReadonlyMap<string, Feature> {
+	const byKind = new Map<string, Feature>();
+	for (const feature of features) {
+		if (byKind.has(feature.kind)) {
+			throw new Error(`Duplicate node feature kind '${feature.kind}'`);
+		}
+		byKind.set(feature.kind, feature);
+	}
+	return byKind;
+}
+
+const nodeFeaturesByKind = indexFeaturesByKind<NodeFeatureDescriptor>(nodeFeatures);
+
+/**
+ * Resolves preprocessed nodes by `_kind` and public nodes by matcher. A public node recognized by
+ * several features is rejected instead of depending on registry order.
+ */
+export function createFeatureDispatch(extensions: PdfCraftExtensions) {
+	const matchers = [
+		...builtInFeatures,
+		{ ...extensionFeature, matches: (node: PdfNode) => extensionFeature.matches(node, extensions) },
+	];
+	return (node: PdfNode): NodeFeatureDescriptor | undefined => {
+		if (typeof node._kind === "string") return nodeFeaturesByKind.get(node._kind);
+		const matches = matchers.filter((feature) => feature.matches(node));
+		if (matches.length > 1) {
+			const kinds = matches.map((feature) => `'${feature.kind}'`).join(", ");
+			throw new Error(`Ambiguous document node matches ${kinds}: ${stringifyNode(node)}`);
+		}
+		const [match] = matches;
+		return match && nodeFeaturesByKind.get(match.kind);
+	};
 }
 
 type NodeStateHook = (node: LayoutPdfNode) => void;
@@ -106,7 +100,7 @@ function getStageHook<Hook>(
 		| "place"
 		| "render",
 ): Hook | undefined {
-	const feature = getBuiltInFeatureByKind(kind);
+	const feature = nodeFeaturesByKind.get(kind);
 	return feature && name in feature ? (feature[name as keyof typeof feature] as Hook) : undefined;
 }
 

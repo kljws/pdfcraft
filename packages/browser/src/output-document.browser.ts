@@ -1,4 +1,5 @@
 import { OutputDocument } from "@pdfcraft/core/adapter";
+import type { OutputDocumentBrowser as OutputDocumentBrowserContract } from "@pdfcraft/core/types";
 
 const openWindow = (): Window => {
 	// we have to open the window immediately and store the reference
@@ -11,7 +12,8 @@ const openWindow = (): Window => {
 	return win;
 };
 
-class OutputDocumentBrowser extends OutputDocument {
+/** Implements the public structural type of the same name, so the two cannot drift apart. */
+class OutputDocumentBrowser extends OutputDocument implements OutputDocumentBrowserContract {
 	getBuffer(): Promise<Uint8Array> {
 		return this.getData();
 	}
