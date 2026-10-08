@@ -22,7 +22,6 @@ export type PdfTable<Node = PdfNode, Widths = ColumnWidth[]> = {
 	_rowGroups?: TableRowGroupRange<Node>[] | undefined;
 	_headerLayout?: string | Partial<TableLayout<Node>> | undefined;
 	_bodyLayout?: string | Partial<TableLayout<Node>> | undefined;
-	_blockContainer?: boolean | undefined;
 };
 
 export type TableRowGroupRange<Node = PdfNode> = {

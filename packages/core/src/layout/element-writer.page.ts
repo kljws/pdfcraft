@@ -14,6 +14,7 @@ import type {
 	PageControlItem,
 	PageItem,
 	PageMarginSource,
+	Vector,
 } from "../types/internal";
 import type { NodePlaceResult } from "../engine/contracts/node-feature";
 import { getFragmentHeight } from "./element-writer.helpers";
@@ -108,6 +109,26 @@ class PageElementWriter {
 
 	addVector(...parameters: Parameters<ElementWriter["addVector"]>): CurrentPosition | undefined {
 		return this.writer.addVector(...parameters);
+	}
+
+	/**
+	 * Adds a vector behind the content of the current page: after its background items, before
+	 * everything else, including when an unbreakable block is replayed onto a page.
+	 */
+	addVectorBehindContent(
+		vector: Vector,
+		ignoreContextX?: boolean,
+		ignoreContextY?: boolean,
+	): CurrentPosition | undefined {
+		const context = this.context();
+		return this.writer.addVector(
+			vector,
+			ignoreContextX,
+			ignoreContextY,
+			context.backgroundLength[context.page],
+			undefined,
+			"behindContent",
+		);
 	}
 
 	beginVerticalAlignment(verticalAlignment?: string): PageControlItem {

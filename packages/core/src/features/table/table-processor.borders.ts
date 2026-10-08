@@ -4,11 +4,11 @@ import type { Vector } from "../../types/internal";
 import { isNumber } from "../../utils/variable-type";
 import type TableProcessor from "./table-processor";
 import {
+	createRoundedCornerPath,
 	createRoundedRectanglePath,
-	requireTable,
-	trackTableVector,
-	type TableVectorRole,
-} from "./table-processor.helpers";
+	type RoundedCorner,
+} from "../../layout/rounded-geometry";
+import { requireTable, trackTableVector, type TableVectorRole } from "./table-processor.helpers";
 
 const removeExistingPageBottomLines = (
 	processor: TableProcessor,
@@ -102,7 +102,7 @@ const getHorizontalBorderColor = (
 const addRoundedCorner = (
 	processor: TableProcessor,
 	writer: PageElementWriter,
-	corner: "topLeft" | "topRight" | "bottomRight" | "bottomLeft",
+	corner: RoundedCorner,
 	x: number,
 	y: number,
 	radius: number,
@@ -112,18 +112,12 @@ const addRoundedCorner = (
 	ignoreContextY: boolean,
 	forcePage: number | undefined,
 ): void => {
-	const paths = {
-		topLeft: `M 0 ${radius} Q 0 0 ${radius} 0`,
-		topRight: `M 0 0 Q ${radius} 0 ${radius} ${radius}`,
-		bottomRight: `M ${radius} 0 Q ${radius} ${radius} 0 ${radius}`,
-		bottomLeft: `M ${radius} ${radius} Q 0 ${radius} 0 0`,
-	};
 	writer.addVector(
 		{
 			type: "path",
 			x,
 			y,
-			d: paths[corner],
+			d: createRoundedCornerPath(corner, radius),
 			lineWidth,
 			lineColor,
 			dash,

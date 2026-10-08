@@ -5,7 +5,7 @@ import type {
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
 import type { PdfNode } from "../../types/internal";
-import { layoutSection } from "./layout-section";
+import { layoutSection, prepareSectionPage } from "./layout-section";
 import { preprocessSection, type SectionPreprocessContext } from "./preprocess-section";
 import type {
 	LayoutSectionNode,
@@ -28,6 +28,7 @@ type SectionFeature = NodeFeature<SectionFeatureStages> & {
 	preprocess(node: PdfNode, context: SectionPreprocessContext): PreprocessedSectionNode;
 	measure(node: MeasuredSectionNode, context: NodeMeasureContext): MeasuredSectionNode;
 	layout(node: LayoutSectionNode, context: NodeLayoutContext): void;
+	preparePage(node: LayoutSectionNode, context: NodeLayoutContext): void;
 };
 
 export const sectionFeature = {
@@ -46,6 +47,13 @@ export const sectionFeature = {
 			defaultPageSize: context.pageSize,
 			defaultPageMargins: context.pageMargins,
 			processNode: (item) => context.processNode(item),
+		});
+	},
+	preparePage(node, context): void {
+		prepareSectionPage(node, {
+			writer: context.writer,
+			defaultPageSize: context.pageSize,
+			defaultPageMargins: context.pageMargins,
 		});
 	},
 } satisfies SectionFeature;

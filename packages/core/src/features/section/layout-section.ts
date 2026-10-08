@@ -11,7 +11,20 @@ export type SectionLayoutContext = {
 	processNode(node: LayoutPdfNode): void;
 };
 
-export function layoutSection(sectionNode: LayoutSectionNode, context: SectionLayoutContext): void {
+export type SectionPageContext = Omit<SectionLayoutContext, "processNode">;
+
+/**
+ * Establishes the page a section starts on: a new page with the section's settings, unless the
+ * current page is still empty. A container that frames the section calls it before measuring
+ * its frame, so that the frame uses the section's page.
+ */
+export function prepareSectionPage(
+	sectionNode: LayoutSectionNode,
+	context: SectionPageContext,
+): void {
+	if (sectionNode._pagePrepared) return;
+	sectionNode._pagePrepared = true;
+
 	const section = sectionNode as SectionNode;
 	const page = context.writer.context().getCurrentPage();
 	if (!page || page.items.length > 0) {
@@ -29,6 +42,10 @@ export function layoutSection(sectionNode: LayoutSectionNode, context: SectionLa
 			resolved.customProperties,
 		);
 	}
+}
 
-	context.processNode(section.section);
+export function layoutSection(sectionNode: LayoutSectionNode, context: SectionLayoutContext): void {
+	prepareSectionPage(sectionNode, context);
+	sectionNode._pagePrepared = false;
+	context.processNode(sectionNode.section);
 }

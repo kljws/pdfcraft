@@ -39,7 +39,7 @@ exports[`decorated stack snapshots > decorated block in a filled table cell 1`] 
       "y": 40,
     },
     {
-      "color": "yellow",
+      "color": "#f8fafc",
       "d": "M 10 0 H 298 Q 308 0 308 10 V 25 Q 308 35 298 35 H 10 Q 0 35 0 25 V 10 Q 0 0 10 0 Z",
       "fillOpacity": 1,
       "kind": "vector",

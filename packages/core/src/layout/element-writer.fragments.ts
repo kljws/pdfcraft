@@ -47,9 +47,7 @@ export function replayFragment(
 				break;
 
 			case "vector": {
-				const v = pack(item.item as Vector) as Vector & {
-					_isFillColorFromUnbreakable?: boolean | undefined;
-				};
+				const v = pack(item.item as Vector) as Vector;
 				updateNodePageNumbers(v, ctx.page + 1);
 
 				offsetVector(
@@ -61,10 +59,8 @@ export function replayFragment(
 					type: "vector",
 					item: v,
 				};
-				if (v._isFillColorFromUnbreakable) {
-					// If the item is a fillColor from an unbreakable block
-					// We have to add it at the beginning of the items body array of the page
-					delete v._isFillColorFromUnbreakable;
+				if (item.layer === "behindContent") {
+					// Drawn behind the content: inserted right after the page background items.
 					const endOfBackgroundItemsIndex = ctx.backgroundLength[ctx.page] ?? 0;
 					page.items.splice(endOfBackgroundItemsIndex, 0, pageItem);
 				} else {

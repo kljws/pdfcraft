@@ -20,6 +20,8 @@ export type MeasuredSectionNode = MeasuredNodeBase & {
 export type LayoutSectionNode = LayoutNodeBase & {
 	_kind: "section";
 	section: LayoutPdfNode;
+	/** Set once the section's page is established, before its content is laid out. */
+	_pagePrepared?: boolean | undefined;
 };
 
 declare module "../../types/document.types" {

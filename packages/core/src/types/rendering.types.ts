@@ -30,7 +30,6 @@ export type Vector = {
 	lineCap?: string | undefined;
 	lineJoin?: string | undefined;
 	resetXY?: (() => void) | undefined;
-	_isFillColorFromUnbreakable?: boolean | undefined;
 	_node?: LayoutPdfNode | undefined;
 	_position?: Position | undefined;
 };
@@ -44,7 +43,14 @@ export type FeaturePageItem = {
 	item: LayoutPdfNode;
 };
 
-export type VectorPageItem = { type: "vector"; item: Vector };
+/**
+ * Layer of a vector on its page. `behindContent` vectors (such as backgrounds of blocks and table
+ * cells) are inserted after the page background items, before the content already on the page,
+ * also when an unbreakable block replays them onto a page.
+ */
+export type VectorLayer = "behindContent";
+
+export type VectorPageItem = { type: "vector"; item: Vector; layer?: VectorLayer | undefined };
 
 export type PageItem =
 	| VectorPageItem

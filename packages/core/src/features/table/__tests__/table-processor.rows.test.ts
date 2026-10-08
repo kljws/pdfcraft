@@ -11,6 +11,7 @@ describe("drawTableRowSegment", () => {
 			transactionLevel: 0,
 			context: () => ({ page: 0, backgroundLength: [0] }),
 			addVector: (vector: Vector) => vectors.push(vector),
+			addVectorBehindContent: (vector: Vector) => vectors.push(vector),
 		} as unknown as PageElementWriter;
 		const processor = {
 			tableNode: {

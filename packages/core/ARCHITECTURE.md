@@ -69,7 +69,11 @@ it fits on the page and where the first column starts on a new page.
 ### Stacks
 
 Stacks own vertical sequencing of their items, paragraph spacing between items, and block
-decoration: padding, background, border and rounded border.
+decoration: padding, background, border and rounded border (`features/stack/stack-decoration.ts`,
+`features/stack/layout-decorated-stack.ts`). A decorated stack stays a stack node; across page
+breaks it draws one framed fragment per page. Its decoration follows its own properties only:
+table-cell properties inherited from enclosing nodes or styles (`fillColor`, `fillOpacity`,
+`border`, `borderColor` tuples) do not apply to it, but remain inherited by its descendants.
 
 ### Lists
 
@@ -97,7 +101,8 @@ the drawing primitives.
 ### Sections
 
 Sections own page setup at a section boundary (size, orientation, margins) and the inheritance of
-page settings, headers, footers, backgrounds and watermarks (`"inherit"`).
+page settings, headers, footers, backgrounds and watermarks (`"inherit"`). A container that frames
+a leading section asks it to establish its page first (`preparePage`).
 
 ### Table of contents
 
@@ -128,7 +133,11 @@ also a document-level feature: it builds the node information passed to the user
 - **Width distribution** (`layout/column-calculator.ts`): fixed, percentage, auto and star widths
   from numeric geometry. A container passes the width it reserves inside each percentage column.
 - **Placement** (`layout/`, `engine/`): the element writer, page items, fragments, unbreakable
-  transactions, repeatable fragments, page changes and generic pagination.
+  transactions, repeatable fragments, page changes and generic pagination. Vectors added with
+  `addVectorBehindContent` (layer `behindContent`) are drawn after the page background items and
+  before the content, also when an unbreakable block is replayed onto a page.
+- **Vector geometry** (`layout/rounded-geometry.ts`): rounded rectangle and rounded corner paths,
+  used by table and stack borders and backgrounds.
 - **Resource loading** (`resources/`, `core/printer.resources.ts` for orchestration, the resource
   providers of `rendering/pdf-document.ts`): URL resolution, access policies, size and time limits,
   the virtual file system, fonts, images, patterns and attachments as PDF resources.
@@ -204,21 +213,6 @@ step that removes it.
 These couplings do not appear as forbidden imports, so the architecture test cannot detect them.
 Each one names its owner and the step that removes it.
 
-### Step 3: stacks
-
-- **Decorated stacks become tables.** `features/stack/preprocess-decorated-stack.ts` rewrites a
-  stack with `padding`, `borderRadius`, `borderWidth`, `borderColor` or `backgroundColor` into a
-  single-cell table through the `preprocessTable` capability, and tables carry the `_blockContainer`
-  option (`types/table.types.ts`, `features/table/preprocess-table.ts`) for it. Owner: stacks.
-- **Table fill layering in fragment replay.** `layout/element-writer.fragments.ts` and
-  `Vector._isFillColorFromUnbreakable` (`types/rendering.types.ts`) move table fills behind the
-  content of a replayed unbreakable block. Owner: placement, through a generic layering contract
-  that preserves drawing order.
-- **Rounded geometry inside tables.** `createRoundedRectanglePath`
-  (`features/table/table-processor.helpers.ts`) is needed by stacks. It becomes a shared vector
-  primitive. The rounded-bottom vector registry stays in tables unless step 3 shows a genuinely
-  common operation.
-
 ### Step 4: inline content
 
 - **Text draws inline images.** `features/text/render-text.ts` calls `document.image` for inline
@@ -291,7 +285,7 @@ These are not ownership exceptions. Step 6 handles them after ownership is settl
 2. Separate column layout from table row layout, move row-span state into tables, and introduce the
    flow-region capability. Done.
 3. Make stacks own their decoration, with a generic fill-layering contract and shared rounded
-   geometry.
+   geometry. Done.
 4. Finish ownership of inline content.
 5. Give public and internal tables one normalization path, and move table presentation data into
    tables.

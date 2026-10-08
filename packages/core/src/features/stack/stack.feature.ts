@@ -4,37 +4,27 @@ import type {
 	NodeLayoutContext,
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
-import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
+import type { PdfNode } from "../../types/internal";
 import { layoutStack } from "./layout-stack";
 import { measureStack } from "./measure-stack";
-import {
-	preprocessDecoratedStack,
-	type DecoratedStackPreprocessContext,
-} from "./preprocess-decorated-stack";
+import { layoutDecoratedStack } from "./layout-decorated-stack";
 import { preprocessStack, type StackPreprocessContext } from "./preprocess-stack";
-import type { LayoutStackNode, MeasuredStackNode } from "./stack.types";
-
-type StackFeaturePreprocessContext = StackPreprocessContext & DecoratedStackPreprocessContext;
-
-const blockDecorationProperties = ["borderRadius", "borderWidth", "backgroundColor", "padding"];
-
-function hasBlockDecoration(node: PdfNode): boolean {
-	return blockDecorationProperties.some((property) => node[property] !== undefined);
-}
+import { hasStackDecoration, resolveStackDecoration } from "./stack-decoration";
+import type { LayoutStackNode, MeasuredStackNode, PreprocessedStackNode } from "./stack.types";
 
 type StackFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
-	preprocessedNode: PreprocessedPdfNode;
+	preprocessedNode: PreprocessedStackNode;
 	measuredNode: MeasuredStackNode;
 	layoutNode: LayoutStackNode;
-	preprocessContext: StackFeaturePreprocessContext;
+	preprocessContext: StackPreprocessContext;
 	measureContext: NodeMeasureContext;
 	layoutContext: NodeLayoutContext;
 };
 
 type StackFeature = NodeFeature<StackFeatureStages> & {
 	readonly kind: "stack";
-	preprocess(node: PdfNode, context: StackFeaturePreprocessContext): PreprocessedPdfNode;
+	preprocess(node: PdfNode, context: StackPreprocessContext): PreprocessedStackNode;
 	measure(node: MeasuredStackNode, context: NodeMeasureContext): MeasuredStackNode;
 	layout(node: LayoutStackNode, context: NodeLayoutContext): void;
 };
@@ -44,15 +34,21 @@ export const stackFeature = {
 	matches(node): boolean {
 		return Boolean(node.stack);
 	},
-	preprocess(node, context): PreprocessedPdfNode {
-		return hasBlockDecoration(node)
-			? preprocessDecoratedStack(node, context)
-			: preprocessStack(node, context);
+	preprocess(node, context): PreprocessedStackNode {
+		// The decoration is resolved once; later layout passes find it on the preprocessed node.
+		const decoration = hasStackDecoration(node) ? resolveStackDecoration(node) : undefined;
+		const stackNode = preprocessStack(node, context);
+		if (decoration) stackNode._decoration = decoration;
+		return stackNode;
 	},
 	measure(node, context): MeasuredStackNode {
 		return measureStack(node, context);
 	},
 	layout(node, context): void {
+		if (node._decoration) {
+			layoutDecoratedStack(node, node._decoration, context);
+			return;
+		}
 		layoutStack(node, {
 			processNode: (item) => context.processNode(item),
 			moveDownWithPageBreak: context.moveDownWithPageBreak,

@@ -36,7 +36,6 @@ const isValidTableWidth = (value: unknown): boolean =>
 			(/^\d+(?:\.\d+)?%$/.test(value) && Number.parseFloat(value) >= 0)));
 
 export type TablePreprocessContext = {
-	allowSections: boolean;
 	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
 };
 
@@ -240,10 +239,7 @@ export function preprocessTable(
 		for (const rowData of body) {
 			const data = rowData[column];
 			if (data !== undefined && (!isObject(data) || !data._span)) {
-				rowData[column] = context.preprocessNode(
-					data,
-					table._blockContainer === true && context.allowSections,
-				);
+				rowData[column] = context.preprocessNode(data);
 			}
 		}
 	}

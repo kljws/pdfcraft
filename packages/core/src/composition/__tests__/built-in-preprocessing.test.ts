@@ -41,13 +41,13 @@ describe("DocPreprocessor", function () {
 			assert.equal(docPreprocessor.preprocessDocument({ section: "chapter" })._kind, "section");
 		});
 
-		it("tags the normalized feature when preprocessing changes the node shape", function () {
+		it("keeps the stack kind when a stack is decorated", function () {
 			const result = docPreprocessor.preprocessBlock({
 				stack: ["Decorated"],
 				borderWidth: 1,
 			});
 
-			assert.equal(result._kind, "table");
+			assert.equal(result._kind, "stack");
 		});
 
 		it("tags page and text references without text as text", function () {
@@ -93,7 +93,7 @@ describe("DocPreprocessor", function () {
 	});
 
 	describe("decorated stacks", function () {
-		it("normalizes a decorated stack through the rounded table container", function () {
+		it("keeps a decorated stack as a stack with its resolved decoration", function () {
 			const result = expectPreprocessedKind(
 				docPreprocessor.preprocessBlock({
 					stack: ["Payment details", "IBAN: FR14"],
@@ -103,22 +103,28 @@ describe("DocPreprocessor", function () {
 					backgroundColor: "#f8fafc",
 					padding: [8, 10],
 				}),
-				"table",
+				"stack",
 			);
-			const layout = result.table!._bodyLayout as {
-				fillColor: string;
-				paddingLeft(): number;
-				paddingTop(): number;
-			};
 
-			assert.isUndefined(Reflect.get(result, "stack"));
-			assert.equal(result.table!.borderRadius, 12);
-			assert.equal(result.table!._blockContainer, true);
-			const cellStack = expectPreprocessedKind(result.table.body[0][0], "stack").stack;
-			assert.equal(expectPreprocessedKind(cellStack[0], "text").text, "Payment details");
-			assert.equal(layout.fillColor, "#f8fafc");
-			assert.equal(layout.paddingLeft(), 8);
-			assert.equal(layout.paddingTop(), 10);
+			assert.deepEqual(result._decoration, {
+				borderRadius: 12,
+				borderWidth: 2,
+				borderColor: "#334155",
+				backgroundColor: "#f8fafc",
+				padding: [8, 10, 8, 10],
+			});
+			// The decoration is not inherited by the items as style properties.
+			for (const property of [
+				"borderRadius",
+				"borderWidth",
+				"borderColor",
+				"backgroundColor",
+				"padding",
+			]) {
+				assert.isUndefined(Reflect.get(result, property));
+			}
+			assert.isUndefined(Reflect.get(result, "table"));
+			assert.equal(expectPreprocessedKind(result.stack[0], "text").text, "Payment details");
 		});
 
 		it("rejects invalid stack decoration dimensions", function () {

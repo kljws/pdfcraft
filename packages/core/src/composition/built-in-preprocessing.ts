@@ -1,13 +1,11 @@
 import type { ColumnsPreprocessContext } from "../features/columns/preprocess-columns";
 import type { ListPreprocessContext } from "../features/list/preprocess-list";
 import type { SectionPreprocessContext } from "../features/section/preprocess-section";
-import type { DecoratedStackPreprocessContext } from "../features/stack/preprocess-decorated-stack";
 import type { StackPreprocessContext } from "../features/stack/preprocess-stack";
 import type { TablePreprocessContext } from "../features/table/preprocess-table";
 import type { TextPreprocessContext } from "../features/text/preprocess-text";
 import type { TocPreprocessContext } from "../features/toc/preprocess-toc";
 import { extensionFeature } from "../features/extension/extension.feature";
-import { tableFeature } from "../features/table/table.feature";
 import { asRawText, normalizeTextProperty } from "../features/text/preprocess-text";
 import {
 	checkNodeReferences,
@@ -35,7 +33,6 @@ type BuiltInPreprocessContext = ColumnsPreprocessContext &
 	ListPreprocessContext &
 	SectionPreprocessContext &
 	StackPreprocessContext &
-	DecoratedStackPreprocessContext &
 	TablePreprocessContext &
 	TextPreprocessContext &
 	TocPreprocessContext;
@@ -137,8 +134,6 @@ export function createBuiltInPreprocessing(extensions: PdfCraftExtensions = []) 
 					nodeReferences: state.nodeReferences,
 					requests: state.referenceRequests,
 				}),
-			preprocessTable: (item, isSectionAllowed) =>
-				tableFeature.preprocess(item, createContext(isSectionAllowed)),
 			registerTocItem: (item) =>
 				tocFeature.registerItem(item, { parentNode: state.parentNode, tocs: state.tocs }),
 		});

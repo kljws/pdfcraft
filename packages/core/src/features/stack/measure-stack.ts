@@ -14,5 +14,15 @@ export function measureStack(
 		node._minWidth = Math.max(node._minWidth, item._minWidth ?? 0);
 		node._maxWidth = Math.max(node._maxWidth, item._maxWidth ?? 0);
 	}
+
+	const decoration = node._decoration;
+	if (decoration) {
+		// The decoration adds its borders and horizontal padding around the items.
+		const [paddingLeft, , paddingRight] = decoration.padding;
+		const inset = decoration.borderWidth + paddingLeft + (paddingRight + decoration.borderWidth);
+		node._contentMinWidth = node._minWidth;
+		node._minWidth += inset;
+		node._maxWidth += inset;
+	}
 	return node;
 }

@@ -1,13 +1,8 @@
 import type PageElementWriter from "../../layout/element-writer.page";
 import { isNumber } from "../../utils/variable-type";
 import type TableProcessor from "./table-processor";
-import {
-	createRoundedRectanglePath,
-	requireTable,
-	trackTableVector,
-	type CornerRadii,
-	type TableVectorRole,
-} from "./table-processor.helpers";
+import { createRoundedRectanglePath, type CornerRadii } from "../../layout/rounded-geometry";
+import { requireTable, trackTableVector, type TableVectorRole } from "./table-processor.helpers";
 
 const tableFillCorrection = 0.5;
 
@@ -189,19 +184,9 @@ export function drawTableRowSegment(
 			if (isLastCell) fillRoles.push("rightFill");
 		}
 		if (fillColor) {
-			const vector = {
-				...shape,
-				color: fillColor,
-				fillOpacity,
-				_isFillColorFromUnbreakable: Boolean(writer.transactionLevel),
-			};
+			const vector = { ...shape, color: fillColor, fillOpacity };
 			if (fillRoles.length > 0) trackTableVector(processor, vector, fillRoles, fillGroup);
-			writer.addVector(
-				vector,
-				false,
-				true,
-				writer.context().backgroundLength[writer.context().page],
-			);
+			writer.addVectorBehindContent(vector, false, true);
 		}
 		if (overlayPattern) {
 			const vector = {

@@ -8,6 +8,7 @@ import type {
 	PageBreak,
 	PageControlItem,
 	Vector,
+	VectorLayer,
 	VectorPageItem,
 } from "../types/internal";
 import { addPageItem, getAlignmentOffset } from "./element-writer.helpers";
@@ -168,6 +169,7 @@ class ElementWriter {
 		ignoreContextY?: boolean,
 		index?: number,
 		forcePage?: number,
+		layer?: VectorLayer,
 	): CurrentPosition | undefined {
 		const context = this.context();
 		let page = context.getCurrentPage();
@@ -178,10 +180,9 @@ class ElementWriter {
 
 		if (page) {
 			offsetVector(vector, ignoreContextX ? 0 : context.x, ignoreContextY ? 0 : context.y);
-			const pageItem: VectorPageItem = {
-				type: "vector",
-				item: vector,
-			};
+			const pageItem: VectorPageItem = layer
+				? { type: "vector", item: vector, layer }
+				: { type: "vector", item: vector };
 			addPageItem(page, pageItem, index);
 			notifyVectorInsertion(vector, isNumber(forcePage) ? forcePage : context.page, page, pageItem);
 			return position;

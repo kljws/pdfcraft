@@ -74,6 +74,11 @@ export type NodeLayoutContext = {
 	advanceFlowRegion(pageOrientation?: PageOrientation, options?: FlowAdvanceOptions): FlowAdvance;
 	/** Whether the content is laid out inside a container flow that has regions of its own. */
 	isInFlow(): boolean;
+	/**
+	 * Lets a child establish the page it starts on before its container lays out around it; a
+	 * section applies its page settings. Does nothing for children without page settings.
+	 */
+	preparePage(node: LayoutPdfNode): void;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
 };
 
@@ -124,6 +129,7 @@ export type NodeFeature<Stages extends NodeFeatureStages> = {
 		context: Stages["measureContext"],
 	): Stages["measuredNode"];
 	layout?(node: Stages["layoutNode"], context: Stages["layoutContext"]): void;
+	preparePage?(node: Stages["layoutNode"], context: Stages["layoutContext"]): void;
 	place?(node: Stages["layoutNode"], context: NodePlaceContext): NodePlaceResult;
 	render?(
 		node: OptionalStage<Stages, "renderNode">,

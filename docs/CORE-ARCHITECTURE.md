@@ -137,6 +137,7 @@ when they are useful.
 | `resolveResources` | before measurement | Resolves document resources owned by the feature (attachments, extensions) |
 | `measure` | measurement | Computes intrinsic sizes and metrics, without a position |
 | `layout` | layout | Decides space use, breaks and page changes |
+| `preparePage` | layout | Establishes the page the node starts on before a container frames it (sections) |
 | `place` | layout | For an atomic element: tests the space, aligns and emits a `PageItem` |
 | `render` | rendering | Translates the feature's `PageItem` into PDFKit calls |
 | `decorate`, `reset` | layout | Prepare or reset layout state before a new attempt |

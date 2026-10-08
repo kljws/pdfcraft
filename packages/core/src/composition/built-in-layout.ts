@@ -9,6 +9,7 @@ import { moveDownWithPageBreak } from "../engine/layout-pagination";
 import {
 	decorateRegisteredNodeFeature,
 	layoutRegisteredNodeFeature,
+	preparePageRegisteredNodeFeature,
 	resetRegisteredNodeFeature,
 } from "./built-in-feature-registry";
 
@@ -50,6 +51,7 @@ export function createBuiltInLayout(host: BuiltInLayoutHost) {
 			host.processNode(node, isVerticalAlignmentAllowed),
 		advanceFlowRegion: (orientation, options) => host.advanceFlowRegion(orientation, options),
 		isInFlow: () => host.writer.context().getFlowSnapshot() !== null,
+		preparePage: (node) => preparePageRegisteredNodeFeature(node, context),
 		moveDownWithPageBreak: moveDown,
 	};
 	const nodeDecorationHooks = {
