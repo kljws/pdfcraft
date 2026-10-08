@@ -27,6 +27,15 @@ export type LayoutColumnsNode = LayoutNodeBase & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		columns?: ColumnNode<Node>[] | undefined;
+	}
+
+	interface PdfNode {
+		columnGap?: number | undefined;
+		snakingColumns?: boolean | undefined;
+	}
+
 	interface NodeKindRegistry {
 		columns: {
 			preprocessed: PreprocessedColumnsNode;

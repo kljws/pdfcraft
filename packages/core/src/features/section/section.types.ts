@@ -25,6 +25,10 @@ export type LayoutSectionNode = LayoutNodeBase & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		section?: Node | undefined;
+	}
+
 	interface NodeKindRegistry {
 		section: {
 			preprocessed: PreprocessedSectionNode;

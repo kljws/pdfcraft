@@ -5,6 +5,15 @@ import type {
 	PageBreakNodeInfo,
 } from "../../engine/page-break-before.types";
 
+declare module "../../types/document.types" {
+	interface PdfNode {
+		/** Reported to the `pageBreakBefore` callback. */
+		headlineLevel?: number | undefined;
+		/** Set once the callback has been asked about the node, so it is asked only once. */
+		pageBreakCalculated?: boolean | undefined;
+	}
+}
+
 // Node properties shared by every kind, reported around the content keys.
 const leadingKeys = ["id"] as const;
 const trailingKeys = [

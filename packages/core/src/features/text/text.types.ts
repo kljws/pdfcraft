@@ -1,4 +1,4 @@
-import type { Decoration } from "../../types";
+import type { Color, Decoration } from "../../types";
 import type {
 	Inline,
 	InlineContentBox,
@@ -41,6 +41,11 @@ export type InlineContentType = InlineContentBox & {
 	measure(inline: Inline): { width: number; height: number };
 };
 
+/** An inline of a text line, with the text-owned fields that its node passes on. */
+export type TextInline = Inline & {
+	_tocItemRef?: MeasuredPdfNode | LayoutPdfNode | undefined;
+};
+
 export type InlineMeasurement = {
 	items: Inline[];
 	minWidth: number;
@@ -52,6 +57,8 @@ export type InlineMeasurement = {
 export interface TextReferenceState<Node> {
 	_pageRef?: NodeReference<Node> | undefined;
 	_textRef?: NodeReference<Node> | undefined;
+	/** Node whose page number this text shows, set on the number cells of a table of contents. */
+	_tocItemRef?: Node | undefined;
 	/**
 	 * Complete page number measured for a page reference or TOC number. Inline fragments copy it,
 	 * so a number wrapped across lines is still compared as a whole.
@@ -96,6 +103,28 @@ export type DecorationGroup = {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		text?: NodeText<Node> | undefined;
+	}
+
+	interface PdfNode {
+		pageReference?: string | undefined;
+		textReference?: string | undefined;
+		outlineExpanded?: boolean | undefined;
+		outlineParentId?: string | undefined;
+		outlineText?: string | undefined;
+		decoration?: Decoration | Decoration[] | undefined;
+		decorationColor?: Color | undefined;
+		decorationStyle?: string | undefined;
+		decorationThickness?: number | undefined;
+		leadingIndent?: number | undefined;
+		wordBreak?: "normal" | "break-all" | undefined;
+		preserveLeadingSpaces?: boolean | undefined;
+		preserveTrailingSpaces?: boolean | undefined;
+		sup?: boolean | undefined;
+		sub?: boolean | undefined;
+	}
+
 	interface NodeKindRegistry {
 		text: {
 			preprocessed: PreprocessedTextNode;

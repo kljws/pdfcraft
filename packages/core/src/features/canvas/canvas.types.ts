@@ -3,6 +3,7 @@ import type {
 	MeasuredNodeBase,
 	PdfNode,
 	PreprocessedNodeBase,
+	Vector,
 } from "../../types/internal";
 
 export type PreprocessedCanvasNode = PreprocessedNodeBase & {
@@ -21,6 +22,10 @@ export type LayoutCanvasNode = LayoutNodeBase & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		canvas?: Vector[] | undefined;
+	}
+
 	interface NodeKindRegistry {
 		canvas: {
 			preprocessed: PreprocessedCanvasNode;

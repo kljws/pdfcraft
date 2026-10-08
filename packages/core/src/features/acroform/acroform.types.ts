@@ -1,3 +1,4 @@
+import type { AcroFormDefinition } from "../../types";
 import type {
 	Inline,
 	LayoutNodeBase,
@@ -32,6 +33,10 @@ export type AcroFormInline = Inline & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		acroform?: AcroFormDefinition | undefined;
+	}
+
 	interface NodeKindRegistry {
 		acroform: {
 			preprocessed: PreprocessedAcroFormNode;

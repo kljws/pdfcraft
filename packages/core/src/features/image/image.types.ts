@@ -1,8 +1,11 @@
+import type { Color } from "../../types";
 import type {
+	AttachmentSource,
 	LayoutNodeBase,
 	MeasuredNodeBase,
 	PdfNode,
 	PreprocessedNodeBase,
+	SerializedBuffer,
 } from "../../types/internal";
 
 export type ImageSource = string | Uint8Array;
@@ -24,6 +27,15 @@ export type LayoutImageNode = LayoutNodeBase & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		image?: string | Uint8Array | SerializedBuffer | undefined;
+	}
+
+	interface PdfNode {
+		linkToFile?: string | AttachmentSource | undefined;
+		_imageBorderColor?: Color | undefined;
+	}
+
 	interface NodeKindRegistry {
 		image: {
 			preprocessed: PreprocessedImageNode;

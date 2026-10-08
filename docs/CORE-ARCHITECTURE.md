@@ -348,8 +348,9 @@ Tests are run from the repository root, because font paths are relative to the r
 
 1. Define its public shape in `types/content.types.ts`, its `kind` and its node types.
 2. Create `src/features/<kind>/` with its descriptor and only the useful hooks.
-3. Declare its node types on `NodeKindRegistry` from `<kind>.types.ts`, and its public content keys
-   as `contentKeys` on the descriptor.
+3. Declare its node types on `NodeKindRegistry` from `<kind>.types.ts`, its content key on
+   `NodeHierarchy` and its own node options on `PdfNode` from the same file, and its public content
+   keys as `contentKeys` on the descriptor.
 4. Assign `_kind` during preprocessing with `markNodeKind`.
 5. Express external needs through ports declared in the feature, without importing another
    feature, and provide them in composition.

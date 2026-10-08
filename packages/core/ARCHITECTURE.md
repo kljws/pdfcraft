@@ -33,7 +33,9 @@ Every source file belongs to exactly one category. The category decides what it 
   content (`contentKeys`); composition chooses which features take part in a cross-feature output,
   such as the `pageBreakBefore` node information or cycle messages, and in which order.
   A feature that emits page items of its own kind adds `pageItem: true` to its `NodeKindRegistry`
-  entry.
+  entry. Node properties follow the same rule: `PdfNode` (`types/document.types.ts`) declares the
+  properties used by several owners, and each feature adds its content key to `NodeHierarchy` and
+  its own options to `PdfNode` from its `*.types.ts`.
 - **Orchestration**: the entry points that run a generation and use composed facades:
   `index.ts`, `adapter.ts`, every file in `core/`, `layout/layout-builder.ts` and
   `rendering/renderer.ts`.
@@ -224,14 +226,8 @@ the reason and the step that removes it: "- `field` (`owner`): reason. Removed i
 
 ## Known ownership exceptions
 
-These couplings do not appear as forbidden imports, so the architecture test cannot detect them.
-Each one names its owner and the step that removes it.
-
-### Step 6: central feature knowledge
-
-- **Feature fields in shared node contracts.** `PdfNode`, `NodeHierarchy`, the internal
-  `TocDefinition` (`types/document.types.ts`) and `_tocItemRef` on `Inline`
-  (`types/text.types.ts`) carry fields of single features.
+None. These couplings do not appear as forbidden imports, so the architecture test cannot detect
+them; each new one names its owner and the step that removes it.
 
 ## Planned simplifications
 

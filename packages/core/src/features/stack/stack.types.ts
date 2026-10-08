@@ -1,4 +1,4 @@
-import type { Color } from "../../types";
+import type { Color, Margin } from "../../types";
 import type {
 	LayoutNodeBase,
 	LayoutPdfNode,
@@ -39,6 +39,15 @@ export type LayoutStackNode = LayoutNodeBase & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		stack?: Node[] | undefined;
+	}
+
+	interface PdfNode {
+		backgroundColor?: Color | undefined;
+		padding?: Margin | undefined;
+	}
+
 	interface NodeKindRegistry {
 		stack: {
 			preprocessed: PreprocessedStackNode;

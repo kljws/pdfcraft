@@ -5,7 +5,7 @@ import type { LayoutPdfNode } from "../../types/internal";
 import { isObject } from "../../utils/variable-type";
 import { getNodeId } from "./node-id";
 import { buildTextLine } from "./build-text-line";
-import type { LayoutTextNode } from "./text.types";
+import type { LayoutTextNode, TextInline } from "./text.types";
 
 export type TextLayoutContext = {
 	writer: PageElementWriter;
@@ -19,7 +19,7 @@ function linkPageReferences(
 	if (node._tocItemRef) line._pageNodeRef = node._tocItemRef;
 	if (node._pageRef) line._pageNodeRef = node._pageRef._nodeRef;
 	if (line._pageNodeRef) line._pageReferenceText = node._pageReferenceText;
-	for (const inline of line.inlines) {
+	for (const inline of line.inlines as TextInline[]) {
 		if (inline._tocItemRef) inline._pageNodeRef = inline._tocItemRef;
 		if (inline._pageRef) inline._pageNodeRef = inline._pageRef._nodeRef;
 	}

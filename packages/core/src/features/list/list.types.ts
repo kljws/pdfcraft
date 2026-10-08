@@ -1,3 +1,4 @@
+import type { Color } from "../../types";
 import type {
 	Inline,
 	LayoutPdfNode,
@@ -55,6 +56,20 @@ export type LayoutListNode = LayoutNodeBase & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		ul?: Node[] | undefined;
+		ol?: Node[] | undefined;
+	}
+
+	interface PdfNode {
+		listType?: string | undefined;
+		start?: number | undefined;
+		counter?: number | undefined;
+		reversed?: boolean | undefined;
+		separator?: string | [string, string] | undefined;
+		markerColor?: Color | undefined;
+	}
+
 	interface NodeKindRegistry {
 		list: {
 			preprocessed: PreprocessedListNode;

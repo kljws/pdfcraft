@@ -1,4 +1,5 @@
 import type {
+	AttachmentSource as AttachmentSourceDefinition,
 	LayoutNodeBase,
 	MeasuredNodeBase,
 	PdfNode,
@@ -23,6 +24,14 @@ export type LayoutAttachmentNode = LayoutNodeBase & {
 };
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		attachment?: string | AttachmentSourceDefinition | undefined;
+	}
+
+	interface PdfNode {
+		icon?: string | undefined;
+	}
+
 	interface NodeKindRegistry {
 		attachment: {
 			preprocessed: PreprocessedAttachmentNode;

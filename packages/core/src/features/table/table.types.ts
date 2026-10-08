@@ -2,14 +2,15 @@ import type { CoordinateSnapshot } from "../../document/document-context.types";
 import type { TableRowGroupLayout } from "../../types";
 import type {
 	ColumnWidth,
-	PageBreak,
-	LayoutPdfNode,
 	LayoutNodeBase,
-	MeasuredPdfNode,
+	LayoutPdfNode,
 	MeasuredNodeBase,
+	MeasuredPdfNode,
+	Metadata,
+	PageBreak,
 	PdfNode,
-	PreprocessedPdfNode,
 	PreprocessedNodeBase,
+	PreprocessedPdfNode,
 } from "../../types/internal";
 
 export type RawColumnWidth = ColumnWidth | number | string;
@@ -138,6 +139,20 @@ export type LayoutTableNode = LayoutNodeBase &
 	};
 
 declare module "../../types/document.types" {
+	interface NodeHierarchy<Node> {
+		/** Table definition; its shape is owned by the table feature. */
+		table?: Metadata | undefined;
+	}
+
+	interface PdfNode {
+		colSpan?: number | undefined;
+		rowSpan?: number | undefined;
+		border?: [boolean, boolean, boolean, boolean] | undefined;
+		overlayPattern?: PDFKit.Mixins.ColorValue | undefined;
+		overlayOpacity?: number | undefined;
+		tableAlignment?: "left" | "center" | "right" | undefined;
+	}
+
 	interface NodeKindRegistry {
 		table: {
 			preprocessed: PreprocessedTableNode;

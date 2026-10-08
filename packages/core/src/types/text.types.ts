@@ -64,7 +64,6 @@ export type Inline = {
 	sub?: boolean | undefined;
 	_node?: LayoutPdfNode | undefined;
 	_position?: Position | undefined;
-	_tocItemRef?: MeasuredPdfNode | LayoutPdfNode | undefined;
 	_pageNodeRef?: MeasuredPdfNode | LayoutPdfNode | undefined;
 	/** Complete page number this fragment belongs to, as measured. */
 	_pageReferenceText?: string | undefined;
