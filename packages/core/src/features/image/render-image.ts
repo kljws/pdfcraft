@@ -1,12 +1,28 @@
 import type PDFDocument from "../../rendering/pdf-document";
 import { addPageLink } from "../../rendering/renderer.helpers";
 import { isNumber } from "../../utils/variable-type";
+import type { Inline } from "../../types/internal";
 import type { LayoutImageNode } from "./image.types";
 
 export type ImageRenderContext = {
 	document: PDFDocument;
 	resetVectorState(): void;
 };
+
+export type InlineImageRenderContext = {
+	document: PDFDocument;
+	x: number;
+	y: number;
+};
+
+/** Draws an inline image at its measured size, with its top-left corner at x, y. */
+export function renderInlineImage(inline: Inline, context: InlineImageRenderContext): void {
+	const { image } = inline as Inline & { image: PDFKit.Mixins.ImageSrc };
+	context.document.image(image, context.x, context.y, {
+		width: inline.width,
+		height: inline.height,
+	});
+}
 
 export function renderImage(image: LayoutImageNode, context: ImageRenderContext): void {
 	const document = context.document;

@@ -1,4 +1,4 @@
-import type { MeasuredPdfNode, PageItem, PdfNode } from "../../types/internal";
+import type { Inline, PageItem, PdfNode } from "../../types/internal";
 import { markNodeKind } from "../../utils/node";
 import { isObject } from "../../utils/variable-type";
 import type {
@@ -12,7 +12,12 @@ import { layoutFeatureItem } from "../../layout/element-writer.helpers";
 import type { LayoutImageNode, MeasuredImageNode, PreprocessedImageNode } from "./image.types";
 import ImageMeasurer from "./image-measurer";
 import { placeImageItem } from "./place-image";
-import { renderImage, type ImageRenderContext } from "./render-image";
+import {
+	renderImage,
+	renderInlineImage,
+	type ImageRenderContext,
+	type InlineImageRenderContext,
+} from "./render-image";
 
 type ImageFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
@@ -28,8 +33,19 @@ type ImageFeatureStages = NodeFeatureStages & {
 	inline: ImageInlineCapabilities;
 };
 
+/**
+ * An image inside a text line: an atomic box sitting against the line top, styled like the
+ * surrounding text. It is measured like a block image and drawn at its measured size, without the
+ * block image's borders, cover, clipping or links.
+ */
 export type ImageInlineCapabilities = {
-	measure(node: MeasuredPdfNode, context: NodeMeasureContext): MeasuredPdfNode;
+	readonly kind: "image";
+	readonly verticalAlign: "top";
+	readonly textStyled: true;
+	readonly noWrap: false;
+	matches(fragment: Record<string, unknown>): boolean;
+	measure(inline: Inline, context: NodeMeasureContext): { width: number; height: number };
+	render(inline: Inline, context: InlineImageRenderContext): void;
 };
 
 type ImageFeature = NodeFeature<ImageFeatureStages> & {
@@ -58,9 +74,23 @@ export const imageFeature = {
 		return getImageMeasurer(context).measureImage(node);
 	},
 	inline: {
-		measure(node, context): MeasuredPdfNode {
-			return getImageMeasurer(context).measureImage(node as MeasuredImageNode);
+		kind: "image",
+		verticalAlign: "top",
+		textStyled: true,
+		noWrap: false,
+		matches(fragment): boolean {
+			return Boolean(fragment.image);
 		},
+		measure(inline, context): { width: number; height: number } {
+			const measured = getImageMeasurer(context).measureImage(
+				inline as unknown as MeasuredImageNode,
+			);
+			if (measured._kind !== "image") {
+				throw new Error("Inline image measurement returned a non-image node");
+			}
+			return { width: measured._width ?? 0, height: measured._height ?? 0 };
+		},
+		render: renderInlineImage,
 	},
 	layout(node, context): void {
 		layoutFeatureItem("image", node, context.writer);

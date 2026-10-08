@@ -5,8 +5,13 @@ import TextMetrics, {
 	type TextSize,
 } from "../../services/typography/text-metrics";
 import { isObject } from "../../utils/variable-type";
-import type { Inline, MeasuredPdfNode } from "../../types/internal";
-import type { BrokenInline, InlineMeasurement, TextFragment } from "./text.types";
+import type { Inline } from "../../types/internal";
+import type {
+	BrokenInline,
+	InlineContentType,
+	InlineMeasurement,
+	TextFragment,
+} from "./text.types";
 
 const leadingWhitespace = /^(\s)+/g;
 const trailingWhitespace = /(\s)+$/g;
@@ -54,21 +59,23 @@ const flattenTextArray = (input: TextFragment | TextFragment[]): TextFragment[] 
 class TextInlines {
 	declare pdfDocument: TextFontProvider | null;
 	private readonly textMetrics: TextMetrics;
-	private readonly measureInlineImage?: ((node: MeasuredPdfNode) => MeasuredPdfNode) | undefined;
-	private readonly measureInlineAcroForm?: ((inline: Inline) => Inline) | undefined;
+	private readonly inlineContent: readonly InlineContentType[];
 
 	/**
 	 * @param pdfDocument object is instance of PDFDocument
+	 * @param inlineContent content of other features that text fragments may hold, such as images
 	 */
 	constructor(
 		pdfDocument: TextFontProvider | null,
-		measureInlineImage?: (node: MeasuredPdfNode) => MeasuredPdfNode,
-		measureInlineAcroForm?: (inline: Inline) => Inline,
+		inlineContent: readonly InlineContentType[] = [],
 	) {
 		this.pdfDocument = pdfDocument;
 		this.textMetrics = new TextMetrics(pdfDocument);
-		this.measureInlineImage = measureInlineImage;
-		this.measureInlineAcroForm = measureInlineAcroForm;
+		this.inlineContent = inlineContent;
+	}
+
+	private findInlineContent(fragment: Record<string, unknown>): InlineContentType | undefined {
+		return this.inlineContent.find((content) => content.matches(fragment));
 	}
 
 	/**
@@ -101,7 +108,9 @@ class TextInlines {
 
 		const flattenedTextArray = flattenTextArray(textArray);
 
-		const textBreaker = new TextBreaker();
+		const textBreaker = new TextBreaker(
+			(fragment) => this.findInlineContent(fragment) !== undefined,
+		);
 		const brokenText = textBreaker.getBreaks(flattenedTextArray, styleContextStack);
 
 		const measuredText = this.measure(brokenText, styleContextStack);
@@ -154,7 +163,8 @@ class TextInlines {
 		array.forEach((item) => {
 			styleContextStack.auto(item, () => {
 				const textStyle = this.textMetrics.resolveTextStyleFromStack(styleContextStack);
-				const isMediaInline = item.image !== undefined || item.acroform !== undefined;
+				const content = this.findInlineContent(item);
+				const isMediaInline = content !== undefined;
 				const requestedImageWidth =
 					isMediaInline && typeof item.width === "number" ? item.width : 0;
 				const requestedImageHeight =
@@ -164,6 +174,7 @@ class TextInlines {
 					fontSize: textStyle.fontSize,
 					width: requestedImageWidth,
 					height: requestedImageHeight,
+					ascent: 0,
 					x: 0,
 					leadingCut: typeof item.leadingCut === "number" ? item.leadingCut : 0,
 					trailingCut: 0,
@@ -187,7 +198,7 @@ class TextInlines {
 					"linkToDestination",
 					null,
 				);
-				inline.noWrap = inline.acroform
+				inline.noWrap = content?.noWrap
 					? true
 					: styleContextStack.getPropertyOrDefault("noWrap", null);
 				inline.opacity = styleContextStack.getPropertyOrDefault("opacity", 1);
@@ -199,27 +210,21 @@ class TextInlines {
 					inline.fontSize *= 0.58;
 				}
 
-				if (inline.image !== undefined) {
-					if (!this.measureInlineImage) {
-						throw new Error("Inline image measurement is unavailable");
-					}
-					const measuredImage = this.measureInlineImage(inline as unknown as MeasuredPdfNode);
-					if (measuredImage._kind !== "image") {
-						throw new Error("Inline image measurement returned a non-image node");
-					}
-					inline.image = measuredImage.image as string;
-					inline.width = inline._imageWidth = measuredImage._width ?? 0;
-					inline.height = inline._imageHeight = measuredImage._height ?? 0;
-				} else if (inline.acroform !== undefined) {
-					if (!this.measureInlineAcroForm) {
-						throw new Error("Inline AcroForm measurement is unavailable");
-					}
-					const measuredForm = this.measureInlineAcroForm(inline);
-					inline.width = measuredForm.width;
-					inline.height = measuredForm.height;
+				if (content) {
+					// The owning feature measures the box; the box stands on the baseline.
+					const box = content.measure(inline);
+					inline.width = box.width;
+					inline.height = box.height;
+					inline.ascent = box.height;
+					inline.content = {
+						kind: content.kind,
+						verticalAlign: content.verticalAlign,
+						textStyled: content.textStyled,
+					};
 				} else {
 					inline.width = this.widthOfText(inline.text, inline);
 					inline.height = inline.font.lineHeight(inline.fontSize) * textStyle.lineHeight;
+					inline.ascent = (inline.font.ascender / 1000) * inline.fontSize;
 				}
 				inline.x = 0;
 

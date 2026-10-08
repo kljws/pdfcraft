@@ -48,8 +48,12 @@ backgrounds behind text, and text links (`link`, `linkToPage`, `linkToDestinatio
 destinations). Page and text references (`pageReference`, `textReference`) are resolved and
 measured by text.
 
-Text positions inline elements. The payload of an inline element is measured and drawn by the
-feature that owns it.
+Text positions inline elements. Content of another feature inside a text fragment (an inline image
+or form field) is described by that feature as an `InlineContentType` (`features/text/text.types.ts`):
+how to recognize the fragment, whether its box sits against the line top or bottom, whether the
+fragment's text style applies around it, whether it wraps, and how to measure it. Composition
+supplies these types to text and dispatches drawing to the owner (`renderInlineContent`). Every
+measured inline carries its `ascent`, which the line uses for baseline alignment.
 
 ### Tables
 
@@ -84,11 +88,14 @@ styles) and the indentation of items.
 
 Images own image validation, inline data registration, sizing (`width`, `height`, `fit`, `cover`,
 min and max sizes, `shrinkToFit`), placement as an atomic item and drawing, including image borders
-and image links. When an image appears inside text, the image feature still measures and draws it.
+and image links. When an image appears inside text, the image feature still measures and draws it
+(`imageFeature.inline`): it is measured like a block image and drawn at its measured size, without
+the block image's borders, cover, clipping or links.
 
 ### Forms, attachments and extensions
 
-- AcroForm owns field validation, field measurement and field drawing, both as a block and inline.
+- AcroForm owns field validation, field measurement and field drawing, both as a block and inline
+  (`acroFormFeature.inline`).
 - Attachments own attachment resources, measurement and the file annotation.
 - The extension feature owns the extension lifecycle (`test`, `measure`, `render`, resource
   resolution and page-break keys). Each registered extension owns its own payload.
@@ -213,17 +220,6 @@ step that removes it.
 These couplings do not appear as forbidden imports, so the architecture test cannot detect them.
 Each one names its owner and the step that removes it.
 
-### Step 4: inline content
-
-- **Text draws inline images.** `features/text/render-text.ts` calls `document.image` for inline
-  images. Owner: images. Text keeps positioning; the image feature draws through an injected
-  capability, as AcroForm already does.
-- **Line ascent checks inline kinds.** `Line.getAscenderHeight` (`layout/line.ts`) tests
-  `inline.image` and `inline.acroform`. Owner: text, using measured inline metrics.
-- **Inline payload fields in the shared inline type.** `Inline.image`, `Inline.acroform`,
-  `_imageWidth` and `_imageHeight` (`types/text.types.ts`). Owner: text, with the payload owned by
-  the inline feature.
-
 ### Step 5: table normalization and internal tables
 
 - **TOC builds a legacy table shape.** `features/toc/measure-toc.ts` creates an already
@@ -286,7 +282,7 @@ These are not ownership exceptions. Step 6 handles them after ownership is settl
    flow-region capability. Done.
 3. Make stacks own their decoration, with a generic fill-layering contract and shared rounded
    geometry. Done.
-4. Finish ownership of inline content.
+4. Finish ownership of inline content. Done.
 5. Give public and internal tables one normalization path, and move table presentation data into
    tables.
 6. Reduce the framework around the features.

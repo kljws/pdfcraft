@@ -3,7 +3,7 @@ import TextBreaker from "../text-breaker.ts";
 import StyleContextStack from "../../../services/styles/style-context-stack.ts";
 
 describe("TextBreaker", function () {
-	var textBreaker = new TextBreaker();
+	var textBreaker = new TextBreaker((fragment) => Boolean(fragment.image));
 
 	var sampleText = "Przyklad, bez nowych linii,   ale !!!! rozne!!!konstrukcje i ..blablablabla.";
 	var sampleText2 =

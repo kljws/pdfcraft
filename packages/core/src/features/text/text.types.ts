@@ -1,6 +1,7 @@
 import type { Decoration } from "../../types";
 import type {
 	Inline,
+	InlineContentBox,
 	LayoutNodeBase,
 	LayoutPdfNode,
 	LineLike,
@@ -23,10 +24,21 @@ export type BrokenWord = {
 
 export type BrokenInline = Record<string, unknown> & {
 	text: string;
-	image?: PdfNode["image"] | undefined;
-	acroform?: PdfNode["acroform"] | undefined;
 	lineEnd?: boolean | undefined;
 	noNewLine?: boolean | undefined;
+};
+
+/**
+ * Content of another feature that text places in its lines as one box, such as an inline image or
+ * form field. The owning feature recognizes and measures it; composition supplies these types.
+ */
+export type InlineContentType = InlineContentBox & {
+	/** Whether a text fragment is this content (for example `{ image }`). */
+	matches(fragment: Record<string, unknown>): boolean;
+	/** The box never wraps; otherwise the fragment's `noWrap` style applies. */
+	readonly noWrap: boolean;
+	/** Measures the box and prepares its content for drawing; returns its size. */
+	measure(inline: Inline): { width: number; height: number };
 };
 
 export type InlineMeasurement = {

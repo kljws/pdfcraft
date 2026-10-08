@@ -47,11 +47,10 @@ export function createBuiltInMeasurement(options: BuiltInMeasurementOptions) {
 	};
 	const textInlines =
 		options.textInlines ??
-		new TextInlines(
-			options.document,
-			(node) => imageFeature.inline.measure(node, context),
-			(inline) => acroFormFeature.measureInline(inline),
-		);
+		new TextInlines(options.document, [
+			{ ...imageFeature.inline, measure: (inline) => imageFeature.inline.measure(inline, context) },
+			acroFormFeature.inline,
+		]);
 
 	function measureNode(node: PendingMeasureNode): MeasuredPdfNode {
 		const measuredNode = node as unknown as MeasurePdfNode;

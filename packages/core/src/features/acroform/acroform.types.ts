@@ -1,4 +1,5 @@
 import type {
+	Inline,
 	LayoutNodeBase,
 	MeasuredNodeBase,
 	PdfFont,
@@ -23,6 +24,11 @@ export type LayoutAcroFormNode = LayoutNodeBase & {
 	acroform: NonNullable<PdfNode["acroform"]>;
 	/** Font resolved at measurement for the form field appearance. */
 	_formFont?: PdfFont | undefined;
+};
+
+/** A form field inside a text line: an inline holding the field definition of its fragment. */
+export type AcroFormInline = Inline & {
+	acroform?: NonNullable<PdfNode["acroform"]> | undefined;
 };
 
 declare module "../../types/document.types" {

@@ -95,6 +95,14 @@ const getLastWord = (words: BrokenWord[], noWrap: boolean): string | null => {
 };
 
 class TextBreaker {
+	/**
+	 * @param isInlineContent Recognizes fragments that are content of another feature (an image,
+	 *   a form field); each is kept as one indivisible inline.
+	 */
+	constructor(
+		private readonly isInlineContent: (fragment: Record<string, unknown>) => boolean = () => false,
+	) {}
+
 	getBreaks(
 		input: TextFragment | TextFragment[],
 		styleContextStack: StyleContextStack = new StyleContextStack(null),
@@ -106,12 +114,7 @@ class TextBreaker {
 		for (let i = 0, l = texts.length; i < l; i++) {
 			const item = texts[i];
 			const styleItem = isObject(item) ? (item as PdfNode) : {};
-			if (styleItem.image) {
-				results.push({ ...styleItem, text: "" });
-				lastWord = null;
-				continue;
-			}
-			if (styleItem.acroform) {
+			if (this.isInlineContent(styleItem)) {
 				results.push({ ...styleItem, text: "" });
 				lastWord = null;
 				continue;

@@ -214,8 +214,8 @@ composition:
 | Consumer | Port | Provided by |
 |---|---|---|
 | `list` (measurement) | `ListMeasureCapabilities.inlines`: measure and build the marker inlines | text pipeline |
-| `text` (measurement) | `TextMeasureCapabilities.inlines` | `TextInlines` composed with `image.inline` and `acroform.measureInline` |
-| `text` (rendering) | `renderAcroForm(inline, x, y)` | shared AcroForm renderer |
+| `text` (measurement) | `TextMeasureCapabilities.inlines` | `TextInlines` composed with the inline content types `image.inline` and `acroform.inline` |
+| `text` (rendering) | `renderInlineContent(inline, x, y)` | dispatch to `image.inline.render` or `acroform.inline.render` |
 | `pageBreakBefore` | `hasLeadingMarker(node)`, `copyExtensionProperties` | `listFeature.hasMarker`, `extensionFeature` |
 | background, header and footer | `preprocessNode`, `measureNode`, `layoutNode` | single-pass pipeline |
 | page element writer | `ElementPlacementAdapter` | `createBuiltInElementPlacement` |

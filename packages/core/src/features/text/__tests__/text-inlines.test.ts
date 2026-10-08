@@ -2,8 +2,20 @@ import { assert, describe, it } from "vitest";
 import { sampleTestProvider } from "../../../__tests__/fixtures/measurement.ts";
 import TextInlines from "../text-inlines.ts";
 import StyleContextStack from "../../../services/styles/style-context-stack.ts";
+import type { Inline } from "../../../types/internal.ts";
+import type { InlineContentType } from "../text.types.ts";
 
-var textInlines = new TextInlines(sampleTestProvider, undefined, (inline) => inline);
+/** Inline form field content as AcroForm declares it, keeping the requested size. */
+const formContent: InlineContentType = {
+	kind: "acroform",
+	verticalAlign: "bottom",
+	textStyled: false,
+	noWrap: true,
+	matches: (fragment) => Boolean(fragment.acroform),
+	measure: (inline) => ({ width: inline.width, height: inline.height }),
+};
+
+var textInlines = new TextInlines(sampleTestProvider, [formContent]);
 
 describe("TextInlines", function () {
 	it("measures an inline AcroForm as an indivisible fragment", function () {
@@ -11,12 +23,18 @@ describe("TextInlines", function () {
 			["Accept ", { acroform: { type: "checkbox", id: "accept" }, width: 18, height: 16 }],
 			new StyleContextStack(null, { font: "Helvetica", fontSize: 12 }),
 		);
-		const field = result.items.find((inline) => inline.acroform);
+		const field = result.items.find((inline) => inline.content?.kind === "acroform");
 
 		assert.equal(field?.text, "");
 		assert.equal(field?.width, 18);
 		assert.equal(field?.height, 16);
+		assert.equal(field?.ascent, 16);
 		assert.equal(field?.noWrap, true);
+		assert.deepEqual(field?.content, {
+			kind: "acroform",
+			verticalAlign: "bottom",
+			textStyled: false,
+		});
 	});
 
 	var plainTextArray = ["Imię: ", "Jan   ", "   Nazwisko:", " Nowak\nDodatkowe informacje:"];
@@ -120,24 +138,33 @@ describe("TextInlines", function () {
 	});
 
 	it("measures image fragments as part of a text line", function () {
-		const inlines = new TextInlines(sampleTestProvider, (node) =>
-			Object.assign(node, {
-				_kind: "image" as const,
-				image: "resolved-icon",
-				_width: 24,
-				_height: 16,
-			}),
-		);
+		const inlines = new TextInlines(sampleTestProvider, [
+			{
+				kind: "image",
+				verticalAlign: "top",
+				textStyled: true,
+				noWrap: false,
+				matches: (fragment) => Boolean(fragment.image),
+				measure: (inline) => {
+					Object.assign(inline, { image: "resolved-icon" });
+					return { width: 24, height: 16 };
+				},
+			},
+		]);
 		const result = inlines.buildInlines([
 			{ text: "before " },
 			{ image: "icon", width: 24, height: 16 },
 			{ text: " after" },
 		]);
-		const image = result.items.find((inline) => inline.image !== undefined)!;
+		const image = result.items.find((inline) => inline.content?.kind === "image") as Inline & {
+			image: string;
+		};
 
 		assert.equal(image.image, "resolved-icon");
+		assert.equal(image.text, "");
 		assert.equal(image.width, 24);
 		assert.equal(image.height, 16);
+		assert.equal(image.ascent, 16);
 		assert(result.maxWidth >= 24);
 	});
 

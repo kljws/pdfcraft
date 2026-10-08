@@ -25,7 +25,11 @@ describe("Integration test: AcroForms", () => {
 		const line = pages[0].items.find((item) => item.type === "line");
 		expect(block?.item._width).toBe(pages[0].pageSize.width - 80);
 		expect(block?.item._height).toBe(20);
-		expect(line?.item.inlines.some((inline) => inline.acroform?.id === "accept")).toBe(true);
+		expect(
+			line?.item.inlines.some(
+				(inline) => (inline as { acroform?: { id?: string } }).acroform?.id === "accept",
+			),
+		).toBe(true);
 	});
 
 	it("generates PDFKit fields for every supported form type", async () => {

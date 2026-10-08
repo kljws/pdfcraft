@@ -10,8 +10,8 @@ export type TextRenderContext = {
 	outlineMap: Record<string, PDFKit.PDFOutline>;
 	x: number;
 	y: number;
-	/** Renders an inline form field owned by another feature. */
-	renderAcroForm(inline: Inline, x: number, y: number): void;
+	/** Draws inline content owned by another feature (`Inline.content`) with its top-left corner at x, y. */
+	renderInlineContent(inline: Inline, x: number, y: number): void;
 };
 
 type TextOptions = PDFKit.Mixins.TextOptions & {
@@ -64,8 +64,11 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 	for (const [index, inline] of line.inlines.entries()) {
 		const shiftToBaseline = lineHeight - (inline.font.ascender / 1000) * inline.fontSize - descent;
 
-		if (inline.acroform) {
-			context.renderAcroForm(inline, x + inline.x, y + Math.max(0, lineHeight - inline.height));
+		const content = inline.content;
+		const contentY =
+			content?.verticalAlign === "bottom" ? y + Math.max(0, lineHeight - inline.height) : y;
+		if (content && !content.textStyled) {
+			context.renderInlineContent(inline, x + inline.x, contentY);
 			continue;
 		}
 
@@ -89,12 +92,9 @@ export function renderTextLine(line: LineLike, context: TextRenderContext): void
 		document._font = inline.font as EmbeddedFont;
 		document.fontSize(inline.fontSize);
 
-		const shiftedY = inline.image !== undefined ? y : offsetText(y + shiftToBaseline, inline);
-		if (inline.image !== undefined) {
-			document.image(inline.image as PDFKit.Mixins.ImageSrc, x + inline.x, shiftedY, {
-				width: inline._imageWidth ?? inline.width,
-				height: inline._imageHeight ?? inline.height,
-			});
+		const shiftedY = content ? contentY : offsetText(y + shiftToBaseline, inline);
+		if (content) {
+			context.renderInlineContent(inline, x + inline.x, shiftedY);
 		} else {
 			document.text(inline.text, x + inline.x, shiftedY, options);
 		}

@@ -1,7 +1,7 @@
 import { acroFormFeature, type AcroFormRenderContext } from "../features/acroform/acroform.feature";
-import type { LayoutAcroFormNode } from "../features/acroform/acroform.types";
 import type { AttachmentRenderContext } from "../features/attachment/render-attachment";
 import type { ExtensionRenderContext } from "../features/extension/render-extension";
+import { imageFeature } from "../features/image/image.feature";
 import type { ImageRenderContext } from "../features/image/render-image";
 import { watermarkFeature } from "../features/repeatables/watermark.feature";
 import { textFeature } from "../features/text/text.feature";
@@ -19,7 +19,8 @@ type BuiltInRenderContext = AcroFormRenderContext &
 
 export type BuiltInGraphicsRendering = {
 	renderFeatureItem(kind: string, node: LayoutPdfNode, resetVectorState: () => void): void;
-	renderAcroForm(node: LayoutAcroFormNode | Inline, x: number, y: number): void;
+	/** Draws inline content of another feature in a text line, dispatched by its kind. */
+	renderInlineContent(inline: Inline, x: number, y: number): void;
 	renderWatermark(page: RenderablePage): void;
 };
 
@@ -49,8 +50,20 @@ export function createBuiltInGraphicsRendering(
 				x: node.x ?? 0,
 				y: node.y ?? 0,
 			}),
-		renderAcroForm: (node, x, y) =>
-			acroFormFeature.render(node, { renderer: acroFormRenderer, x, y }),
+		renderInlineContent: (inline, x, y) => {
+			switch (inline.content?.kind) {
+				case imageFeature.inline.kind:
+					imageFeature.inline.render(inline, { document, x, y });
+					break;
+				case acroFormFeature.inline.kind:
+					acroFormFeature.inline.render(inline, { renderer: acroFormRenderer, x, y });
+					break;
+				default:
+					throw new Error(
+						`No inline renderer registered for '${inline.content?.kind ?? "unknown"}' content`,
+					);
+			}
+		},
 		renderWatermark: (page) => watermarkFeature.render(document, page),
 	};
 }
@@ -69,7 +82,7 @@ export function createBuiltInRendering(
 				outlineMap,
 				x,
 				y,
-				renderAcroForm: graphics.renderAcroForm,
+				renderInlineContent: graphics.renderInlineContent,
 			}),
 	};
 }

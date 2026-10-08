@@ -60,12 +60,7 @@ class Line {
 		let y = 0;
 
 		this.inlines.forEach((inline) => {
-			y = Math.max(
-				y,
-				inline.image !== undefined || inline.acroform !== undefined
-					? (inline._imageHeight ?? inline.height)
-					: (inline.font.ascender / 1000) * inline.fontSize,
-			);
+			y = Math.max(y, inline.ascent);
 		});
 
 		return y;

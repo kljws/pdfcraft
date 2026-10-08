@@ -1,10 +1,5 @@
-import type { AcroFormDefinition, Color, Decoration } from "./index";
-import type {
-	LayoutPdfNode,
-	MeasuredPdfNode,
-	NodeReference,
-	SerializedBuffer,
-} from "./document.types";
+import type { Color, Decoration } from "./index";
+import type { LayoutPdfNode, MeasuredPdfNode, NodeReference } from "./document.types";
 import type { OutlineDefinition, Position } from "./layout.types";
 
 export type TextMeasurement = {
@@ -23,14 +18,27 @@ export type PdfFont = {
 	widthOfString(text: string, size: number, features?: unknown): number;
 };
 
+/**
+ * Content of another feature placed in a text line as one box, such as an inline image or form
+ * field. The owning feature measures and draws it; text positions it from these properties.
+ */
+export type InlineContentBox = {
+	/** Kind of the feature that owns and draws the content. */
+	kind: string;
+	/** The box sits against the top of its line, or against its bottom. */
+	verticalAlign: "top" | "bottom";
+	/** The text style of the fragment (opacity, color, page links) applies around the box. */
+	textStyled: boolean;
+};
+
 export type Inline = {
 	text: string;
-	image?: string | Uint8Array | SerializedBuffer | undefined;
-	acroform?: AcroFormDefinition | undefined;
-	_imageWidth?: number | undefined;
-	_imageHeight?: number | undefined;
 	width: number;
 	height: number;
+	/** Height above the baseline, as measured: the font ascent of text, the height of a box. */
+	ascent: number;
+	/** Set when the fragment is content of another feature rather than text. */
+	content?: InlineContentBox | undefined;
 	x: number;
 	leadingCut: number;
 	trailingCut: number;

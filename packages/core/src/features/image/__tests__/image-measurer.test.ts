@@ -39,7 +39,9 @@ describe("Image measurement", function () {
 		createBuiltInPreprocessing().preprocessDocument(node);
 
 		const result = measure.measureNode(node as PreprocessedPdfNode) as MeasuredTextNode;
-		const image = result.metrics.inlines.find((inline) => inline.image !== undefined)!;
+		const image = result.metrics.inlines.find(
+			(inline) => inline.content?.kind === "image",
+		) as (typeof result.metrics.inlines)[number] & { image: string };
 
 		assert.equal(image.image, "logo");
 		assert.equal(image.width, 20);
