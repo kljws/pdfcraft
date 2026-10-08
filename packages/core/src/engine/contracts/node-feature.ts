@@ -4,7 +4,7 @@ import type StyleContextStack from "../../services/styles/style-context-stack";
 import type DocumentContext from "../../document/document-context";
 import type { VerticalAlignmentControls } from "../layout-node-lifecycle";
 import type { FlowAdvance, FlowAdvanceOptions } from "../layout-pagination";
-import type { Dictionary, PageOrientation, PdfCraftExtensions } from "../../types";
+import type { PageOrientation, PdfCraftExtensions } from "../../types";
 import type {
 	CurrentPosition,
 	LayoutPdfNode,
@@ -13,7 +13,6 @@ import type {
 	PageMarginSource,
 	PageSize,
 	PendingMeasureNode,
-	TableLayout,
 	Vector,
 } from "../../types/internal";
 
@@ -43,7 +42,6 @@ export type NodeMeasureContext = {
 	readonly document: PDFDocument;
 	readonly styles: StyleContextStack;
 	readonly extensions: PdfCraftExtensions;
-	readonly tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>>;
 	readonly featureState: Map<string, object>;
 	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
 };

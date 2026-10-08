@@ -1,4 +1,5 @@
 import type { CoordinateSnapshot } from "../../document/document-context.types";
+import type { TableRowGroupLayout } from "../../types";
 import type {
 	ColumnWidth,
 	PageBreak,
@@ -6,13 +7,61 @@ import type {
 	LayoutNodeBase,
 	MeasuredPdfNode,
 	MeasuredNodeBase,
-	PdfTable,
+	PdfNode,
 	PreprocessedPdfNode,
 	PreprocessedNodeBase,
-	RawTableWidths,
-	TableLayout,
-	TableOffsets,
 } from "../../types/internal";
+
+export type RawColumnWidth = ColumnWidth | number | string;
+export type RawTableWidths = RawColumnWidth | RawColumnWidth[];
+
+export type PdfTable<Node = PdfNode, Widths = ColumnWidth[]> = {
+	body: Node[][];
+	widths: Widths;
+	borderRadius?: number | undefined;
+	heights?:
+		| number
+		| "auto"
+		| Array<number | "auto">
+		| ((rowIndex: number) => number | "auto")
+		| undefined;
+	headerRows?: number | undefined;
+	_rowGroups?: TableRowGroupRange<Node>[] | undefined;
+	_headerLayout?: string | Partial<TableLayout<Node>> | undefined;
+	_bodyLayout?: string | Partial<TableLayout<Node>> | undefined;
+};
+
+export type TableRowGroupRange<Node = PdfNode> = {
+	groupIndex: number;
+	startRow: number;
+	endRow: number;
+	keepTogether: boolean;
+	dontBreakRows: boolean;
+	layoutDefinition?: TableRowGroupLayout | undefined;
+	layout?: TableLayout<Node> | undefined;
+};
+
+export type TableOffsets = {
+	total: number;
+	offsets: number[];
+};
+
+export type TableLayout<Node = PdfNode> = {
+	hLineWhenBroken?: boolean | undefined;
+	hLineWidth(index: number, node: Node): number;
+	vLineWidth(index: number, node: Node): number;
+	hLineColor(index: number, node: Node, columnIndex?: number): unknown;
+	vLineColor(index: number, node: Node, rowIndex?: number): unknown;
+	paddingLeft(index: number, node: Node): number;
+	paddingRight(index: number, node: Node): number;
+	paddingTop(index: number, node: Node): number;
+	paddingBottom(index: number, node: Node): number;
+	defaultBorder: boolean;
+	hLineStyle?(index: number, node: Node): { dash?: unknown } | null | undefined;
+	vLineStyle?(index: number, node: Node): { dash?: unknown } | null | undefined;
+	fillColor?: unknown;
+	fillOpacity?: unknown;
+};
 
 /**
  * State the table feature attaches to the table node and to each of its cells, whatever the
@@ -38,7 +87,6 @@ export interface TableNodeState<Node> {
 	_willBreak?: boolean | undefined;
 	_isUnbreakableContext?: boolean | undefined;
 	_bottomByPage?: Record<number, number> | undefined;
-	_rowTopPageYPadding?: number | undefined;
 	_lastPageNumber?: number | undefined;
 	_rowSpanCurrentOffset?: number | undefined;
 }

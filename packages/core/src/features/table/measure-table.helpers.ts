@@ -1,24 +1,31 @@
-import { defaultTableLayout } from "../../configuration/table-layouts";
 import type { Dictionary } from "../../types";
 import type { TableLayoutNode, TableRowGroupLayout, TableRowGroupLayoutContext } from "../../types";
+import type { ColumnWidth } from "../../types/internal";
+import { pack } from "../../utils/tools";
+import { isNumber, isObject, isString } from "../../utils/variable-type";
+import { defaultTableLayout, tableLayouts as tableLayoutPresets } from "./table-layouts";
 import type {
-	ColumnWidth,
+	MeasuredTableCell,
+	MeasuredTableNode,
 	PdfTable,
 	RawColumnWidth,
 	TableLayout,
+	TableMeasureNode,
 	TableOffsets,
 	TableRowGroupRange,
-} from "../../types/internal";
-import { pack } from "../../utils/tools";
-import { isNumber, isObject, isString } from "../../utils/variable-type";
-import type { MeasuredTableCell, MeasuredTableNode, TableMeasureNode } from "./table.types";
+} from "./table.types";
 
+/**
+ * Resolves a header or body layout: a layout object, or the name of a layout registered by the
+ * caller or of a preset (`noBorders`, `headerLineOnly`, `lightHorizontalLines`), over the default
+ * layout. A registered layout replaces a preset of the same name.
+ */
 export function resolveTableLayout(
-	node: TableMeasureNode,
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredTableCell>>>,
-	layoutDefinition: unknown = node.layout,
+	layoutDefinition: unknown,
 ): TableLayout<MeasuredTableCell> {
-	const layout = isString(layoutDefinition) ? tableLayouts[layoutDefinition] : layoutDefinition;
+	const namedLayouts: Dictionary<unknown> = { ...tableLayoutPresets, ...tableLayouts };
+	const layout = isString(layoutDefinition) ? namedLayouts[layoutDefinition] : layoutDefinition;
 	return pack<TableLayout<MeasuredTableCell>>(
 		defaultTableLayout as unknown as Partial<TableLayout<MeasuredTableCell>>,
 		isObject(layout) ? (layout as unknown as Partial<TableLayout<MeasuredTableCell>>) : undefined,

@@ -1,9 +1,9 @@
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { ProcessRowOptions, ProcessRowResult } from "./layout-row";
-import type { ColumnWidth, PdfTable } from "../../types/internal";
+import type { ColumnWidth } from "../../types/internal";
 import TableProcessor from "./table-processor";
 import { findSameRowPageBreakByRowSpanData, getPageBreakListBySpan } from "./table-pagination";
-import type { LayoutTableCell, LayoutTableNode } from "./table.types";
+import type { LayoutTableCell, LayoutTableNode, PdfTable } from "./table.types";
 
 export type TableLayoutHost = {
 	writer: PageElementWriter;
@@ -80,7 +80,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 	for (const [rowIndex, row] of table.body.entries()) {
 		processor.selectLayout(rowIndex);
 		const rowGroup = processor.rowGroupsByRow[rowIndex];
-		const rowDontBreakRows = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
+		const rowDontBreakRows = rowGroup?.dontBreakRows === true;
 		const rowHeight = getRowHeight(table.heights, rowIndex);
 		// Inside a container flow, a row that cannot start in the remaining height moves to the next
 		// region as a whole.

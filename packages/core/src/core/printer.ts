@@ -6,7 +6,6 @@ import {
 	normalizePageSize,
 	normalizePageMargin,
 } from "../configuration/page-size";
-import { tableLayouts } from "../configuration/table-layouts";
 import Renderer from "../rendering/renderer";
 import type { RenderablePage } from "../rendering/renderer.types";
 import { isNumber, isValue } from "../utils/variable-type";
@@ -148,7 +147,6 @@ class PdfPrinter {
 		}
 		const builder = new LayoutBuilder(pageSize, pageMargins, this.extensions);
 
-		builder.registerTableLayouts(tableLayouts);
 		if (options.tableLayouts) {
 			builder.registerTableLayouts(options.tableLayouts);
 		}

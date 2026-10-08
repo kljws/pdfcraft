@@ -2,17 +2,11 @@ import type { BuiltInMeasurement } from "../composition/built-in-measurement";
 import type { BuiltInPreprocessing } from "../composition/built-in-preprocessing";
 import type PageElementWriter from "./element-writer.page";
 import { pack } from "../utils/tools";
-import type { LayoutPdfNode, MeasuredPdfNode } from "../types/internal";
+import type { LayoutPdfNode } from "../types/internal";
 import type PDFDocument from "../rendering/pdf-document";
 import type { PageBreakBefore } from "../engine/page-break-before.types";
-import type {
-	Dictionary,
-	PageOrientation,
-	PdfCraftExtensions,
-	Style,
-	TableLayout as PublicTableLayout,
-} from "../types";
-import type { PageMarginSource, PageSize, PdfPage, TableLayout } from "../types/internal";
+import type { Dictionary, PageOrientation, PdfCraftExtensions, Style, TableLayout } from "../types";
+import type { PageMarginSource, PageSize, PdfPage } from "../types/internal";
 import {
 	layoutNodeWithLifecycle,
 	type VerticalAlignmentControls,
@@ -38,7 +32,8 @@ class LayoutBuilder {
 	pageSize: PageSize;
 	pageMargins: PageMarginSource;
 	extensions: PdfCraftExtensions;
-	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>> = {};
+	/** Table layouts registered by the caller; tables resolve them by name. */
+	tableLayouts: Dictionary<TableLayout> = {};
 	nestedLevel = 0;
 	preprocessing!: BuiltInPreprocessing;
 	measurement!: BuiltInMeasurement;
@@ -58,11 +53,8 @@ class LayoutBuilder {
 		this.layout = createBuiltInLayout(this);
 	}
 
-	registerTableLayouts(tableLayouts: Dictionary<Partial<TableLayout> | PublicTableLayout>): void {
-		this.tableLayouts = pack(
-			this.tableLayouts,
-			tableLayouts as Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
-		);
+	registerTableLayouts(tableLayouts: Dictionary<TableLayout>): void {
+		this.tableLayouts = pack(this.tableLayouts, tableLayouts);
 	}
 
 	/** Lays out a document definition into pages of positioned lines, inlines and vectors. */

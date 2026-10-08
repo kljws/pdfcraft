@@ -260,8 +260,7 @@ class TableRowLayout {
 							throw new Error("Internal layout error: missing row-span ending cell");
 						}
 						if (dontBreakRows) {
-							const rowTopPageY =
-								(endingCell._startingRowSpanY ?? 0) + (endingCell._rowTopPageYPadding ?? 0);
+							const rowTopPageY = endingCell._startingRowSpanY ?? 0;
 							return (endingCell._rowTopPageY ?? 0) - rowTopPageY + (endingCell._bottomY ?? 0);
 						}
 						if (cell._lastPageNumber !== endingCell._lastPageNumber) {

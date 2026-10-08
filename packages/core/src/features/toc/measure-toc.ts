@@ -1,3 +1,4 @@
+import type { TableNode, TableRow } from "../../types";
 import type {
 	MeasuredPdfNode,
 	PendingMeasureNode,
@@ -8,6 +9,8 @@ import type { MeasuredTocNode } from "./toc.types";
 
 export type TocMeasureContext = {
 	measureNode(node: PendingMeasureNode): MeasuredPdfNode;
+	/** Normalizes a table, in the public table shape, whose cells are already preprocessed. */
+	normalizeTable(node: TableNode): PreprocessedPdfNode;
 };
 
 export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): MeasuredTocNode {
@@ -68,15 +71,16 @@ export function measureToc(node: MeasuredTocNode, context: TocMeasureContext): M
 			if (toc.outlines) textNode.outline = textNode.outline || true;
 		}
 
-		const tocTable: PreprocessedPdfNode = {
-			_kind: "table",
+		// Entries are presented as a borderless table whose rows never break across pages.
+		const tocTable = context.normalizeTable({
 			table: {
-				dontBreakRows: true,
 				widths: ["*", "auto"],
-				body,
+				body: {
+					groups: [{ rows: body as unknown as TableRow[], dontBreakRows: true }],
+					layout: "noBorders",
+				},
 			},
-			layout: "noBorders",
-		};
+		});
 
 		toc._table = context.measureNode(tocTable);
 	}

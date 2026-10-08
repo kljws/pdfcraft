@@ -60,7 +60,13 @@ measured inline carries its `ascent`, which the line uses for baseline alignment
 Tables own the grouped public table API and its normalization, cells, row and column spans, row
 groups (`keepTogether`, `dontBreakRows`, group layouts), repeated headers, table layouts and their
 presets, borders including rounded borders, cell backgrounds and overlays, row heights, cell
-vertical alignment, and table pagination with its break tracking.
+vertical alignment, and table pagination with its break tracking. Their data contracts
+(`PdfTable`, `TableLayout`, row groups, offsets) live in `features/table/table.types.ts` and the
+layout presets in `features/table/table-layouts.ts`. Every table, public or built by another
+feature, goes through one normalization (`features/table/preprocess-table.ts`): `preprocessTable`
+for definitions whose cells still need preprocessing, `normalizeTable` for cells that are already
+preprocessed. Layouts registered by the caller (`tableLayouts`) reach tables as a measurement
+capability supplied by composition and replace presets of the same name.
 
 ### Columns
 
@@ -115,8 +121,9 @@ a leading section asks it to establish its page first (`preparePage`).
 
 The table of contents owns entry collection (`tocItem`), ordering (`sortBy`, `sortLocale`), the
 references from entries to their targets, and its presentation choices (title, styles, margins,
-outlines, `hideEmpty`). It presents entries as a table through table normalization supplied by
-composition; it does not import the table feature.
+outlines, `hideEmpty`). It presents entries as a borderless table in the public grouped shape,
+normalized through the `normalizeTable` capability supplied by composition; it does not import the
+table feature.
 
 ### Document-level features
 
@@ -220,24 +227,6 @@ step that removes it.
 These couplings do not appear as forbidden imports, so the architecture test cannot detect them.
 Each one names its owner and the step that removes it.
 
-### Step 5: table normalization and internal tables
-
-- **TOC builds a legacy table shape.** `features/toc/measure-toc.ts` creates an already
-  preprocessed table with `dontBreakRows`, a flat `body` and a node-level `layout: "noBorders"`,
-  bypassing table normalization. The node-level layout only works because
-  `resolveTableLayout` (`features/table/measure-table.helpers.ts`) defaults its layout argument to
-  `node.layout`. Owner: TOC for its presentation, tables for normalization.
-- **Internal legacy table options.** `PdfTable.dontBreakRows`, `keepWithHeaderRows` and the
-  `alreadyNormalized` path of `features/table/preprocess-table.ts` exist for internal tables only;
-  the public API rejects them. Owner: tables.
-- **Table data contracts in shared types.** `PdfTable`, `TableRowGroupRange`, `TableLayout` and
-  `TableOffsets` (`types/table.types.ts`). Owner: tables. `ColumnWidth` and `RawColumnWidth` stay
-  shared, since the width calculator uses them for columns too.
-- **Table layout presets outside tables.** `configuration/table-layouts.ts` (presets and the
-  default layout), `NodeMeasureContext.tableLayouts` (`engine/contracts/node-feature.ts`) and
-  `LayoutBuilder.registerTableLayouts` route table presentation through shared code. Owner: tables.
-  The public `tableLayouts` options of `PdfCraftBase` and `createPdf` are unchanged.
-
 ### Step 6: central feature knowledge
 
 - **Hardcoded page-break properties.** `nodeInfoKeys` and `nodeInfo.stack`
@@ -284,7 +273,7 @@ These are not ownership exceptions. Step 6 handles them after ownership is settl
    geometry. Done.
 4. Finish ownership of inline content. Done.
 5. Give public and internal tables one normalization path, and move table presentation data into
-   tables.
+   tables. Done.
 6. Reduce the framework around the features.
 
 Each step removes its exceptions from this document and, for import exceptions, from the test

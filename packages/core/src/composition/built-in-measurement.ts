@@ -1,29 +1,36 @@
 import { acroFormFeature } from "../features/acroform/acroform.feature";
 import { imageFeature } from "../features/image/image.feature";
 import type { ListMeasureCapabilities } from "../features/list/list.feature";
+import { tableFeature, type TableMeasureCapabilities } from "../features/table/table.feature";
 import type { TextMeasureCapabilities } from "../features/text/text.feature";
+import type { TocMeasureCapabilities } from "../features/toc/toc.feature";
 import TextInlines from "../features/text/text-inlines";
 import type { NodeMeasureContext } from "../engine/contracts/node-feature";
 import type PDFDocument from "../rendering/pdf-document";
 import StyleContextStack from "../services/styles/style-context-stack";
-import type { Dictionary, PdfCraftExtensions, Style } from "../types";
+import type { Dictionary, PdfCraftExtensions, Style, TableLayout } from "../types";
 import type {
 	MeasurePdfNode,
 	MeasuredPdfNode,
+	PdfNode,
 	PendingMeasureNode,
-	TableLayout,
 } from "../types/internal";
 import { getNodeMargin, stringifyNode } from "../utils/node";
 import { measureRegisteredNodeFeature } from "./built-in-feature-registry";
 
-type BuiltInMeasureContext = NodeMeasureContext & ListMeasureCapabilities & TextMeasureCapabilities;
+type BuiltInMeasureContext = NodeMeasureContext &
+	ListMeasureCapabilities &
+	TableMeasureCapabilities &
+	TextMeasureCapabilities &
+	TocMeasureCapabilities;
 
 export type BuiltInMeasurementOptions = {
 	readonly document: PDFDocument;
 	readonly styleDictionary?: Dictionary<Style> | undefined;
 	readonly defaultStyle?: Style | undefined;
 	readonly extensions?: PdfCraftExtensions | undefined;
-	readonly tableLayouts?: Dictionary<Partial<TableLayout<MeasuredPdfNode>>> | undefined;
+	/** Table layouts registered by the caller, referenced by name from tables. */
+	readonly tableLayouts?: Dictionary<TableLayout> | undefined;
 	/** Replaces the inline text engine, e.g. with a test double. */
 	readonly textInlines?: TextInlines | undefined;
 };
@@ -41,9 +48,10 @@ export function createBuiltInMeasurement(options: BuiltInMeasurementOptions) {
 			return textInlines;
 		},
 		extensions: options.extensions ?? [],
-		tableLayouts: options.tableLayouts ?? {},
+		tableLayouts: (options.tableLayouts ?? {}) as TableMeasureCapabilities["tableLayouts"],
 		featureState: new Map(),
 		measureNode: (node) => measureNode(node),
+		normalizeTable: (node) => tableFeature.normalize(node as unknown as PdfNode),
 	};
 	const textInlines =
 		options.textInlines ??

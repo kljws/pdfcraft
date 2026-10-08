@@ -1,6 +1,6 @@
 import BaseLayoutBuilder from "../../layout/layout-builder.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
-import type { Dictionary, PdfCraftExtension, Style } from "../../types/index.ts";
+import type { Dictionary, PdfCraftExtension, Style, TableLayout } from "../../types/index.ts";
 import type { PageBreakBefore } from "../../engine/page-break-before.types.ts";
 import type {
 	LineLike,
@@ -9,7 +9,6 @@ import type {
 	PageSize,
 	PdfNode,
 	PdfPage,
-	TableLayout,
 	Vector,
 } from "../../types/internal.ts";
 

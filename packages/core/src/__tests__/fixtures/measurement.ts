@@ -1,12 +1,7 @@
 import { createBuiltInMeasurement } from "../../composition/built-in-measurement.ts";
 import type PDFDocument from "../../rendering/pdf-document.ts";
-import type { Dictionary, PdfCraftExtensions, Style } from "../../types/index.ts";
-import type {
-	MeasuredPdfNode,
-	PdfFont,
-	PreprocessedPdfNode,
-	TableLayout,
-} from "../../types/internal.ts";
+import type { Dictionary, PdfCraftExtensions, Style, TableLayout } from "../../types/index.ts";
+import type { MeasuredPdfNode, PdfFont, PreprocessedPdfNode } from "../../types/internal.ts";
 
 export const sampleTestProvider = {
 	provideFont: (_familyName: string, bold: boolean, italics: boolean): PdfFont => ({
@@ -27,14 +22,14 @@ export function createTestMeasurement<Measured = MeasuredPdfNode>(
 	styleDictionary: Dictionary<Style> = {},
 	defaultStyle: Style = {},
 	extensions: PdfCraftExtensions = [],
-	tableLayouts: Dictionary<Partial<TableLayout>> = {},
+	tableLayouts: Dictionary<TableLayout> = {},
 ) {
 	const measurement = createBuiltInMeasurement({
 		document: document as PDFDocument,
 		styleDictionary,
 		defaultStyle,
 		extensions,
-		tableLayouts: tableLayouts as Dictionary<Partial<TableLayout<MeasuredPdfNode>>>,
+		tableLayouts,
 	});
 	return {
 		measureNode: (node: unknown): Measured =>

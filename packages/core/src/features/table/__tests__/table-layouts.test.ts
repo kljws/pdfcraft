@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { PdfNode } from "../../types/internal";
-import { defaultTableLayout, tableLayouts } from "../table-layouts";
+import { defaultTableLayout, tableLayouts, type PresetTableNode } from "../table-layouts.ts";
 
 const node = {
 	table: {
@@ -15,7 +14,7 @@ const node = {
 			[{ text: "C" }, { text: "D" }],
 		],
 	},
-} as unknown as PdfNode;
+} as unknown as PresetTableNode;
 
 describe("table layouts", () => {
 	it("removes borders and outer padding in noBorders", () => {

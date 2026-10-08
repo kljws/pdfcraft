@@ -4,8 +4,8 @@ import {
 	createTestMeasurement,
 	sampleTestProvider,
 } from "../../../__tests__/fixtures/measurement.ts";
-import type { ColumnWidth, PdfNode, PdfTable, TableLayout } from "../../../types/internal.ts";
-import type { MeasuredTableNode } from "../table.types.ts";
+import type { ColumnWidth, PdfNode } from "../../../types/internal.ts";
+import type { MeasuredTableNode, PdfTable, TableLayout } from "../table.types.ts";
 
 type MeasuredFixture = PdfNode & {
 	_minWidth: number;

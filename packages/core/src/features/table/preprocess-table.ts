@@ -39,10 +39,15 @@ export type TablePreprocessContext = {
 	preprocessNode(input: unknown, isSectionAllowed?: boolean): PreprocessedPdfNode;
 };
 
-export function preprocessTable(
-	node: PdfNode,
-	context: TablePreprocessContext,
-): PreprocessedTableNode {
+/**
+ * Validates a table node and normalizes its grouped public shape (`header`, `body.groups`) into
+ * one body of rows with row groups and span placeholders. Cells are left as they are.
+ * A table normalized by an earlier layout pass is kept as it is.
+ */
+function normalizeTableShape(node: PdfNode): {
+	body: PreprocessedPdfNode[][];
+	columnCount: number;
+} {
 	if (!isObject(node.table)) {
 		throw new Error(
 			`Invalid table node: 'table' must be an object, received ${stringifyNode(node)}`,
@@ -235,6 +240,23 @@ export function preprocessTable(
 			`Invalid table node: 'table.widths' defines ${table.widths.length} columns but table rows define ${columnCount}`,
 		);
 	}
+	return { body, columnCount };
+}
+
+/**
+ * Normalizes a table whose cells are already preprocessed, such as a table built by another
+ * feature from preprocessed content. Its cells are not preprocessed again.
+ */
+export function normalizeTable(node: PdfNode): PreprocessedTableNode {
+	normalizeTableShape(node);
+	return markNodeKind(node, "table");
+}
+
+export function preprocessTable(
+	node: PdfNode,
+	context: TablePreprocessContext,
+): PreprocessedTableNode {
+	const { body, columnCount } = normalizeTableShape(node);
 	for (let column = 0; column < columnCount; column++) {
 		for (const rowData of body) {
 			const data = rowData[column];

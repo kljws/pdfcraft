@@ -96,7 +96,7 @@ survive until its next layout. The first pass measures `00000`.
 | `document/` | `DocumentContext`: pages, cursor, available space, column groups and flow regions |
 | `rendering/` | PDFKit adapter, page renderer, shared primitives (vectors, clipping, vertical alignment) |
 | `services/` | Neutral services: styles, typography, box measurement, resource references |
-| `resources/`, `configuration/`, `output/` | URL resolution and virtual file system, page sizes and table layouts, output stream |
+| `resources/`, `configuration/`, `output/` | URL resolution and virtual file system, page sizes, output stream |
 | `types/` | Public types (`types/index.ts`) and neutral internal types (`types/internal.ts`) |
 | `utils/` | Utility functions with no feature knowledge |
 
@@ -214,6 +214,8 @@ composition:
 | Consumer | Port | Provided by |
 |---|---|---|
 | `list` (measurement) | `ListMeasureCapabilities.inlines`: measure and build the marker inlines | text pipeline |
+| `table` (measurement) | `TableMeasureCapabilities.tableLayouts` | layouts registered by the caller |
+| `toc` (measurement) | `TocMeasureCapabilities.normalizeTable` | `tableFeature.normalize` |
 | `text` (measurement) | `TextMeasureCapabilities.inlines` | `TextInlines` composed with the inline content types `image.inline` and `acroform.inline` |
 | `text` (rendering) | `renderInlineContent(inline, x, y)` | dispatch to `image.inline.render` or `acroform.inline.render` |
 | `pageBreakBefore` | `hasLeadingMarker(node)`, `copyExtensionProperties` | `listFeature.hasMarker`, `extensionFeature` |

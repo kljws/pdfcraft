@@ -1,9 +1,13 @@
 /* oxlint-disable no-unused-vars */
 
-import type { Dictionary } from "../types";
-import type { PdfNode, TableLayout } from "../types/internal";
+import type { Dictionary } from "../../types";
+import type { PdfNode } from "../../types/internal";
+import type { PdfTable, TableLayout } from "./table.types";
 
 export { tableLayouts, defaultTableLayout };
+
+/** The part of a normalized table node that the layout presets read. */
+export type PresetTableNode = { table: Pick<PdfTable, "widths" | "body" | "headerRows"> };
 
 const tableLayouts = {
 	noBorders: {
@@ -16,16 +20,16 @@ const tableLayouts = {
 		paddingLeft(i: number): number {
 			return (i && 4) || 0;
 		},
-		paddingRight(i: number, node: PdfNode): number {
-			return i < node.table!.widths.length - 1 ? 4 : 0;
+		paddingRight(i: number, node: PresetTableNode): number {
+			return i < node.table.widths.length - 1 ? 4 : 0;
 		},
 	},
 	headerLineOnly: {
-		hLineWidth(i: number, node: PdfNode): number {
-			if (i === 0 || i === node.table!.body.length) {
+		hLineWidth(i: number, node: PresetTableNode): number {
+			if (i === 0 || i === node.table.body.length) {
 				return 0;
 			}
-			return i === node.table!.headerRows ? 2 : 0;
+			return i === node.table.headerRows ? 2 : 0;
 		},
 		vLineWidth(i: number): number {
 			return 0;
@@ -33,16 +37,16 @@ const tableLayouts = {
 		paddingLeft(i: number): number {
 			return i === 0 ? 0 : 8;
 		},
-		paddingRight(i: number, node: PdfNode): number {
-			return i === node.table!.widths.length - 1 ? 0 : 8;
+		paddingRight(i: number, node: PresetTableNode): number {
+			return i === node.table.widths.length - 1 ? 0 : 8;
 		},
 	},
 	lightHorizontalLines: {
-		hLineWidth(i: number, node: PdfNode): number {
-			if (i === 0 || i === node.table!.body.length) {
+		hLineWidth(i: number, node: PresetTableNode): number {
+			if (i === 0 || i === node.table.body.length) {
 				return 0;
 			}
-			return i === node.table!.headerRows ? 2 : 1;
+			return i === node.table.headerRows ? 2 : 1;
 		},
 		vLineWidth(i: number): number {
 			return 0;
@@ -53,11 +57,11 @@ const tableLayouts = {
 		paddingLeft(i: number): number {
 			return i === 0 ? 0 : 8;
 		},
-		paddingRight(i: number, node: PdfNode): number {
-			return i === node.table!.widths.length - 1 ? 0 : 8;
+		paddingRight(i: number, node: PresetTableNode): number {
+			return i === node.table.widths.length - 1 ? 0 : 8;
 		},
 	},
-} satisfies Dictionary<Partial<TableLayout>>;
+} satisfies Dictionary<Partial<TableLayout<PresetTableNode>>>;
 
 const defaultTableLayout = {
 	hLineWidth(i: number, node: PdfNode): number {

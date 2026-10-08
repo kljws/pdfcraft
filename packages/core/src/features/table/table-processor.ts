@@ -5,9 +5,16 @@ import {
 } from "./table-processor.borders";
 import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
-import type { PdfPage, PdfTable, TableOffsets, TableRowGroupRange } from "../../types/internal";
+import type { PdfPage } from "../../types/internal";
 import { isPositiveInteger } from "../../utils/variable-type";
-import type { LayoutTableCell, LayoutTableNode, TablePageBreak } from "./table.types";
+import type {
+	LayoutTableCell,
+	LayoutTableNode,
+	PdfTable,
+	TableOffsets,
+	TablePageBreak,
+	TableRowGroupRange,
+} from "./table.types";
 import type {
 	ResolvedTableLayout,
 	RowSpanData,
@@ -42,7 +49,6 @@ class TableProcessor {
 	cleanUpRepeatables = false;
 	headerRows = 0;
 	rowsWithoutPageBreak = 0;
-	dontBreakRows = false;
 	topLineWidth = 0;
 	rowPaddingTop = 0;
 	bottomLineWidth = 0;
@@ -127,19 +133,12 @@ class TableProcessor {
 			if (firstBodyGroup?.keepTogether) {
 				this.rowsWithoutPageBreak = firstBodyGroup.endRow + 1;
 			}
-			if (isPositiveInteger(table.keepWithHeaderRows)) {
-				this.rowsWithoutPageBreak += table.keepWithHeaderRows;
-			}
 		}
 		this.layout = this.headerRows ? this.headerLayout : this.bodyLayout;
 
-		this.dontBreakRows = table.dontBreakRows || false;
-		if (this.rowsWithoutPageBreak || this.dontBreakRows) {
+		if (this.rowsWithoutPageBreak) {
 			writer.beginUnbreakableBlock();
 			this.drawHorizontalLine(0, writer);
-			if (this.rowsWithoutPageBreak && this.dontBreakRows) {
-				writer.beginUnbreakableBlock();
-			}
 		}
 
 		propagateCellBorders(table.body);
@@ -168,16 +167,14 @@ class TableProcessor {
 			writer.context().moveDown(offset);
 		};
 		writer.addListener("pageChanged", this.rowCallback);
-		if (rowIndex === 0 && !this.dontBreakRows && !this.rowsWithoutPageBreak) {
+		if (rowIndex === 0 && !this.rowsWithoutPageBreak) {
 			this._tableTopBorderY = writer.context().y;
 			writer.context().moveDown(this.topLineWidth);
 		}
 
 		this.rowTopPageY = writer.context().y + this.rowPaddingTop;
 		const rowHasPageBreak = this.table.body[rowIndex]?.some(hasExplicitPageBreak) ?? false;
-		const rowMustNotBreak = this.dontBreakRows || rowGroup?.dontBreakRows === true;
-		this._isCurrentRowUnbreakable =
-			rowMustNotBreak && !(this.dontBreakRows && rowIndex === 0) && !rowHasPageBreak;
+		this._isCurrentRowUnbreakable = rowGroup?.dontBreakRows === true && !rowHasPageBreak;
 		if (this._isCurrentRowUnbreakable) writer.beginUnbreakableBlock();
 
 		this.rowTopY = writer.context().y;
@@ -292,12 +289,7 @@ class TableProcessor {
 				borderSide: "bottom",
 			});
 		}
-		if (
-			rowIndex === 0 &&
-			!skipOrphanePadding &&
-			!this.rowsWithoutPageBreak &&
-			!this.dontBreakRows
-		) {
+		if (rowIndex === 0 && !skipOrphanePadding && !this.rowsWithoutPageBreak) {
 			// Draw the top border of the table
 			// The page where the table started
 			const pageTableStartedAt = firstBreak?.prevPage;
@@ -417,10 +409,7 @@ class TableProcessor {
 			this.headerRepeatable = writer.currentBlockToRepeatable();
 		}
 
-		const shouldCommitCurrentRowUnbreakable =
-			(this.dontBreakRows && rowIndex === 0) || this._isCurrentRowUnbreakable;
-
-		if (shouldCommitCurrentRowUnbreakable) {
+		if (this._isCurrentRowUnbreakable) {
 			const pageChangedCallback = (change: TablePageBreak) => {
 				if (rowIndex > 0 && this.layout.hLineWhenBroken !== false) {
 					this.drawHorizontalLine(rowIndex, writer, {

@@ -1,7 +1,7 @@
 import type { AcroFormDefinition, Alignment, Color, Decoration, Margin } from "./index";
 import type { NodeLayoutInfo, Point, Position } from "./layout.types";
 import type { Vector } from "./rendering.types";
-import type { ColumnNode, PdfTable, RawTableWidths, TableLayout } from "./table.types";
+import type { ColumnNode } from "./table.types";
 
 export type Metadata = Record<string, unknown>;
 
@@ -51,7 +51,8 @@ export type PdfNode = {
 	columns?: ColumnNode[] | undefined;
 	ul?: PdfNode[] | undefined;
 	ol?: PdfNode[] | undefined;
-	table?: PdfTable | undefined;
+	/** Table definition; its shape is owned by the table feature. */
+	table?: Metadata | undefined;
 	canvas?: Vector[] | undefined;
 	section?: PdfNode | undefined;
 	image?: string | Uint8Array | SerializedBuffer | undefined;
@@ -100,7 +101,6 @@ export type PdfNode = {
 	overlayPattern?: PDFKit.Mixins.ColorValue | undefined;
 	overlayOpacity?: number | undefined;
 	verticalAlignment?: "top" | "middle" | "bottom" | undefined;
-	layout?: string | TableLayout | undefined;
 	pageBreak?: string | undefined;
 	pageBreakCalculated?: boolean | undefined;
 	pageOrientation?: "portrait" | "landscape" | undefined;
@@ -209,13 +209,13 @@ type NodeHierarchyKey =
 	| "attachment"
 	| "acroform";
 // Kept as an interface: it takes part in the recursive node types and breaks the cycle.
-interface NodeHierarchy<Node, TableWidths = RawTableWidths> {
+interface NodeHierarchy<Node> {
 	text?: NodeText<Node> | undefined;
 	stack?: Node[] | undefined;
 	columns?: ColumnNode<Node>[] | undefined;
 	ul?: Node[] | undefined;
 	ol?: Node[] | undefined;
-	table?: PdfTable<Node, TableWidths> | undefined;
+	table?: Metadata | undefined;
 	section?: Node | undefined;
 	toc?: TocDefinition<Node> | undefined;
 }

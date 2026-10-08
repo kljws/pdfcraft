@@ -1,7 +1,7 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import { trackVectorInsertion } from "../../layout/vector-insertion";
-import type { ColumnWidth, PdfPage, PdfTable, Vector } from "../../types/internal";
-import type { LayoutTableCell, LayoutTableNode } from "./table.types";
+import type { ColumnWidth, PdfPage, Vector } from "../../types/internal";
+import type { LayoutTableCell, LayoutTableNode, PdfTable } from "./table.types";
 import type {
 	ResolvedTableLayout,
 	RowSpanData,
@@ -47,7 +47,6 @@ export function resetTableLayoutState(tableNode: LayoutTableNode): void {
 			delete cell._willBreak;
 			delete cell._isUnbreakableContext;
 			delete cell.__height;
-			delete cell._rowTopPageYPadding;
 			delete cell._lastPageNumber;
 			delete cell._rowSpanCurrentOffset;
 		}

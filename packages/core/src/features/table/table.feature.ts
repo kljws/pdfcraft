@@ -7,14 +7,19 @@ import type {
 import type { PdfNode } from "../../types/internal";
 import TableRowLayout from "./layout-row";
 import { layoutTable } from "./layout-table";
-import { measureTable } from "./measure-table";
-import { preprocessTable, type TablePreprocessContext } from "./preprocess-table";
+import { measureTable, type TableMeasureContext } from "./measure-table";
+import { normalizeTable, preprocessTable, type TablePreprocessContext } from "./preprocess-table";
 import type {
 	LayoutTableNode,
 	MeasuredTableNode,
 	PreprocessedTableNode,
 	TableMeasureNode,
 } from "./table.types";
+
+/** Table layouts registered by the caller, supplied by composition; presets are built in. */
+export type TableMeasureCapabilities = Pick<TableMeasureContext, "tableLayouts">;
+
+type TableMeasureFeatureContext = NodeMeasureContext & TableMeasureCapabilities;
 
 type TableFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
@@ -23,14 +28,15 @@ type TableFeatureStages = NodeFeatureStages & {
 	measuredNode: MeasuredTableNode;
 	layoutNode: LayoutTableNode;
 	preprocessContext: TablePreprocessContext;
-	measureContext: NodeMeasureContext;
+	measureContext: TableMeasureFeatureContext;
 	layoutContext: NodeLayoutContext;
 };
 
 type TableFeature = NodeFeature<TableFeatureStages> & {
 	readonly kind: "table";
 	preprocess(node: PdfNode, context: TablePreprocessContext): PreprocessedTableNode;
-	measure(node: TableMeasureNode, context: NodeMeasureContext): MeasuredTableNode;
+	normalize(node: PdfNode): PreprocessedTableNode;
+	measure(node: TableMeasureNode, context: TableMeasureFeatureContext): MeasuredTableNode;
 	layout(node: LayoutTableNode, context: NodeLayoutContext): void;
 };
 
@@ -40,6 +46,7 @@ export const tableFeature = {
 		return Boolean(node.table);
 	},
 	preprocess: preprocessTable,
+	normalize: normalizeTable,
 	measure(node, context): MeasuredTableNode {
 		return measureTable(node, {
 			styles: context.styles,

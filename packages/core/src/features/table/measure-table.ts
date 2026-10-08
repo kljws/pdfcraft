@@ -1,7 +1,6 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type { Color, Dictionary } from "../../types";
-import type { TableLayout } from "../../types/internal";
 import { stringifyNode } from "../../utils/node";
 import { isObject } from "../../utils/variable-type";
 import {
@@ -14,7 +13,12 @@ import {
 	resolveTableLayout,
 	resolveTableRowGroupLayout,
 } from "./measure-table.helpers";
-import type { MeasuredTableCell, MeasuredTableNode, TableMeasureNode } from "./table.types";
+import type {
+	MeasuredTableCell,
+	MeasuredTableNode,
+	TableLayout,
+	TableMeasureNode,
+} from "./table.types";
 
 export type TableMeasureContext = {
 	styles: StyleContextStack;
@@ -31,8 +35,8 @@ export function measureTable(
 	const tableAlignment = context.styles.getProperty("tableAlignment");
 	node._tableAlignment =
 		tableAlignment === "center" || tableAlignment === "right" ? tableAlignment : "left";
-	node._headerLayout = resolveTableLayout(node, context.tableLayouts, table._headerLayout);
-	node._bodyLayout = resolveTableLayout(node, context.tableLayouts, table._bodyLayout);
+	node._headerLayout = resolveTableLayout(context.tableLayouts, table._headerLayout);
+	node._bodyLayout = resolveTableLayout(context.tableLayouts, table._bodyLayout);
 	const bodyLayout = node._bodyLayout;
 	for (const group of table._rowGroups ?? []) {
 		group.layout = resolveTableRowGroupLayout(node, bodyLayout, group);

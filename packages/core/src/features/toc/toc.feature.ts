@@ -5,7 +5,7 @@ import type {
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
 import type { PdfNode, PreprocessedPdfNode } from "../../types/internal";
-import { measureToc } from "./measure-toc";
+import { measureToc, type TocMeasureContext } from "./measure-toc";
 import {
 	preprocessToc,
 	registerTocItem,
@@ -14,13 +14,18 @@ import {
 } from "./preprocess-toc";
 import type { LayoutTocNode, MeasuredTocNode, PreprocessedTocNode } from "./toc.types";
 
+/** Table normalization supplied by composition to the table of contents. */
+export type TocMeasureCapabilities = Pick<TocMeasureContext, "normalizeTable">;
+
+type TocMeasureFeatureContext = NodeMeasureContext & TocMeasureCapabilities;
+
 type TocFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTocNode;
 	measuredNode: MeasuredTocNode;
 	layoutNode: LayoutTocNode;
 	preprocessContext: TocPreprocessContext;
-	measureContext: NodeMeasureContext;
+	measureContext: TocMeasureFeatureContext;
 	layoutContext: NodeLayoutContext;
 };
 
@@ -28,7 +33,7 @@ type TocFeature = NodeFeature<TocFeatureStages> & {
 	readonly kind: "toc";
 	preprocess(node: PdfNode, context: TocPreprocessContext): PreprocessedTocNode;
 	registerItem(node: PreprocessedPdfNode, context: TocItemRegistrationContext): void;
-	measure(node: MeasuredTocNode, context: NodeMeasureContext): MeasuredTocNode;
+	measure(node: MeasuredTocNode, context: TocMeasureFeatureContext): MeasuredTocNode;
 	layout(node: LayoutTocNode, context: NodeLayoutContext): void;
 };
 
@@ -42,6 +47,7 @@ export const tocFeature = {
 	measure(node, context): MeasuredTocNode {
 		return measureToc(node, {
 			measureNode: (item) => context.measureNode(item),
+			normalizeTable: (table) => context.normalizeTable(table),
 		});
 	},
 	layout(node, context): void {

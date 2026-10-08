@@ -13,7 +13,6 @@ type MutableTableFixture = {
 		widths: Array<{ width: string | number }>;
 		body: unknown[][];
 		headerRows?: unknown;
-		keepWithHeaderRows?: unknown;
 	};
 	metrics: {
 		offsets: { total: number };
@@ -331,7 +330,7 @@ describe("TableProcessor", function () {
 		});
 	});
 
-	describe("headerRows and keepWithHeaderRows (issue #2754)", function () {
+	describe("headerRows (issue #2754)", function () {
 		var fakeWriter = {
 			context: function () {
 				return {
@@ -367,7 +366,6 @@ describe("TableProcessor", function () {
 
 		it("should ignore wrong values for headerRows - 1", function () {
 			inputTable.table.headerRows = "2";
-			inputTable.table.keepWithHeaderRows = 2;
 
 			var tableProcessor = new TableProcessor(inputTable);
 			tableProcessor.drawHorizontalLine = function () {};
@@ -378,7 +376,6 @@ describe("TableProcessor", function () {
 
 		it("should ignore wrong values for headerRows - 2", function () {
 			inputTable.table.headerRows = -5;
-			inputTable.table.keepWithHeaderRows = 2;
 
 			var tableProcessor = new TableProcessor(inputTable);
 			tableProcessor.drawHorizontalLine = function () {};
@@ -389,7 +386,6 @@ describe("TableProcessor", function () {
 
 		it("should ignore wrong values for headerRows - 3", function () {
 			inputTable.table.headerRows = 2.5;
-			inputTable.table.keepWithHeaderRows = 2;
 
 			var tableProcessor = new TableProcessor(inputTable);
 			tableProcessor.drawHorizontalLine = function () {};
@@ -398,9 +394,8 @@ describe("TableProcessor", function () {
 			assert.equal(tableProcessor.rowsWithoutPageBreak, 0);
 		});
 
-		it("should ignore keepWithHeaderRows if headerRows is not bigger than 0", function () {
+		it("should not keep rows together without header rows", function () {
 			inputTable.table.headerRows = 0;
-			inputTable.table.keepWithHeaderRows = 2;
 
 			var tableProcessor = new TableProcessor(inputTable);
 			tableProcessor.drawHorizontalLine = function () {};
@@ -409,42 +404,8 @@ describe("TableProcessor", function () {
 			assert.equal(tableProcessor.rowsWithoutPageBreak, 0);
 		});
 
-		it("should ignore wrong values for keepWithHeaderRows - 1", function () {
+		it("should keep the header rows together", function () {
 			inputTable.table.headerRows = 1;
-			inputTable.table.keepWithHeaderRows = 1.5;
-
-			var tableProcessor = new TableProcessor(inputTable);
-			tableProcessor.drawHorizontalLine = function () {};
-			tableProcessor.beginTable(fakeWriter);
-			assert.equal(tableProcessor.headerRows, 1);
-			assert.equal(tableProcessor.rowsWithoutPageBreak, 1);
-		});
-
-		it("should ignore wrong values for keepWithHeaderRows - 2", function () {
-			inputTable.table.headerRows = 2;
-			inputTable.table.keepWithHeaderRows = "1.5";
-
-			var tableProcessor = new TableProcessor(inputTable);
-			tableProcessor.drawHorizontalLine = function () {};
-			tableProcessor.beginTable(fakeWriter);
-			assert.equal(tableProcessor.headerRows, 2);
-			assert.equal(tableProcessor.rowsWithoutPageBreak, 2);
-		});
-
-		it("should sum up headerRows and keepWithHeaderRows - 1", function () {
-			inputTable.table.headerRows = 1;
-			inputTable.table.keepWithHeaderRows = 2;
-
-			var tableProcessor = new TableProcessor(inputTable);
-			tableProcessor.drawHorizontalLine = function () {};
-			tableProcessor.beginTable(fakeWriter);
-			assert.equal(tableProcessor.rowsWithoutPageBreak, 3);
-			assert.equal(tableProcessor.headerRows, 1);
-		});
-
-		it("should sum up headerRows and keepWithHeaderRows - 2", function () {
-			inputTable.table.headerRows = 1;
-			inputTable.table.keepWithHeaderRows = 0;
 
 			var tableProcessor = new TableProcessor(inputTable);
 			tableProcessor.drawHorizontalLine = function () {};
@@ -455,7 +416,6 @@ describe("TableProcessor", function () {
 
 		it("should throw exception when headerRows > table rows", function () {
 			inputTable.table.headerRows = 5;
-			inputTable.table.keepWithHeaderRows = 0;
 
 			var tableProcessor = new TableProcessor(inputTable);
 			tableProcessor.drawHorizontalLine = function () {};
