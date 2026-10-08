@@ -11,6 +11,7 @@ import type {
 	CurrentPosition,
 	LayoutPdfNode,
 	LineLike,
+	PageControlItem,
 	PageItem,
 	PageMarginSource,
 } from "../types/internal";
@@ -109,11 +110,11 @@ class PageElementWriter {
 		return this.writer.addVector(...parameters);
 	}
 
-	beginVerticalAlignment(verticalAlignment?: string): PageItem {
+	beginVerticalAlignment(verticalAlignment?: string): PageControlItem {
 		return this.writer.beginVerticalAlignment(verticalAlignment);
 	}
 
-	endVerticalAlignment(verticalAlignment?: string): PageItem {
+	endVerticalAlignment(verticalAlignment?: string): PageControlItem {
 		return this.writer.endVerticalAlignment(verticalAlignment);
 	}
 
@@ -137,7 +138,7 @@ class PageElementWriter {
 		const previousPage = this.context().getCurrentPage();
 		const previousMargins = previousPage?.pageMargins ?? this.context().pageMargins;
 		const previousColumnState =
-			previousPage && this.context().snapshots.length > 0 && !this.context().getSnakingSnapshot()
+			previousPage && this.context().snapshots.length > 0 && !this.context().getFlowSnapshot()
 				? {
 						x: this.context().x,
 						availableWidth: this.context().availableWidth,
@@ -310,111 +311,48 @@ class PageElementWriter {
 	}
 
 	/**
-	 * Move to the next column in a column group (snaking columns).
-	 * Handles repeatables and emits columnChanged event.
+	 * Moves the content to the next region of the innermost container flow, such as the next
+	 * snaking column, and repeats the repeatable fragments (table headers) at the top of the region.
 	 */
-	moveToNextColumn(): void {
-		const nextColumn = this.context().moveToNextColumn();
+	enterNextFlowRegion(): void {
+		const nextRegion = this.context().enterNextFlowRegion();
 
-		// Handle repeatables (like table headers) for the new column
 		this.repeatables.forEach(function (this: PageElementWriter, rep): void {
-			// In snaking columns, we WANT headers to repeat.
-			// However, in Standard Page Breaks, headers are drawn using useBlockXOffset=true (original absolute X).
-			// This works for page breaks because margins are consistent.
-			// In Snaking Columns, the X position changes for each column.
-			// If we use true, the header is drawn at the *original* X position (Col 1), overlapping/invisible.
-			// We MUST use false to force drawing relative to the CURRENT context X (new column start).
+			// After a page break, headers keep their absolute x (`useBlockXOffset`), which works because
+			// page margins are consistent. A new region starts at a different x, so headers are drawn
+			// relative to the current x instead; otherwise they would land in the first region.
 			this.addFragment(rep, false);
 		}, this);
 
-		this.emit("columnChanged", {
-			prevY: nextColumn.prevY,
+		this.emit("regionChanged", {
+			prevY: nextRegion.prevY,
 			y: this.context().y,
 		});
-	}
-
-	/**
-	 * Check if currently in a column group that can move to next column.
-	 * Only returns true if snakingColumns is enabled for the column group.
-	 * @returns
-	 */
-	canMoveToNextColumn(): boolean {
-		const ctx = this.context();
-		const snakingSnapshot = ctx.getSnakingSnapshot();
-
-		if (snakingSnapshot) {
-			// Check if we're inside a nested (non-snaking) column group.
-			// If so, don't allow a snaking column move — it would corrupt
-			// the inner row's layout (e.g. product name in col 1, price in col 2).
-			// The inner row should complete via normal page break instead.
-			for (let i = ctx.snapshots.length - 1; i >= 0; i--) {
-				const snap = ctx.snapshots[i];
-				if (!snap) continue;
-				if (snap.snakingColumns) {
-					break; // Reached the snaking snapshot, no inner groups found
-				}
-				if (!snap.overflowed) {
-					return false; // Found a non-snaking, non-overflowed inner group
-				}
-			}
-
-			let overflowCount = 0;
-			for (let i = ctx.snapshots.length - 1; i >= 0; i--) {
-				if (ctx.snapshots[i]?.overflowed) {
-					overflowCount++;
-				} else {
-					break;
-				}
-			}
-
-			if (
-				snakingSnapshot.columnWidths &&
-				overflowCount >= snakingSnapshot.columnWidths.length - 1
-			) {
-				return false;
-			}
-
-			const currentColumnWidth = ctx.availableWidth || ctx.lastColumnWidth || 0;
-			const nextColumnWidth =
-				snakingSnapshot.columnWidths?.[overflowCount + 1] ?? currentColumnWidth;
-			const nextX = ctx.x + currentColumnWidth + (snakingSnapshot.gap || 0);
-			const page = ctx.requireCurrentPage();
-			const pageWidth = page.pageSize.width;
-			const rightMargin = page.pageMargins ? page.pageMargins.right : 0;
-			const parentRightMargin = ctx.marginXTopParent ? ctx.marginXTopParent[1] : 0;
-			const rightBoundary = pageWidth - rightMargin - parentRightMargin;
-
-			return nextX + nextColumnWidth <= rightBoundary + 1;
-		}
-		return false;
 	}
 
 	_fitOnPage<T>(addFct: (allowOverflow?: boolean) => T | false): T | false {
 		let position = addFct(false);
 		if (!position) {
-			if (this.canMoveToNextColumn()) {
-				this.moveToNextColumn();
+			if (this.context().canEnterNextFlowRegion()) {
+				this.enterNextFlowRegion();
 				position = addFct(false);
 			}
 
 			if (!position) {
 				const ctx = this.context();
-				const snakingSnapshot = ctx.getSnakingSnapshot();
 
-				if (snakingSnapshot) {
-					if (ctx.isInNestedNonSnakingGroup()) {
-						// Inside a table cell within snaking columns — use standard page break.
-						// Don't reset snaking state; the table handles its own breaks.
-						// Column breaks happen between rows in processTable instead.
+				if (ctx.getFlowSnapshot()) {
+					if (ctx.isFlowInterruptedByNestedGroup()) {
+						// Inside a nested column group (such as a table cell) within a flow: use a plain page
+						// break. The flow is not restarted; the nested container handles its own breaks.
 						this.moveToNextPage();
 					} else {
 						this.moveToNextPage();
 
-						// Save lastColumnWidth before reset — if we're inside a nested
-						// column group (e.g. product/price row), the reset would overwrite
-						// it with the snaking column width, corrupting inner column layout.
+						// Save lastColumnWidth before the restart: inside a nested column group, the restart
+						// would overwrite it with the flow's region width and corrupt the inner layout.
 						const savedLastColumnWidth = ctx.lastColumnWidth;
-						ctx.resetSnakingColumnsForNewPage();
+						ctx.restartFlowOnNewPage();
 						ctx.lastColumnWidth = savedLastColumnWidth;
 					}
 

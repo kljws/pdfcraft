@@ -2,7 +2,7 @@ import type PDFDocument from "./pdf-document";
 import type { VerticalAlignmentItem } from "./renderer.types";
 
 export function beginVerticalAlignment(document: PDFDocument, item: VerticalAlignmentItem): void {
-	if (item.isCellContentMultiPage) return;
+	if (item.isContentMultiPage) return;
 
 	switch (item.verticalAlignment) {
 		case "middle":
@@ -17,7 +17,7 @@ export function beginVerticalAlignment(document: PDFDocument, item: VerticalAlig
 }
 
 export function endVerticalAlignment(document: PDFDocument, item: VerticalAlignmentItem): void {
-	if (item.isCellContentMultiPage) return;
+	if (item.isContentMultiPage) return;
 
 	switch (item.verticalAlignment) {
 		case "middle":

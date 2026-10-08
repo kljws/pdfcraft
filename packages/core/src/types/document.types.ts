@@ -178,12 +178,6 @@ export type LayoutNodeState<Node = PdfNode> = {
 	resetXY?: (() => void) | undefined;
 	__height?: number | undefined;
 	_x?: number | undefined;
-	// Vertical-alignment box state, filled by the container that aligns its content.
-	getNodeHeight?: (() => number) | undefined;
-	getViewHeight?: (() => number) | undefined;
-	nodeHeight?: number | undefined;
-	cell?: Node | undefined;
-	isCellContentMultiPage?: boolean | undefined;
 };
 
 type PreprocessedNodeKey = keyof PreprocessedNodeState;

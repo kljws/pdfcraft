@@ -7,8 +7,7 @@ import ColumnCalculator from "../../layout/column-calculator";
 import type PageElementWriter from "../../layout/element-writer.page";
 import type { PdfPage, PdfTable, TableOffsets, TableRowGroupRange } from "../../types/internal";
 import { isPositiveInteger } from "../../utils/variable-type";
-import type { LayoutTableCell, LayoutTableNode } from "./table.types";
-import type { TablePageBreak } from "./table-pagination";
+import type { LayoutTableCell, LayoutTableNode, TablePageBreak } from "./table.types";
 import type {
 	ResolvedTableLayout,
 	RowSpanData,
@@ -16,6 +15,7 @@ import type {
 } from "./table-processor.types";
 import {
 	createRowSpanData,
+	getPercentageReservedWidths,
 	getTableInnerContentWidth,
 	hasExplicitPageBreak,
 	propagateCellBorders,
@@ -88,7 +88,7 @@ class TableProcessor {
 			table.widths,
 			availableWidth,
 			this.offsets.total,
-			this.tableNode,
+			getPercentageReservedWidths(this.tableNode),
 		);
 		this.tableWidth = this.offsets.total + getTableInnerContentWidth(this.tableNode);
 		this.borderRadius = Math.min(

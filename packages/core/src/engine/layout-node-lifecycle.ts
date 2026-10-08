@@ -1,18 +1,31 @@
 import type PageElementWriter from "../layout/element-writer.page";
 import { getPageSpanHeight } from "../layout/page-item-geometry";
 import type { PageOrientation } from "../types";
-import type { LayoutPdfNode } from "../types/internal";
+import type { LayoutPdfNode, PageControlItem } from "../types/internal";
+import type { VerticalAlignmentItem } from "../rendering/renderer.types";
 
-export type VerticalAlignmentStackEntry = {
-	begin: { item: LayoutPdfNode };
-	end: { item: LayoutPdfNode };
+/** Page items that bracket a vertically aligned node; the container that aligns it completes them. */
+export type VerticalAlignmentControls = {
+	begin: PageControlItem;
+	end: PageControlItem;
 };
+
+/** Geometry of the box a node is aligned in, read when the page is rendered. */
+export type VerticalAlignmentBox = Omit<VerticalAlignmentItem, "verticalAlignment">;
+
+/** Gives the alignment controls of a node the geometry of the box it is aligned in. */
+export function completeVerticalAlignment(
+	controls: VerticalAlignmentControls,
+	box: VerticalAlignmentBox,
+): void {
+	Object.assign(controls.begin, box);
+	controls.end.isContentMultiPage = box.isContentMultiPage;
+}
 
 export type LayoutNodeLifecycleContext = {
 	writer: PageElementWriter;
 	linearNodeList: LayoutPdfNode[];
 	suppressLinearNodeList: boolean;
-	verticalAlignmentItemStack: VerticalAlignmentStackEntry[];
 	decorateNode(node: LayoutPdfNode): void;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
 	layoutContent(node: LayoutPdfNode): void;
@@ -35,11 +48,16 @@ function moveToRequestedPage(
 	}
 }
 
+/**
+ * Lays out a node with the generic lifecycle: page breaks, margins, unbreakable and detached
+ * blocks. When vertical alignment is allowed and the node requests it, returns the alignment
+ * controls that its container completes with `completeVerticalAlignment`.
+ */
 export function layoutNodeWithLifecycle(
 	node: LayoutPdfNode,
 	isVerticalAlignmentAllowed: boolean,
 	context: LayoutNodeLifecycleContext,
-): void {
+): VerticalAlignmentControls | undefined {
 	if (!context.suppressLinearNodeList) context.linearNodeList.push(node);
 	context.decorateNode(node);
 
@@ -83,12 +101,10 @@ export function layoutNodeWithLifecycle(
 	if (absolutePosition || relativePosition) writer.context().endDetachedBlock();
 	if (node.unbreakable) writer.commitUnbreakableBlock();
 
-	if (isVerticalAlignmentAllowed && verticalAlignment && verticalAlignmentBegin) {
-		context.verticalAlignmentItemStack.push({
-			begin: verticalAlignmentBegin as VerticalAlignmentStackEntry["begin"],
-			end: writer.endVerticalAlignment(verticalAlignment) as VerticalAlignmentStackEntry["end"],
-		});
-	}
+	const alignmentControls =
+		verticalAlignment && verticalAlignmentBegin
+			? { begin: verticalAlignmentBegin, end: writer.endVerticalAlignment(verticalAlignment) }
+			: undefined;
 
 	if (margin && !isDetachedBlock) {
 		writer.context().addMargin(-margin[0], -margin[2]);
@@ -104,4 +120,5 @@ export function layoutNodeWithLifecycle(
 			writer.context().pages,
 		);
 	}
+	return alignmentControls;
 }

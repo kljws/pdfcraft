@@ -1,4 +1,5 @@
 import type PageElementWriter from "../../layout/element-writer.page";
+import type { FlowAdvance } from "../../engine/layout-pagination";
 import type { PageOrientation } from "../../types";
 import type { LayoutPdfNode } from "../../types/internal";
 import { isObject } from "../../utils/variable-type";
@@ -8,7 +9,7 @@ import type { LayoutTextNode } from "./text.types";
 
 export type TextLayoutContext = {
 	writer: PageElementWriter;
-	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
+	advanceFlowRegion(pageOrientation?: PageOrientation): FlowAdvance;
 };
 
 function linkPageReferences(
@@ -70,18 +71,14 @@ export function layoutText(node: LayoutTextNode, context: TextLayoutContext): vo
 			line.getHeight() > context.writer.context().availableHeight &&
 			context.writer.context().y > context.writer.context().pageMargins.top
 		) {
-			if (
-				context.writer.context().inSnakingColumns() &&
-				!context.writer.context().isInNestedNonSnakingGroup()
-			) {
-				context.snakingAwarePageBreak(node.pageOrientation);
+			// A new region of a container flow may have another width: the line is rebuilt for it.
+			if (context.advanceFlowRegion(node.pageOrientation) === "region") {
 				if (line.inlines.length > 0) {
 					node.metrics.inlines.unshift(...line.inlines);
 				}
 				line = nextLine();
 				continue;
 			}
-			context.writer.moveToNextPage(node.pageOrientation);
 		}
 
 		const positions = context.writer.addLine(line);

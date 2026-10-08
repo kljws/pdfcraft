@@ -1,15 +1,16 @@
 import { isString } from "../utils/variable-type";
-import type { ColumnWidth, TableLayout } from "../types/internal";
+import type { ColumnWidth } from "../types/internal";
 
-type TableWidthNode<Node extends object> = Node & {
-	metrics?: { layout?: TableLayout<Node> | undefined } | undefined;
-};
-
-function buildColumnWidths<Node extends object>(
+/**
+ * Resolves `_calcWidth` for every column. A percentage width is a share of
+ * `availableWidth + offsetTotal`, less the width its container reserves for that column
+ * (`reservedWidths[index]`, for example a table cell's padding and borders).
+ */
+function buildColumnWidths(
 	columns: ColumnWidth[],
 	availableWidth: number,
 	offsetTotal = 0,
-	tableNode?: TableWidthNode<Node>,
+	reservedWidths: readonly number[] = [],
 ): void {
 	const autoColumns: ColumnWidth[] = [];
 	let autoMin = 0;
@@ -35,29 +36,11 @@ function buildColumnWidths<Node extends object>(
 	fixedColumns.forEach(({ column: col, index: colIndex }) => {
 		let resolvedWidth = col.width;
 		// width specified as %
-		if (isString(col.width) && /\d+%/.test(col.width)) {
-			// In tables we have to take into consideration the reserved width for paddings and borders
-			let reservedWidth = 0;
-			if (tableNode) {
-				const layout = tableNode.metrics?.layout;
-				if (!layout) throw new Error("Internal layout error: table layout was not resolved");
-				const paddingLeft = layout.paddingLeft(colIndex, tableNode);
-				const paddingRight = layout.paddingRight(colIndex, tableNode);
-				const borderLeft = layout.vLineWidth(colIndex, tableNode);
-				const borderRight = layout.vLineWidth(colIndex + 1, tableNode);
-				if (colIndex === 0) {
-					// first column assumes whole borderLeft and half of border right
-					reservedWidth = paddingLeft + paddingRight + borderLeft + borderRight / 2;
-				} else if (colIndex === columns.length - 1) {
-					// last column assumes whole borderRight and half of border left
-					reservedWidth = paddingLeft + paddingRight + borderLeft / 2 + borderRight;
-				} else {
-					// Columns in the middle assume half of each border
-					reservedWidth = paddingLeft + paddingRight + borderLeft / 2 + borderRight / 2;
-				}
-			}
+		if (isPercentageColumn(col)) {
 			const totalAvailableWidth = initialAvailableWidth + offsetTotal;
-			resolvedWidth = (parseFloat(col.width) * totalAvailableWidth) / 100 - reservedWidth;
+			resolvedWidth =
+				(parseFloat(String(col.width)) * totalAvailableWidth) / 100 -
+				(reservedWidths[colIndex] ?? 0);
 		}
 		const fixedWidth = typeof resolvedWidth === "number" ? resolvedWidth : col._minWidth;
 		if (fixedWidth < col._minWidth && col.elasticWidth) {
@@ -114,6 +97,10 @@ function buildColumnWidths<Node extends object>(
 	}
 }
 
+function isPercentageColumn(column: ColumnWidth): boolean {
+	return isString(column.width) && /\d+%/.test(column.width);
+}
+
 function isAutoColumn(column: ColumnWidth): boolean {
 	return column.width === "auto";
 }
@@ -161,6 +148,7 @@ function measureMinMax(columns: ColumnWidth[]): { min: number; max: number } {
 export default {
 	buildColumnWidths: buildColumnWidths,
 	measureMinMax: measureMinMax,
+	isPercentageColumn: isPercentageColumn,
 	isAutoColumn: isAutoColumn,
 	isStarColumn: isStarColumn,
 };

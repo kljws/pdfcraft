@@ -5,7 +5,8 @@ import type {
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
 import type { PdfNode } from "../../types/internal";
-import { layoutTable, type TableLayoutHost } from "./layout-table";
+import TableRowLayout from "./layout-row";
+import { layoutTable } from "./layout-table";
 import { measureTable } from "./measure-table";
 import { preprocessTable, type TablePreprocessContext } from "./preprocess-table";
 import type {
@@ -15,11 +16,6 @@ import type {
 	TableMeasureNode,
 } from "./table.types";
 
-/** Shared row layout supplied by composition to tables. */
-export type TableLayoutCapabilities = Pick<TableLayoutHost, "processRow">;
-
-type TableLayoutFeatureContext = NodeLayoutContext & TableLayoutCapabilities;
-
 type TableFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedTableNode;
@@ -28,14 +24,14 @@ type TableFeatureStages = NodeFeatureStages & {
 	layoutNode: LayoutTableNode;
 	preprocessContext: TablePreprocessContext;
 	measureContext: NodeMeasureContext;
-	layoutContext: TableLayoutFeatureContext;
+	layoutContext: NodeLayoutContext;
 };
 
 type TableFeature = NodeFeature<TableFeatureStages> & {
 	readonly kind: "table";
 	preprocess(node: PdfNode, context: TablePreprocessContext): PreprocessedTableNode;
 	measure(node: TableMeasureNode, context: NodeMeasureContext): MeasuredTableNode;
-	layout(node: LayoutTableNode, context: TableLayoutFeatureContext): void;
+	layout(node: LayoutTableNode, context: NodeLayoutContext): void;
 };
 
 export const tableFeature = {
@@ -52,17 +48,31 @@ export const tableFeature = {
 		});
 	},
 	layout(node, context): void {
-		const tableHost: TableLayoutHost = {
-			writer: context.writer,
+		const rows = new TableRowLayout({
+			get writer() {
+				return context.writer;
+			},
+			get nestedLevel() {
+				return context.nestedLevel;
+			},
+			processNode: (cell, isVerticalAlignmentAllowed) =>
+				context.processNode(cell, isVerticalAlignmentAllowed),
+		});
+		layoutTable(node, {
+			get writer() {
+				return context.writer;
+			},
 			get nestedLevel() {
 				return context.nestedLevel;
 			},
 			set nestedLevel(value) {
 				context.nestedLevel = value;
 			},
-			processRow: (options) => context.processRow(options),
-			snakingAwarePageBreak: () => context.snakingAwarePageBreak(),
-		};
-		layoutTable(node, tableHost);
+			processRow: (options) => rows.processRow(options),
+			isInFlow: () => context.isInFlow(),
+			advanceToNextRegion: () => {
+				context.advanceFlowRegion(undefined, { throughNestedGroups: true });
+			},
+		});
 	},
 } satisfies TableFeature;

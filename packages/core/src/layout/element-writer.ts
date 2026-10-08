@@ -6,7 +6,7 @@ import type {
 	LayoutPdfNode,
 	LineLike,
 	PageBreak,
-	PageItem,
+	PageControlItem,
 	Vector,
 	VectorPageItem,
 } from "../types/internal";
@@ -18,7 +18,7 @@ import type { NodePlaceResult } from "../engine/contracts/node-feature";
 export type ElementWriterEvents = {
 	lineAdded: [line: LineLike];
 	pageChanged: [change: PageBreak];
-	columnChanged: [change: { prevY: number; y: number }];
+	regionChanged: [change: { prevY: number; y: number }];
 };
 
 type ElementPlacementWriter = {
@@ -188,23 +188,17 @@ class ElementWriter {
 		}
 	}
 
-	beginVerticalAlignment(verticalAlignment?: string): PageItem {
+	beginVerticalAlignment(verticalAlignment?: string): PageControlItem {
 		const page = this.context().requireCurrentPage();
-		const item: PageItem = {
-			type: "beginVerticalAlignment",
-			item: { verticalAlignment: verticalAlignment },
-		};
-		page.items.push(item);
+		const item: PageControlItem = { verticalAlignment: verticalAlignment };
+		page.items.push({ type: "beginVerticalAlignment", item });
 		return item;
 	}
 
-	endVerticalAlignment(verticalAlignment?: string): PageItem {
+	endVerticalAlignment(verticalAlignment?: string): PageControlItem {
 		const page = this.context().requireCurrentPage();
-		const item: PageItem = {
-			type: "endVerticalAlignment",
-			item: { verticalAlignment: verticalAlignment },
-		};
-		page.items.push(item);
+		const item: PageControlItem = { verticalAlignment: verticalAlignment };
+		page.items.push({ type: "endVerticalAlignment", item });
 		return item;
 	}
 

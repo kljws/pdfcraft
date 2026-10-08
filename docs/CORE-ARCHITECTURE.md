@@ -93,7 +93,7 @@ survive until its next layout. The first pass measures `00000`.
 | `features/repeatables/` | Document features: background, header and footer, watermark, `pageBreakBefore` |
 | `engine/` | Neutral contracts (`contracts/node-feature.ts`), multi-pass pipeline, generic node lifecycle and pagination |
 | `layout/` | Element writer, lines, columns, `PageItem` geometry and `LayoutBuilder` (entry point of layout orchestration) |
-| `document/` | `DocumentContext`: pages, cursor, available space, snaking columns |
+| `document/` | `DocumentContext`: pages, cursor, available space, column groups and flow regions |
 | `rendering/` | PDFKit adapter, page renderer, shared primitives (vectors, clipping, vertical alignment) |
 | `services/` | Neutral services: styles, typography, box measurement, resource references |
 | `resources/`, `configuration/`, `output/` | URL resolution and virtual file system, page sizes and table layouts, output stream |
@@ -183,7 +183,7 @@ declare module "../../types/document.types" {
 
 `types/` therefore imports no feature. Shared state (`PreprocessedNodeState`,
 `MeasuredNodeState`, `LayoutNodeState`) contains only neutral concepts: references between
-nodes, sizes, margins, positions and the vertical-alignment box. Feature-specific state lives in
+nodes, sizes, margins and positions. Feature-specific state lives in
 its types, for example `TableNodeState` and `EndingCell` for table, `ListItemState` and `ListMarker`
 for list, `TextReferenceState` for text.
 
@@ -215,7 +215,6 @@ composition:
 | `list` (measurement) | `ListMeasureCapabilities.inlines`: measure and build the marker inlines | text pipeline |
 | `text` (measurement) | `TextMeasureCapabilities.inlines` | `TextInlines` composed with `image.inline` and `acroform.measureInline` |
 | `text` (rendering) | `renderAcroForm(inline, x, y)` | shared AcroForm renderer |
-| `table`, `columns` (layout) | `processRow` | `TableRowLayout` composed in `built-in-layout.ts` |
 | `pageBreakBefore` | `hasLeadingMarker(node)`, `copyExtensionProperties` | `listFeature.hasMarker`, `extensionFeature` |
 | background, header and footer | `preprocessNode`, `measureNode`, `layoutNode` | single-pass pipeline |
 | page element writer | `ElementPlacementAdapter` | `createBuiltInElementPlacement` |
@@ -227,7 +226,7 @@ the style stack and the inline text engine; `textInlines` can be replaced throug
 ## Pagination and unbreakable content
 
 The engine owns the generic mechanisms: available space, margins, current context, page or
-column changes, `pageBreak`, `unbreakable`, transactions, cancelling an attempt and resuming
+flow-region changes, `pageBreak`, `unbreakable`, transactions, cancelling an attempt and resuming
 on the next page.
 
 Each feature owns the decisions specific to its structure:
@@ -236,7 +235,8 @@ Each feature owns the decisions specific to its structure:
   headers, fixed heights, `rowSpan`, `colSpan`, borders and fragments;
 - `text` decides line and paragraph breaks;
 - `list` keeps the marker with the first content of the item;
-- `columns` synchronizes its columns and their page changes;
+- `columns` synchronizes its columns and their page changes, and defines the regions of its
+  snaking flow;
 - `image` and the other atomic elements move to the next page when they do not fit.
 
 The engine does not know a table's rows or cells, and `table` does not reimplement the
@@ -263,7 +263,7 @@ content uses `requireCurrentPage()`, which throws an explicit error if no page e
 | Lifetime | State | Reset by |
 |---|---|---|
 | Document | `pageBreakCalculated`, `pageBreak` added by `pageBreakBefore`, `_x` (original relative x) | never |
-| Pass | `positions`, `_position`, `nodeInfo`, absolute x/y, `LayoutBuilder` state (`linearNodeList`, `nestedLevel`, vertical-alignment stack, writer) | `decorateNode`, `resetXY`, `startLayoutPass` |
+| Pass | `positions`, `_position`, `nodeInfo`, absolute x/y, `LayoutBuilder` state (`linearNodeList`, `nestedLevel`, writer) | `decorateNode`, `resetXY`, `startLayoutPass` |
 | Pass, feature state | a feature's private state (tables, lists…) | the feature's `reset` hook, called by `resetXY` |
 | Preprocessing | references, table of contents, current cycle | fresh state on every `preprocessDocument`/`preprocessBlock` |
 

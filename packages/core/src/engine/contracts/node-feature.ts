@@ -2,6 +2,8 @@ import type PageElementWriter from "../../layout/element-writer.page";
 import type PDFDocument from "../../rendering/pdf-document";
 import type StyleContextStack from "../../services/styles/style-context-stack";
 import type DocumentContext from "../../document/document-context";
+import type { VerticalAlignmentControls } from "../layout-node-lifecycle";
+import type { FlowAdvance, FlowAdvanceOptions } from "../layout-pagination";
 import type { Dictionary, PageOrientation, PdfCraftExtensions } from "../../types";
 import type {
 	CurrentPosition,
@@ -57,8 +59,21 @@ export type NodeLayoutContext = {
 	readonly pageSize: PageSize;
 	readonly suppressLinearNodeList: boolean;
 	nestedLevel: number;
-	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
-	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
+	/**
+	 * Lays out a child through the common dispatcher. With `isVerticalAlignmentAllowed`, a child
+	 * that requests vertical alignment returns the controls its container completes.
+	 */
+	processNode(
+		node: LayoutPdfNode,
+		isVerticalAlignmentAllowed?: boolean,
+	): VerticalAlignmentControls | undefined;
+	/**
+	 * Continues the content in the next region of the flow it is laid out in: the next region of an
+	 * enclosing container flow when there is one, otherwise the next page. See `FlowAdvance`.
+	 */
+	advanceFlowRegion(pageOrientation?: PageOrientation, options?: FlowAdvanceOptions): FlowAdvance;
+	/** Whether the content is laid out inside a container flow that has regions of its own. */
+	isInFlow(): boolean;
 	moveDownWithPageBreak(height: number, pageOrientation?: PageOrientation): void;
 };
 

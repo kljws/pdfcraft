@@ -1,8 +1,9 @@
 import { bottomMostContext } from "./document-context.geometry";
 import type {
-	ColumnEndingCell,
 	ContextSnapshot,
+	CoordinateSnapshot,
 	DocumentContextState,
+	FlowRegions,
 } from "./document-context.types";
 
 /** Column division and vertical synchronization operations. */
@@ -10,9 +11,7 @@ export function beginColumnGroup(
 	state: DocumentContextState,
 	marginXTopParent: [number, number] | null = null,
 	bottomByPage: Record<number, number> = {},
-	snakingColumns = false,
-	columnGap = 0,
-	columnWidths: number[] | null = null,
+	flow?: FlowRegions,
 ): void {
 	state.snapshots.push({
 		x: state.x,
@@ -29,9 +28,7 @@ export function beginColumnGroup(
 			page: state.page,
 		},
 		lastColumnWidth: state.lastColumnWidth,
-		snakingColumns,
-		gap: columnGap,
-		columnWidths,
+		flow,
 	});
 
 	state.lastColumnWidth = 0;
@@ -54,7 +51,7 @@ export function beginColumn(
 	state: DocumentContextState,
 	width: number = state.availableWidth,
 	offset = 0,
-	endingCell: ColumnEndingCell | null = null,
+	includeInGroupBottom = true,
 ): void {
 	let saved = state.snapshots.at(-1);
 	if (saved?.overflowed) {
@@ -68,7 +65,7 @@ export function beginColumn(
 	}
 	if (!saved) throw new Error("Internal layout error: no column context to complete");
 
-	calculateBottomMost(state, saved, endingCell);
+	if (includeInGroupBottom) updateBottomMost(state, saved);
 
 	state.page = saved.page;
 	state.pageMargins = state.pages[state.page]?.pageMargins ?? state.pageMargins;
@@ -79,27 +76,18 @@ export function beginColumn(
 	state.lastColumnWidth = width;
 }
 
-export function calculateBottomMost(
-	state: DocumentContextState,
-	destination: ContextSnapshot,
-	endingCell: ColumnEndingCell | null,
-): void {
-	if (endingCell) {
-		saveContextInEndingCell(state, endingCell);
-	} else {
-		destination.bottomMost = bottomMostContext(state, destination.bottomMost);
-	}
+/** Extends the bottom of a column group to the current position when it is lower. */
+export function updateBottomMost(state: DocumentContextState, destination: ContextSnapshot): void {
+	destination.bottomMost = bottomMostContext(state, destination.bottomMost);
 }
 
-export function markEnding(
+/** Moves the cursor back to captured coordinates, shifted by `originalXOffset` and `discountY`. */
+export function restoreCoordinates(
 	state: DocumentContextState,
-	endingCell: ColumnEndingCell,
+	endingContext: CoordinateSnapshot,
 	originalXOffset = 0,
 	discountY = 0,
 ): void {
-	const endingContext = endingCell._columnEndingContext;
-	if (!endingContext) throw new Error("Column ending context is missing");
-
 	state.page = endingContext.page;
 	state.pageMargins = state.pages[state.page]?.pageMargins ?? state.pageMargins;
 	state.x = endingContext.x + originalXOffset;
@@ -109,11 +97,8 @@ export function markEnding(
 	state.lastColumnWidth = endingContext.lastColumnWidth ?? state.lastColumnWidth;
 }
 
-export function saveContextInEndingCell(
-	state: DocumentContextState,
-	endingCell: ColumnEndingCell,
-): void {
-	endingCell._columnEndingContext = {
+export function captureCoordinates(state: DocumentContextState): CoordinateSnapshot {
+	return {
 		page: state.page,
 		x: state.x,
 		y: state.y,
@@ -126,7 +111,7 @@ export function saveContextInEndingCell(
 export function completeColumnGroup(
 	state: DocumentContextState,
 	height = 0,
-	endingCell: ColumnEndingCell | null | undefined = null,
+	includeInGroupBottom = true,
 ): Record<number, number> {
 	let saved = state.snapshots.pop();
 	if (!saved) return {};
@@ -169,7 +154,7 @@ export function completeColumnGroup(
 		};
 	}
 
-	calculateBottomMost(state, saved, endingCell ?? null);
+	if (includeInGroupBottom) updateBottomMost(state, saved);
 	state.x = saved.x;
 
 	let y = saved.bottomMost.y;

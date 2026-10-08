@@ -1,4 +1,3 @@
-import type { ColumnWidth } from "./table.types";
 import type { Metadata } from "./document.types";
 
 export type Point = {
@@ -51,27 +50,10 @@ export type CurrentPosition = {
 	pageInnerWidth: number;
 };
 
-export type ContextSnapshot = {
-	x: number;
-	y: number;
-	availableWidth: number;
-	availableHeight: number;
-	page: number;
-	bottomByPage?: Metadata | undefined;
-	bottomMost?: Metadata | undefined;
-	snakingColumns?: boolean | undefined;
-	columnGap?: number | undefined;
-	columnWidths?: ColumnWidth[] | null | undefined;
-	lastColumnWidth?: number | undefined;
-};
-
 export type PageBreak = {
 	prevPage: number;
 	prevY: number;
 	y: number;
-	rowIndex?: number | undefined;
-	rowSpan?: number | undefined;
-	rowIndexOfSpanEnd?: number | undefined;
 };
 
 export type NodeLayoutInfo = Metadata & {

@@ -4,26 +4,26 @@ import { assertUsableContentArea, normalizePageMargin } from "../configuration/p
 import {
 	beginColumn,
 	beginColumnGroup,
-	calculateBottomMost,
+	captureCoordinates,
 	completeColumnGroup,
-	markEnding,
 	resetMarginXTopParent,
-	saveContextInEndingCell,
+	restoreCoordinates,
 	updateBottomByPage,
 } from "./document-context.columns";
 import { bottomMostContext, getPageSize } from "./document-context.geometry";
 import { createPage, getPagePosition } from "./document-context.helpers";
 import {
-	getSnakingSnapshot,
-	inSnakingColumns,
-	isInNestedNonSnakingGroup,
-	moveToNextColumn,
-	resetSnakingColumnsForNewPage,
-} from "./document-context.snaking";
+	canEnterNextFlowRegion,
+	enterNextFlowRegion,
+	getFlowSnapshot,
+	isFlowInterruptedByNestedGroup,
+	restartFlowOnNewPage,
+} from "./document-context.flow";
 import type {
-	ColumnEndingCell,
 	ContextSnapshot,
+	CoordinateSnapshot,
 	DocumentContextEvents,
+	FlowRegions,
 	PagePosition,
 } from "./document-context.types";
 import EventEmitter from "../utils/event-emitter";
@@ -72,36 +72,38 @@ class DocumentContext {
 		return this.events.emit(event, ...args);
 	}
 
-	getSnakingSnapshot(): ContextSnapshot | null {
-		return getSnakingSnapshot(this);
+	/** Innermost snapshot of a flow region, or `null` outside any container flow. */
+	getFlowSnapshot(): ContextSnapshot | null {
+		return getFlowSnapshot(this);
 	}
 
-	inSnakingColumns(): boolean {
-		return inSnakingColumns(this);
+	/** Whether a column group without a flow is open inside the innermost flow. */
+	isFlowInterruptedByNestedGroup(): boolean {
+		return isFlowInterruptedByNestedGroup(this);
 	}
 
-	isInNestedNonSnakingGroup(): boolean {
-		return isInNestedNonSnakingGroup(this);
+	canEnterNextFlowRegion(): boolean {
+		return canEnterNextFlowRegion(this);
 	}
 
-	moveToNextColumn(): { prevY: number; y: number } {
-		return moveToNextColumn(this, (destination, endingCell) =>
-			calculateBottomMost(this, destination, endingCell),
-		);
+	enterNextFlowRegion(): { prevY: number; y: number } {
+		return enterNextFlowRegion(this);
 	}
 
-	resetSnakingColumnsForNewPage(): void {
-		resetSnakingColumnsForNewPage(this, () => this.requireCurrentPage());
+	restartFlowOnNewPage(): void {
+		restartFlowOnNewPage(this);
 	}
 
+	/**
+	 * Opens a column group. `flow`, supplied by the container, makes the group a flow whose content
+	 * continues in further regions (see `FlowRegions`).
+	 */
 	beginColumnGroup(
 		marginXTopParent: [number, number] | null = null,
 		bottomByPage: Record<number, number> = {},
-		snakingColumns = false,
-		columnGap = 0,
-		columnWidths: number[] | null = null,
+		flow?: FlowRegions,
 	): void {
-		beginColumnGroup(this, marginXTopParent, bottomByPage, snakingColumns, columnGap, columnWidths);
+		beginColumnGroup(this, marginXTopParent, bottomByPage, flow);
 	}
 
 	updateBottomByPage(): void {
@@ -112,31 +114,28 @@ class DocumentContext {
 		resetMarginXTopParent(this);
 	}
 
-	beginColumn(
-		width: number = this.availableWidth,
-		offset = 0,
-		endingCell: ColumnEndingCell | null = null,
-	): void {
-		beginColumn(this, width, offset, endingCell);
+	/**
+	 * Starts the next column of the current group. With `includeInGroupBottom` false, the position
+	 * reached in the previous column does not extend the bottom of the group.
+	 */
+	beginColumn(width: number = this.availableWidth, offset = 0, includeInGroupBottom = true): void {
+		beginColumn(this, width, offset, includeInGroupBottom);
 	}
 
-	calculateBottomMost(destination: ContextSnapshot, endingCell: ColumnEndingCell | null): void {
-		calculateBottomMost(this, destination, endingCell);
+	captureCoordinates(): CoordinateSnapshot {
+		return captureCoordinates(this);
 	}
 
-	markEnding(endingCell: ColumnEndingCell, originalXOffset = 0, discountY = 0): void {
-		markEnding(this, endingCell, originalXOffset, discountY);
+	restoreCoordinates(coordinates: CoordinateSnapshot, originalXOffset = 0, discountY = 0): void {
+		restoreCoordinates(this, coordinates, originalXOffset, discountY);
 	}
 
-	saveContextInEndingCell(endingCell: ColumnEndingCell): void {
-		saveContextInEndingCell(this, endingCell);
-	}
-
-	completeColumnGroup(
-		height = 0,
-		endingCell: ColumnEndingCell | null | undefined = null,
-	): Record<number, number> {
-		return completeColumnGroup(this, height, endingCell);
+	/**
+	 * Ends the current column group. With `includeInGroupBottom` false, the position reached in the
+	 * last column does not extend the bottom of the group.
+	 */
+	completeColumnGroup(height = 0, includeInGroupBottom = true): Record<number, number> {
+		return completeColumnGroup(this, height, includeInGroupBottom);
 	}
 
 	addMargin(left: number, right = 0): void {

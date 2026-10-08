@@ -8,7 +8,7 @@ import {
 import type { PageControlItem, PdfPage } from "../../../types/internal.ts";
 
 type VerticalAlignmentFixture = PageControlItem & {
-	isCellContentMultiPage: boolean;
+	isContentMultiPage: boolean;
 	getNodeHeight(): number;
 };
 
@@ -295,7 +295,7 @@ describe("LayoutBuilder", function () {
 			const alignment = begin.item as VerticalAlignmentFixture;
 
 			assert.ok(pages.length > 1);
-			assert.equal(alignment.isCellContentMultiPage, true);
+			assert.equal(alignment.isContentMultiPage, true);
 			assert.ok(Number.isFinite(alignment.getNodeHeight()));
 			assert.ok(alignment.getNodeHeight() > 0);
 		});

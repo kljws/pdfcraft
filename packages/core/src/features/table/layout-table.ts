@@ -9,7 +9,13 @@ export type TableLayoutHost = {
 	writer: PageElementWriter;
 	nestedLevel: number;
 	processRow(options: ProcessRowOptions): ProcessRowResult;
-	snakingAwarePageBreak(): void;
+	/** Whether the table is laid out inside a container flow that has regions of its own. */
+	isInFlow(): boolean;
+	/**
+	 * Moves the next row to the next region of the enclosing flow, or to the next page. Between rows,
+	 * the enclosing flow advances even when the table is nested in another column group.
+	 */
+	advanceToNextRegion(): void;
 };
 
 function getRowHeight(
@@ -76,7 +82,9 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 		const rowGroup = processor.rowGroupsByRow[rowIndex];
 		const rowDontBreakRows = processor.dontBreakRows || rowGroup?.dontBreakRows === true;
 		const rowHeight = getRowHeight(table.heights, rowIndex);
-		if (rowIndex > 0 && host.writer.context().inSnakingColumns()) {
+		// Inside a container flow, a row that cannot start in the remaining height moves to the next
+		// region as a whole.
+		if (rowIndex > 0 && host.isInFlow()) {
 			const minimumRowHeight =
 				lastRowHeight ||
 				processor.rowPaddingTop +
@@ -93,7 +101,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 						borderSide: "bottom",
 					});
 				}
-				host.snakingAwarePageBreak();
+				host.advanceToNextRegion();
 				if (processor.layout.hLineWhenBroken !== false && !processor.headerRows) {
 					processor.drawHorizontalLine(rowIndex, host.writer, {
 						styleLineIndex: 0,
@@ -124,11 +132,7 @@ export function layoutTable(tableNode: LayoutTableNode, host: TableLayoutHost): 
 					});
 				}
 				context.moveDown(context.availableHeight);
-				if (context.inSnakingColumns()) {
-					host.snakingAwarePageBreak();
-				} else {
-					host.writer.moveToNextPage();
-				}
+				host.advanceToNextRegion();
 				if (rowIndex > 0 && !processor.headerRows && processor.layout.hLineWhenBroken !== false) {
 					processor.drawHorizontalLine(rowIndex, host.writer, {
 						styleLineIndex: 0,

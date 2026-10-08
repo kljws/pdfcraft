@@ -135,7 +135,7 @@ describe("PageElementWriter", function () {
 
 		pew = new PageElementWriter(ctx, createBuiltInElementPlacement());
 		events = [];
-		for (const name of ["lineAdded", "pageChanged", "columnChanged"] as const) {
+		for (const name of ["lineAdded", "pageChanged", "regionChanged"] as const) {
 			pew.addListener(name, (payload: unknown) => events.push([name, payload]));
 		}
 	});

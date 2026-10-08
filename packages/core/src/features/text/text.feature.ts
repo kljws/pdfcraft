@@ -60,7 +60,7 @@ export const textFeature = {
 	layout(node, context): void {
 		layoutText(node, {
 			writer: context.writer,
-			snakingAwarePageBreak: (orientation) => context.snakingAwarePageBreak(orientation),
+			advanceFlowRegion: (orientation) => context.advanceFlowRegion(orientation),
 		});
 	},
 	render: renderTextLine,

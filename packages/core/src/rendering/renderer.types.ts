@@ -32,7 +32,8 @@ export type ClipRectangle = {
 };
 
 export type VerticalAlignmentItem = {
-	isCellContentMultiPage: boolean;
+	/** The aligned content spans several pages; it is then left in place. */
+	isContentMultiPage: boolean;
 	verticalAlignment?: "top" | "middle" | "bottom" | undefined;
 	getNodeHeight(): number;
 	getViewHeight(): number;

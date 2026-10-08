@@ -60,8 +60,11 @@ vertical alignment, and table pagination with its break tracking.
 
 ### Columns
 
-Columns own width distribution between columns, gaps, parallel placement of the columns of a row,
-and flow between columns (`snakingColumns`).
+Columns own width distribution between columns, gaps, parallel placement of the columns of a row
+(`features/columns/layout-columns.ts`), the vertical alignment of column children in the height of
+their row, and flow between columns (`snakingColumns`): a snaking row opens a flow whose regions
+are its columns (`features/columns/column-flow.ts`), deciding where the next column lies, whether
+it fits on the page and where the first column starts on a new page.
 
 ### Stacks
 
@@ -111,7 +114,19 @@ also a document-level feature: it builds the node information passed to the user
 ### Shared services
 
 - **Page coordinates and document context** (`document/`): pages, cursor, available space, margins,
-  coordinate snapshots and their restoration.
+  column groups, coordinate snapshots and their restoration (`captureCoordinates`,
+  `restoreCoordinates`, and the `includeInGroupBottom` option of `beginColumn` and
+  `completeColumnGroup`).
+- **Flow regions** (`document/document-context.flow.ts`, `engine/layout-pagination.ts`): a column
+  group may open a flow (`FlowRegions`) whose regions its container defines. Shared code keeps the
+  region snapshots, enters the next region, restarts the flow on a new page and replays repeated
+  fragments such as table headers in each region (`PageElementWriter.enterNextFlowRegion`). Content
+  requests advancement with `advanceFlowRegion`, which tells whether it continues on the next page
+  or in a new region; text rebuilds its line in a new region. Content inside a column group nested
+  in the flow takes a plain page break unless it advances `throughNestedGroups`, as tables do
+  between rows.
+- **Width distribution** (`layout/column-calculator.ts`): fixed, percentage, auto and star widths
+  from numeric geometry. A container passes the width it reserves inside each percentage column.
 - **Placement** (`layout/`, `engine/`): the element writer, page items, fragments, unbreakable
   transactions, repeatable fragments, page changes and generic pagination.
 - **Resource loading** (`resources/`, `core/printer.resources.ts` for orchestration, the resource
@@ -122,7 +137,9 @@ also a document-level feature: it builds the node information passed to the user
 - **Typography** (`services/typography/`): fonts and text metrics.
 - **Lifecycle dispatch** (`engine/`, composition): stage contracts, the multi-pass pipeline and node
   lifecycle (margins, positioning, `pageBreak`, `unbreakable`, `absolutePosition`,
-  `relativePosition`).
+  `relativePosition`). When a container allows it, the lifecycle brackets a vertically aligned node
+  with alignment controls and returns them; the container completes them with the geometry of its
+  box (`completeVerticalAlignment` in `engine/layout-node-lifecycle.ts`).
 - **Rendering primitives** (`rendering/`): the PDFKit adapter, vectors, clipping and vertical
   alignment transforms.
 
@@ -179,54 +196,13 @@ Step 6 removes them by declaring the resource reference and the resolved documen
 Each line names the field of the shared node state, the only owner that uses it, the reason and the
 step that removes it.
 
-- `cell` (`features/table`): table row layout records the aligned cell on the vertical-alignment
-  box (`LayoutNodeState`). Removed in step 2.
-- `nodeHeight` (`features/table`): table row layout records the aligned content height on the
-  vertical-alignment box (`LayoutNodeState`). Removed in step 2.
 - `nodeInfo` (`features/repeatables`): `pageBreakBefore` stores the node information it builds for
   the user callback on the layout node (`LayoutNodeState`). Removed in step 6.
-
-Step 2 splits vertical alignment (see "Step 2: columns and tables"): tables own cell alignment,
-columns own the alignment of column children, and their alignment state moves into their own node
-types.
 
 ## Known ownership exceptions
 
 These couplings do not appear as forbidden imports, so the architecture test cannot detect them.
 Each one names its owner and the step that removes it.
-
-### Step 2: columns and tables
-
-- **Columns use table row layout.** `composition/built-in-layout.ts` injects `TableRowLayout`
-  (`features/table/layout-row.ts`) into columns as `processRow`, so column layout runs through
-  table span, cell and break-tracking state. Owner: columns. Columns orchestrate their own row
-  using the generic column-group operations of `DocumentContext`; `processRow` is no longer
-  injected into columns.
-- **Vertical alignment runs through table row layout.** Because columns share the row layout, a
-  column child with `verticalAlignment` is aligned although the public column type does not
-  declare it, and the alignment box state (`cell`, `nodeHeight`, `isCellContentMultiPage`,
-  `getNodeHeight`, `getViewHeight` in `LayoutNodeState`) is filled by table code. Decision: step 2
-  preserves column vertical alignment, including its current limitations. Tables own cell
-  alignment, columns own the alignment of column children, and the alignment transforms
-  (`rendering/render-vertical-alignment.ts`, the `beginVerticalAlignment` and `endVerticalAlignment`
-  page items) stay shared and serve both.
-- **Row-span state in the document context.** `ColumnEndingCell`, `markEnding`,
-  `saveContextInEndingCell` and the `endingCell` parameters of `beginColumn`, `calculateBottomMost`
-  and `completeColumnGroup` (`document/document-context*.ts`) carry row-span ending state. Owner:
-  tables. Generic coordinate snapshots and their restoration stay shared.
-- **Table break data in shared types.** `PageBreak.rowIndex`, `rowSpan` and `rowIndexOfSpanEnd`
-  (`types/layout.types.ts`) belong to table break tracking. Owner: tables.
-- **Table geometry in the width calculator.** `layout/column-calculator.ts` reads table paddings
-  and borders from `metrics.layout` to resolve percentage widths. Owner: tables. The shared
-  calculator receives numeric geometry; tables compute their reserved widths.
-- **Column flow inspected by text and tables.** `features/text/layout-text.ts` and
-  `features/table/layout-table.ts` call `inSnakingColumns()` and `isInNestedNonSnakingGroup()`, and
-  `NodeLayoutContext.snakingAwarePageBreak` (`engine/contracts/node-feature.ts`) exposes snaking to
-  every feature. The snaking policy is implemented in shared code (`document/document-context.snaking.ts`,
-  the snaking branches of `layout/element-writer.page.ts`, `engine/layout-pagination.ts`). Owner:
-  columns. Step 2 adds a minimal "advance to the next flow region" capability: columns decide
-  their flow, and text and tables request advancement without inspecting snaking state. Text still
-  rebuilds a line when the available width changes.
 
 ### Step 3: stacks
 
@@ -311,8 +287,9 @@ These are not ownership exceptions. Step 6 handles them after ownership is settl
 ## Refactoring steps
 
 1. Define and enforce ownership: this document and the architecture test. No production change.
+   Done.
 2. Separate column layout from table row layout, move row-span state into tables, and introduce the
-   flow-region capability.
+   flow-region capability. Done.
 3. Make stacks own their decoration, with a generic fill-layering contract and shared rounded
    geometry.
 4. Finish ownership of inline content.

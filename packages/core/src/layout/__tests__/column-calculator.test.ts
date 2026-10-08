@@ -1,5 +1,4 @@
 import { assert, describe, it } from "vitest";
-import type { LayoutTableNode } from "../../features/table/table.types.ts";
 import ColumnCalculator from "../column-calculator.ts";
 import type { ColumnWidth } from "../../types/internal";
 
@@ -134,25 +133,16 @@ describe("ColumnCalculator", function () {
 			assert.equal(columns[1]._calcWidth, 200);
 		});
 
-		it("uses the original index for percentage padding in mixed-width tables (#2180)", function () {
+		it("subtracts the reserved width of a percentage column at its original index (#2180)", function () {
 			const columns: ColumnWidth[] = [
 				{ width: "auto", _minWidth: 10, _maxWidth: 10 },
 				{ width: "50%", _minWidth: 10, _maxWidth: 10 },
 				{ width: "*", _minWidth: 10, _maxWidth: 10 },
 			];
-			const tableNode = {
-				metrics: {
-					layout: {
-						paddingLeft: (index: number) => index,
-						paddingRight: (index: number) => index + 1,
-						vLineWidth: (index: number) => index * 2,
-					},
-				},
-			} as unknown as LayoutTableNode;
 
-			ColumnCalculator.buildColumnWidths(columns, 90, 10, tableNode);
+			ColumnCalculator.buildColumnWidths(columns, 90, 10, [0, 6, 0]);
 
-			// 50% of 100, less padding 1 + 2 and half of borders 2/2 + 4/2.
+			// 50% of 100, less the 6 reserved for the second column.
 			assert.equal(columns[1].width, "50%");
 			assert.equal(columns[1]._calcWidth, 44);
 		});
@@ -171,72 +161,23 @@ describe("ColumnCalculator", function () {
 			assert.equal(columns[2]._calcWidth, 50);
 		});
 
-		it("should calculate widths of the table columns correctly when using percentages", function () {
+		it("should calculate percentage widths from the total width less reserved widths", function () {
 			const availableWidth = 149;
 			const offsetTotal = 51;
 			const columns: ColumnWidth[] = [
-				{
-					width: "50%",
-					_minWidth: 22.27734375,
-					_maxWidth: 22.27734375,
-				},
-				{
-					width: "25%",
-					_minWidth: 22.27734375,
-					_maxWidth: 22.27734375,
-				},
-				{
-					width: "25%",
-					_minWidth: 22.27734375,
-					_maxWidth: 22.27734375,
-				},
+				{ width: "50%", _minWidth: 22.27734375, _maxWidth: 22.27734375 },
+				{ width: "25%", _minWidth: 22.27734375, _maxWidth: 22.27734375 },
+				{ width: "25%", _minWidth: 22.27734375, _maxWidth: 22.27734375 },
 			];
-			const tableNode = {
-				table: {
-					widths: ["50%", "25%", "25%"],
-					body: [[{ text: "50%" }, { text: "25%" }, { text: "25%" }]],
-				},
-				metrics: {
-					layout: {
-						vLineWidth: function (i: number) {
-							if (i === 0) {
-								return 4;
-							}
-							if (i === 1) {
-								return 6;
-							}
-							if (i === 2) {
-								return 5;
-							}
-							if (i === 3) {
-								return 4;
-							}
-							return 0;
-						},
-						paddingLeft: function (i: number) {
-							return i === 0 ? 5 : 3;
-						},
-						paddingRight: function () {
-							return 7;
-						},
-					},
-				},
-			} as unknown as LayoutTableNode;
 
-			ColumnCalculator.buildColumnWidths(columns, availableWidth, offsetTotal, tableNode);
+			ColumnCalculator.buildColumnWidths(columns, availableWidth, offsetTotal, [19, 15.5, 16.5]);
 			// 200 Total available width (availableWidth + offsetTotal) === 149 + 51
-			// Fist column is 50% width of 200 === 100
-			// 100 - 4 borderLeft - 6/2 = 3 borderRight - 5 paddingLeft - 7 paddingRight
 			assert.equal(columns[0].width, "50%");
-			assert.equal(columns[0]._calcWidth, 81);
-			// Second column has 25% width of 200 which is 50
-			// 50 - 3 (6/2) borderLeft - 2.5 (5/2) borderRight - 3 paddingLeft - 7 paddingRight
+			assert.equal(columns[0]._calcWidth, 100 - 19);
 			assert.equal(columns[1].width, "25%");
-			assert.equal(columns[1]._calcWidth, 34.5);
-			// Third column has 25% width of 200 which is 50
-			// 50 - 2.5 (5/2) borderLeft - 4 borderRight - 3 paddingLeft - 7 paddingRight
+			assert.equal(columns[1]._calcWidth, 50 - 15.5);
 			assert.equal(columns[2].width, "25%");
-			assert.equal(columns[2]._calcWidth, 33.5);
+			assert.equal(columns[2]._calcWidth, 50 - 16.5);
 			// The sum of all column width should be equal to totalAvailableWidth - offsetTotal
 			assert.equal(availableWidth, 81 + 34.5 + 33.5);
 		});

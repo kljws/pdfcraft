@@ -15,7 +15,7 @@ import type {
 import type { PageMarginSource, PageSize, PdfPage, TableLayout } from "../types/internal";
 import {
 	layoutNodeWithLifecycle,
-	type VerticalAlignmentStackEntry,
+	type VerticalAlignmentControls,
 } from "../engine/layout-node-lifecycle";
 import {
 	runBuiltInDocumentPass,
@@ -24,7 +24,11 @@ import {
 import { createBuiltInLayout } from "../composition/built-in-layout";
 import { createBuiltInMeasurement } from "../composition/built-in-measurement";
 import { createBuiltInPreprocessing } from "../composition/built-in-preprocessing";
-import { moveToNextSnakingColumnOrPage } from "../engine/layout-pagination";
+import {
+	advanceFlowRegion,
+	type FlowAdvance,
+	type FlowAdvanceOptions,
+} from "../engine/layout-pagination";
 
 /**
  * Layout engine which turns document-definition-object into a set of pages, lines, inlines
@@ -36,7 +40,6 @@ class LayoutBuilder {
 	extensions: PdfCraftExtensions;
 	tableLayouts: Dictionary<Partial<TableLayout<MeasuredPdfNode>>> = {};
 	nestedLevel = 0;
-	verticalAlignmentItemStack: VerticalAlignmentStackEntry[] = [];
 	preprocessing!: BuiltInPreprocessing;
 	measurement!: BuiltInMeasurement;
 	linearNodeList: LayoutPdfNode[] = [];
@@ -102,21 +105,23 @@ class LayoutBuilder {
 		});
 	}
 
-	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed: boolean = false): void {
-		layoutNodeWithLifecycle(node, isVerticalAlignmentAllowed, {
+	processNode(
+		node: LayoutPdfNode,
+		isVerticalAlignmentAllowed: boolean = false,
+	): VerticalAlignmentControls | undefined {
+		return layoutNodeWithLifecycle(node, isVerticalAlignmentAllowed, {
 			writer: this.writer,
 			linearNodeList: this.linearNodeList,
 			suppressLinearNodeList: this.suppressLinearNodeList,
-			verticalAlignmentItemStack: this.verticalAlignmentItemStack,
 			decorateNode: (target) => this.layout.decorateNode(target),
 			moveDownWithPageBreak: this.layout.moveDownWithPageBreak,
 			layoutContent: (contentNode) => this.layout.layoutNode(contentNode),
 		});
 	}
 
-	/** Moves to the next snaking column when one is available, otherwise to the next page. */
-	snakingAwarePageBreak(pageOrientation?: PageOrientation): void {
-		moveToNextSnakingColumnOrPage(this.writer, pageOrientation);
+	/** Continues in the next region of the enclosing container flow, or on the next page. */
+	advanceFlowRegion(pageOrientation?: PageOrientation, options?: FlowAdvanceOptions): FlowAdvance {
+		return advanceFlowRegion(this.writer, pageOrientation, options);
 	}
 }
 

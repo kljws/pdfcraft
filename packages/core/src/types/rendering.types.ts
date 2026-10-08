@@ -62,6 +62,9 @@ export type PageControlItem = {
 	width?: number | undefined;
 	height?: number | undefined;
 	verticalAlignment?: string | undefined;
+	isContentMultiPage?: boolean | undefined;
+	getNodeHeight?: (() => number) | undefined;
+	getViewHeight?: (() => number) | undefined;
 };
 
 export type PdfPage = {

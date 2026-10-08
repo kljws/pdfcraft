@@ -1,5 +1,4 @@
 import type PageElementWriter from "../../layout/element-writer.page";
-import type { PageOrientation } from "../../types";
 import type { ColumnWidth, Position } from "../../types/internal";
 import {
 	columnLeftOffset,
@@ -7,10 +6,12 @@ import {
 	getRowSpanEndingCell,
 	storePageBreakData,
 	updatePageBreaksData,
-	type TablePageBreak,
 } from "./table-pagination";
-import type { VerticalAlignmentStackEntry } from "../../engine/layout-node-lifecycle";
-import type { LayoutTableCell } from "./table.types";
+import {
+	completeVerticalAlignment,
+	type VerticalAlignmentControls,
+} from "../../engine/layout-node-lifecycle";
+import type { EndingCell, LayoutTableCell, TablePageBreak } from "./table.types";
 
 export type ProcessRowOptions = {
 	marginX?: [number, number] | undefined;
@@ -23,7 +24,6 @@ export type ProcessRowOptions = {
 	tableBody?: LayoutTableCell[][] | undefined;
 	rowIndex?: number | undefined;
 	height?: number | undefined;
-	snakingColumns?: boolean | undefined;
 };
 
 export type ProcessRowResult = {
@@ -32,11 +32,12 @@ export type ProcessRowResult = {
 };
 
 export type TableRowLayoutHost = {
-	writer: PageElementWriter;
-	nestedLevel: number;
-	verticalAlignmentItemStack: VerticalAlignmentStackEntry[];
-	processNode(node: LayoutTableCell, isVerticalAlignmentAllowed?: boolean): void;
-	snakingAwarePageBreak(pageOrientation?: PageOrientation): void;
+	readonly writer: PageElementWriter;
+	readonly nestedLevel: number;
+	processNode(
+		node: LayoutTableCell,
+		isVerticalAlignmentAllowed?: boolean,
+	): VerticalAlignmentControls | undefined;
 };
 
 class TableRowLayout {
@@ -53,7 +54,6 @@ class TableRowLayout {
 		tableBody,
 		rowIndex,
 		height,
-		snakingColumns = false,
 	}: ProcessRowOptions): ProcessRowResult {
 		tableBody ??= [cells];
 		rowIndex ??= 0;
@@ -61,7 +61,7 @@ class TableRowLayout {
 		const pageBreaks: TablePageBreak[] = [];
 		const positions: Position[] = [];
 		let willBreakByHeight = false;
-		const verticalAlignmentCells: Record<number, number> = {};
+		const alignedCells: Array<{ cell: LayoutTableCell; controls: VerticalAlignmentControls }> = [];
 		const resolvedWidths = widths;
 
 		// Fixed-height rows that fit a fresh page are moved before beginRow so the
@@ -70,31 +70,10 @@ class TableRowLayout {
 			willBreakByHeight = true;
 		}
 
-		// Use the marginX if we are in a top level table/column (not nested)
+		// Use the marginX if we are in a top level table (not nested)
 		const marginXParent = this.host.nestedLevel === 1 ? marginX : null;
-		const _bottomByPage = tableNode?._bottomByPage;
-		// Pass column gap and widths to context snapshot for snaking columns
-		// to advance correctly and reset to first-column width on new pages.
-		const columnGapForGroup = gaps && gaps.length > 1 ? gaps[1] : 0;
-		const columnWidthsForContext = resolvedWidths.map(
-			(width) => width._calcWidth ?? width._minWidth,
-		);
-		this.host.writer
-			.context()
-			.beginColumnGroup(
-				marginXParent,
-				_bottomByPage,
-				snakingColumns,
-				columnGapForGroup,
-				columnWidthsForContext,
-			);
+		this.host.writer.context().beginColumnGroup(marginXParent, tableNode?._bottomByPage);
 
-		// IMPORTANT: We iterate ALL columns even when snakingColumns is enabled.
-		// This is intentional — beginColumn() must be called for each column to set up
-		// proper geometry (widths, offsets) and rowspan/colspan tracking. The
-		// completeColumnGroup() call at the end depends on this bookkeeping to compute
-		// heights correctly. Content processing is skipped for columns > 0 via
-		// skipForSnaking below, but the column structure must still be established.
 		for (let i = 0, l = cells.length; i < l; i++) {
 			const cell = cells[i];
 			// The loop advances `i` past spanned columns itself, so it stays index-based.
@@ -149,7 +128,7 @@ class TableRowLayout {
 			}
 
 			// If we are after a cell that started a rowspan
-			let endOfRowSpanCell = null;
+			let endOfRowSpanCell: EndingCell | null = null;
 			if (startingSpanCell && startingSpanCell._endingCell) {
 				// Reference to the last cell of the rowspan
 				endOfRowSpanCell = startingSpanCell._endingCell;
@@ -160,21 +139,27 @@ class TableRowLayout {
 				}
 			}
 
-			// We pass the endingSpanCell reference to store the context just after processing rowspan cell
-			this.host.writer.context().beginColumn(width, leftOffset, endOfRowSpanCell);
+			// The context just after the rowspanned cell is stored in its ending cell instead of
+			// contributing to the bottom of this row.
+			const context = this.host.writer.context();
+			if (endOfRowSpanCell) {
+				endOfRowSpanCell._columnEndingContext = context.captureCoordinates();
+				context.beginColumn(width, leftOffset, false);
+			} else {
+				context.beginColumn(width, leftOffset);
+			}
 
-			// When snaking, only process content from the first column (i === 0).
-			// Content overflows into subsequent columns via moveToNextColumn().
-			// We skip content processing here but NOT the beginColumn() call above —
-			// the column geometry setup is still needed for proper layout bookkeeping.
-			const skipForSnaking = snakingColumns && i > 0;
-
-			if (!cell._span && !skipForSnaking) {
-				this.host.processNode(cell, true);
+			if (!cell._span) {
+				const controls = this.host.processNode(cell, true);
 				this.host.writer.context().updateBottomByPage();
 
 				if (cell.verticalAlignment) {
-					verticalAlignmentCells[cellIndexBegin] = this.host.verticalAlignmentItemStack.length - 1;
+					if (!controls) {
+						throw new Error(
+							`Internal layout error: missing vertical-alignment controls for table cell ${cellIndexBegin}`,
+						);
+					}
+					alignedCells.push({ cell, controls });
 				}
 
 				positions.push(...(cell.positions ?? []));
@@ -206,13 +191,15 @@ class TableRowLayout {
 				}
 				// row-span ending
 				// Recover the context after processing the rowspanned cell
-				this.host.writer.context().markEnding(cell, originalXOffset, discountY);
+				this.host.writer
+					.context()
+					.restoreCoordinates(cell._columnEndingContext, originalXOffset, discountY);
 			}
 			this.host.writer.removeListener("pageChanged", storePageBreakClosure);
 		}
 
 		// Check if last cell is part of a span
-		let endingSpanCell = null;
+		let endingSpanCell: EndingCell | null | undefined = null;
 		const lastColumn = cells.length > 0 ? cells[cells.length - 1] : null;
 		if (lastColumn) {
 			// Previous column cell has a rowspan
@@ -237,16 +224,12 @@ class TableRowLayout {
 		// If content did not break page, check if we should break by height
 		if (willBreakByHeight && !isUnbreakableRow && pageBreaks.length === 0) {
 			this.host.writer.context().moveDown(this.host.writer.context().availableHeight);
-			if (snakingColumns) {
-				this.host.snakingAwarePageBreak();
-			} else {
-				this.host.writer.moveToNextPage();
-			}
+			this.host.writer.moveToNextPage();
 		}
 
-		const bottomByPage = this.host.writer
-			.context()
-			.completeColumnGroup(height ?? 0, endingSpanCell);
+		const endContext = this.host.writer.context();
+		if (endingSpanCell) endingSpanCell._columnEndingContext = endContext.captureCoordinates();
+		const bottomByPage = endContext.completeColumnGroup(height ?? 0, !endingSpanCell);
 
 		if (tableNode) {
 			tableNode._bottomByPage = bottomByPage;
@@ -255,30 +238,18 @@ class TableRowLayout {
 		}
 
 		const rowHeight = this.host.writer.context().height;
-		for (const [i, cell] of cells.entries()) {
-			if (!cell._span && cell.verticalAlignment) {
-				const stackIndex = verticalAlignmentCells[i];
-				const alignmentEntry =
-					stackIndex === undefined ? undefined : this.host.verticalAlignmentItemStack[stackIndex];
-				if (!alignmentEntry) {
-					throw new Error(
-						`Internal layout error: missing vertical-alignment controls for table cell ${i}`,
-					);
-				}
-				const itemBegin: LayoutTableCell = alignmentEntry.begin.item;
-				itemBegin.viewHeight = rowHeight;
-				itemBegin.nodeHeight = cell.__height;
-				itemBegin.cell = cell;
-				itemBegin.bottomY = this.host.writer.context().y;
-				const cellPositions = cell.positions ?? [];
-				const firstPageNumber = cellPositions[0]?.pageNumber;
-				itemBegin.isCellContentMultiPage = cellPositions.some(
+		const bottomY = this.host.writer.context().y;
+		for (const { cell, controls } of alignedCells) {
+			const cellPositions = cell.positions ?? [];
+			const firstPageNumber = cellPositions[0]?.pageNumber;
+			const nodeHeight = cell.__height ?? 0;
+			completeVerticalAlignment(controls, {
+				isContentMultiPage: cellPositions.some(
 					(item: Position) => item.pageNumber !== firstPageNumber,
-				);
-				itemBegin.getViewHeight = function (this: LayoutTableCell): number {
-					const cell = this.cell as LayoutTableCell | undefined;
-					if (!cell)
-						throw new Error("Internal layout error: missing vertically aligned table cell");
+				),
+				getNodeHeight: () => nodeHeight,
+				// Read when the page is rendered, after the table processor finished the row.
+				getViewHeight: () => {
 					if (cell._willBreak) {
 						return (cell._bottomY ?? 0) - (cell._rowTopPageY ?? 0);
 					}
@@ -292,24 +263,16 @@ class TableRowLayout {
 							const rowTopPageY =
 								(endingCell._startingRowSpanY ?? 0) + (endingCell._rowTopPageYPadding ?? 0);
 							return (endingCell._rowTopPageY ?? 0) - rowTopPageY + (endingCell._bottomY ?? 0);
-						} else {
-							if (cell._lastPageNumber !== endingCell._lastPageNumber) {
-								return (this.bottomY ?? 0) - (endingCell._bottomY ?? 0);
-							}
-
-							return (this.viewHeight ?? 0) + (endingCell._bottomY ?? 0) - (this.bottomY ?? 0);
 						}
+						if (cell._lastPageNumber !== endingCell._lastPageNumber) {
+							return bottomY - (endingCell._bottomY ?? 0);
+						}
+						return rowHeight + (endingCell._bottomY ?? 0) - bottomY;
 					}
 
-					return this.viewHeight ?? 0;
-				};
-				itemBegin.getNodeHeight = function (this: LayoutTableCell): number {
-					return this.nodeHeight ?? 0;
-				};
-
-				const itemEnd = alignmentEntry.end.item;
-				itemEnd.isCellContentMultiPage = itemBegin.isCellContentMultiPage;
-			}
+					return rowHeight;
+				},
+			});
 		}
 
 		return {
@@ -317,7 +280,6 @@ class TableRowLayout {
 			positions: positions,
 		};
 	}
-	// leafs (texts)
 }
 
 export default TableRowLayout;

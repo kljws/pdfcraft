@@ -1,8 +1,27 @@
 import { assert, beforeEach, describe, it } from "vitest";
 import DocumentContext, { bottomMostContext } from "../document-context.ts";
 import { getPagePosition } from "../document-context.helpers.ts";
-import type { ColumnEndingCell, ContextCoordinates } from "../document-context.types.ts";
+import type {
+	ContextCoordinates,
+	CoordinateSnapshot,
+	FlowRegion,
+	FlowRegions,
+} from "../document-context.types.ts";
 import type { PageSize } from "../../types/internal.ts";
+
+/** Flow whose further regions start 200 to the right; its first region on a page is at x 10. */
+function createStubFlow(
+	nextRegion: FlowRegions["nextRegion"] = (context): FlowRegion => ({
+		x: context.x + 200,
+		width: 80,
+	}),
+): FlowRegions {
+	return {
+		hasNextRegion: () => true,
+		nextRegion,
+		firstRegion: () => ({ x: 10, width: 20 }),
+	};
+}
 
 describe("DocumentContext", function () {
 	var pc: DocumentContext;
@@ -47,76 +66,81 @@ describe("DocumentContext", function () {
 			assert.equal(pc.snapshots[0].page, 0);
 		});
 
-		it("should save columnWidths if provided", function () {
-			pc.beginColumnGroup(null, {}, true, 0, [100, 200]);
-			assert.deepEqual(pc.snapshots[0].columnWidths, [100, 200]);
+		it("should keep the flow the group opens", function () {
+			const flow = createStubFlow();
+			pc.beginColumnGroup(null, {}, flow);
+			assert.equal(pc.snapshots[0].flow, flow);
 		});
 	});
 
-	describe("Snaking Helpers", function () {
-		it("should identify snaking context when present", function () {
-			pc.beginColumnGroup(null, {}, true);
-			assert.ok(pc.inSnakingColumns());
-			assert.ok(pc.getSnakingSnapshot()!.snakingColumns);
+	describe("flow helpers", function () {
+		it("should identify a flow when present", function () {
+			assert.equal(pc.getFlowSnapshot(), null);
+			pc.beginColumnGroup(null, {}, createStubFlow());
+			assert.equal(pc.getFlowSnapshot(), pc.snapshots[0]);
 		});
 
-		// pdfmake doesn't actually support deep nesting well but DocumentContext should detect it
-		it("should find the deepest snaking snapshot", function () {
-			pc.beginColumnGroup(null, {}, true); // Outer snaking
+		it("should find the deepest flow snapshot", function () {
+			pc.beginColumnGroup(null, {}, createStubFlow()); // Outer flow
 			pc.beginColumn();
-			pc.beginColumnGroup(null, {}, false); // Inner non-snaking
+			pc.beginColumnGroup(null, {}); // Inner group without a flow
 
-			assert.ok(pc.inSnakingColumns());
 			assert.equal(pc.snapshots.length, 2);
-			assert.ok(pc.getSnakingSnapshot()!.snakingColumns);
-			assert.equal(pc.getSnakingSnapshot(), pc.snapshots[0]);
+			assert.equal(pc.getFlowSnapshot(), pc.snapshots[0]);
+			assert.ok(pc.isFlowInterruptedByNestedGroup());
 
-			pc.beginColumnGroup(null, {}, true); // Inner snaking
-			assert.equal(pc.getSnakingSnapshot(), pc.snapshots[2]);
-		});
-	});
-
-	describe("moveToNextColumn", function () {
-		it("should advance x by column width plus gap when snaking", function () {
-			pc.beginColumnGroup(null, {}, true, 30);
-			pc.beginColumn(100);
-			var before = pc.x;
-			pc.moveToNextColumn();
-			assert.equal(pc.x, before + 100 + 30);
+			pc.beginColumnGroup(null, {}, createStubFlow()); // Inner flow
+			assert.equal(pc.getFlowSnapshot(), pc.snapshots[2]);
+			assert.ok(!pc.isFlowInterruptedByNestedGroup());
 		});
 
-		it("should use specific column widths if provided", function () {
-			// [100, 200, 150] widths
-			pc.beginColumnGroup(null, {}, true, 30, [100, 200, 150]);
-
-			// Column 1 (Index 0): width 100
+		it("should not enter a further region from inside a nested group", function () {
+			pc.beginColumnGroup(null, {}, createStubFlow());
 			pc.beginColumn(100);
-			assert.equal(pc.availableWidth, 100);
+			assert.ok(pc.canEnterNextFlowRegion());
 
-			// Move to Column 2 (Index 1): width 200
-			pc.moveToNextColumn();
-			assert.equal(pc.availableWidth, 200);
-
-			// Move to Column 3 (Index 2): width 150
-			pc.moveToNextColumn();
-			assert.equal(pc.availableWidth, 150);
+			pc.beginColumnGroup(null, {});
+			assert.ok(!pc.canEnterNextFlowRegion());
 		});
 
-		it("should fallback to lastColumnWidth if specific width not defined", function () {
-			// Only 2 widths defined [100, 200]
-			pc.beginColumnGroup(null, {}, true, 30, [100, 200]);
-
-			// Column 1: 100
+		it("should enter the region decided by the flow and count entered regions", function () {
+			const requested: number[] = [];
+			pc.beginColumnGroup(
+				null,
+				{},
+				createStubFlow((_context, regionIndex) => {
+					requested.push(regionIndex);
+					return { x: 300 + regionIndex, width: 50 };
+				}),
+			);
 			pc.beginColumn(100);
+			pc.y = 200;
 
-			// Column 2: 200
-			pc.moveToNextColumn();
-			assert.equal(pc.availableWidth, 200);
+			pc.enterNextFlowRegion();
+			assert.equal(pc.x, 300);
+			assert.equal(pc.y, 60);
+			assert.equal(pc.availableWidth, 50);
+			assert.equal(pc.lastColumnWidth, 50);
+			assert.ok(pc.snapshots.at(-1)!.overflowed);
 
-			// Column 3: Undefined -> Fallback to last used (200) or availableWidth
-			// current implementation sets lastColumnWidth to colWidth (200) before next
-			pc.moveToNextColumn();
-			assert.equal(pc.availableWidth, 200);
+			pc.enterNextFlowRegion();
+			assert.equal(pc.x, 301);
+			assert.deepEqual(requested, [0, 1]);
+		});
+
+		it("should restart the flow in its first region on a new page", function () {
+			pc.beginColumnGroup(null, {}, createStubFlow());
+			pc.beginColumn(100);
+			pc.enterNextFlowRegion();
+			pc.moveToNextPage();
+
+			pc.restartFlowOnNewPage();
+
+			assert.equal(pc.snapshots.length, 1);
+			assert.equal(pc.x, 10);
+			assert.equal(pc.availableWidth, 20);
+			assert.equal(pc.snapshots[0].y, 60);
+			assert.equal(pc.snapshots[0].page, 1);
 		});
 	});
 
@@ -156,17 +180,17 @@ describe("DocumentContext", function () {
 			assert.equal(pc.availableWidth, 30);
 		});
 
-		it("should save context in endingCell if provided", function () {
-			var endingCell: ColumnEndingCell = {};
+		it("should capture the cursor coordinates before starting a column", function () {
 			pc.beginColumnGroup();
 			pc.y = 150;
 			pc.page = 3;
 			pc.availableHeight = 123;
-			pc.beginColumn(30, 0, endingCell);
+			var captured = pc.captureCoordinates();
+			pc.beginColumn(30, 0, false);
 
-			assert.equal(endingCell._columnEndingContext!.y, 150);
-			assert.equal(endingCell._columnEndingContext!.page, 3);
-			assert.equal(endingCell._columnEndingContext!.availableHeight, 123);
+			assert.equal(captured.y, 150);
+			assert.equal(captured.page, 3);
+			assert.equal(captured.availableHeight, 123);
 		});
 	});
 
@@ -192,14 +216,12 @@ describe("DocumentContext", function () {
 			assert.equal(pc.page, 7);
 		});
 
-		it("should skip non-ending-cells (spanning over multiple rows) during vsync", function () {
-			var endingCell: ColumnEndingCell = {};
-
+		it("should skip positions excluded from the group bottom during vsync", function () {
 			pc.beginColumnGroup();
 			pc.y = 150;
 			pc.page = 3;
 			pc.availableHeight = 123;
-			pc.beginColumn(30, 0, endingCell);
+			pc.beginColumn(30, 0, false);
 			pc.beginColumn(30, 0);
 			pc.y = 100;
 			pc.page = 3;
@@ -209,14 +231,15 @@ describe("DocumentContext", function () {
 			assert.equal(pc.y, 100);
 		});
 
-		it("non-ending-cells (spanning over multiple rows) should also work with nested columns", function () {
-			var endingCell: ColumnEndingCell = {};
-			var endingCell2: ColumnEndingCell = {};
+		it("excluded positions restored later should also work with nested columns", function () {
+			var ending: CoordinateSnapshot;
+			var ending2: CoordinateSnapshot;
 
 			// external table
 			pc.beginColumnGroup();
 			// col1 spans over 2 rows
-			pc.beginColumn(30, 0, endingCell);
+			ending = pc.captureCoordinates();
+			pc.beginColumn(30, 0, false);
 			pc.y = 350;
 			// col 2
 			pc.beginColumn(40);
@@ -230,14 +253,15 @@ describe("DocumentContext", function () {
 			pc.beginColumn(20);
 			pc.y = 120;
 			// col3.3 spans over 2 rows
-			pc.beginColumn(40, 0, endingCell2);
+			ending2 = pc.captureCoordinates();
+			pc.beginColumn(40, 0, false);
 			pc.y = 180;
 			pc.completeColumnGroup();
 
 			//// bottom of all non-spanned columns
 			assert.equal(pc.y, 180);
-			// Check context has been stored in ending cell
-			assert.equal(endingCell2._columnEndingContext!.y, 120);
+			// Check the coordinates at the end of col3.2 have been captured
+			assert.equal(ending2.y, 120);
 
 			// second row (of nested table)
 			pc.beginColumnGroup();
@@ -247,7 +271,7 @@ describe("DocumentContext", function () {
 			pc.y = 20;
 			// col3.3 spans over 2 rows
 			pc.beginColumn(40, 0);
-			pc.markEnding(endingCell2);
+			pc.restoreCoordinates(ending2);
 			pc.completeColumnGroup();
 
 			//// spanned column was large enough to influence bottom
@@ -260,7 +284,7 @@ describe("DocumentContext", function () {
 			// second row
 			pc.beginColumnGroup();
 			pc.beginColumn(30);
-			pc.markEnding(endingCell);
+			pc.restoreCoordinates(ending);
 			pc.beginColumn(40);
 			pc.y = 50;
 			pc.beginColumn(100);
@@ -377,7 +401,7 @@ describe("DocumentContext", function () {
 
 		it("should keep column width when in column group, but set page width", function () {
 			pc.beginColumnGroup();
-			pc.beginColumn(100, 0, {});
+			pc.beginColumn(100, 0, false);
 			pc.initializePage();
 
 			assert.equal(pc.availableWidth, 100);

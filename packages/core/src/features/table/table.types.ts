@@ -1,6 +1,6 @@
+import type { CoordinateSnapshot } from "../../document/document-context.types";
 import type {
 	ColumnWidth,
-	ContextSnapshot,
 	PageBreak,
 	LayoutPdfNode,
 	LayoutNodeBase,
@@ -27,28 +27,31 @@ export interface TableNodeState<Node> {
 	_colSpan?: number | undefined;
 	_bottomY?: number | undefined;
 	_originalXOffset?: number | undefined;
-	_columnEndingContext?: ContextSnapshot | undefined;
+	/** Coordinates reached at the end of a row-spanned cell, restored when the span ends. */
+	_columnEndingContext?: CoordinateSnapshot | undefined;
 	_endingCell?: EndingCell | undefined;
 	_leftEndingCell?: EndingCell | undefined;
 	_startingRowSpanY?: number | undefined;
 	_startingRowSpanPage?: number | undefined;
 	_rowTopPageY?: number | undefined;
-	_breaksBySpan?: PageBreak[] | undefined;
+	_breaksBySpan?: TablePageBreak[] | undefined;
 	_willBreak?: boolean | undefined;
 	_isUnbreakableContext?: boolean | undefined;
 	_bottomByPage?: Record<number, number> | undefined;
-	// Vertical-alignment inputs recorded on the aligned cell box.
-	viewHeight?: number | undefined;
-	bottomY?: number | undefined;
 	_rowTopPageYPadding?: number | undefined;
 	_lastPageNumber?: number | undefined;
 	_rowSpanCurrentOffset?: number | undefined;
 }
 
-export type EndingCell = LayoutTableCell & {
-	_endContext?: ContextSnapshot | undefined;
-	_endingContext?: ContextSnapshot | undefined;
+/** Page break observed while laying out a table row, with the row-span data tables track. */
+export type TablePageBreak = PageBreak & {
+	rowIndex?: number | undefined;
+	rowSpan?: number | undefined;
+	rowIndexOfSpanEnd?: number | undefined;
 };
+
+/** Last cell of a row span, which stores the coordinates reached by the spanning cell. */
+export type EndingCell = LayoutTableCell;
 
 export type MeasuredTableCell = MeasuredPdfNode & TableNodeState<MeasuredPdfNode>;
 export type LayoutTableCell = LayoutPdfNode & TableNodeState<LayoutPdfNode>;

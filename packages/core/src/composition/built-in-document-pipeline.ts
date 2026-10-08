@@ -33,7 +33,6 @@ type BuiltInDocumentPassHost = {
 	linearNodeList: LayoutPdfNode[];
 	suppressLinearNodeList: boolean;
 	nestedLevel: number;
-	verticalAlignmentItemStack: unknown[];
 	writer: PageElementWriter;
 	processNode(node: LayoutPdfNode, isVerticalAlignmentAllowed?: boolean): void;
 };
@@ -81,7 +80,6 @@ function startLayoutPass(host: BuiltInDocumentPassHost, documentContext: Documen
 	host.linearNodeList = [];
 	host.suppressLinearNodeList = false;
 	host.nestedLevel = 0;
-	host.verticalAlignmentItemStack.length = 0;
 	host.writer = new PageElementWriter(documentContext, createBuiltInElementPlacement());
 }
 

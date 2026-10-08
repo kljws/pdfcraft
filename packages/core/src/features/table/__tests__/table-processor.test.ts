@@ -2,7 +2,7 @@ import { assert, beforeEach, describe, it, vi } from "vitest";
 import type DocumentContext from "../../../document/document-context.ts";
 import type PageElementWriter from "../../../layout/element-writer.page.ts";
 import type { Vector } from "../../../types/internal.ts";
-import type { TablePageBreak } from "../table-pagination.ts";
+import type { TablePageBreak } from "../table.types.ts";
 import BaseTableProcessor from "../table-processor.ts";
 import { resetTableLayoutState } from "../table-processor.helpers.ts";
 import type { ResolvedTableLayout } from "../table-processor.types.ts";

@@ -329,13 +329,13 @@ describe("Renderer graphics", () => {
 		const { document } = createDocument();
 		const renderer = new Renderer(document as unknown as PDFDocument);
 		const middle = {
-			isCellContentMultiPage: false,
+			isContentMultiPage: false,
 			verticalAlignment: "middle" as const,
 			getNodeHeight: () => 100,
 			getViewHeight: () => 40,
 		};
 		const bottom = { ...middle, verticalAlignment: "bottom" as const };
-		const multipage = { ...middle, isCellContentMultiPage: true };
+		const multipage = { ...middle, isContentMultiPage: true };
 
 		renderer.renderFeatureItem("attachment", {
 			attachment: "attachment",

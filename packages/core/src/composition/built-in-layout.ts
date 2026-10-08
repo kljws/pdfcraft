@@ -1,7 +1,7 @@
-import type { ColumnsLayoutCapabilities } from "../features/columns/columns.feature";
-import type { TableLayoutCapabilities } from "../features/table/table.feature";
-import TableRowLayout, { type TableRowLayoutHost } from "../features/table/layout-row";
 import type { NodeLayoutContext } from "../engine/contracts/node-feature";
+import type { VerticalAlignmentControls } from "../engine/layout-node-lifecycle";
+import type { FlowAdvance, FlowAdvanceOptions } from "../engine/layout-pagination";
+import type PageElementWriter from "../layout/element-writer.page";
 import type { PageOrientation } from "../types";
 import type { LayoutPdfNode, PageMarginSource, PageSize } from "../types/internal";
 import { decorateNode as decorateLayoutNode } from "../layout/node.decorators";
@@ -12,22 +12,26 @@ import {
 	resetRegisteredNodeFeature,
 } from "./built-in-feature-registry";
 
-type BuiltInLayoutContext = NodeLayoutContext & ColumnsLayoutCapabilities & TableLayoutCapabilities;
-
-type BuiltInLayoutHost = TableRowLayoutHost & {
+type BuiltInLayoutHost = {
+	readonly writer: PageElementWriter;
 	readonly pageMargins: PageMarginSource;
 	readonly pageSize: PageSize;
 	readonly suppressLinearNodeList: boolean;
+	nestedLevel: number;
+	processNode(
+		node: LayoutPdfNode,
+		isVerticalAlignmentAllowed?: boolean,
+	): VerticalAlignmentControls | undefined;
+	advanceFlowRegion(pageOrientation?: PageOrientation, options?: FlowAdvanceOptions): FlowAdvance;
 };
 
 export function createBuiltInLayout(host: BuiltInLayoutHost) {
-	const rows = new TableRowLayout(host);
 	const moveDown = (height: number, pageOrientation?: PageOrientation): void =>
 		moveDownWithPageBreak(height, pageOrientation, {
 			writer: host.writer,
-			moveAcrossSnakingPage: (orientation) => host.snakingAwarePageBreak(orientation),
+			advanceFlowRegion: (orientation) => host.advanceFlowRegion(orientation),
 		});
-	const context: BuiltInLayoutContext = {
+	const context: NodeLayoutContext = {
 		get writer() {
 			return host.writer;
 		},
@@ -44,8 +48,8 @@ export function createBuiltInLayout(host: BuiltInLayoutHost) {
 		},
 		processNode: (node, isVerticalAlignmentAllowed) =>
 			host.processNode(node, isVerticalAlignmentAllowed),
-		processRow: (options) => rows.processRow(options),
-		snakingAwarePageBreak: (orientation) => host.snakingAwarePageBreak(orientation),
+		advanceFlowRegion: (orientation, options) => host.advanceFlowRegion(orientation, options),
+		isInFlow: () => host.writer.context().getFlowSnapshot() !== null,
 		moveDownWithPageBreak: moveDown,
 	};
 	const nodeDecorationHooks = {

@@ -5,7 +5,7 @@ import type {
 	NodeMeasureContext,
 } from "../../engine/contracts/node-feature";
 import type { PdfNode } from "../../types/internal";
-import { layoutColumns, type ColumnsLayoutContext } from "./layout-columns";
+import { layoutColumns } from "./layout-columns";
 import { measureColumns } from "./measure-columns";
 import { preprocessColumns, type ColumnsPreprocessContext } from "./preprocess-columns";
 import type {
@@ -14,11 +14,6 @@ import type {
 	PreprocessedColumnsNode,
 } from "./columns.types";
 
-/** Shared row layout supplied by composition to columns. */
-export type ColumnsLayoutCapabilities = Pick<ColumnsLayoutContext, "processRow">;
-
-type ColumnsLayoutFeatureContext = NodeLayoutContext & ColumnsLayoutCapabilities;
-
 type ColumnsFeatureStages = NodeFeatureStages & {
 	preprocessNode: PdfNode;
 	preprocessedNode: PreprocessedColumnsNode;
@@ -26,14 +21,14 @@ type ColumnsFeatureStages = NodeFeatureStages & {
 	layoutNode: LayoutColumnsNode;
 	preprocessContext: ColumnsPreprocessContext;
 	measureContext: NodeMeasureContext;
-	layoutContext: ColumnsLayoutFeatureContext;
+	layoutContext: NodeLayoutContext;
 };
 
 type ColumnsFeature = NodeFeature<ColumnsFeatureStages> & {
 	readonly kind: "columns";
 	preprocess(node: PdfNode, context: ColumnsPreprocessContext): PreprocessedColumnsNode;
 	measure(node: MeasuredColumnsNode, context: NodeMeasureContext): MeasuredColumnsNode;
-	layout(node: LayoutColumnsNode, context: ColumnsLayoutFeatureContext): void;
+	layout(node: LayoutColumnsNode, context: NodeLayoutContext): void;
 };
 
 export const columnsFeature = {
@@ -50,7 +45,8 @@ export const columnsFeature = {
 			writer: context.writer,
 			enterNestedLevel: () => ++context.nestedLevel,
 			leaveNestedLevel: () => --context.nestedLevel,
-			processRow: (options) => context.processRow(options),
+			processNode: (column, isVerticalAlignmentAllowed) =>
+				context.processNode(column, isVerticalAlignmentAllowed),
 		});
 	},
 } satisfies ColumnsFeature;

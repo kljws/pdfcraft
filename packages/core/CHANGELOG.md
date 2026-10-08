@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Columns ignore `colSpan` and `rowSpan` on their children; these properties belong to table cells and are not part of the column types. Previously, because columns shared the table row layout, a column child with `colSpan` widened itself over the following columns and silently dropped their content, and a column child with `rowSpan` greater than 1 failed with `Row span for column … exceeded row count`. Each column now keeps its own width and content.
+- Internal: columns lay out their row themselves instead of through the table row layout, and table row-span state, row-span page-break data and percentage-width reservations moved into the table feature. Vertical alignment of column children and table cells is unchanged. Output is unchanged.
+- Internal: snaking columns open a flow whose regions the columns feature defines; text and tables continue in the next region through a generic flow advancement instead of inspecting snaking state. Line rebuilding in a new column, repeated table headers and page breaks inside nested column groups are unchanged. Output is unchanged.
+
 ## [0.10.0] - 2026-09-29
 
 ### Added

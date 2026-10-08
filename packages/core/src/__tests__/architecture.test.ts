@@ -73,18 +73,6 @@ const allowedFeatureOwnedFields: ReadonlyArray<{
 	removalStep: RemovalStep;
 }> = [
 	{
-		field: "cell",
-		owner: "features/table",
-		reason: "row layout records the aligned cell on the vertical-alignment box",
-		removalStep: 2,
-	},
-	{
-		field: "nodeHeight",
-		owner: "features/table",
-		reason: "row layout records the aligned content height on the vertical-alignment box",
-		removalStep: 2,
-	},
-	{
 		field: "nodeInfo",
 		owner: "features/repeatables",
 		reason: "pageBreakBefore stores the node information it builds on the layout node",

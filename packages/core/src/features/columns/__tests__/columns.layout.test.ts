@@ -4,6 +4,7 @@ import {
 	createLayoutBuilder,
 	sampleTestProvider,
 } from "../../../__tests__/fixtures/layout-builder.ts";
+import type { PageControlItem, PdfPage } from "../../../types/internal.ts";
 
 describe("columns layout", function () {
 	let builder: LayoutBuilder;
@@ -29,6 +30,32 @@ describe("columns layout", function () {
 		var pages = builder.layoutDocument(desc, sampleTestProvider);
 		assert.equal(pages[0].items[0].item.x, 40);
 		assert.equal(pages[0].items[1].item.x, 200);
+	});
+
+	it("aligns a column child vertically in the height of its row", function () {
+		const pages = builder.layoutDocument(
+			[
+				{
+					columns: [{ text: "one\ntwo\nthree" }, { text: "short", verticalAlignment: "bottom" }],
+				},
+			],
+			sampleTestProvider,
+		);
+		const [page] = pages as unknown as PdfPage[];
+		const begin = page?.items.find((item) => item.type === "beginVerticalAlignment");
+		const end = page?.items.find((item) => item.type === "endVerticalAlignment");
+		if (!begin?.item || !end?.item) throw new Error("Expected vertical-alignment markers");
+		const alignment = begin.item as PageControlItem & {
+			isContentMultiPage: boolean;
+			getNodeHeight(): number;
+			getViewHeight(): number;
+		};
+
+		assert.equal(alignment.isContentMultiPage, false);
+		assert.ok(alignment.getNodeHeight() > 0);
+		// The row is as high as the three lines of the first column.
+		assert.equal(alignment.getViewHeight(), 3 * alignment.getNodeHeight());
+		assert.equal((end.item as PageControlItem).isContentMultiPage, false);
 	});
 
 	it("should support fixed column widths", function () {

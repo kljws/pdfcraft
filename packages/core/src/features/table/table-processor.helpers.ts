@@ -1,3 +1,4 @@
+import ColumnCalculator from "../../layout/column-calculator";
 import { trackVectorInsertion } from "../../layout/vector-insertion";
 import type { ColumnWidth, PdfPage, PdfTable, Vector } from "../../types/internal";
 import type { LayoutTableCell, LayoutTableNode } from "./table.types";
@@ -120,6 +121,32 @@ export const hasExplicitPageBreak = (cell: LayoutTableCell): boolean => {
 
 	return typeof cell.pageBreak === "string" && pageBreakValues.has(cell.pageBreak);
 };
+
+/**
+ * Width each percentage column reserves inside its share of the table width: its paddings, all of
+ * its outer border on the table edges and half of each border it shares with a neighbor.
+ */
+export function getPercentageReservedWidths(tableNode: LayoutTableNode): number[] {
+	const layout = tableNode.metrics.layout;
+	const widths = requireTable(tableNode).widths;
+	return widths.map((column, index) => {
+		if (!ColumnCalculator.isPercentageColumn(column)) return 0;
+		const paddingLeft = layout.paddingLeft(index, tableNode);
+		const paddingRight = layout.paddingRight(index, tableNode);
+		const borderLeft = layout.vLineWidth(index, tableNode);
+		const borderRight = layout.vLineWidth(index + 1, tableNode);
+		if (index === 0) {
+			// first column assumes whole borderLeft and half of border right
+			return paddingLeft + paddingRight + borderLeft + borderRight / 2;
+		}
+		if (index === widths.length - 1) {
+			// last column assumes whole borderRight and half of border left
+			return paddingLeft + paddingRight + borderLeft / 2 + borderRight;
+		}
+		// Columns in the middle assume half of each border
+		return paddingLeft + paddingRight + borderLeft / 2 + borderRight / 2;
+	});
+}
 
 export const getTableInnerContentWidth = (tableNode: LayoutTableNode): number =>
 	requireTable(tableNode).widths.reduce((width: number, column: ColumnWidth) => {

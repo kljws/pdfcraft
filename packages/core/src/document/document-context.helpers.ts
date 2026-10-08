@@ -1,21 +1,23 @@
 import type { Metadata, PageMargins, PageSize, PdfPage } from "../types/internal";
 import type { ContextSnapshot, PagePosition } from "./document-context.types";
 
-export function findSnakingSnapshot(snapshots: ContextSnapshot[]): ContextSnapshot | null {
+/** Innermost snapshot of a flow region, or `null` outside any flow. */
+export function findFlowSnapshot(snapshots: ContextSnapshot[]): ContextSnapshot | null {
 	for (let index = snapshots.length - 1; index >= 0; index--) {
 		const snapshot = snapshots[index];
-		if (snapshot?.snakingColumns) {
+		if (snapshot?.flow) {
 			return snapshot;
 		}
 	}
 	return null;
 }
 
-export function hasNestedNonSnakingGroup(snapshots: ContextSnapshot[]): boolean {
+/** Whether a column group without a flow is open inside the innermost flow. */
+export function hasNestedGroupInFlow(snapshots: ContextSnapshot[]): boolean {
 	for (let index = snapshots.length - 1; index >= 0; index--) {
 		const snapshot = snapshots[index];
 		if (!snapshot) continue;
-		if (snapshot.snakingColumns) {
+		if (snapshot.flow) {
 			return false;
 		}
 		if (!snapshot.overflowed) {

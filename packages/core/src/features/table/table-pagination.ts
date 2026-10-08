@@ -1,7 +1,4 @@
-import type { PageBreak } from "../../types/internal";
-import type { LayoutTableCell } from "./table.types";
-
-export type TablePageBreak = PageBreak;
+import type { LayoutTableCell, TablePageBreak } from "./table.types";
 
 export function findStartingRowSpanCell(
 	cells: LayoutTableCell[],
