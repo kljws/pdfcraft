@@ -12,7 +12,7 @@ const openWindow = (): Window => {
 	return win;
 };
 
-/** Implements the public structural type of the same name, so the two cannot drift apart. */
+/** Must satisfy the public structural type of the same name; it may add methods of its own. */
 class OutputDocumentBrowser extends OutputDocument implements OutputDocumentBrowserContract {
 	getBuffer(): Promise<Uint8Array> {
 		return this.getData();

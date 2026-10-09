@@ -235,8 +235,9 @@ them; each new one names its owner and the step that removes it.
   them, typed with each stage's node shape; most stages add fields of their own. The shared node
   bases are composed from the state types and repeat nothing.
 - `types/output-document.types.ts` declares the public structural output types (no private
-  members, no DOM library dependency). The output classes implement them (`implements`), so a
-  difference between a class and its public type is a compile error.
+  members, no DOM library dependency). The output classes implement them (`implements`): a class
+  that no longer satisfies its public type is a compile error, while methods beyond it remain
+  allowed.
 
 ## Refactoring steps
 

@@ -3,7 +3,7 @@ import OutputDocument from "./output-document";
 import fs from "node:fs";
 import { Buffer } from "node:buffer";
 
-/** Implements the public structural type of the same name, so the two cannot drift apart. */
+/** Must satisfy the public structural type of the same name; it may add methods of its own. */
 class OutputDocumentServer extends OutputDocument implements OutputDocumentServerContract {
 	async getBuffer(): Promise<Buffer> {
 		return Buffer.from(await this.getData());
