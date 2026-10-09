@@ -1,6 +1,6 @@
 import ColumnCalculator from "../../layout/column-calculator";
 import type StyleContextStack from "../../services/styles/style-context-stack";
-import type { Color, Dictionary } from "../../types";
+import type { Color, Dictionary, TableLayout } from "../../types";
 import { stringifyNode } from "../../utils/node";
 import { isObject } from "../../utils/variable-type";
 import {
@@ -13,16 +13,12 @@ import {
 	resolveTableLayout,
 	resolveTableRowGroupLayout,
 } from "./measure-table.helpers";
-import type {
-	MeasuredTableCell,
-	MeasuredTableNode,
-	TableLayout,
-	TableMeasureNode,
-} from "./table.types";
+import type { MeasuredTableCell, MeasuredTableNode, TableMeasureNode } from "./table.types";
 
 export type TableMeasureContext = {
 	styles: StyleContextStack;
-	tableLayouts: Dictionary<Partial<TableLayout<MeasuredTableCell>>>;
+	/** Caller-provided layouts, before defaults and presets are resolved. */
+	tableLayouts: Dictionary<TableLayout>;
 	measureNode(node: MeasuredTableCell): MeasuredTableCell;
 };
 

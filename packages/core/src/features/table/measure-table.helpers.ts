@@ -1,4 +1,4 @@
-import type { Dictionary } from "../../types";
+import type { Dictionary, TableLayout as PublicTableLayout } from "../../types";
 import type { TableLayoutNode, TableRowGroupLayout, TableRowGroupLayoutContext } from "../../types";
 import type { ColumnWidth } from "../../types/internal";
 import { pack } from "../../utils/tools";
@@ -21,7 +21,7 @@ import type {
  * layout. A registered layout replaces a preset of the same name.
  */
 export function resolveTableLayout(
-	tableLayouts: Dictionary<Partial<TableLayout<MeasuredTableCell>>>,
+	tableLayouts: Dictionary<PublicTableLayout>,
 	layoutDefinition: unknown,
 ): TableLayout<MeasuredTableCell> {
 	const namedLayouts: Dictionary<unknown> = { ...tableLayoutPresets, ...tableLayouts };

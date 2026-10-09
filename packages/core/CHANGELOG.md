@@ -23,6 +23,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Internal: features declare their public content keys, which composition uses for the `pageBreakBefore` node information and cycle messages; the node information no longer lives on layout nodes. Sections own their style isolation and whether a document starts on their page, the text feature owns destination ids found in nested text, page-item kinds come from the node kind registry, and the printer document types are shared types. Each feature declares its own node properties, content key and internal fields (such as the table of contents definition and its page-number reference) from its own types instead of the shared node types.
 - Internal: one feature list and one index by kind replace the separate matching, preprocessing and lookup registries, and feature types no longer repeat the hook signatures that their stage maps define, and hooks that only forwarded to a feature function reference it directly, and the server and browser output classes implement their public output types. Output is unchanged. The `pageBreakBefore` arguments, including the order of their properties, are unchanged, and so is the output apart from the leading-section change above.
 
+### Fixed
+
+- Fixed the core package build failing with TS2352 for registered table layouts. The measurement capability accepts the public `TableLayout` contract through layout resolution, removing the incompatible cast to internal cell callbacks. Runtime layout and PDF output are unchanged.
+
 ## [0.10.0] - 2026-09-29
 
 ### Added
