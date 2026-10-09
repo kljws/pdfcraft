@@ -114,7 +114,7 @@ node types, its private state and its tests stay in `src/features/<kind>/`.
 It acts on a whole page or on the result of a pass, outside node dispatch:
 background, header and footer, watermark and `pageBreakBefore`. It lives in
 `features/repeatables/` and receives content only through ports (preprocess, measure, lay out
-a block, know whether a node carries a list marker…).
+a block, know whether a node draws nothing of its own…).
 
 ### Shared service and engine
 
@@ -130,11 +130,6 @@ Each node feature exports a `<kind>Feature` descriptor that implements
 the context type at each stage, and `NodeFeature` derives every hook signature from it; a feature
 type adds only its literal `kind` and members that are not stage hooks. Only `matches` is
 required; the other hooks are provided only when they are useful.
-
-`composition/built-in-feature-registry.ts` holds the one list of features and their index by
-`kind`. Stage hooks are found by `_kind`; preprocessing recognizes public nodes through
-`createFeatureDispatch(extensions)`, which binds the extension matcher to the instance's
-extensions and rejects ambiguous nodes.
 
 | Hook | Stage | Role |
 |---|---|---|
@@ -156,15 +151,17 @@ The registry guarantees the node shape by dispatching on `_kind`.
 
 ## Feature registry
 
-`composition/built-in-feature-registry.ts` holds the ordered `builtInFeatures` list and the
-functions that dispatch each stage to the right hook.
+`composition/built-in-feature-registry.ts` holds the one ordered list of features
+(`builtInFeatures`, then `extension`), its index by `kind`, and the functions that dispatch each
+stage to the right hook.
 
-- Each `kind` is registered once for every stage; a duplicate throws.
-- Before preprocessing, a public node is recognized by the matchers. A node recognized by several
-  features (for example `{ image, canvas }`) is rejected with `Ambiguous document node`.
+- Each `kind` is registered once for every stage; a duplicate throws (`indexFeaturesByKind`).
+- Before preprocessing, a public node is recognized by the matchers
+  (`createFeatureDispatch(extensions)`). A node recognized by several features (for example
+  `{ image, canvas }`) is rejected with `Ambiguous document node`.
 - After preprocessing, dispatch uses `_kind` directly.
-- The `extension` feature receives its matcher in composition, because it depends on the instance's
-  extensions.
+- The `extension` matcher is bound in `createFeatureDispatch`, because it depends on the
+  instance's extensions.
 - An unknown node produces `Unrecognized document structure`.
 - The registry coordinates hooks but contains no feature algorithm. There is no
   per-stage list or `switch`.
@@ -185,15 +182,19 @@ declare module "../../types/document.types" {
 			measure: MeasuredImageNode;
 			measured: MeasuredImageNode;
 			layout: LayoutImageNode;
+			pageItem: true;
 		};
 	}
 }
 ```
 
-`types/` therefore imports no feature. Shared state (`PreprocessedNodeState`,
-`MeasuredNodeState`, `LayoutNodeState`) contains only neutral concepts: references between
-nodes, sizes, margins and positions. Feature-specific state lives in
-its types, for example `TableNodeState` and `EndingCell` for table, `ListItemState` and `ListMarker`
+`types/` therefore imports no feature. Node properties follow the same rule: `PdfNode` declares
+only the properties used by several owners, and each feature adds its content key to
+`NodeHierarchy` and its own options to `PdfNode` from the same `declare module` block.
+
+Shared state (`PreprocessedNodeState`, `MeasuredNodeState`, `LayoutNodeState`) contains only
+neutral concepts: references between nodes, sizes, margins and positions. Feature-specific state
+lives in its types, for example `TableNodeState` and `EndingCell` for table, `ListItemState` and `ListMarker`
 for list, `TextReferenceState` for text.
 
 ### In-place mutation
@@ -213,7 +214,11 @@ Composition is the only place that imports concrete features. For each stage, it
 builds a context that is the intersection of the needs declared by the features:
 
 ```ts
-type BuiltInMeasureContext = NodeMeasureContext & ListMeasureCapabilities & TextMeasureCapabilities;
+type BuiltInMeasureContext = NodeMeasureContext &
+	ListMeasureCapabilities &
+	TableMeasureCapabilities &
+	TextMeasureCapabilities &
+	TocMeasureCapabilities;
 ```
 
 Collaboration between features goes through a port declared by the consuming feature and injected by
@@ -343,11 +348,12 @@ Tests are run from the repository root, because font paths are relative to the r
   narrowed before use (`for…of`, a guard, an explicit invariant).
 - Options passed to PDFKit go through `withoutUndefined` (`utils/defined.ts`), because PDFKit
   types reject `undefined`.
-- Shapes are `type` aliases. These remain `interface`: declaration-merged registries
-  (`NodeKindRegistry`, `PdfCraftContentExtensionRegistry`, `PdfCraftDocumentExtensionRegistry`),
+- Shapes are `type` aliases. These remain `interface`: declaration-merged types
+  (`NodeKindRegistry`, `PdfNode`, `NodeHierarchy`, `PdfCraftContentExtensionRegistry`,
+  `PdfCraftDocumentExtensionRegistry`),
   `PdfDocumentStream` (`this` type) and the types that break the recursive-node cycle
-  (`PreprocessedNodeBase`, `MeasuredNodeBase`, `LayoutNodeBase`, `NodeHierarchy`,
-  `TextReferenceState`, `TableNodeState`), each commented.
+  (`PreprocessedNodeBase`, `MeasuredNodeBase`, `LayoutNodeBase`, `TextReferenceState`,
+  `TableNodeState`), each commented.
 - Arrays in the public definition types are `readonly`.
 
 ## Adding a feature
