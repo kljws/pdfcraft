@@ -5,10 +5,10 @@ import { parseSync } from "oxc-parser";
 import { describe, expect, it } from "vitest";
 
 const sourceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const architectureDocument = resolve(sourceRoot, "../ARCHITECTURE.md");
+const architectureDocument = resolve(sourceRoot, "../../../docs/CORE-ARCHITECTURE.md");
 
 /**
- * Module categories and dependency rules from packages/core/ARCHITECTURE.md ("Module categories",
+ * Module categories and dependency rules from docs/CORE-ARCHITECTURE.md ("Module categories",
  * "Dependency rules"). Orchestration is listed file by file; every other file outside `features/`
  * and `composition/` is a shared service.
  */
@@ -27,8 +27,8 @@ type RemovalStep = 2 | 3 | 4 | 5 | 6;
 
 /**
  * Imports that break a dependency rule and are removed by a later refactoring step. Each entry is
- * also listed in ARCHITECTURE.md ("Known import exceptions"). The test fails when an entry no
- * longer matches an import, so removing the import requires removing its entry.
+ * also listed in docs/CORE-ARCHITECTURE.md ("Known import exceptions"). The test fails when an
+ * entry no longer matches an import, so removing the import requires removing its entry.
  */
 const allowedViolations: ReadonlyArray<{
 	source: string;
@@ -39,7 +39,7 @@ const allowedViolations: ReadonlyArray<{
 
 /**
  * Shared node-state fields used by a single feature, removed by a later refactoring step. Each
- * entry is also listed in ARCHITECTURE.md ("Known shared-state exceptions").
+ * entry is also listed in docs/CORE-ARCHITECTURE.md ("Known shared-state exceptions").
  */
 const allowedFeatureOwnedFields: ReadonlyArray<{
 	field: string;
@@ -306,7 +306,7 @@ function findFeatureOwnedSharedFields(): string[] {
 	});
 }
 
-/** List items of ARCHITECTURE.md, each joined on one line. */
+/** List items of docs/CORE-ARCHITECTURE.md, each joined on one line. */
 function listDocumentItems(): string[] {
 	return readFileSync(architectureDocument, "utf8")
 		.split(/\n(?=- |\n)/)
@@ -347,7 +347,7 @@ describe("core architecture", () => {
 		expect(keys.filter((key, index) => keys.indexOf(key) !== index)).toEqual([]);
 	});
 
-	it("documents every known exception in ARCHITECTURE.md", () => {
+	it("documents every known exception in CORE-ARCHITECTURE.md", () => {
 		// One list item per exception: "- `source` → `target`: reason. Removed in step N." for an
 		// import, "- `field` (`owner`): reason. Removed in step N." for shared node state.
 		const items = listDocumentItems();
