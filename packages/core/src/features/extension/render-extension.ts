@@ -31,6 +31,7 @@ export function renderExtension(node: LayoutExtensionNode, context: ExtensionRen
 			}
 			return (Array.isArray(fontFile) ? fontFile[0] : fontFile) as string;
 		},
+		validateLocalFile: (path) => context.document.validateLocalFile(path),
 	});
 
 	if (node.link) {

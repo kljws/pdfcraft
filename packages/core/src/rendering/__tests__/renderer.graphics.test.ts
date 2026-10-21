@@ -50,6 +50,7 @@ const createDocument = () => {
 		fileAnnotation: vi.fn().mockReturnThis(),
 		getFontFile: vi.fn((): string | null => "regular.ttf"),
 		getFontType: vi.fn(() => "normal"),
+		validateLocalFile: vi.fn(),
 		translate: vi.fn().mockReturnThis(),
 		rotate: vi.fn().mockReturnThis(),
 		fontSize: vi.fn().mockReturnThis(),
@@ -290,6 +291,8 @@ describe("Renderer graphics", () => {
 		const context = renderExtension.mock.calls[0][0];
 		expect(context.node).toBe(node);
 		expect(context.resolveFont("'Missing', Roboto", false, false, "Roboto")).toBe("regular.ttf");
+		context.validateLocalFile("image.png");
+		expect(document.validateLocalFile).toHaveBeenCalledWith("image.png");
 		expect(document.link).toHaveBeenCalledWith(5, 6, 70, 80, "https://example.com/svg");
 		expect(document.ref).not.toHaveBeenCalled();
 		expect(document.annotate).toHaveBeenCalledWith(5, 6, 70, 80, {

@@ -2,7 +2,12 @@ import svgToPdf from "../vendor/svg-to-pdfkit";
 import type { ExtensionRenderContext } from "@pdfcraft/core/types";
 import type { SvgToPdfOptions } from "../types";
 
-export const renderSvg = ({ document, node, resolveFont }: ExtensionRenderContext): void => {
+export const renderSvg = ({
+	document,
+	node,
+	resolveFont,
+	validateLocalFile,
+}: ExtensionRenderContext): void => {
 	const options = {
 		width: node._width,
 		height: node._height,
@@ -11,6 +16,11 @@ export const renderSvg = ({ document, node, resolveFont }: ExtensionRenderContex
 		...(node.options && typeof node.options === "object" ? node.options : {}),
 		fontCallback: (family: string, bold: boolean, italic: boolean) =>
 			resolveFont(family, bold, italic, typeof node.font === "string" ? node.font : "Roboto"),
+		imageCallback: (link: string) => {
+			const src = link.replace(/\s+/g, "");
+			validateLocalFile(src);
+			return src;
+		},
 	};
 	svgToPdf(document, node.svg, node.x as number, node.y as number, options as SvgToPdfOptions);
 };

@@ -1,4 +1,4 @@
-import { assert, describe, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 import { SVGMeasure, svgExtension } from "../../src/index.ts";
 import IntegrationTestHelper from "../../../core/src/__tests__/fixtures/integration.helpers.ts";
 import pdfcraft from "../../../core/src/index.ts";
@@ -73,6 +73,26 @@ describe("Integration Test: svg's", function () {
 			var buffer = await renderSvgBuffer(svg);
 
 			assert.ok(buffer.length > 0);
+		});
+
+		it("applies the local access policy to embedded images", async function () {
+			var restricted = pdfcraft.createPdfCraft({
+				fonts: {
+					Roboto: {
+						normal: "fonts/Roboto/Roboto-Regular.ttf",
+						bold: "fonts/Roboto/Roboto-Medium.ttf",
+					},
+				},
+				localAccessPolicy: (resource) => resource.startsWith("fonts/"),
+				urlAccessPolicy: () => true,
+				extensions: [svgExtension],
+			});
+			var svg =
+				'<svg width="40" height="40"><image href=" /etc/ passwd" width="40" height="40"/></svg>';
+
+			await expect(restricted.createPdf({ content: [{ svg }] }).getBuffer()).rejects.toThrow(
+				"Access to local file denied by resource access policy: /etc/passwd",
+			);
 		});
 
 		it("renders gradients, patterns, clipping, masks and markers", async function () {

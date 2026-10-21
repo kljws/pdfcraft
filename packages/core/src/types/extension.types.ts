@@ -17,6 +17,7 @@ export type ExtensionRenderContext = {
 	document: object;
 	node: ExtensionNode;
 	resolveFont(family: string, bold: boolean, italic: boolean, fallback: string): string;
+	validateLocalFile(path: unknown): void;
 };
 
 export type PdfCraftExtension = {
